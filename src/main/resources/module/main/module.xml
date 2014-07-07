@@ -1,4 +1,9 @@
 <module xmlns="urn:jboss:module:1.0" name="org.wildfly.elytron">
+
+    <!-- 
+            IGNORE FOR NOW - Use module.xml in distribution assembly.   
+     -->
+
     <resources>
         <resource-root path="elytron-subsystem.jar"/>
     </resources>

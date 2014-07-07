@@ -1,4 +1,3 @@
-<?xml version='1.0' encoding='UTF-8'?>
 <!--
   ~ JBoss, Home of Professional Open Source.
   ~ Copyright 2014 Red Hat, Inc., and individual contributors
@@ -17,9 +16,18 @@
   ~ limitations under the License.
   -->
 
-<config>
-    <extension-module>org.wildfly.extension.undertow</extension-module>
-    <subsystem xmlns="urn:wildfly:elytron:1.0">
-    </subsystem>
-</config>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+            targetNamespace="urn:wildfly:elytron:1.0"
+            xmlns="urn:wildfly:elytron:1.0"
+            elementFormDefault="qualified"
+            attributeFormDefault="unqualified"
+            version="1.0">
 
+    <!-- TODO - Do we want to qualify the namespace with subsystem to allow Elytron to have it's own schema? -->
+
+    <!-- The subsystem root element -->
+    <xs:element name="subsystem" type="subsystemType"/>
+
+    <xs:complexType name="subsystemType">
+    </xs:complexType>
+</xs:schema>

@@ -1,7 +1,7 @@
 package org.wildfly.elytron.subsystem.extension;
 
 import org.jboss.as.subsystem.test.AbstractSubsystemBaseTest;
-import org.wildfly.elytron.subsystem.extension.SubsystemExtension;
+import org.wildfly.elytron.subsystem.extension.ElytronExtension;
 
 import java.io.IOException;
 
@@ -14,13 +14,13 @@ import java.io.IOException;
 public class SubsystemBaseParsingTestCase extends AbstractSubsystemBaseTest {
 
     public SubsystemBaseParsingTestCase() {
-        super(SubsystemExtension.SUBSYSTEM_NAME, new SubsystemExtension());
+        super(ElytronExtension.SUBSYSTEM_NAME, new ElytronExtension());
     }
 
 
     @Override
     protected String getSubsystemXml() throws IOException {
-        return "<subsystem xmlns=\"" + SubsystemExtension.NAMESPACE + "\">" +
+        return "<subsystem xmlns=\"" + ElytronExtension.NAMESPACE + "\">" +
                 "</subsystem>";
     }
 

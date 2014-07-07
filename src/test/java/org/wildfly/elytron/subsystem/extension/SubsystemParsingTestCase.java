@@ -15,7 +15,7 @@ import org.jboss.as.subsystem.test.KernelServices;
 import org.jboss.dmr.ModelNode;
 import org.junit.Assert;
 import org.junit.Test;
-import org.wildfly.elytron.subsystem.extension.SubsystemExtension;
+import org.wildfly.elytron.subsystem.extension.ElytronExtension;
 
 
 /**
@@ -29,7 +29,7 @@ import org.wildfly.elytron.subsystem.extension.SubsystemExtension;
 public class SubsystemParsingTestCase extends AbstractSubsystemTest {
 
     public SubsystemParsingTestCase() {
-        super(SubsystemExtension.SUBSYSTEM_NAME, new SubsystemExtension());
+        super(ElytronExtension.SUBSYSTEM_NAME, new ElytronExtension());
     }
 
     /**
@@ -39,7 +39,7 @@ public class SubsystemParsingTestCase extends AbstractSubsystemTest {
     public void testParseSubsystem() throws Exception {
         //Parse the subsystem xml into operations
         String subsystemXml =
-                "<subsystem xmlns=\"" + SubsystemExtension.NAMESPACE + "\">" +
+                "<subsystem xmlns=\"" + ElytronExtension.NAMESPACE + "\">" +
                         "</subsystem>";
         List<ModelNode> operations = super.parse(subsystemXml);
 
@@ -53,7 +53,7 @@ public class SubsystemParsingTestCase extends AbstractSubsystemTest {
         Assert.assertEquals(1, addr.size());
         PathElement element = addr.getElement(0);
         Assert.assertEquals(SUBSYSTEM, element.getKey());
-        Assert.assertEquals(SubsystemExtension.SUBSYSTEM_NAME, element.getValue());
+        Assert.assertEquals(ElytronExtension.SUBSYSTEM_NAME, element.getValue());
     }
 
     /**
@@ -63,13 +63,13 @@ public class SubsystemParsingTestCase extends AbstractSubsystemTest {
     public void testInstallIntoController() throws Exception {
         //Parse the subsystem xml and install into the controller
         String subsystemXml =
-                "<subsystem xmlns=\"" + SubsystemExtension.NAMESPACE + "\">" +
+                "<subsystem xmlns=\"" + ElytronExtension.NAMESPACE + "\">" +
                         "</subsystem>";
         KernelServices services = super.createKernelServicesBuilder(null).setSubsystemXml(subsystemXml).build();
 
         //Read the whole model and make sure it looks as expected
         ModelNode model = services.readWholeModel();
-        Assert.assertTrue(model.get(SUBSYSTEM).hasDefined(SubsystemExtension.SUBSYSTEM_NAME));
+        Assert.assertTrue(model.get(SUBSYSTEM).hasDefined(ElytronExtension.SUBSYSTEM_NAME));
     }
 
     /**
@@ -80,7 +80,7 @@ public class SubsystemParsingTestCase extends AbstractSubsystemTest {
     public void testParseAndMarshalModel() throws Exception {
         //Parse the subsystem xml and install into the first controller
         String subsystemXml =
-                "<subsystem xmlns=\"" + SubsystemExtension.NAMESPACE + "\">" +
+                "<subsystem xmlns=\"" + ElytronExtension.NAMESPACE + "\">" +
                         "</subsystem>";
         KernelServices servicesA = super.createKernelServicesBuilder(null).setSubsystemXml(subsystemXml).build();
         //Get the model and the persisted xml from the first controller
@@ -102,7 +102,7 @@ public class SubsystemParsingTestCase extends AbstractSubsystemTest {
     public void testSubsystemRemoval() throws Exception {
         //Parse the subsystem xml and install into the first controller
         String subsystemXml =
-                "<subsystem xmlns=\"" + SubsystemExtension.NAMESPACE + "\">" +
+                "<subsystem xmlns=\"" + ElytronExtension.NAMESPACE + "\">" +
                         "</subsystem>";
         KernelServices services = super.createKernelServicesBuilder(null).setSubsystemXml(subsystemXml).build();
         //Checks that the subsystem was removed from the model
