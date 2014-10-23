@@ -16,32 +16,43 @@
  * limitations under the License.
  */
 
-package org.wildfly.elytron.subsystem.extension;
+package org.wildfly.extension.elytron;
 
-import org.jboss.as.controller.AbstractRemoveStepHandler;
+import java.util.List;
+
+import org.jboss.as.controller.AbstractBoottimeAddStepHandler;
 import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
+import org.jboss.as.controller.ServiceVerificationHandler;
 import org.jboss.dmr.ModelNode;
+import org.jboss.msc.service.ServiceController;
 
 /**
- * Handler responsible for removing the subsystem resource from the model
+ * Handler responsible for adding the subsystem resource to the model
  *
  * @author <a href="kabir.khan@jboss.com">Kabir Khan</a>
  * @author <a href="mailto:darran.lofthouse@jboss.com">Darran Lofthouse</a>
  */
-class ElytronRemove extends AbstractRemoveStepHandler {
+class ElytronAdd extends AbstractBoottimeAddStepHandler {
 
-    static final ElytronRemove INSTANCE = new ElytronRemove();
+    static final ElytronAdd INSTANCE = new ElytronAdd();
 
+    private ElytronAdd() {
+    }
 
-    private ElytronRemove() {
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void populateModel(ModelNode operation, ModelNode model) throws OperationFailedException {
+
     }
 
     @Override
-    protected void performRuntime(OperationContext context, ModelNode operation, ModelNode model) throws OperationFailedException {
-        //Remove any services installed by the corresponding add handler here
-        //context.removeService(ServiceName.of("some", "name"));
-    }
+    protected void performBoottime(OperationContext context, ModelNode operation, ModelNode model,
+            ServiceVerificationHandler verificationHandler, List<ServiceController<?>> newControllers)
+            throws OperationFailedException {
 
+    }
 
 }

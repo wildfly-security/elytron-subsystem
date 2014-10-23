@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.wildfly.elytron.subsystem.extension;
+package org.wildfly.extension.elytron;
 
 import org.jboss.as.controller.Extension;
 import org.jboss.as.controller.ExtensionContext;

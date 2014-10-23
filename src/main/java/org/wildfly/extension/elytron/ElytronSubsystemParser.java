@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.wildfly.elytron.subsystem.extension;
+package org.wildfly.extension.elytron;
 
 import java.util.List;
 

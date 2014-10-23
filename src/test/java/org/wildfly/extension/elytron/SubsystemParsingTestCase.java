@@ -1,4 +1,4 @@
-package org.wildfly.elytron.subsystem.extension;
+package org.wildfly.extension.elytron;
 
 
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.ADD;
@@ -15,7 +15,7 @@ import org.jboss.as.subsystem.test.KernelServices;
 import org.jboss.dmr.ModelNode;
 import org.junit.Assert;
 import org.junit.Test;
-import org.wildfly.elytron.subsystem.extension.ElytronExtension;
+import org.wildfly.extension.elytron.ElytronExtension;
 
 
 /**

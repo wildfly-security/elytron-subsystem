@@ -1,7 +1,7 @@
-package org.wildfly.elytron.subsystem.extension;
+package org.wildfly.extension.elytron;
 
 import org.jboss.as.subsystem.test.AbstractSubsystemBaseTest;
-import org.wildfly.elytron.subsystem.extension.ElytronExtension;
+import org.wildfly.extension.elytron.ElytronExtension;
 
 import java.io.IOException;
 

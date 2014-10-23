@@ -18,7 +18,7 @@
   -->
 
 <config>
-    <extension-module>org.wildfly.security.elytron-subsystem</extension-module>
+    <extension-module>org.wildfly.extension.elytron</extension-module>
     <subsystem xmlns="urn:wildfly:elytron:1.0">
     </subsystem>
 </config>

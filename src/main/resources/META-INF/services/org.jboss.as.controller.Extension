@@ -1,2 +1,2 @@
-org.wildfly.elytron.subsystem.extension.ElytronExtension
+org.wildfly.extension.elytron.ElytronExtension
 
