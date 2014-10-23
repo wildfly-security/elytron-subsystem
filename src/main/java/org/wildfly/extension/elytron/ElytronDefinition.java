@@ -38,13 +38,19 @@ public class ElytronDefinition extends SimpleResourceDefinition {
     }
 
     @Override
-    public void registerOperations(ManagementResourceRegistration resourceRegistration) {
-        super.registerOperations(resourceRegistration);
-        //you can register aditional operations here
+    public void registerAttributes(ManagementResourceRegistration resourceRegistration) {
+    }
+
+
+    @Override
+    public void registerChildren(ManagementResourceRegistration resourceRegistration) {
+        resourceRegistration.registerSubModel(new DomainDefinition());
+        resourceRegistration.registerSubModel(new RealmDefinition());
     }
 
     @Override
-    public void registerAttributes(ManagementResourceRegistration resourceRegistration) {
-        //you can register attributes here
+    public void registerOperations(ManagementResourceRegistration resourceRegistration) {
+        super.registerOperations(resourceRegistration);
     }
+
 }

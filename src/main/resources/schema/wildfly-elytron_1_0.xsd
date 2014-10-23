@@ -1,3 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
 <!--
   ~ JBoss, Home of Professional Open Source.
   ~ Copyright 2014 Red Hat, Inc., and individual contributors
@@ -23,11 +25,68 @@
             attributeFormDefault="unqualified"
             version="1.0">
 
-    <!-- TODO - Do we want to qualify the namespace with subsystem to allow Elytron to have it's own schema? -->
-
     <!-- The subsystem root element -->
     <xs:element name="subsystem" type="subsystemType"/>
 
     <xs:complexType name="subsystemType">
+        <xs:sequence>
+            <xs:element name="domains" type="domainsType" minOccurs="0" />
+        </xs:sequence>
     </xs:complexType>
+    
+    <xs:complexType name="domainsType">
+        <xs:annotation>
+            <xs:documentation>
+                Container for the security domain definitions.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="domain" type="domainType" maxOccurs="unbounded" />
+        </xs:sequence>
+    </xs:complexType>
+    
+    <xs:complexType name="domainType">
+        <xs:annotation>
+            <xs:documentation>
+                Complex type for the definition of a single security domain.
+                
+                A domain requires a minimum of one realm and the first realm in the list is used as the default realm.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="realm" type="realmRefType" maxOccurs="unbounded" />
+        </xs:sequence>
+        <xs:attribute name="name" type="xs:string" use="required">
+    </xs:complexType>
+
+    <xs:complexType name="realmRefType">
+        <xs:annotation>
+            <xs:documentation>
+                A reference to a security realm.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="name" type="xs:string" use="required" />
+    </xs:complexType>
+
+    <xs:complexType name="realmsType">
+        <xs:annotation>
+            <xs:documentation>
+                Container for the security realm definitions.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="realm" type="realmType" maxOccurs="unbounded" />
+        </xs:sequence>
+    </xs:complexType>
+    
+    <xs:complexType name="realmType">
+        <xs:annotation>
+            <xs:documentation>
+                Complex type for the definition of a single security realm.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="name" type="xs:string" use="required">
+    </xs:complexType>
+
 </xs:schema>
+
