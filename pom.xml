@@ -37,7 +37,8 @@
     <properties>
         <version.elytron>1.0.0.Beta1-SNAPSHOT</version.elytron>
         <version.wildfly.core>1.0.0.Alpha9</version.wildfly.core>
-        
+        <version.org.jboss.logging>3.1.4.GA</version.org.jboss.logging>
+        <version.org.jboss.logging.tools>1.2.0.Final</version.org.jboss.logging.tools>
         <version.junit>4.11</version.junit>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <module.name>org.wildfly.elytron</module.name>
@@ -158,6 +159,21 @@
             <artifactId>wildfly-elytron</artifactId>
             <version>${version.elytron}</version>
         </dependency>
+        
+        <dependency>
+            <groupId>org.jboss.logging</groupId>
+            <artifactId>jboss-logging-annotations</artifactId>
+            <version>${version.org.jboss.logging.tools}</version>
+            <scope>provided</scope>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.logging</groupId>
+            <artifactId>jboss-logging-processor</artifactId>
+            <version>${version.org.jboss.logging.tools}</version>
+            <scope>provided</scope>
+            <optional>true</optional>
+        </dependency>        
 
         <!-- TEST Dependencies -->
         <dependency>

@@ -18,6 +18,8 @@
 
 package org.wildfly.extension.elytron;
 
+import static org.wildfly.extension.elytron._private.ElytronLogger.ROOT_LOGGER;
+
 import java.util.List;
 
 import org.jboss.as.controller.AbstractBoottimeAddStepHandler;
@@ -45,7 +47,7 @@ class ElytronAdd extends AbstractBoottimeAddStepHandler {
      */
     @Override
     protected void populateModel(ModelNode operation, ModelNode model) throws OperationFailedException {
-
+        ROOT_LOGGER.iAmElytron();
     }
 
     @Override
