@@ -38,33 +38,103 @@
 
 
 <div class="well">
-    <p><b>The Elytron Subsystem</b></p>
+    <p><b>A security domain definition.</b></p>
 </div>
+
+
 
     <div class="page-header">
 
-        <h3 class="resource-header" data-toggle="collapse" data-target="#children">Children
+        <h3 class="resource-header" data-toggle="collapse" data-target="#attributes">Attributes
             (2)</h3>
 
-        <div class="collapse in" id="children">
-            <ul>
-                    <li>
-
-                            <a href="http://wildfly-security.githib.io/elytron-subsystem//Wildfly/1.0.0.Beta1-SNAPSHOT/domain/index.html">
-                                domain
+        <div class="collapse in" id="attributes">
+            <div class="panel">
+                <ul>
+                        <li>
+                            <a data-toggle="collapse" data-target="#operation-default_realm">
+                                default_realm
                             </a>
-                        A security domain definition.
+                            The default realm contained by this security domain.
+                        </li>
 
-                    </li>
-                    <li>
-
-                            <a href="http://wildfly-security.githib.io/elytron-subsystem//Wildfly/1.0.0.Beta1-SNAPSHOT/realm/index.html">
-                                realm
+                        <div id="operation-default_realm" class="collapse">
+                            <table class="table">
+                                <thead>
+                                <tr>
+                                    <th>Attribute</th>
+                                    <th>Value</th>
+                                </tr>
+                                </thead>
+                                <tr>
+                                    <td>
+                                        <b>Type</b>
+                                    </td>
+                                    <td>
+                                        STRING
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <b>Nillable</b>
+                                    </td>
+                                    <td>
+                                        false
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <b>Expressions Allowed</b>
+                                    </td>
+                                    <td>
+                                        false
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <li>
+                            <a data-toggle="collapse" data-target="#operation-realms">
+                                realms
                             </a>
-                        A security realm definition.
+                            The list of realms contained by this security domain.
+                        </li>
 
-                    </li>
-            </ul>
+                        <div id="operation-realms" class="collapse">
+                            <table class="table">
+                                <thead>
+                                <tr>
+                                    <th>Attribute</th>
+                                    <th>Value</th>
+                                </tr>
+                                </thead>
+                                <tr>
+                                    <td>
+                                        <b>Type</b>
+                                    </td>
+                                    <td>
+                                        LIST
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <b>Nillable</b>
+                                    </td>
+                                    <td>
+                                        false
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <b>Expressions Allowed</b>
+                                    </td>
+                                    <td>
+                                        true
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                </ul>
+            </div>
         </div>
     </div>
 
@@ -81,7 +151,7 @@
                         <a data-toggle="collapse" data-target="#operation-add">
                             add
                         </a>
-                        Operation adds the Elytron subsystem
+                        The add operation for a security domain definition.
 
                         <div id="operation-add" class="collapse">
                             <table class="table">
@@ -89,6 +159,30 @@
                                     <td><b>Return Type</b></td>
                                     <td>undefined</td>
                                 </tr>
+                                    <tr>
+                                        <td><b>Request Parameter</b></td>
+                                        <td><b>Type</b></td>
+                                        <td><b>Description</b></td>
+                                        <td><b>Nillable</b></td>
+                                        <td><b>Required</b></td>
+                                        <td><b>Expressions Allowed</b></td>
+                                    </tr>
+                                        <tr>
+                                            <td>default_realm</td>
+                                            <td>STRING</td>
+                                            <td>The default realm contained by this security domain.</td>
+                                            <td>false</td>
+                                            <td>true</td>
+                                            <td>false</td>
+                                        </tr>
+                                        <tr>
+                                            <td>realms</td>
+                                            <td>LIST</td>
+                                            <td>The list of realms contained by this security domain.</td>
+                                            <td>false</td>
+                                            <td>true</td>
+                                            <td>true</td>
+                                        </tr>
 
                             </table>
                         </div>
@@ -513,7 +607,7 @@
                         <a data-toggle="collapse" data-target="#operation-remove">
                             remove
                         </a>
-                        Operation removes the Elytron subsystem
+                        The remove operation for a security domain definition.
 
                         <div id="operation-remove" class="collapse">
                             <table class="table">
