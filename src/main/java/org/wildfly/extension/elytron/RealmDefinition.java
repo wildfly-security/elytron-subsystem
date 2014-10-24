@@ -18,6 +18,8 @@
 
 package org.wildfly.extension.elytron;
 
+import static org.wildfly.extension.elytron.SecurityRealmServiceUtil.realmServiceName;
+
 import org.jboss.as.controller.AbstractAddStepHandler;
 import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
@@ -28,7 +30,12 @@ import org.jboss.as.controller.SimpleResourceDefinition;
 import org.jboss.as.controller.registry.OperationEntry;
 import org.jboss.as.controller.registry.Resource;
 import org.jboss.dmr.ModelNode;
+import org.jboss.msc.service.Service;
+import org.jboss.msc.service.ServiceController.Mode;
 import org.jboss.msc.service.ServiceName;
+import org.jboss.msc.service.ServiceTarget;
+import org.wildfly.extension.elytron.junk.DummyRealmService;
+import org.wildfly.security.auth.provider.SecurityRealm;
 
 /**
  * A {@link ResourceDefinition} for a single domain.
@@ -53,14 +60,13 @@ public class RealmDefinition extends SimpleResourceDefinition {
         @Override
         protected void performRuntime(OperationContext context, ModelNode operation, Resource resource)
                 throws OperationFailedException {
-            super.performRuntime(context, operation, resource);
+            ServiceTarget serviceTarget = context.getServiceTarget();
+            ServiceName realmName = realmServiceName(operation);
+            Service<SecurityRealm> realm = new DummyRealmService();
 
-        }
-
-        @Override
-        protected void rollbackRuntime(OperationContext context, ModelNode operation, Resource resource) {
-            super.rollbackRuntime(context, operation, resource);
-
+            serviceTarget.addService(realmName, realm)
+                    .setInitialMode(Mode.LAZY)
+                    .install();
         }
 
     }
@@ -73,7 +79,7 @@ public class RealmDefinition extends SimpleResourceDefinition {
 
         @Override
         protected ServiceName serviceName(String name) {
-            return super.serviceName(name);
+            return realmServiceName(name);
         }
 
     }

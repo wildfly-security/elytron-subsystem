@@ -54,4 +54,13 @@ public interface ElytronSubsystemMessages extends BasicLogger {
     @Message(id = 2, value = "Can not inject the same realm '%s' in a single security domain '%s'.")
     OperationFailedException duplicateRealmInjection(final String realmName, final String domainName);
 
+    /**
+     * An {@link IllegalArgumentException} if the supplied operation did not contain an address with a value for the required key.
+     *
+     * @param key - the required key in the address of the operation.
+     * @return The {@link IllegalArgumentException} for the error.
+     */
+    @Message(id = 3, value = "The operation did not contain an address with a value for '%s'.")
+    IllegalArgumentException operationAddressMissingKey(final String key);
+
 }
