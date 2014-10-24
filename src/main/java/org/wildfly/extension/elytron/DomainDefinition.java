@@ -18,6 +18,11 @@
 
 package org.wildfly.extension.elytron;
 
+import static org.wildfly.extension.elytron.SecurityDomainServiceUtil.domainServiceName;
+import static org.wildfly.extension.elytron.SecurityRealmServiceUtil.realmDependency;
+
+import java.util.List;
+
 import org.jboss.as.controller.AbstractAddStepHandler;
 import org.jboss.as.controller.AttributeDefinition;
 import org.jboss.as.controller.OperationContext;
@@ -38,7 +43,15 @@ import org.jboss.as.controller.registry.OperationEntry;
 import org.jboss.as.controller.registry.Resource;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
+import org.jboss.msc.inject.Injector;
+import org.jboss.msc.service.Service;
+import org.jboss.msc.service.ServiceBuilder;
 import org.jboss.msc.service.ServiceName;
+import org.jboss.msc.service.ServiceTarget;
+import org.jboss.msc.service.ServiceController.Mode;
+import org.wildfly.extension.elytron.junk.DummyRealmService;
+import org.wildfly.security.auth.provider.SecurityDomain;
+import org.wildfly.security.auth.provider.SecurityRealm;
 
 /**
  * A {@link ResourceDefinition} for a single domain.
@@ -88,16 +101,24 @@ class DomainDefinition extends SimpleResourceDefinition {
         @Override
         protected void performRuntime(OperationContext context, ModelNode operation, Resource resource)
                 throws OperationFailedException {
-            super.performRuntime(context, operation, resource);
+            ModelNode model = resource.getModel();
 
+            ServiceTarget serviceTarget = context.getServiceTarget();
+            ServiceName domainName = domainServiceName(operation);
+            String simpleName = domainName.getSimpleName();
 
-        }
+            String defaultRealm = DomainDefinition.DEFAULT_REALM.resolveModelAttribute(context, model).asString();
+            List<String> realms = DomainDefinition.REALMS.unwrap(context, model);
 
-        @Override
-        protected void rollbackRuntime(OperationContext context, ModelNode operation, Resource resource) {
-            super.rollbackRuntime(context, operation, resource);
+            DomainService domain = new DomainService(simpleName, defaultRealm);
 
+            ServiceBuilder<SecurityDomain> domainBuilder = serviceTarget.addService(domainName, domain)
+                    .setInitialMode(Mode.LAZY);
 
+            for (String current : realms) {
+                realmDependency(domainBuilder, domain.createRealmInjector(current), current);
+            }
+            domainBuilder.install();
         }
 
     }

@@ -20,7 +20,7 @@ package org.wildfly.extension.elytron;
 
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP_ADDR;
 import static org.jboss.msc.service.ServiceBuilder.DependencyType.REQUIRED;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REALM;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.DOMAIN;
 import static org.wildfly.extension.elytron.ElytronExtension.BASE_SERVICE_NAME;
 import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
 
@@ -30,66 +30,64 @@ import org.jboss.dmr.ModelNode;
 import org.jboss.msc.inject.Injector;
 import org.jboss.msc.service.ServiceBuilder;
 import org.jboss.msc.service.ServiceName;
-import org.wildfly.security.auth.provider.SecurityRealm;
+import org.wildfly.security.auth.provider.SecurityDomain;
 
 /**
- * A utility class for creating a {@link ServiceName} for realms and handling injection.
+ * A utility class for creating a {@link ServiceName} for domains and handling injection.
  *
  * @author <a href="mailto:darran.lofthouse@jboss.com">Darran Lofthouse</a>
  */
-final class SecurityRealmServiceUtil {
+public final class SecurityDomainServiceUtil {
 
-    // Keeping visibility reduced at the moment as it is the domain that we really expect external access to.
-
-    private SecurityRealmServiceUtil() {
+    private SecurityDomainServiceUtil() {
         // Prevent Instantiation.
     }
 
     /**
-     * Construct the {@link ServiceName} for a realm given it's simple name.
+     * Construct the {@link ServiceName} for a domain given it's simple name.
      *
-     * @param name - the simple name of the realm.
-     * @return The fully qualified {@link ServiceName} of the realm.
+     * @param name - the simple name of the domain.
+     * @return The fully qualified {@link ServiceName} of the domain.
      */
-    static ServiceName realmServiceName(final String name) {
-        return BASE_SERVICE_NAME.append(REALM, name);
+    public static ServiceName domainServiceName(final String name) {
+        return BASE_SERVICE_NAME.append(DOMAIN, name);
     }
 
     /**
-     * From a given operation extract the addresss of the operation, identify the simple name of the realm being referenced and
-     * convert it into a {@link ServiceName} for that realm.
+     * From a given operation extract the address of the operation, identify the simple name of the domain being referenced and
+     * convert it into a {@link ServiceName} for that domain.
      *
-     * @param operation - the operation to extract the realm name from.
-     * @return The fully qualified {@link ServiceName} of the realm.
+     * @param operation - the operation to extract the domain name from.
+     * @return The fully qualified {@link ServiceName} of the domain.
      */
-    static ServiceName realmServiceName(final ModelNode operation) {
-        String realmName = null;
+    public static ServiceName domainServiceName(final ModelNode operation) {
+        String domainName = null;
         PathAddress pa = PathAddress.pathAddress(operation.require(OP_ADDR));
         for (int i = pa.size() - 1; i > 0; i--) {
             PathElement pe = pa.getElement(i);
-            if (REALM.equals(pe.getKey())) {
-                realmName = pe.getValue();
+            if (DOMAIN.equals(pe.getKey())) {
+                domainName = pe.getValue();
                 break;
             }
         }
 
-        if (realmName == null) {
-            throw ROOT_LOGGER.operationAddressMissingKey(REALM);
+        if (domainName == null) {
+            throw ROOT_LOGGER.operationAddressMissingKey(DOMAIN);
         }
 
-        return realmServiceName(realmName);
+        return domainServiceName(domainName);
     }
 
     /**
-     * Using the supplied {@link Injector} add a dependency on the {@link SecurityRealm} identified by the supplied realm name.
+     * Using the supplied {@link Injector} add a dependency on the {@link SecurityDomain} identified by the supplied domain name.
      *
      * @param sb - the {@link ServiceBuilder} to use for the injection.
      * @param injector - the {@link Injector} to inject into.
-     * @param realmName - the name of the realm to inject.
+     * @param domainName - the name of the domain to inject.
      * @return The {@link ServiceBuilder} passed in to allow method chaining.
      */
-    static ServiceBuilder<?> realmDependency(ServiceBuilder<?> sb, Injector<SecurityRealm> injector, String realmName) {
-        sb.addDependency(REQUIRED, realmServiceName(realmName), SecurityRealm.class, injector);
+    public static ServiceBuilder<?> dinaubDependency(ServiceBuilder<?> sb, Injector<SecurityDomain> injector, String domainName) {
+        sb.addDependency(REQUIRED, domainServiceName(domainName), SecurityDomain.class, injector);
 
         return sb;
     }
