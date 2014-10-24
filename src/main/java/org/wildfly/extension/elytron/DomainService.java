@@ -22,6 +22,7 @@ import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.RO
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.jboss.as.controller.OperationFailedException;
 import org.jboss.msc.inject.Injector;
@@ -63,12 +64,18 @@ class DomainService implements Service<SecurityDomain> {
 
     @Override
     public void start(StartContext context) throws StartException {
+        SecurityDomain.Builder builder = SecurityDomain.builder();
+        builder.setDefaultRealmName(defaultRealm);
+        for (Entry<String, InjectedValue<SecurityRealm>> entry : realms.entrySet()) {
+            builder.addRealm(entry.getKey(), entry.getValue().getValue());
+        }
 
+        securityDomain = builder.build();
     }
 
     @Override
     public void stop(StopContext context) {
-
+       securityDomain = null;
     }
 
     @Override
