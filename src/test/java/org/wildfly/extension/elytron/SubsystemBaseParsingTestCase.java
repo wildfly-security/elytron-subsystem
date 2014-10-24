@@ -1,9 +1,8 @@
 package org.wildfly.extension.elytron;
 
-import org.jboss.as.subsystem.test.AbstractSubsystemBaseTest;
-import org.wildfly.extension.elytron.ElytronExtension;
-
 import java.io.IOException;
+
+import org.jboss.as.subsystem.test.AbstractSubsystemBaseTest;
 
 /**
  * This is the bare bones test example that tests subsystem

@@ -32,6 +32,7 @@ import org.jboss.as.controller.PathElement;
 import org.jboss.as.controller.ResourceDefinition;
 import org.jboss.as.controller.RestartParentWriteAttributeHandler;
 import org.jboss.as.controller.ServiceRemoveStepHandler;
+import org.jboss.as.controller.ServiceVerificationHandler;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
 import org.jboss.as.controller.SimpleResourceDefinition;
@@ -40,18 +41,14 @@ import org.jboss.as.controller.operations.validation.StringLengthValidator;
 import org.jboss.as.controller.registry.AttributeAccess;
 import org.jboss.as.controller.registry.ManagementResourceRegistration;
 import org.jboss.as.controller.registry.OperationEntry;
-import org.jboss.as.controller.registry.Resource;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
-import org.jboss.msc.inject.Injector;
-import org.jboss.msc.service.Service;
 import org.jboss.msc.service.ServiceBuilder;
+import org.jboss.msc.service.ServiceController;
+import org.jboss.msc.service.ServiceController.Mode;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.ServiceTarget;
-import org.jboss.msc.service.ServiceController.Mode;
-import org.wildfly.extension.elytron.junk.DummyRealmService;
 import org.wildfly.security.auth.provider.SecurityDomain;
-import org.wildfly.security.auth.provider.SecurityRealm;
 
 /**
  * A {@link ResourceDefinition} for a single domain.
@@ -92,6 +89,25 @@ class DomainDefinition extends SimpleResourceDefinition {
         }
     }
 
+    private static ServiceController<SecurityDomain> installService(OperationContext context, ServiceName domainName, ModelNode model) throws OperationFailedException {
+        ServiceTarget serviceTarget = context.getServiceTarget();
+        String simpleName = domainName.getSimpleName();
+
+        String defaultRealm = DomainDefinition.DEFAULT_REALM.resolveModelAttribute(context, model).asString();
+        List<String> realms = DomainDefinition.REALMS.unwrap(context, model);
+
+        DomainService domain = new DomainService(simpleName, defaultRealm);
+
+        ServiceBuilder<SecurityDomain> domainBuilder = serviceTarget.addService(domainName, domain)
+                .setInitialMode(Mode.LAZY);
+
+        for (String current : realms) {
+            realmDependency(domainBuilder, domain.createRealmInjector(current), current);
+        }
+
+        return domainBuilder.install();
+    }
+
     private static class DomainAddHandler extends AbstractAddStepHandler {
 
         private DomainAddHandler() {
@@ -99,26 +115,12 @@ class DomainDefinition extends SimpleResourceDefinition {
         }
 
         @Override
-        protected void performRuntime(OperationContext context, ModelNode operation, Resource resource)
+        protected void performRuntime(OperationContext context, ModelNode operation, ModelNode model,
+                ServiceVerificationHandler verificationHandler, List<ServiceController<?>> newControllers)
                 throws OperationFailedException {
-            ModelNode model = resource.getModel();
-
-            ServiceTarget serviceTarget = context.getServiceTarget();
             ServiceName domainName = domainServiceName(operation);
-            String simpleName = domainName.getSimpleName();
 
-            String defaultRealm = DomainDefinition.DEFAULT_REALM.resolveModelAttribute(context, model).asString();
-            List<String> realms = DomainDefinition.REALMS.unwrap(context, model);
-
-            DomainService domain = new DomainService(simpleName, defaultRealm);
-
-            ServiceBuilder<SecurityDomain> domainBuilder = serviceTarget.addService(domainName, domain)
-                    .setInitialMode(Mode.LAZY);
-
-            for (String current : realms) {
-                realmDependency(domainBuilder, domain.createRealmInjector(current), current);
-            }
-            domainBuilder.install();
+            newControllers.add(installService(context, domainName, model));
         }
 
     }
@@ -145,7 +147,13 @@ class DomainDefinition extends SimpleResourceDefinition {
 
         @Override
         protected ServiceName getParentServiceName(PathAddress parentAddress) {
-            return null;
+            return domainServiceName(parentAddress.toModelNode());
+        }
+
+        @Override
+        protected void recreateParentService(OperationContext context, PathAddress parentAddress, ModelNode parentModel,
+                ServiceVerificationHandler verificationHandler) throws OperationFailedException {
+            installService(context, getParentServiceName(parentAddress), parentModel);
         }
 
     }

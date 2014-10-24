@@ -36,7 +36,10 @@
 
     <properties>
         <version.elytron>1.0.0.Beta1-SNAPSHOT</version.elytron>
-        <version.wildfly.core>1.0.0.Alpha9</version.wildfly.core>
+
+        <!-- This MUST match the version the feature-pack and distribution are using. -->
+        <version.wildfly.core>1.0.0.Alpha8</version.wildfly.core> 
+
         <version.org.jboss.logging>3.1.4.GA</version.org.jboss.logging>
         <version.org.jboss.logging.tools>1.2.0.Final</version.org.jboss.logging.tools>
         <version.junit>4.11</version.junit>
