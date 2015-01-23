@@ -72,7 +72,7 @@ class DomainDefinition extends SimpleResourceDefinition {
 
     private static final DomainAddHandler ADD = new DomainAddHandler();
     private static final DomainRemoveHandler REMOVE = new DomainRemoveHandler(ADD);
-    private static final WiteAttributeHandler WRITE = new WiteAttributeHandler(ElytronDescriptionConstants.DOMAIN);
+    private static final WriteAttributeHandler WRITE = new WriteAttributeHandler(ElytronDescriptionConstants.DOMAIN);
 
     DomainDefinition() {
         super(PathElement.pathElement(ElytronDescriptionConstants.DOMAIN),
@@ -139,9 +139,9 @@ class DomainDefinition extends SimpleResourceDefinition {
 
     }
 
-    private static class WiteAttributeHandler extends RestartParentWriteAttributeHandler {
+    private static class WriteAttributeHandler extends RestartParentWriteAttributeHandler {
 
-        public WiteAttributeHandler(String parentKeyName) {
+        public WriteAttributeHandler(String parentKeyName) {
             super(parentKeyName, ATTRIBUTES);
         }
 

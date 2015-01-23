@@ -18,10 +18,13 @@
 
 package org.wildfly.extension.elytron;
 
+import org.jboss.as.controller.ResourceDefinition;
 import org.jboss.as.controller.SimpleResourceDefinition;
 import org.jboss.as.controller.registry.ManagementResourceRegistration;
 
 /**
+ * Top level {@link ResourceDefinition} for the Elytron subsystem.
+ *
  * @author <a href="mailto:tcerar@redhat.com">Tomaz Cerar</a>
  * @author <a href="mailto:darran.lofthouse@jboss.com">Darran Lofthouse</a>
  */
@@ -44,8 +47,12 @@ public class ElytronDefinition extends SimpleResourceDefinition {
 
     @Override
     public void registerChildren(ManagementResourceRegistration resourceRegistration) {
+        // Domain and Realm Model
         resourceRegistration.registerSubModel(new DomainDefinition());
         resourceRegistration.registerSubModel(new RealmDefinition());
+
+        // TLS Building Blocks
+        resourceRegistration.registerSubModel(new KeyStoreDefinition());
     }
 
     @Override

@@ -41,7 +41,7 @@ import org.wildfly.extension.elytron.junk.DummyRealmService;
 import org.wildfly.security.auth.provider.SecurityRealm;
 
 /**
- * A {@link ResourceDefinition} for a single domain.
+ * A {@link ResourceDefinition} for a single realm.
  *
  * @author <a href="mailto:darran.lofthouse@jboss.com">Darran Lofthouse</a>
  */

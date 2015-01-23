@@ -29,8 +29,18 @@ interface ElytronDescriptionConstants {
     String DEFAULT_REALM = "default_realm";
     String DOMAIN = "domain";
     String DOMAINS = "domains";
+    String FILE = "file";
+    String KEYSTORE = "keystore";
     String NAME = "name";
+    String PATH = "path";
+    String PASSWORD = "password";
+    String PROVIDER = "provider";
     String REALM = "realm";
     String REALMS = "realms";
+    String RELATIVE_TO = "relative-to";
+    String REQUIRED = "required";
+    String SOURCE = "source";
+    String TYPE = "type";
+    String WATCH = "watch";
 
 }
