@@ -34,7 +34,6 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PASSWORD;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PATH;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDER;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.RELATIVE_TO;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REQUIRED;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SOURCE;

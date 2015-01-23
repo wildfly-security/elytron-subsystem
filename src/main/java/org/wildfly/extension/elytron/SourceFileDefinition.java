@@ -55,9 +55,6 @@ import org.jboss.msc.service.ServiceName;
  */
 class SourceFileDefinition extends SimpleResourceDefinition {
 
-    private static final OperationStepHandler ADD = new SourceFileAddHandler();
-    private static final OperationStepHandler REMOVE = new SourceFileRemoveHandler();
-
     // Attributes
     static final SimpleAttributeDefinition RELATIVE_TO = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.RELATIVE_TO, ModelType.STRING, true)
         .setAllowExpression(true)
@@ -84,6 +81,9 @@ class SourceFileDefinition extends SimpleResourceDefinition {
         .build();
 
     private static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] { RELATIVE_TO, PATH, WATCH, REQUIRED };
+
+    private static final OperationStepHandler ADD = new SourceFileAddHandler();
+    private static final OperationStepHandler REMOVE = new SourceFileRemoveHandler();
     private static final OperationStepHandler WRITE = new WriteAttributeHandler();
 
     // read-only
@@ -106,6 +106,7 @@ class SourceFileDefinition extends SimpleResourceDefinition {
 
     @Override
     public void registerOperations(ManagementResourceRegistration resourceRegistration) {
+        super.registerOperations(resourceRegistration);
 
         // Save
         // Reload?
@@ -114,9 +115,15 @@ class SourceFileDefinition extends SimpleResourceDefinition {
 
     private static class SourceFileAddHandler extends AbstractAddStepHandler {
 
+        private SourceFileAddHandler() {
+            super(ATTRIBUTES);
+        }
+
     }
 
     private static class SourceFileRemoveHandler extends AbstractRemoveStepHandler {
+
+        // TODO - This one needs to restart the parent resource.
 
     }
 

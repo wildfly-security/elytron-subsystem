@@ -1,3 +1,21 @@
+/*
+ * JBoss, Home of Professional Open Source.
+ * Copyright 2014 Red Hat, Inc., and individual contributors
+ * as indicated by the @author tags.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.wildfly.extension.elytron;
 
 
@@ -19,8 +37,8 @@ import org.junit.Test;
 
 /**
  * Tests all management expects for subsystem, parsing, marshaling, model definition and other
- * Here is an example that allows you a fine grained controler over what is tested and how. So it can give you ideas what can be done and tested.
- * If you have no need for advanced testing of subsystem you look at {@link SubsystemBaseParsingTestCase} that testes same stuff but most of the code
+ * Here is an example that allows you a fine grained controller over what is tested and how. So it can give you ideas what can be done and tested.
+ * If you have no need for advanced testing of subsystem you look at {@link SubsystemBaseParsingTestCase} that tests same stuff but most of the code
  * is hidden inside of test harness
  *
  * @author <a href="kabir.khan@jboss.com">Kabir Khan</a>
@@ -85,6 +103,28 @@ public class SubsystemParsingTestCase extends AbstractSubsystemTest {
         //Get the model and the persisted xml from the first controller
         ModelNode modelA = servicesA.readWholeModel();
         String marshalled = servicesA.getPersistedSubsystemXml();
+
+        //Install the persisted xml from the first controller into a second controller
+        KernelServices servicesB = super.createKernelServicesBuilder(null).setSubsystemXml(marshalled).build();
+        ModelNode modelB = servicesB.readWholeModel();
+
+        //Make sure the models from the two controllers are identical
+        super.compare(modelA, modelB);
+    }
+
+    /**
+     * Starts a controller with a given subsystem xml and then checks that a second
+     * controller started with the xml marshalled from the first one results in the same model
+     */
+    @Test
+    public void testParseAndMarshalModel_KeyStore() throws Exception {
+        //Parse the subsystem xml and install into the first controller
+        KernelServices servicesA = super.createKernelServicesBuilder(null).setSubsystemXmlResource("keystore.xml").build();
+        //Get the model and the persisted xml from the first controller
+        ModelNode modelA = servicesA.readWholeModel();
+        System.out.println(modelA.toString());
+        String marshalled = servicesA.getPersistedSubsystemXml();
+        System.out.println(marshalled);
 
         //Install the persisted xml from the first controller into a second controller
         KernelServices servicesB = super.createKernelServicesBuilder(null).setSubsystemXml(marshalled).build();

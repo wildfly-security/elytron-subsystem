@@ -19,7 +19,6 @@
 package org.wildfly.extension.elytron;
 
 import org.jboss.as.controller.AbstractAddStepHandler;
-import org.jboss.as.controller.AbstractRemoveStepHandler;
 import org.jboss.as.controller.AttributeDefinition;
 import org.jboss.as.controller.ModelVersion;
 import org.jboss.as.controller.OperationContext;
@@ -29,11 +28,11 @@ import org.jboss.as.controller.PathAddress;
 import org.jboss.as.controller.PathElement;
 import org.jboss.as.controller.ResourceDefinition;
 import org.jboss.as.controller.RestartParentWriteAttributeHandler;
+import org.jboss.as.controller.ServiceRemoveStepHandler;
 import org.jboss.as.controller.ServiceVerificationHandler;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
 import org.jboss.as.controller.SimpleResourceDefinition;
-import org.jboss.as.controller.descriptions.ModelDescriptionConstants;
 import org.jboss.as.controller.operations.validation.StringLengthValidator;
 import org.jboss.as.controller.registry.AttributeAccess;
 import org.jboss.as.controller.registry.ManagementResourceRegistration;
@@ -48,10 +47,6 @@ import org.jboss.msc.service.ServiceName;
  * @author <a href="mailto:darran.lofthouse@jboss.com">Darran Lofthouse</a>
  */
 final class KeyStoreDefinition extends SimpleResourceDefinition {
-
-    private static final OperationStepHandler ADD = new KeyStoreAddHandler();
-    private static final OperationStepHandler REMOVE = new KeyStoreRemoveHandler();
-
 
     static final SimpleAttributeDefinition TYPE = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.TYPE, ModelType.STRING, false)
         .setAllowExpression(true)
@@ -74,7 +69,10 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
 
     private static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] { TYPE, PROVIDER, PASSWORD };
 
+    private static final KeyStoreAddHandler ADD = new KeyStoreAddHandler();
+    private static final OperationStepHandler REMOVE = new KeyStoreRemoveHandler(ADD);
     private static final WriteAttributeHandler WRITE = new WriteAttributeHandler();
+
     // Attributes
 
     // Runtime Stuff
@@ -111,6 +109,7 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
 
     @Override
     public void registerOperations(ManagementResourceRegistration resourceRegistration) {
+        super.registerOperations(resourceRegistration);
         // getAlias (Maybe just on child runtime resource)
 
         // Later
@@ -126,9 +125,17 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
 
     private static class KeyStoreAddHandler extends AbstractAddStepHandler {
 
+        private KeyStoreAddHandler() {
+            super(ATTRIBUTES);
+        }
+
     }
 
-    private static class KeyStoreRemoveHandler extends AbstractRemoveStepHandler {
+    private static class KeyStoreRemoveHandler extends ServiceRemoveStepHandler {
+
+        private KeyStoreRemoveHandler(final AbstractAddStepHandler add) {
+            super(add);
+        }
 
     }
 
