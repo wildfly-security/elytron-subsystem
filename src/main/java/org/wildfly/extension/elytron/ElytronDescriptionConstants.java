@@ -31,6 +31,7 @@ interface ElytronDescriptionConstants {
     String DOMAINS = "domains";
     String FILE = "file";
     String KEYSTORE = "keystore";
+    String KEYSTORES = "keystores";
     String NAME = "name";
     String PATH = "path";
     String PASSWORD = "password";
@@ -40,6 +41,7 @@ interface ElytronDescriptionConstants {
     String RELATIVE_TO = "relative-to";
     String REQUIRED = "required";
     String SOURCE = "source";
+    String TLS = "tls";
     String TYPE = "type";
     String WATCH = "watch";
 

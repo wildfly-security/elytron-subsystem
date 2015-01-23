@@ -31,8 +31,13 @@
     <xs:complexType name="subsystemType">
         <xs:sequence>
             <xs:element name="domains" type="domainsType" minOccurs="0" />
+            <xs:element name="tls" type="tlsType" minOccurs="0" />
         </xs:sequence>
     </xs:complexType>
+    
+    <!-- 
+        Domains and Realms
+     -->
     
     <xs:complexType name="domainsType">
         <xs:annotation>
@@ -56,7 +61,7 @@
         <xs:sequence>
             <xs:element name="realm" type="realmRefType" maxOccurs="unbounded" />
         </xs:sequence>
-        <xs:attribute name="name" type="xs:string" use="required">
+        <xs:attribute name="name" type="xs:string" use="required" />
     </xs:complexType>
 
     <xs:complexType name="realmRefType">
@@ -85,7 +90,130 @@
                 Complex type for the definition of a single security realm.
             </xs:documentation>
         </xs:annotation>
-        <xs:attribute name="name" type="xs:string" use="required">
+        <xs:attribute name="name" type="xs:string" use="required" />
+    </xs:complexType>
+
+    <!-- 
+        TLS Components
+     -->
+
+    <xs:complexType name="tlsType">
+        <xs:annotation>
+            <xs:documentation>
+                Complex type to contain the definitions of the various components needed
+                for SSL, the end result being that these components can be combined together to
+                create a fully defined SSLContext.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="keystores" type="keyStoresType" minOccurs="0" />
+        </xs:sequence>
+    </xs:complexType>
+    
+    <xs:complexType name="keyStoresType">
+        <xs:annotation>
+            <xs:documentation>
+                Container for the KeyStore definitions.
+            </xs:documentation>
+        </xs:annotation>
+    </xs:complexType>
+
+    <xs:complexType name="keyStoreType">
+        <xs:annotation>
+            <xs:documentation>
+                An individual names KeyStore definition.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="file" type="fileType" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>
+                        The location of the file to use to initialise the KeyStore instance.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+        <xs:attribute name="name" type="xs:string" use="required" />
+        <xs:attribute name="type" type="xs:string" use="required">
+            <xs:annotation>
+                <xs:documentation>
+                    The KeyStore type, e.g. jks, pkcs#12.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="provider" type="xs:string" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    The name of the provider to use to
+                    instantiate the KeyStore, if the provider is not
+                    specified then the first provider found that can
+                    create an instance of the specified 'type' will be
+                    used.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="password" type="xs:string" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    The password to use when initialising / loading the KeyStore.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:complexType>
+
+    <!-- 
+        General Types
+     -->
+
+    <xs:complexType name="fileType">
+        <xs:annotation>
+            <xs:documentation>
+                A reference to a file.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="relative-to" type="xs:string" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    A reference to a previously defined path that the file name is
+                    relative to.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="path" type="xs:string" use="required">
+            <xs:annotation>
+                <xs:documentation>
+                    The remaining path to the file referenced.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="watch" type="xs:boolean" use="optional" default="true">
+            <xs:annotation>
+                <xs:documentation>
+                    Should the file be watched for notifications and automatically reloaded
+                    when any are detected?
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="read-only" type="xs:boolean" use="optional" default="false">
+            <xs:annotation>
+                <xs:documentation>
+                    When set to 'true' this attribute prevents the in-memory representation
+                    of the file from being written back to the file.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="required" type="xs:boolean" use="optional" default="false">
+            <xs:annotation>
+                <xs:documentation>
+                    It is possible that a KeyStore definition can be created to a non-existent file and
+                    the file be automatically created when the store is saved, however no error will be reported 
+                    where the file does not exist to begin with.
+                    
+                    If the intent is that the store will always exist in advance set this to 'true' so that an error
+                    will be reported if the file is missing.  
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
     </xs:complexType>
 
 </xs:schema>
