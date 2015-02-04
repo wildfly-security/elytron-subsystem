@@ -67,18 +67,16 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
         .setDeprecated(ModelVersion.create(1, 0)) // Deprecate immediately as to be supplied by the vault.
         .build();
 
-    /*
-     * File Attribute Group // TODO - Make into a single attribute group.
-     */
-
     static final SimpleAttributeDefinition PATH = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PATH, ModelType.STRING, true)
         .setAllowExpression(true)
+        .setAttributeGroup(ElytronDescriptionConstants.FILE)
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
         .setValidator(new StringLengthValidator(1, Integer.MAX_VALUE, true, true))
         .build();
 
     static final SimpleAttributeDefinition RELATIVE_TO = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.RELATIVE_TO, ModelType.STRING, true)
         .setAllowExpression(true)
+        .setAttributeGroup(ElytronDescriptionConstants.FILE)
         .setRequires(ElytronDescriptionConstants.PATH)
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
         .setValidator(new StringLengthValidator(1, Integer.MAX_VALUE, true, true))
@@ -87,6 +85,7 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
     static final SimpleAttributeDefinition WATCH = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.WATCH, ModelType.BOOLEAN, true)
         .setDefaultValue(new ModelNode(true))
         .setAllowExpression(true)
+        .setAttributeGroup(ElytronDescriptionConstants.FILE)
         .setRequires(ElytronDescriptionConstants.PATH)
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
         .build();
@@ -94,6 +93,7 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
     static final SimpleAttributeDefinition REQUIRED = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.REQUIRED, ModelType.BOOLEAN, true)
         .setDefaultValue(new ModelNode(false))
         .setAllowExpression(true)
+        .setAttributeGroup(ElytronDescriptionConstants.FILE)
         .setRequires(ElytronDescriptionConstants.PATH)
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
         .build();
