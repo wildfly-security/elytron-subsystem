@@ -32,7 +32,6 @@ import org.jboss.as.controller.PathElement;
 import org.jboss.as.controller.ResourceDefinition;
 import org.jboss.as.controller.RestartParentWriteAttributeHandler;
 import org.jboss.as.controller.ServiceRemoveStepHandler;
-import org.jboss.as.controller.ServiceVerificationHandler;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
 import org.jboss.as.controller.SimpleResourceDefinition;
@@ -114,13 +113,13 @@ class DomainDefinition extends SimpleResourceDefinition {
             super(ATTRIBUTES);
         }
 
+
         @Override
-        protected void performRuntime(OperationContext context, ModelNode operation, ModelNode model,
-                ServiceVerificationHandler verificationHandler, List<ServiceController<?>> newControllers)
+        protected void performRuntime(OperationContext context, ModelNode operation, ModelNode model)
                 throws OperationFailedException {
             ServiceName domainName = domainServiceName(operation);
 
-            newControllers.add(installService(context, domainName, model));
+            installService(context, domainName, model);
         }
 
     }
@@ -150,9 +149,10 @@ class DomainDefinition extends SimpleResourceDefinition {
             return domainServiceName(parentAddress.toModelNode());
         }
 
+
         @Override
-        protected void recreateParentService(OperationContext context, PathAddress parentAddress, ModelNode parentModel,
-                ServiceVerificationHandler verificationHandler) throws OperationFailedException {
+        protected void recreateParentService(OperationContext context, PathAddress parentAddress, ModelNode parentModel)
+                throws OperationFailedException {
             installService(context, getParentServiceName(parentAddress), parentModel);
         }
 

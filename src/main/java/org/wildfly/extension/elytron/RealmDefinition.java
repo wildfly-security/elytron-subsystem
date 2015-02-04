@@ -20,7 +20,6 @@ package org.wildfly.extension.elytron;
 
 import static org.wildfly.extension.elytron.SecurityRealmServiceUtil.realmServiceName;
 
-import java.util.List;
 
 import org.jboss.as.controller.AbstractAddStepHandler;
 import org.jboss.as.controller.OperationContext;
@@ -28,12 +27,10 @@ import org.jboss.as.controller.OperationFailedException;
 import org.jboss.as.controller.PathElement;
 import org.jboss.as.controller.ResourceDefinition;
 import org.jboss.as.controller.ServiceRemoveStepHandler;
-import org.jboss.as.controller.ServiceVerificationHandler;
 import org.jboss.as.controller.SimpleResourceDefinition;
 import org.jboss.as.controller.registry.OperationEntry;
 import org.jboss.dmr.ModelNode;
 import org.jboss.msc.service.Service;
-import org.jboss.msc.service.ServiceController;
 import org.jboss.msc.service.ServiceController.Mode;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.ServiceTarget;
@@ -61,17 +58,15 @@ public class RealmDefinition extends SimpleResourceDefinition {
     private static class RealmAddHandler extends AbstractAddStepHandler {
 
         @Override
-        protected void performRuntime(OperationContext context, ModelNode operation, ModelNode model,
-                ServiceVerificationHandler verificationHandler, List<ServiceController<?>> newControllers)
+        protected void performRuntime(OperationContext context, ModelNode operation, ModelNode model)
                 throws OperationFailedException {
             ServiceTarget serviceTarget = context.getServiceTarget();
             ServiceName realmName = realmServiceName(operation);
             Service<SecurityRealm> realm = new DummyRealmService();
 
-            ServiceController<SecurityRealm> serviceController = serviceTarget.addService(realmName, realm)
+            serviceTarget.addService(realmName, realm)
                     .setInitialMode(Mode.LAZY)
                     .install();
-            newControllers.add(serviceController);
         }
 
     }
