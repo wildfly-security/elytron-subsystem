@@ -67,7 +67,38 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
         .setDeprecated(ModelVersion.create(1, 0)) // Deprecate immediately as to be supplied by the vault.
         .build();
 
-    private static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] { TYPE, PROVIDER, PASSWORD };
+    /*
+     * File Attribute Group // TODO - Make into a single attribute group.
+     */
+
+    static final SimpleAttributeDefinition PATH = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PATH, ModelType.STRING, true)
+        .setAllowExpression(true)
+        .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+        .setValidator(new StringLengthValidator(1, Integer.MAX_VALUE, true, true))
+        .build();
+
+    static final SimpleAttributeDefinition RELATIVE_TO = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.RELATIVE_TO, ModelType.STRING, true)
+        .setAllowExpression(true)
+        .setRequires(ElytronDescriptionConstants.PATH)
+        .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+        .setValidator(new StringLengthValidator(1, Integer.MAX_VALUE, true, true))
+        .build();
+
+    static final SimpleAttributeDefinition WATCH = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.WATCH, ModelType.BOOLEAN, true)
+        .setDefaultValue(new ModelNode(true))
+        .setAllowExpression(true)
+        .setRequires(ElytronDescriptionConstants.PATH)
+        .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+        .build();
+
+    static final SimpleAttributeDefinition REQUIRED = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.REQUIRED, ModelType.BOOLEAN, true)
+        .setDefaultValue(new ModelNode(false))
+        .setAllowExpression(true)
+        .setRequires(ElytronDescriptionConstants.PATH)
+        .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+        .build();
+
+    private static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] { TYPE, PROVIDER, PASSWORD, PATH, RELATIVE_TO, WATCH, REQUIRED };
 
     private static final KeyStoreAddHandler ADD = new KeyStoreAddHandler();
     private static final OperationStepHandler REMOVE = new KeyStoreRemoveHandler(ADD);
@@ -96,18 +127,6 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
     }
 
     @Override
-    public void registerChildren(ManagementResourceRegistration resourceRegistration) {
-        /*
-         * A file is the only currently supported source, however this leaves us able to add
-         * alternatives if needed in the future.
-         *
-         * For now it is also assumed the source is the location to save to but we could
-         * even conceivably support an alternative destination, e.g. we can read from X but write to Y.
-         */
-        resourceRegistration.registerSubModel(new SourceFileDefinition());
-    }
-
-    @Override
     public void registerOperations(ManagementResourceRegistration resourceRegistration) {
         super.registerOperations(resourceRegistration);
         // getAlias (Maybe just on child runtime resource)
@@ -119,7 +138,7 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
         // Create CSR
         // Import certificate
 
-        // Save an reload are directly related to the store being file based so the ops are on that resource.
+        // reload / save - can probably support reload in all cases, save should be no-op where no file.
     }
 
 

@@ -36,7 +36,6 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PATH;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.RELATIVE_TO;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REQUIRED;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SOURCE;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.TYPE;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.WATCH;
 import static org.wildfly.extension.elytron.ElytronSubsystemParser.verifyNamespace;
@@ -120,7 +119,7 @@ class TlsParser {
             verifyNamespace(reader);
             String localName = reader.getLocalName();
             if (FILE.equals(localName)) {
-                readFile(addKeyStore.get(OP_ADDR), reader, list);
+                readFile(addKeyStore, reader, list);
             } else {
                 throw unexpectedElement(reader);
             }
@@ -128,12 +127,7 @@ class TlsParser {
 
     }
 
-    private void readFile(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> list) throws XMLStreamException {
-        ModelNode addFile = new ModelNode();
-        addFile.get(OP).set(ADD);
-        addFile.get(OP_ADDR).set(parentAddress).add(SOURCE, FILE);
-        list.add(addFile);
-
+    private void readFile(ModelNode addOp, XMLExtendedStreamReader reader, List<ModelNode> list) throws XMLStreamException {
         boolean pathFound = false;
         final int count = reader.getAttributeCount();
         for (int i = 0; i < count; i++) {
@@ -144,17 +138,17 @@ class TlsParser {
                 String attribute = reader.getAttributeLocalName(i);
                 switch (attribute) {
                     case RELATIVE_TO:
-                        SourceFileDefinition.RELATIVE_TO.parseAndSetParameter(value, addFile, reader);
+                        KeyStoreDefinition.RELATIVE_TO.parseAndSetParameter(value, addOp, reader);
                         break;
                     case PATH:
                         pathFound = true;
-                        SourceFileDefinition.PATH.parseAndSetParameter(value, addFile, reader);
+                        KeyStoreDefinition.PATH.parseAndSetParameter(value, addOp, reader);
                         break;
                     case WATCH:
-                        SourceFileDefinition.WATCH.parseAndSetParameter(value, addFile, reader);
+                        KeyStoreDefinition.WATCH.parseAndSetParameter(value, addOp, reader);
                         break;
                     case REQUIRED:
-                        SourceFileDefinition.REQUIRED.parseAndSetParameter(value, addFile, reader);
+                        KeyStoreDefinition.REQUIRED.parseAndSetParameter(value, addOp, reader);
                         break;
                     default:
                         throw unexpectedAttribute(reader, i);
@@ -175,18 +169,14 @@ class TlsParser {
         KeyStoreDefinition.PROVIDER.marshallAsAttribute(keyStore, writer);
         KeyStoreDefinition.PASSWORD.marshallAsAttribute(keyStore, writer);
 
-        if (keyStore.hasDefined(SOURCE)) {
-            ModelNode source = keyStore.require(SOURCE);
-            if (source.hasDefined(FILE)) {
-                ModelNode file = source.require(FILE);
-                writer.writeStartElement(FILE);
-                SourceFileDefinition.RELATIVE_TO.marshallAsAttribute(file, writer);
-                SourceFileDefinition.PATH.marshallAsAttribute(file, writer);
-                SourceFileDefinition.WATCH.marshallAsAttribute(file, writer);
-                SourceFileDefinition.REQUIRED.marshallAsAttribute(file, writer);
+        if (keyStore.hasDefined(PATH)) {
+            writer.writeStartElement(FILE);
+            KeyStoreDefinition.RELATIVE_TO.marshallAsAttribute(keyStore, writer);
+            KeyStoreDefinition.PATH.marshallAsAttribute(keyStore, writer);
+            KeyStoreDefinition.WATCH.marshallAsAttribute(keyStore, writer);
+            KeyStoreDefinition.REQUIRED.marshallAsAttribute(keyStore, writer);
 
-                writer.writeEndElement();
-            }
+            writer.writeEndElement();
         }
         writer.writeEndElement();
     }
