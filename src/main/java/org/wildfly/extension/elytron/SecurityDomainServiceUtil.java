@@ -86,7 +86,7 @@ public final class SecurityDomainServiceUtil {
      * @param domainName - the name of the domain to inject.
      * @return The {@link ServiceBuilder} passed in to allow method chaining.
      */
-    public static ServiceBuilder<?> dinaubDependency(ServiceBuilder<?> sb, Injector<SecurityDomain> injector, String domainName) {
+    public static ServiceBuilder<?> domainDependency(ServiceBuilder<?> sb, Injector<SecurityDomain> injector, String domainName) {
         sb.addDependency(REQUIRED, domainServiceName(domainName), SecurityDomain.class, injector);
 
         return sb;

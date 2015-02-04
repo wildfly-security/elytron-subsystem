@@ -40,7 +40,6 @@ interface ElytronDescriptionConstants {
     String REALMS = "realms";
     String RELATIVE_TO = "relative-to";
     String REQUIRED = "required";
-    String SOURCE = "source";
     String TLS = "tls";
     String TYPE = "type";
     String WATCH = "watch";

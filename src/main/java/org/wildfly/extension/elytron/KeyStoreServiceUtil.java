@@ -61,7 +61,7 @@ final class KeyStoreServiceUtil {
      * @param operation - the operation to extract the KeyStore name from.
      * @return The fully qualified {@link ServiceName} of the KeyStore.
      */
-    static ServiceName realmServiceName(final ModelNode operation) {
+    static ServiceName keyStoreServiceName(final ModelNode operation) {
         String keyStoreName = null;
         PathAddress pa = PathAddress.pathAddress(operation.require(OP_ADDR));
         for (int i = pa.size() - 1; i > 0; i--) {

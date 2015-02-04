@@ -18,6 +18,10 @@
 
 package org.wildfly.extension.elytron;
 
+import static org.wildfly.extension.elytron.KeyStoreServiceUtil.keyStoreServiceName;
+
+import java.security.KeyStore;
+
 import org.jboss.as.controller.AbstractAddStepHandler;
 import org.jboss.as.controller.AttributeDefinition;
 import org.jboss.as.controller.ModelVersion;
@@ -29,17 +33,22 @@ import org.jboss.as.controller.PathElement;
 import org.jboss.as.controller.ResourceDefinition;
 import org.jboss.as.controller.RestartParentWriteAttributeHandler;
 import org.jboss.as.controller.ServiceRemoveStepHandler;
-import org.jboss.as.controller.ServiceVerificationHandler;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
 import org.jboss.as.controller.SimpleResourceDefinition;
+import org.jboss.as.controller.descriptions.ModelDescriptionConstants;
 import org.jboss.as.controller.operations.validation.StringLengthValidator;
 import org.jboss.as.controller.registry.AttributeAccess;
 import org.jboss.as.controller.registry.ManagementResourceRegistration;
 import org.jboss.as.controller.registry.OperationEntry;
+import org.jboss.as.controller.services.path.PathManager;
+import org.jboss.as.controller.services.path.PathManagerService;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
+import org.jboss.msc.service.ServiceBuilder;
+import org.jboss.msc.service.ServiceController.Mode;
 import org.jboss.msc.service.ServiceName;
+import org.jboss.msc.service.ServiceTarget;
 
 /**
  * A {@link ResourceDefinition} for a single KeyStore.
@@ -148,6 +157,52 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
             super(ATTRIBUTES);
         }
 
+        @Override
+        protected void performRuntime(OperationContext context, ModelNode operation, ModelNode model) throws OperationFailedException {
+            String provider = asStringIfDefined(context, PROVIDER, model);
+            String type = TYPE.resolveModelAttribute(context, model).asString();
+            String password = asStringIfDefined(context, PASSWORD, model);
+            String path = asStringIfDefined(context, PATH, model);
+            String relativeTo = null;
+            boolean required;
+            boolean watch;
+
+            final KeyStoreService keyStoreService;
+            if (path != null) {
+                relativeTo = asStringIfDefined(context, RELATIVE_TO, model);
+                required = REQUIRED.resolveModelAttribute(context, model).asBoolean();
+                watch = WATCH.resolveModelAttribute(context, model).asBoolean();
+
+                keyStoreService = KeyStoreService.createFileBasedKeyStoreService(provider, type, password.toCharArray(), relativeTo, path, required, watch);
+            } else {
+                keyStoreService = KeyStoreService.createFileLessKeyStoreService(provider, type, password.toCharArray());
+            }
+
+            ServiceTarget serviceTarget = context.getServiceTarget();
+            ServiceName serviceName = keyStoreServiceName(operation);
+            ServiceBuilder<KeyStore> serviceBuilder = serviceTarget.addService(serviceName, keyStoreService)
+                    .setInitialMode(Mode.LAZY);
+
+            if (relativeTo != null) {
+                serviceBuilder.addDependency(PathManagerService.SERVICE_NAME, PathManager.class, keyStoreService.getPathManagerInjector());
+                serviceBuilder.addDependency(pathName(relativeTo));
+            }
+            serviceBuilder.install();
+        }
+
+    }
+
+    private static ServiceName pathName(String relativeTo) {
+        return ServiceName.JBOSS.append(ModelDescriptionConstants.SERVER, ModelDescriptionConstants.PATH, relativeTo);
+    }
+
+    private static String asStringIfDefined(OperationContext context, SimpleAttributeDefinition attributeDefintion, ModelNode model) throws OperationFailedException {
+        ModelNode value = attributeDefintion.resolveModelAttribute(context, model);
+        if (value.isDefined()) {
+            return value.asString();
+        }
+
+        return null;
     }
 
     private static class KeyStoreRemoveHandler extends ServiceRemoveStepHandler {
@@ -166,16 +221,10 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
 
         @Override
         protected ServiceName getParentServiceName(PathAddress arg0) {
-            // TODO Auto-generated method stub
+
             return null;
         }
 
-        @Override
-        protected void recreateParentService(OperationContext arg0, PathAddress arg1, ModelNode arg2,
-                ServiceVerificationHandler arg3) throws OperationFailedException {
-            // TODO Auto-generated method stub
-
-        }
 
     }
 }
