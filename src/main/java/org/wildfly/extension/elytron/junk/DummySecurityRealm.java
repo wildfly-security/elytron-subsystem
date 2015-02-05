@@ -20,9 +20,11 @@ package org.wildfly.extension.elytron.junk;
 
 import java.security.Principal;
 
-import org.wildfly.security.auth.login.AuthenticationException;
+import org.wildfly.security.auth.AuthenticationException;
+import org.wildfly.security.auth.provider.AuthenticatedRealmIdentity;
 import org.wildfly.security.auth.provider.CredentialSupport;
 import org.wildfly.security.auth.provider.RealmIdentity;
+import org.wildfly.security.auth.provider.RealmUnavailableException;
 import org.wildfly.security.auth.provider.SecurityRealm;
 
 /**
@@ -54,11 +56,6 @@ public class DummySecurityRealm implements SecurityRealm {
     private static final class DummyRealmIdentity implements RealmIdentity {
 
         @Override
-        public String getRealmName() {
-            return null;
-        }
-
-        @Override
         public Principal getPrincipal() {
             return null;
         }
@@ -70,6 +67,24 @@ public class DummySecurityRealm implements SecurityRealm {
 
         @Override
         public <C> C getCredential(Class<C> credentialType) {
+            return null;
+        }
+
+        @Override
+        public boolean verifyCredential(Object credential) throws RealmUnavailableException {
+            // TODO Auto-generated method stub
+            return false;
+        }
+
+        @Override
+        public void dispose() {
+            // TODO Auto-generated method stub
+
+        }
+
+        @Override
+        public AuthenticatedRealmIdentity getAuthenticatedRealmIdentity() throws RealmUnavailableException {
+            // TODO Auto-generated method stub
             return null;
         }
 
