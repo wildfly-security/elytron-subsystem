@@ -20,12 +20,16 @@ package org.wildfly.extension.elytron._private;
 
 import static org.jboss.logging.Logger.Level.INFO;
 
+import java.security.KeyStore;
+
 import org.jboss.as.controller.OperationFailedException;
 import org.jboss.logging.BasicLogger;
 import org.jboss.logging.Logger;
+import org.jboss.logging.annotations.Cause;
 import org.jboss.logging.annotations.LogMessage;
 import org.jboss.logging.annotations.Message;
 import org.jboss.logging.annotations.MessageLogger;
+import org.jboss.msc.service.StartException;
 
 /**
  * Messages for the Elytron subsystem.
@@ -62,5 +66,23 @@ public interface ElytronSubsystemMessages extends BasicLogger {
      */
     @Message(id = 3, value = "The operation did not contain an address with a value for '%s'.")
     IllegalArgumentException operationAddressMissingKey(final String key);
+
+    /**
+     * A {@link StartException} if it is not possible to initialise the {@link KeyStore}.
+     *
+     * @param cause the cause of the failure.
+     * @return The {@link StartException} for the error.
+     */
+    @Message(id = 4, value = "Unable to initialise the KeyStore.")
+    StartException unableToInitialiseKeyStore(final @Cause Exception cause);
+
+    /**
+     * An {@link OperationFailedException} if it is not possible to access the {@link KeyStore} at RUNTIME.
+     *
+     * @param cause the underlying cause of the failure
+     * @return The {@link OperationFailedException} for the error.
+     */
+    @Message(id = 5, value = "Unable to access KeyStore to complete the requested operation.")
+    OperationFailedException unableToAccessKeyStore(final @Cause Exception cause);
 
 }

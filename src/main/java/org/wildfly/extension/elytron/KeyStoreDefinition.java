@@ -18,13 +18,19 @@
 
 package org.wildfly.extension.elytron;
 
+import static org.wildfly.extension.elytron.ElytronExtension.ELYTRON_1_0_0;
 import static org.wildfly.extension.elytron.KeyStoreServiceUtil.keyStoreServiceName;
+import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
 
 import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Enumeration;
 
 import org.jboss.as.controller.AbstractAddStepHandler;
+import org.jboss.as.controller.AbstractRuntimeOnlyHandler;
 import org.jboss.as.controller.AttributeDefinition;
-import org.jboss.as.controller.ModelVersion;
 import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
 import org.jboss.as.controller.OperationStepHandler;
@@ -36,6 +42,7 @@ import org.jboss.as.controller.ServiceRemoveStepHandler;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
 import org.jboss.as.controller.SimpleResourceDefinition;
+import org.jboss.as.controller.StringListAttributeDefinition;
 import org.jboss.as.controller.descriptions.ModelDescriptionConstants;
 import org.jboss.as.controller.operations.validation.StringLengthValidator;
 import org.jboss.as.controller.registry.AttributeAccess;
@@ -46,6 +53,7 @@ import org.jboss.as.controller.services.path.PathManagerService;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
 import org.jboss.msc.service.ServiceBuilder;
+import org.jboss.msc.service.ServiceController;
 import org.jboss.msc.service.ServiceController.Mode;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.ServiceTarget;
@@ -56,6 +64,8 @@ import org.jboss.msc.service.ServiceTarget;
  * @author <a href="mailto:darran.lofthouse@jboss.com">Darran Lofthouse</a>
  */
 final class KeyStoreDefinition extends SimpleResourceDefinition {
+
+    private static final String ISO_8601_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
 
     static final SimpleAttributeDefinition TYPE = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.TYPE, ModelType.STRING, false)
         .setAllowExpression(true)
@@ -73,7 +83,7 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
         .setAllowExpression(true)
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
         .setValidator(new StringLengthValidator(1, Integer.MAX_VALUE, true, true))
-        .setDeprecated(ModelVersion.create(1, 0)) // Deprecate immediately as to be supplied by the vault.
+        .setDeprecated(ELYTRON_1_0_0) // Deprecate immediately as to be supplied by the vault.
         .build();
 
     static final SimpleAttributeDefinition PATH = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PATH, ModelType.STRING, true)
@@ -107,17 +117,25 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
         .build();
 
-    private static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] { TYPE, PROVIDER, PASSWORD, PATH, RELATIVE_TO, WATCH, REQUIRED };
+    // Runtime Attributes
+
+    static final SimpleAttributeDefinition SIZE = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.SIZE, ModelType.INT)
+        .setStorageRuntime()
+        .build();
+
+    static final AttributeDefinition ALIASES = new StringListAttributeDefinition.Builder(ElytronDescriptionConstants.ALIASES)
+        .setStorageRuntime()
+        .build();
+
+    static final SimpleAttributeDefinition LOADED = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.LOADED, ModelType.STRING)
+        .setStorageRuntime()
+        .build();
+
+    private static final AttributeDefinition[] CONFIG_ATTRIBUTES = new AttributeDefinition[] { TYPE, PROVIDER, PASSWORD, PATH, RELATIVE_TO, WATCH, REQUIRED };
 
     private static final KeyStoreAddHandler ADD = new KeyStoreAddHandler();
     private static final OperationStepHandler REMOVE = new KeyStoreRemoveHandler(ADD);
     private static final WriteAttributeHandler WRITE = new WriteAttributeHandler();
-
-    // Attributes
-
-    // Runtime Stuff
-    //   certificate={alias}
-    //   key={alias}
 
     KeyStoreDefinition() {
         super(PathElement.pathElement(ElytronDescriptionConstants.KEYSTORE),
@@ -130,9 +148,45 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
 
     @Override
     public void registerAttributes(ManagementResourceRegistration resourceRegistration) {
-        for (AttributeDefinition current : ATTRIBUTES) {
+        for (AttributeDefinition current : CONFIG_ATTRIBUTES) {
             resourceRegistration.registerReadWriteAttribute(current, null, WRITE);
         }
+        resourceRegistration.registerReadOnlyAttribute(SIZE, new ReadAttributeHandler() {
+
+            @Override
+            protected void populateResult(ModelNode result, KeyStoreService keyStoreService) throws OperationFailedException {
+                try {
+                    result.set(keyStoreService.getValue().size());
+                } catch (KeyStoreException e) {
+                    throw ROOT_LOGGER.unableToAccessKeyStore(e);
+                }
+            }
+        });
+
+        resourceRegistration.registerReadOnlyAttribute(ALIASES, new ReadAttributeHandler() {
+
+            @Override
+            protected void populateResult(ModelNode result, KeyStoreService keyStoreService) throws OperationFailedException {
+                ModelNode aliasList = result.setEmptyList();
+                try {
+                    Enumeration<String> aliases = keyStoreService.getValue().aliases();
+                    while (aliases.hasMoreElements()) {
+                        aliasList.add(aliases.nextElement());
+                    }
+                } catch (KeyStoreException e) {
+                    throw ROOT_LOGGER.unableToAccessKeyStore(e);
+                }
+            }
+        });
+
+        resourceRegistration.registerReadOnlyAttribute(LOADED, new ReadAttributeHandler() {
+
+            @Override
+            protected void populateResult(ModelNode result, KeyStoreService keyStoreService) throws OperationFailedException {
+                SimpleDateFormat sdf = new SimpleDateFormat(ISO_8601_FORMAT);
+                result.set(sdf.format(new Date(keyStoreService.timeLoaded())));
+            }
+        });
     }
 
     @Override
@@ -154,7 +208,7 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
     private static class KeyStoreAddHandler extends AbstractAddStepHandler {
 
         private KeyStoreAddHandler() {
-            super(ATTRIBUTES);
+            super(CONFIG_ATTRIBUTES);
         }
 
         @Override
@@ -181,7 +235,7 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
             ServiceTarget serviceTarget = context.getServiceTarget();
             ServiceName serviceName = keyStoreServiceName(operation);
             ServiceBuilder<KeyStore> serviceBuilder = serviceTarget.addService(serviceName, keyStoreService)
-                    .setInitialMode(Mode.LAZY);
+                    .setInitialMode(Mode.ACTIVE);
 
             if (relativeTo != null) {
                 serviceBuilder.addDependency(PathManagerService.SERVICE_NAME, PathManager.class, keyStoreService.getPathManagerInjector());
@@ -216,7 +270,7 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
     private static class WriteAttributeHandler extends RestartParentWriteAttributeHandler {
 
         WriteAttributeHandler() {
-            super(ElytronDescriptionConstants.KEYSTORE, ATTRIBUTES);
+            super(ElytronDescriptionConstants.KEYSTORE, CONFIG_ATTRIBUTES);
         }
 
         @Override
@@ -224,7 +278,30 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
 
             return null;
         }
-
-
     }
+
+    /*
+     * Runtime Attribute and Operation Handlers
+     */
+
+
+    private abstract static class ReadAttributeHandler extends AbstractRuntimeOnlyHandler {
+
+        @Override
+        protected void executeRuntimeStep(OperationContext context, ModelNode operation) throws OperationFailedException {
+            ServiceName keyStoreName = keyStoreServiceName(operation);
+            ServiceController<KeyStore> serviceContainer = (ServiceController<KeyStore>) context.getServiceRegistry(false).getRequiredService(keyStoreName);
+            KeyStoreService service = (KeyStoreService) serviceContainer.getService();
+
+            try {
+                ModelNode result = context.getResult();
+                populateResult(result, service);
+            } catch (IllegalStateException e) {
+                throw ROOT_LOGGER.unableToAccessKeyStore(e);
+            }
+        }
+
+        protected abstract void populateResult(ModelNode result, KeyStoreService keyStoreService) throws OperationFailedException;
+    }
+
 }

@@ -18,9 +18,22 @@
 
 package org.wildfly.extension.elytron;
 
-import java.security.KeyStore;
+import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.security.GeneralSecurityException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+
+import org.jboss.as.controller.services.path.PathEntry;
 import org.jboss.as.controller.services.path.PathManager;
+import org.jboss.as.controller.services.path.PathManager.Callback.Handle;
+import org.jboss.as.controller.services.path.PathManager.Event;
+import org.jboss.as.controller.services.path.PathManager.PathEventContext;
 import org.jboss.msc.inject.Injector;
 import org.jboss.msc.service.Service;
 import org.jboss.msc.service.StartContext;
@@ -40,17 +53,21 @@ public class KeyStoreService implements Service<KeyStore> {
     private final char[] password;
     private final String path;
     private final String relativeTo;
-    private boolean required;
-    private boolean watch;
+    private final boolean required;
+    private final boolean watch;
 
     private final InjectedValue<PathManager> pathManager = new InjectedValue<PathManager>();
 
+    private File resolvedPath;
+    private Handle callbackHandle;
+
+    private long loaded;
     private KeyStore keyStore = null;
 
     private KeyStoreService(String provider, String type, char[] password, String relativeTo, String path, boolean required, boolean watch) {
         this.provider = provider;
         this.type = type;
-        this.password = password != null ? password.clone() : password;
+        this.password = password != null ? password.clone() : null;
         this.relativeTo = relativeTo;
         this.path = path;
         this.required = required;
@@ -65,16 +82,62 @@ public class KeyStoreService implements Service<KeyStore> {
         return new KeyStoreService(provider, type, password, relativeTo, path, required, watch);
     }
 
+    /*
+     * Service Lifecycle Related Methods
+     */
+
     @Override
     public void start(StartContext startContext) throws StartException {
+        try {
+            KeyStore keyStore = provider == null ? KeyStore.getInstance(type) : KeyStore.getInstance(type, provider);
+            if (path != null) {
+                resolveFileLocation();
+            }
 
+            loaded = System.currentTimeMillis();
+            load(keyStore);
 
+            this.keyStore = keyStore;
+        } catch (GeneralSecurityException | IOException e) {
+            throw ROOT_LOGGER.unableToInitialiseKeyStore(e);
+        }
+    }
+
+    private void resolveFileLocation() {
+        if (relativeTo != null) {
+            PathManager pathManager = this.pathManager.getValue();
+            resolvedPath = new File(pathManager.resolveRelativePathEntry(path, relativeTo));
+            callbackHandle = pathManager.registerCallback(relativeTo, new org.jboss.as.controller.services.path.PathManager.Callback() {
+
+                @Override
+                public void pathModelEvent(PathEventContext eventContext, String name) {
+                    if (eventContext.isResourceServiceRestartAllowed() == false) {
+                        eventContext.reloadRequired();
+                    }
+                }
+
+                @Override
+                public void pathEvent(Event event, PathEntry pathEntry) {
+                    // Service dependencies should trigger a stop and start.
+                }
+            }, Event.REMOVED, Event.UPDATED);
+        } else {
+            resolvedPath = new File(path);
+        }
+    }
+
+    private void load(KeyStore keyStore) throws GeneralSecurityException, FileNotFoundException, IOException {
+        try (InputStream is = resolvedPath != null ? new FileInputStream(resolvedPath) : null) {
+            keyStore.load(is, password);
+        }
     }
 
     @Override
     public void stop(StopContext stopContext) {
-
-
+        keyStore = null;
+        if (callbackHandle != null) {
+            callbackHandle.remove();
+        }
     }
 
     @Override
@@ -84,6 +147,14 @@ public class KeyStoreService implements Service<KeyStore> {
 
     Injector<PathManager> getPathManagerInjector() {
         return pathManager;
+    }
+
+    /*
+     * OperationStepHandler Access Methods
+     */
+
+    long timeLoaded() {
+        return loaded;
     }
 
 }
