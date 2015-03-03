@@ -65,9 +65,15 @@ public class ElytronExtension implements Extension {
     private static final String RESOURCE_NAME = ElytronExtension.class.getPackage().getName() + ".LocalDescriptions";
     static final ServiceName BASE_SERVICE_NAME = ServiceName.of(SUBSYSTEM_NAME);
 
-    static StandardResourceDescriptionResolver getResourceDescriptionResolver(final String keyPrefix) {
-        String prefix = SUBSYSTEM_NAME + (keyPrefix == null ? "" : "." + keyPrefix);
-        return new StandardResourceDescriptionResolver(prefix, RESOURCE_NAME, ElytronExtension.class.getClassLoader(), true, false);
+    static StandardResourceDescriptionResolver getResourceDescriptionResolver(final String... keyPrefixes) {
+        StringBuilder sb = new StringBuilder(SUBSYSTEM_NAME);
+        if (keyPrefixes != null) {
+            for (String current : keyPrefixes) {
+                sb.append(".").append(current);
+            }
+        }
+
+        return new StandardResourceDescriptionResolver(sb.toString(), RESOURCE_NAME, ElytronExtension.class.getClassLoader(), true, false);
     }
 
     @Override

@@ -48,6 +48,7 @@ import org.jboss.as.controller.operations.validation.StringLengthValidator;
 import org.jboss.as.controller.registry.AttributeAccess;
 import org.jboss.as.controller.registry.ManagementResourceRegistration;
 import org.jboss.as.controller.registry.OperationEntry;
+import org.jboss.as.controller.registry.Resource;
 import org.jboss.as.controller.services.path.PathManager;
 import org.jboss.as.controller.services.path.PathManagerService;
 import org.jboss.dmr.ModelNode;
@@ -65,7 +66,7 @@ import org.jboss.msc.service.ServiceTarget;
  */
 final class KeyStoreDefinition extends SimpleResourceDefinition {
 
-    private static final String ISO_8601_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
+    static final String ISO_8601_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
 
     static final SimpleAttributeDefinition TYPE = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.TYPE, ModelType.STRING, false)
         .setAllowExpression(true)
@@ -145,7 +146,6 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
                 OperationEntry.Flag.RESTART_RESOURCE_SERVICES);
     }
 
-
     @Override
     public void registerAttributes(ManagementResourceRegistration resourceRegistration) {
         for (AttributeDefinition current : CONFIG_ATTRIBUTES) {
@@ -154,7 +154,7 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
         resourceRegistration.registerReadOnlyAttribute(SIZE, new ReadAttributeHandler() {
 
             @Override
-            protected void populateResult(ModelNode result, KeyStoreService keyStoreService) throws OperationFailedException {
+            protected void populateResult(ModelNode result, ModelNode operation, KeyStoreService keyStoreService) throws OperationFailedException {
                 try {
                     result.set(keyStoreService.getValue().size());
                 } catch (KeyStoreException e) {
@@ -166,7 +166,7 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
         resourceRegistration.registerReadOnlyAttribute(ALIASES, new ReadAttributeHandler() {
 
             @Override
-            protected void populateResult(ModelNode result, KeyStoreService keyStoreService) throws OperationFailedException {
+            protected void populateResult(ModelNode result, ModelNode operation, KeyStoreService keyStoreService) throws OperationFailedException {
                 ModelNode aliasList = result.setEmptyList();
                 try {
                     Enumeration<String> aliases = keyStoreService.getValue().aliases();
@@ -182,7 +182,7 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
         resourceRegistration.registerReadOnlyAttribute(LOADED, new ReadAttributeHandler() {
 
             @Override
-            protected void populateResult(ModelNode result, KeyStoreService keyStoreService) throws OperationFailedException {
+            protected void populateResult(ModelNode result, ModelNode operation, KeyStoreService keyStoreService) throws OperationFailedException {
                 SimpleDateFormat sdf = new SimpleDateFormat(ISO_8601_FORMAT);
                 result.set(sdf.format(new Date(keyStoreService.timeLoaded())));
             }
@@ -192,8 +192,6 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
     @Override
     public void registerOperations(ManagementResourceRegistration resourceRegistration) {
         super.registerOperations(resourceRegistration);
-        // getAlias (Maybe just on child runtime resource)
-
         // Later
 
         // Create Key Pair / Certificate (Is this a special op or on a resource?)
@@ -204,6 +202,11 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
         // reload / save - can probably support reload in all cases, save should be no-op where no file.
     }
 
+    @Override
+    public void registerChildren(ManagementResourceRegistration resourceRegistration) {
+        ManagementResourceRegistration childRegistration = resourceRegistration.registerSubModel(new KeyStoreAliasDefinition());
+        childRegistration.setRuntimeOnly(true); // WFCORE-17 Eventually move this to the resource definition.
+    }
 
     private static class KeyStoreAddHandler extends AbstractAddStepHandler {
 
@@ -212,7 +215,8 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
         }
 
         @Override
-        protected void performRuntime(OperationContext context, ModelNode operation, ModelNode model) throws OperationFailedException {
+        protected void performRuntime(OperationContext context, ModelNode operation, Resource resource) throws OperationFailedException {
+            ModelNode model = resource.getModel();
             String provider = asStringIfDefined(context, PROVIDER, model);
             String type = TYPE.resolveModelAttribute(context, model).asString();
             String password = asStringIfDefined(context, PASSWORD, model);
@@ -241,7 +245,19 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
                 serviceBuilder.addDependency(PathManagerService.SERVICE_NAME, PathManager.class, keyStoreService.getPathManagerInjector());
                 serviceBuilder.addDependency(pathName(relativeTo));
             }
-            serviceBuilder.install();
+            ServiceController<KeyStore> serviceController = serviceBuilder.install();
+
+            assert resource instanceof KeyStoreResource;
+            ((KeyStoreResource)resource).setKeyStoreServiceController(serviceController);
+
+        }
+
+        @Override
+        protected Resource createResource(OperationContext context) {
+            KeyStoreResource resource = new KeyStoreResource(Resource.Factory.create());
+            context.addResource(PathAddress.EMPTY_ADDRESS, resource);
+
+            return resource;
         }
 
     }
@@ -285,7 +301,7 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
      */
 
 
-    private abstract static class ReadAttributeHandler extends AbstractRuntimeOnlyHandler {
+    abstract static class ReadAttributeHandler extends AbstractRuntimeOnlyHandler {
 
         @Override
         protected void executeRuntimeStep(OperationContext context, ModelNode operation) throws OperationFailedException {
@@ -295,13 +311,13 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
 
             try {
                 ModelNode result = context.getResult();
-                populateResult(result, service);
+                populateResult(result, operation, service);
             } catch (IllegalStateException e) {
                 throw ROOT_LOGGER.unableToAccessKeyStore(e);
             }
         }
 
-        protected abstract void populateResult(ModelNode result, KeyStoreService keyStoreService) throws OperationFailedException;
+        protected abstract void populateResult(ModelNode result, ModelNode operation,  KeyStoreService keyStoreService) throws OperationFailedException;
     }
 
 }
