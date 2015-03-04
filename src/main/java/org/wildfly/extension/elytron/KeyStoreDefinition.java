@@ -21,12 +21,13 @@ package org.wildfly.extension.elytron;
 import static org.wildfly.extension.elytron.ElytronExtension.ELYTRON_1_0_0;
 import static org.wildfly.extension.elytron.KeyStoreServiceUtil.keyStoreServiceName;
 import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
+import static org.wildfly.extension.elytron.ProviderAttributeDefinition.LOADED_PROVIDER;
+import static org.wildfly.extension.elytron.ProviderAttributeDefinition.populateResponse;
 
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Enumeration;
 
 import org.jboss.as.controller.AbstractAddStepHandler;
 import org.jboss.as.controller.AbstractRuntimeOnlyHandler;
@@ -42,7 +43,6 @@ import org.jboss.as.controller.ServiceRemoveStepHandler;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
 import org.jboss.as.controller.SimpleResourceDefinition;
-import org.jboss.as.controller.StringListAttributeDefinition;
 import org.jboss.as.controller.descriptions.ModelDescriptionConstants;
 import org.jboss.as.controller.operations.validation.StringLengthValidator;
 import org.jboss.as.controller.registry.AttributeAccess;
@@ -165,6 +165,15 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
             protected void populateResult(ModelNode result, ModelNode operation, KeyStoreService keyStoreService) throws OperationFailedException {
                 SimpleDateFormat sdf = new SimpleDateFormat(ISO_8601_FORMAT);
                 result.set(sdf.format(new Date(keyStoreService.timeLoaded())));
+            }
+        });
+
+        resourceRegistration.registerReadOnlyAttribute(LOADED_PROVIDER, new ReadAttributeHandler() {
+
+            @Override
+            protected void populateResult(ModelNode result, ModelNode operation, KeyStoreService keyStoreService)
+                    throws OperationFailedException {
+                populateResponse(result, keyStoreService.getValue().getProvider());
             }
         });
     }
