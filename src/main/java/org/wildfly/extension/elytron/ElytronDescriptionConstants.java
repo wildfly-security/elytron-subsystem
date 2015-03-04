@@ -31,6 +31,7 @@ interface ElytronDescriptionConstants {
     String DEFAULT_REALM = "default_realm";
     String DOMAIN = "domain";
     String DOMAINS = "domains";
+    String ENTRY_TYPE = "entry-type";
     String FILE = "file";
     String INFO = "info";
     String KEYSTORE = "keystore";

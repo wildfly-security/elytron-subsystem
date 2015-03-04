@@ -23,7 +23,11 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEYSTORE
 import static org.wildfly.extension.elytron.KeyStoreDefinition.ISO_8601_FORMAT;
 import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
 
+import java.security.KeyStore;
+import java.security.KeyStore.SecretKeyEntry;
+import java.security.KeyStore.TrustedCertificateEntry;
 import java.security.KeyStoreException;
+import java.security.KeyStore.PrivateKeyEntry;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -38,6 +42,7 @@ import org.jboss.as.controller.registry.ManagementResourceRegistration;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
 import org.wildfly.extension.elytron.KeyStoreDefinition.ReadAttributeHandler;
+import org.wildfly.security.keystore.PasswordEntry;
 
 /**
  * A {@link ResourceDefinition} for an alias stored within a {@link KeyStore}.
@@ -48,6 +53,12 @@ public class KeyStoreAliasDefinition extends SimpleResourceDefinition {
 
     static final SimpleAttributeDefinition CREATION_DATE = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.CREATION_DATE, ModelType.STRING)
         .setStorageRuntime()
+        .build();
+
+    static final SimpleAttributeDefinition ENTRY_TYPE = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ENTRY_TYPE, ModelType.STRING)
+        .setStorageRuntime()
+        .setAllowedValues(PasswordEntry.class.getSimpleName(), PrivateKeyEntry.class.getSimpleName(),
+                          SecretKeyEntry.class.getSimpleName(), TrustedCertificateEntry.class.getSimpleName(), "Other")
         .build();
 
     KeyStoreAliasDefinition() {
@@ -73,6 +84,32 @@ public class KeyStoreAliasDefinition extends SimpleResourceDefinition {
                 }
 
                 result.set(sdf.format(creationDate));
+            }
+        });
+
+        resourceRegistration.registerReadOnlyAttribute(ENTRY_TYPE, new ReadAttributeHandler() {
+
+            @Override
+            protected void populateResult(ModelNode result, ModelNode operation, KeyStoreService keyStoreService)
+                    throws OperationFailedException {
+                KeyStore keyStore = keyStoreService.getValue();
+                String alias = alias(operation);
+                try {
+                    if (keyStore.entryInstanceOf(alias, PrivateKeyEntry.class)) {
+                        result.set(PrivateKeyEntry.class.getSimpleName());
+                    } else if (keyStore.entryInstanceOf(alias, SecretKeyEntry.class)) {
+                        result.set(SecretKeyEntry.class.getSimpleName());
+                    } else if (keyStore.entryInstanceOf(alias, TrustedCertificateEntry.class)) {
+                        result.set(TrustedCertificateEntry.class.getSimpleName());
+                    } else if (keyStore.entryInstanceOf(alias, PasswordEntry.class)) {
+                        result.set(PasswordEntry.class.getSimpleName());
+                    } else {
+                        result.set("Other");
+                    }
+                } catch (KeyStoreException e) {
+                    throw new OperationFailedException(e);
+                }
+
             }
         });
     }
