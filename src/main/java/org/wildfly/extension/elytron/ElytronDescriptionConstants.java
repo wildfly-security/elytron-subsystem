@@ -26,13 +26,22 @@ package org.wildfly.extension.elytron;
  */
 interface ElytronDescriptionConstants {
 
+    String ALGORITHM = "algorithm";
     String ALIAS = "alias";
+    String CERTIFICATE = "certificate";
+    String CERTIFICATES = "certificates";
+    String CERTIFICATE_CHAIN = "certificate-chain";
     String CREATION_DATE = "creation-date";
+    String DEFAULT = "default";
     String DEFAULT_REALM = "default_realm";
     String DOMAIN = "domain";
     String DOMAINS = "domains";
+    String ENCODED = "encoded";
     String ENTRY_TYPE = "entry-type";
     String FILE = "file";
+    String FINGER_PRINT = "finger-print";
+    String FINGER_PRINTS = "finger-prints";
+    String FORMAT = "format";
     String INFO = "info";
     String KEYSTORE = "keystore";
     String KEYSTORES = "keystores";
@@ -42,6 +51,7 @@ interface ElytronDescriptionConstants {
     String PATH = "path";
     String PASSWORD = "password";
     String PROVIDER = "provider";
+    String PUBLIC_KEY = "public-key";
     String REALM = "realm";
     String REALMS = "realms";
     String RELATIVE_TO = "relative-to";
@@ -49,7 +59,9 @@ interface ElytronDescriptionConstants {
     String SIZE = "size";
     String TLS = "tls";
     String TYPE = "type";
+    String VALUE = "value";
     String VERSION = "version";
     String WATCH = "watch";
+    String X509 = "x509";
 
 }

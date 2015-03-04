@@ -25,9 +25,9 @@ import java.util.Enumeration;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import org.jboss.as.controller.PathAddress;
 import org.jboss.as.controller.PathElement;
 import org.jboss.as.controller.registry.DelegatingResource;
-import org.jboss.as.controller.registry.PlaceholderResource;
 import org.jboss.as.controller.registry.Resource;
 import org.jboss.msc.service.ServiceController;
 import org.jboss.msc.service.ServiceController.State;
@@ -72,7 +72,7 @@ class KeyStoreResource extends DelegatingResource {
     public boolean hasChild(PathElement element) {
         final KeyStore keyStore;
         try {
-            return (ElytronDescriptionConstants.ALIAS.equals(element.getKey()) && (keyStore = getKeyStore()) != null && keyStore.containsAlias(element.getValue()));
+            return (ElytronDescriptionConstants.ALIAS.equals(element.getKey()) && (keyStore = getKeyStore(keyStoreServiceController)) != null && keyStore.containsAlias(element.getValue()));
         } catch (KeyStoreException e) {
             return false;
         }
@@ -82,8 +82,8 @@ class KeyStoreResource extends DelegatingResource {
     public Resource getChild(PathElement element) {
         final KeyStore keyStore;
         try {
-            if (ElytronDescriptionConstants.ALIAS.equals(element.getKey()) && (keyStore = getKeyStore()) != null && keyStore.containsAlias(element.getValue())) {
-                return new PlaceholderResource.PlaceholderResourceEntry(element);
+            if (ElytronDescriptionConstants.ALIAS.equals(element.getKey()) && (keyStore = getKeyStore(keyStoreServiceController)) != null && keyStore.containsAlias(element.getValue())) {
+                return new AliasResource(element.getValue(), keyStoreServiceController);
             }
         } catch (KeyStoreException e) {
         }
@@ -104,7 +104,7 @@ class KeyStoreResource extends DelegatingResource {
     public Set<String> getChildrenNames(String childType) {
         final KeyStore keyStore;
         try {
-            if (ElytronDescriptionConstants.ALIAS.equals(childType) && (keyStore = getKeyStore()) != null && keyStore.size() > 0) {
+            if (ElytronDescriptionConstants.ALIAS.equals(childType) && (keyStore = getKeyStore(keyStoreServiceController)) != null && keyStore.size() > 0) {
                 Enumeration<String> aliases = keyStore.aliases();
                 Set<String> children = new LinkedHashSet<String>(keyStore.size());
                 while (aliases.hasMoreElements()) {
@@ -123,11 +123,11 @@ class KeyStoreResource extends DelegatingResource {
     public Set<ResourceEntry> getChildren(String childType) {
         final KeyStore keyStore;
         try {
-            if (ElytronDescriptionConstants.ALIAS.equals(childType) && (keyStore = getKeyStore()) != null && keyStore.size() > 0) {
+            if (ElytronDescriptionConstants.ALIAS.equals(childType) && (keyStore = getKeyStore(keyStoreServiceController)) != null && keyStore.size() > 0) {
                 Enumeration<String> aliases = keyStore.aliases();
                 Set<ResourceEntry> children = new LinkedHashSet<ResourceEntry>(keyStore.size());
                 while (aliases.hasMoreElements()) {
-                    children.add(new PlaceholderResource.PlaceholderResourceEntry(ElytronDescriptionConstants.ALIAS, aliases.nextElement()));
+                    children.add(new AliasResource.AliasResourceEntry(PathElement.pathElement(ElytronDescriptionConstants.ALIAS, aliases.nextElement()), keyStoreServiceController));
                 }
 
                 return children;
@@ -136,6 +136,11 @@ class KeyStoreResource extends DelegatingResource {
         }
 
         return Collections.emptySet();
+    }
+
+    @Override
+    public Resource navigate(PathAddress address) {
+        return Resource.Tools.navigate(this, address);
     }
 
     @Override
@@ -154,7 +159,7 @@ class KeyStoreResource extends DelegatingResource {
         final KeyStore keyStore;
 
         try {
-            return ((keyStore = getKeyStore()) != null) && keyStore.size() > 0;
+            return ((keyStore = getKeyStore(keyStoreServiceController)) != null) && keyStore.size() > 0;
         } catch (KeyStoreException e) {
             return false;
         }
@@ -165,7 +170,7 @@ class KeyStoreResource extends DelegatingResource {
      *
      * @return The {@link KeyStore} represented by this {@link Resource} or {@code null} if it is not currently available.
      */
-    private KeyStore getKeyStore() {
+    static KeyStore getKeyStore(ServiceController<KeyStore> keyStoreServiceController) {
         if (keyStoreServiceController == null || keyStoreServiceController.getState() != State.UP) {
             return null;
         } else {

@@ -33,7 +33,7 @@ public class ElytronDefinition extends SimpleResourceDefinition {
 
     private ElytronDefinition() {
         super(ElytronExtension.SUBSYSTEM_PATH,
-                ElytronExtension.getResourceDescriptionResolver(null),
+                ElytronExtension.getResourceDescriptionResolver(),
                 //We always need to add an 'add' operation
                 ElytronAdd.INSTANCE,
                 //Every resource that is added, normally needs a remove operation

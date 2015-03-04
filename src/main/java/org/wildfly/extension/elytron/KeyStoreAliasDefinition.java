@@ -18,6 +18,7 @@
 
 package org.wildfly.extension.elytron;
 
+import static org.wildfly.extension.elytron.ElytronExtension.registerRuntimeResource;
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP_ADDR;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEYSTORE;
 import static org.wildfly.extension.elytron.KeyStoreDefinition.ISO_8601_FORMAT;
@@ -114,7 +115,15 @@ public class KeyStoreAliasDefinition extends SimpleResourceDefinition {
         });
     }
 
-    private static String alias(ModelNode operation) {
+    @Override
+    public void registerChildren(ManagementResourceRegistration resourceRegistration) {
+        resourceRegistration.registerSubModel(new DefaultCertificateChainDefinition());
+        resourceRegistration.registerSubModel(new X509CertificateChainDefinition());
+        //registerRuntimeResource(resourceRegistration, new DefaultCertificateChainDefinition());
+        //registerRuntimeResource(resourceRegistration, new X509CertificateChainDefinition());
+    }
+
+    static String alias(ModelNode operation) {
         String aliasName = null;
         PathAddress pa = PathAddress.pathAddress(operation.require(OP_ADDR));
         for (int i = pa.size() - 1; i > 0; i--) {

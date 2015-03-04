@@ -19,10 +19,11 @@
 package org.wildfly.extension.elytron;
 
 import static org.wildfly.extension.elytron.ElytronExtension.ELYTRON_1_0_0;
+import static org.wildfly.extension.elytron.ElytronExtension.registerRuntimeResource;
 import static org.wildfly.extension.elytron.KeyStoreServiceUtil.keyStoreServiceName;
-import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
 import static org.wildfly.extension.elytron.ProviderAttributeDefinition.LOADED_PROVIDER;
 import static org.wildfly.extension.elytron.ProviderAttributeDefinition.populateResponse;
+import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
 
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -193,8 +194,7 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
 
     @Override
     public void registerChildren(ManagementResourceRegistration resourceRegistration) {
-        ManagementResourceRegistration childRegistration = resourceRegistration.registerSubModel(new KeyStoreAliasDefinition());
-        childRegistration.setRuntimeOnly(true); // WFCORE-17 Eventually move this to the resource definition.
+        registerRuntimeResource(resourceRegistration, new KeyStoreAliasDefinition());
     }
 
     private static class KeyStoreAddHandler extends AbstractAddStepHandler {
@@ -295,6 +295,7 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
         @Override
         protected void executeRuntimeStep(OperationContext context, ModelNode operation) throws OperationFailedException {
             ServiceName keyStoreName = keyStoreServiceName(operation);
+            @SuppressWarnings("unchecked")
             ServiceController<KeyStore> serviceContainer = (ServiceController<KeyStore>) context.getServiceRegistry(false).getRequiredService(keyStoreName);
             KeyStoreService service = (KeyStoreService) serviceContainer.getService();
 
