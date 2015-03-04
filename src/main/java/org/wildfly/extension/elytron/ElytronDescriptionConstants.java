@@ -27,7 +27,6 @@ package org.wildfly.extension.elytron;
 interface ElytronDescriptionConstants {
 
     String ALIAS = "alias";
-    String ALIASES = "aliases";
     String CREATION_DATE = "creation-date";
     String DEFAULT_REALM = "default_realm";
     String DOMAIN = "domain";

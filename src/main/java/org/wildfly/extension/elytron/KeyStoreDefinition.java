@@ -124,10 +124,6 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
         .setStorageRuntime()
         .build();
 
-    static final AttributeDefinition ALIASES = new StringListAttributeDefinition.Builder(ElytronDescriptionConstants.ALIASES)
-        .setStorageRuntime()
-        .build();
-
     static final SimpleAttributeDefinition LOADED = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.LOADED, ModelType.STRING)
         .setStorageRuntime()
         .build();
@@ -157,22 +153,6 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
             protected void populateResult(ModelNode result, ModelNode operation, KeyStoreService keyStoreService) throws OperationFailedException {
                 try {
                     result.set(keyStoreService.getValue().size());
-                } catch (KeyStoreException e) {
-                    throw ROOT_LOGGER.unableToAccessKeyStore(e);
-                }
-            }
-        });
-
-        resourceRegistration.registerReadOnlyAttribute(ALIASES, new ReadAttributeHandler() {
-
-            @Override
-            protected void populateResult(ModelNode result, ModelNode operation, KeyStoreService keyStoreService) throws OperationFailedException {
-                ModelNode aliasList = result.setEmptyList();
-                try {
-                    Enumeration<String> aliases = keyStoreService.getValue().aliases();
-                    while (aliases.hasMoreElements()) {
-                        aliasList.add(aliases.nextElement());
-                    }
                 } catch (KeyStoreException e) {
                     throw ROOT_LOGGER.unableToAccessKeyStore(e);
                 }
