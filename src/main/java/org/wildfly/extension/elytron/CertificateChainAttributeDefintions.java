@@ -66,13 +66,6 @@ class CertificateChainAttributeDefintions {
     // Should this me a map so we don't need to specify the algorithm?
     private static final ObjectListAttributeDefinition FINGER_PRINTS = new ObjectListAttributeDefinition.Builder(ElytronDescriptionConstants.FINGER_PRINTS, FINGER_PRINT).build();
 
-    private static final ObjectTypeAttributeDefinition CERTIFICATE = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.CERTIFICATE, TYPE, PUBLIC_KEY, FINGER_PRINTS, ENCODED).build();
-
-    static final ObjectListAttributeDefinition CERTIFICATES = new ObjectListAttributeDefinition.Builder(ElytronDescriptionConstants.CERTIFICATES, CERTIFICATE)
-        .setStorageRuntime()
-        .setAllowNull(false)
-        .build();
-
     /*
      * X509 Certificate Specific Attributes
      */
@@ -95,15 +88,15 @@ class CertificateChainAttributeDefintions {
 
     // TODO - Consider adding some of the more detailed fields from X509Certificate
 
-    private static final ObjectTypeAttributeDefinition X509_CERTIFICATE = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.CERTIFICATE, TYPE, PUBLIC_KEY, FINGER_PRINTS, ENCODED,
+    static final ObjectTypeAttributeDefinition CERTIFICATE = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.CERTIFICATE, TYPE, PUBLIC_KEY, FINGER_PRINTS, ENCODED,
                                                                                                          SUBJECT, ISSUER, NOT_BEFORE, NOT_AFTER, SERIAL_NUMBER, SIGNATURE_ALGORITHM, SIGNATURE, VERSION).build();
 
-    static final ObjectListAttributeDefinition X509_CERTIFICATES = new ObjectListAttributeDefinition.Builder(ElytronDescriptionConstants.CERTIFICATES, X509_CERTIFICATE)
+    static final ObjectListAttributeDefinition CERTIFICATE_CHAIN = new ObjectListAttributeDefinition.Builder(ElytronDescriptionConstants.CERTIFICATE_CHAIN, CERTIFICATE)
         .setStorageRuntime()
         .setAllowNull(false)
         .build();
 
-    private static void populateCertificate(final ModelNode certificateModel, final Certificate certificate) throws CertificateEncodingException, NoSuchAlgorithmException {
+    static void writeCertificate(final ModelNode certificateModel, final Certificate certificate) throws CertificateEncodingException, NoSuchAlgorithmException {
         certificateModel.get(ElytronDescriptionConstants.TYPE).set(certificate.getType());
 
         PublicKey publicKey = certificate.getPublicKey();
@@ -129,9 +122,13 @@ class CertificateChainAttributeDefintions {
         certificateModel.get(ElytronDescriptionConstants.FINGER_PRINTS).set(fingerPrintsModel);
 
         certificateModel.get(ElytronDescriptionConstants.ENCODED).set(encodedHexString(encodedCertificate));
+
+        if (certificate instanceof X509Certificate) {
+            writeCertificate(certificateModel, (X509Certificate) certificate);
+        }
     }
 
-    private static void populateCertificate(final ModelNode certificateModel, final X509Certificate certificate) throws CertificateEncodingException, NoSuchAlgorithmException {
+    private static void writeCertificate(final ModelNode certificateModel, final X509Certificate certificate) throws CertificateEncodingException, NoSuchAlgorithmException {
         SimpleDateFormat sdf = new SimpleDateFormat(ISO_8601_FORMAT);
 
         certificateModel.get(ElytronDescriptionConstants.SUBJECT).set(certificate.getSubjectX500Principal().getName());
@@ -152,29 +149,10 @@ class CertificateChainAttributeDefintions {
      * @throws CertificateEncodingException
      * @throws NoSuchAlgorithmException
      */
-    static void writeDefaultAttribute(final ModelNode result, final Certificate[] certificateChain) throws CertificateEncodingException, NoSuchAlgorithmException {
+    static void writeCertificateChain(final ModelNode result, final Certificate[] certificateChain) throws CertificateEncodingException, NoSuchAlgorithmException {
         for (Certificate current : certificateChain) {
             ModelNode certificate = new ModelNode();
-            populateCertificate(certificate, current);
-            result.add(certificate);
-        }
-    }
-
-    /**
-     * Populate the supplied response with the model representation of the certificate chain.
-     *
-     * @param result the response to populate.
-     * @param certificateChain the certificate chain to add to the response.
-     * @throws CertificateEncodingException
-     * @throws NoSuchAlgorithmException
-     */
-    static void writeX509Attribute(final ModelNode result, final Certificate[] certificateChain) throws CertificateEncodingException, NoSuchAlgorithmException {
-        for (Certificate current : certificateChain) {
-            ModelNode certificate = new ModelNode();
-            populateCertificate(certificate, current);
-            if (current instanceof X509Certificate) {
-                populateCertificate(certificate, (X509Certificate)current);
-            }
+            writeCertificate(certificate, current);
             result.add(certificate);
         }
     }
@@ -191,9 +169,15 @@ class CertificateChainAttributeDefintions {
 
     private static String delimit(final char[] chars) {
         StringBuilder sb = new StringBuilder();
+        int offset = 1;
+        if (chars.length % 2 != 0) {
+            sb.append('0');
+            offset++;
+        }
+
         for (int i = 0; i < chars.length; i++) {
             sb.append(chars[i]);
-            if (i + 1 < chars.length && (i + 1) % 2 == 0) {
+            if (i + 1 < chars.length && (i + offset) % 2 == 0) {
                 sb.append(':');
             }
         }

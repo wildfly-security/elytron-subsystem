@@ -18,17 +18,22 @@
 
 package org.wildfly.extension.elytron;
 
-import static org.wildfly.extension.elytron.ElytronExtension.registerRuntimeResource;
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP_ADDR;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEYSTORE;
+import static org.wildfly.extension.elytron.CertificateChainAttributeDefintions.CERTIFICATE;
+import static org.wildfly.extension.elytron.CertificateChainAttributeDefintions.CERTIFICATE_CHAIN;
+import static org.wildfly.extension.elytron.CertificateChainAttributeDefintions.writeCertificate;
+import static org.wildfly.extension.elytron.CertificateChainAttributeDefintions.writeCertificateChain;
 import static org.wildfly.extension.elytron.KeyStoreDefinition.ISO_8601_FORMAT;
 import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
 
 import java.security.KeyStore;
+import java.security.KeyStore.PrivateKeyEntry;
 import java.security.KeyStore.SecretKeyEntry;
 import java.security.KeyStore.TrustedCertificateEntry;
 import java.security.KeyStoreException;
-import java.security.KeyStore.PrivateKeyEntry;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateEncodingException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -113,14 +118,46 @@ public class KeyStoreAliasDefinition extends SimpleResourceDefinition {
 
             }
         });
-    }
 
-    @Override
-    public void registerChildren(ManagementResourceRegistration resourceRegistration) {
-        resourceRegistration.registerSubModel(new DefaultCertificateChainDefinition());
-        resourceRegistration.registerSubModel(new X509CertificateChainDefinition());
-        //registerRuntimeResource(resourceRegistration, new DefaultCertificateChainDefinition());
-        //registerRuntimeResource(resourceRegistration, new X509CertificateChainDefinition());
+        resourceRegistration.registerReadOnlyAttribute(CERTIFICATE, new ReadAttributeHandler() {
+
+            @Override
+            protected void populateResult(ModelNode result, ModelNode operation, KeyStoreService keyStoreService) throws OperationFailedException {
+                String alias = alias(operation);
+
+                KeyStore keyStore = keyStoreService.getValue();
+                // If we have a certificate chain don't waste time reporting what would just be the first cert in the chain.
+                try {
+                    if (keyStore.getCertificateChain(alias) == null) {
+                        Certificate cert = keyStore.getCertificate(alias);
+                        if (cert != null) {
+                            writeCertificate(result, cert);
+                        }
+                    }
+                } catch (KeyStoreException | CertificateEncodingException | NoSuchAlgorithmException e) {
+                    throw ROOT_LOGGER.unableToPopulateResult(e);
+                }
+            }
+        });
+
+        resourceRegistration.registerReadOnlyAttribute(CERTIFICATE_CHAIN, new ReadAttributeHandler() {
+
+            @Override
+            protected void populateResult(ModelNode result, ModelNode operation, KeyStoreService keyStoreService) throws OperationFailedException {
+                String alias = alias(operation);
+
+                KeyStore keyStore = keyStoreService.getValue();
+                try {
+                    Certificate[] chain = keyStore.getCertificateChain(alias);
+                    if (chain != null) {
+                        writeCertificateChain(result, chain);
+                    }
+
+                } catch (KeyStoreException | CertificateEncodingException | NoSuchAlgorithmException e) {
+                    throw ROOT_LOGGER.unableToPopulateResult(e);
+                }
+            }
+        });
     }
 
     static String alias(ModelNode operation) {

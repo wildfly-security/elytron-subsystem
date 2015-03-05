@@ -28,6 +28,7 @@ import java.util.Set;
 import org.jboss.as.controller.PathAddress;
 import org.jboss.as.controller.PathElement;
 import org.jboss.as.controller.registry.DelegatingResource;
+import org.jboss.as.controller.registry.PlaceholderResource;
 import org.jboss.as.controller.registry.Resource;
 import org.jboss.msc.service.ServiceController;
 import org.jboss.msc.service.ServiceController.State;
@@ -83,7 +84,7 @@ class KeyStoreResource extends DelegatingResource {
         final KeyStore keyStore;
         try {
             if (ElytronDescriptionConstants.ALIAS.equals(element.getKey()) && (keyStore = getKeyStore(keyStoreServiceController)) != null && keyStore.containsAlias(element.getValue())) {
-                return new AliasResource(element.getValue(), keyStoreServiceController);
+                return PlaceholderResource.INSTANCE;
             }
         } catch (KeyStoreException e) {
         }
@@ -127,7 +128,7 @@ class KeyStoreResource extends DelegatingResource {
                 Enumeration<String> aliases = keyStore.aliases();
                 Set<ResourceEntry> children = new LinkedHashSet<ResourceEntry>(keyStore.size());
                 while (aliases.hasMoreElements()) {
-                    children.add(new AliasResource.AliasResourceEntry(PathElement.pathElement(ElytronDescriptionConstants.ALIAS, aliases.nextElement()), keyStoreServiceController));
+                    children.add(new PlaceholderResource.PlaceholderResourceEntry(ElytronDescriptionConstants.ALIAS, aliases.nextElement()));
                 }
 
                 return children;
