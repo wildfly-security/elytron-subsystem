@@ -20,7 +20,6 @@ package org.wildfly.extension.elytron.junk;
 
 import java.security.Principal;
 
-import org.wildfly.security.auth.AuthenticationException;
 import org.wildfly.security.auth.provider.AuthenticatedRealmIdentity;
 import org.wildfly.security.auth.provider.CredentialSupport;
 import org.wildfly.security.auth.provider.RealmIdentity;

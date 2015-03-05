@@ -74,7 +74,7 @@ public interface ElytronSubsystemMessages extends BasicLogger {
      * @return The {@link StartException} for the error.
      */
     @Message(id = 4, value = "Unable to initialise the KeyStore.")
-    StartException unableToInitialiseKeyStore(final @Cause Exception cause);
+    StartException unableToInitialiseKeyStore(@Cause Exception cause);
 
     /**
      * An {@link OperationFailedException} if it is not possible to access the {@link KeyStore} at RUNTIME.
@@ -83,7 +83,7 @@ public interface ElytronSubsystemMessages extends BasicLogger {
      * @return The {@link OperationFailedException} for the error.
      */
     @Message(id = 5, value = "Unable to access KeyStore to complete the requested operation.")
-    OperationFailedException unableToAccessKeyStore(final @Cause Exception cause);
+    OperationFailedException unableToAccessKeyStore(@Cause Exception cause);
 
     /**
      * An {@link OperationFailedException} for operations that are unable to populate the result.
@@ -92,6 +92,6 @@ public interface ElytronSubsystemMessages extends BasicLogger {
      * @return The {@link OperationFailedException} for the error.
      */
     @Message(id = 6, value = "Unable to populate result.")
-    OperationFailedException unableToPopulateResult(final @Cause Exception cause);
+    OperationFailedException unableToPopulateResult(@Cause Exception cause);
 
 }

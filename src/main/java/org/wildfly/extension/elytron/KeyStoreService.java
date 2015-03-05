@@ -22,12 +22,10 @@ import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.RO
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
-import java.security.KeyStoreException;
 
 import org.jboss.as.controller.services.path.PathEntry;
 import org.jboss.as.controller.services.path.PathManager;
@@ -126,7 +124,7 @@ public class KeyStoreService implements Service<KeyStore> {
         }
     }
 
-    private void load(KeyStore keyStore) throws GeneralSecurityException, FileNotFoundException, IOException {
+    private void load(KeyStore keyStore) throws GeneralSecurityException, IOException {
         try (InputStream is = resolvedPath != null ? new FileInputStream(resolvedPath) : null) {
             keyStore.load(is, password);
         }
