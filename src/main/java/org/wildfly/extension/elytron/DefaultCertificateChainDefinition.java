@@ -20,7 +20,7 @@ package org.wildfly.extension.elytron;
 
 import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
 import static org.wildfly.extension.elytron.CertificateChainAttributeDefintions.CERTIFICATES;
-import static org.wildfly.extension.elytron.CertificateChainAttributeDefintions.writeAttribute;
+import static org.wildfly.extension.elytron.CertificateChainAttributeDefintions.writeDefaultAttribute;
 import static org.wildfly.extension.elytron.KeyStoreAliasDefinition.alias;
 
 import java.security.KeyStore;
@@ -60,7 +60,7 @@ class DefaultCertificateChainDefinition extends SimpleResourceDefinition {
                 KeyStore  keyStore = keyStoreService.getValue();
 
                 try {
-                    writeAttribute(result, keyStore.getCertificateChain(alias));
+                    writeDefaultAttribute(result, keyStore.getCertificateChain(alias));
                 } catch (KeyStoreException | IllegalStateException | IllegalArgumentException | CertificateEncodingException | NoSuchAlgorithmException e) {
                     throw ROOT_LOGGER.unableToPopulateResult(e);
                 }

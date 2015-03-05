@@ -43,11 +43,14 @@ interface ElytronDescriptionConstants {
     String FINGER_PRINTS = "finger-prints";
     String FORMAT = "format";
     String INFO = "info";
+    String ISSUER = "issuer";
     String KEYSTORE = "keystore";
     String KEYSTORES = "keystores";
     String LOADED = "loaded";
     String LOADED_PROVIDER = "loaded-provider";
     String NAME = "name";
+    String NOT_AFTER = "not-after";
+    String NOT_BEFORE = "not-before";
     String PATH = "path";
     String PASSWORD = "password";
     String PROVIDER = "provider";
@@ -56,7 +59,11 @@ interface ElytronDescriptionConstants {
     String REALMS = "realms";
     String RELATIVE_TO = "relative-to";
     String REQUIRED = "required";
+    String SERIAL_NUMBER = "serial-number";
+    String SIGNATURE = "signature";
+    String SIGNATURE_ALGORITHM = "signature-algorithm";
     String SIZE = "size";
+    String SUBJECT = "subject";
     String TLS = "tls";
     String TYPE = "type";
     String VALUE = "value";

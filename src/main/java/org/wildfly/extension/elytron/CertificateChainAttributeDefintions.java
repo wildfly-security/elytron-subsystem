@@ -18,11 +18,15 @@
 
 package org.wildfly.extension.elytron;
 
+import static org.wildfly.extension.elytron.KeyStoreDefinition.ISO_8601_FORMAT;
+
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
+import java.security.cert.X509Certificate;
+import java.text.SimpleDateFormat;
 
 import org.jboss.as.controller.ObjectListAttributeDefinition;
 import org.jboss.as.controller.ObjectTypeAttributeDefinition;
@@ -69,6 +73,77 @@ class CertificateChainAttributeDefintions {
         .setAllowNull(false)
         .build();
 
+    /*
+     * X509 Certificate Specific Attributes
+     */
+
+    private static final SimpleAttributeDefinition SUBJECT = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.SUBJECT, ModelType.STRING).build();
+
+    private static final SimpleAttributeDefinition ISSUER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ISSUER, ModelType.STRING).build();
+
+    private static final SimpleAttributeDefinition NOT_AFTER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.NOT_AFTER, ModelType.STRING).build();
+
+    private static final SimpleAttributeDefinition NOT_BEFORE = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.NOT_BEFORE, ModelType.STRING).build();
+
+    private static final SimpleAttributeDefinition SERIAL_NUMBER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.SERIAL_NUMBER, ModelType.STRING).build();
+
+    private static final SimpleAttributeDefinition SIGNATURE_ALGORITHM = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.SIGNATURE_ALGORITHM, ModelType.STRING).build();
+
+    private static final SimpleAttributeDefinition SIGNATURE = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.SIGNATURE, ModelType.STRING).build();
+
+    private static final SimpleAttributeDefinition VERSION = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.VERSION, ModelType.STRING).build(); // TODO - How to represent this?
+
+    // TODO - Consider adding some of the more detailed fields from X509Certificate
+
+    private static final ObjectTypeAttributeDefinition X509_CERTIFICATE = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.CERTIFICATE, TYPE, PUBLIC_KEY, FINGER_PRINTS, ENCODED,
+                                                                                                         SUBJECT, ISSUER, NOT_BEFORE, NOT_AFTER, SERIAL_NUMBER, SIGNATURE_ALGORITHM, SIGNATURE, VERSION).build();
+
+    static final ObjectListAttributeDefinition X509_CERTIFICATES = new ObjectListAttributeDefinition.Builder(ElytronDescriptionConstants.CERTIFICATES, X509_CERTIFICATE)
+        .setStorageRuntime()
+        .setAllowNull(false)
+        .build();
+
+    private static void populateCertificate(final ModelNode certificateModel, final Certificate certificate) throws CertificateEncodingException, NoSuchAlgorithmException {
+        certificateModel.get(ElytronDescriptionConstants.TYPE).set(certificate.getType());
+
+        PublicKey publicKey = certificate.getPublicKey();
+        ModelNode publicKeyModel = new ModelNode();
+        publicKeyModel.get(ElytronDescriptionConstants.ALGORITHM).set(publicKey.getAlgorithm());
+        publicKeyModel.get(ElytronDescriptionConstants.FORMAT).set(publicKey.getFormat());
+        publicKeyModel.get(ElytronDescriptionConstants.ENCODED).set(encodedHexString(publicKey.getEncoded()));
+        certificateModel.get(ElytronDescriptionConstants.PUBLIC_KEY).set(publicKeyModel);
+
+        ModelNode fingerPrintsModel = new ModelNode();
+        byte[] encodedCertificate = certificate.getEncoded();
+
+        ModelNode sha1 = new ModelNode();
+        sha1.get(ElytronDescriptionConstants.ALGORITHM).set(SHA_1);
+        sha1.get(ElytronDescriptionConstants.VALUE).set(encodedHexString(digest(SHA_1, encodedCertificate)));
+        fingerPrintsModel.add(sha1);
+
+        ModelNode sha256 = new ModelNode();
+        sha256.get(ElytronDescriptionConstants.ALGORITHM).set(SHA_256);
+        sha256.get(ElytronDescriptionConstants.VALUE).set(encodedHexString(digest(SHA_256, encodedCertificate)));
+        fingerPrintsModel.add(sha256);
+
+        certificateModel.get(ElytronDescriptionConstants.FINGER_PRINTS).set(fingerPrintsModel);
+
+        certificateModel.get(ElytronDescriptionConstants.ENCODED).set(encodedHexString(encodedCertificate));
+    }
+
+    private static void populateCertificate(final ModelNode certificateModel, final X509Certificate certificate) throws CertificateEncodingException, NoSuchAlgorithmException {
+        SimpleDateFormat sdf = new SimpleDateFormat(ISO_8601_FORMAT);
+
+        certificateModel.get(ElytronDescriptionConstants.SUBJECT).set(certificate.getSubjectX500Principal().getName());
+        certificateModel.get(ElytronDescriptionConstants.ISSUER).set(certificate.getIssuerX500Principal().getName());
+        certificateModel.get(ElytronDescriptionConstants.NOT_BEFORE).set(sdf.format(certificate.getNotBefore()));
+        certificateModel.get(ElytronDescriptionConstants.NOT_AFTER).set(sdf.format(certificate.getNotAfter()));
+        certificateModel.get(ElytronDescriptionConstants.SERIAL_NUMBER).set(delimit(certificate.getSerialNumber().toString(16).toCharArray()));
+        certificateModel.get(ElytronDescriptionConstants.SIGNATURE_ALGORITHM).set(certificate.getSigAlgName());
+        certificateModel.get(ElytronDescriptionConstants.SIGNATURE).set(encodedHexString(certificate.getSignature()));
+        certificateModel.get(ElytronDescriptionConstants.VERSION).set("v" + certificate.getVersion());
+    }
+
     /**
      * Populate the supplied response with the model representation of the certificate chain.
      *
@@ -77,34 +152,29 @@ class CertificateChainAttributeDefintions {
      * @throws CertificateEncodingException
      * @throws NoSuchAlgorithmException
      */
-    static void writeAttribute(final ModelNode result, final Certificate[] certificateChain) throws CertificateEncodingException, NoSuchAlgorithmException {
+    static void writeDefaultAttribute(final ModelNode result, final Certificate[] certificateChain) throws CertificateEncodingException, NoSuchAlgorithmException {
         for (Certificate current : certificateChain) {
             ModelNode certificate = new ModelNode();
-            certificate.get(ElytronDescriptionConstants.TYPE).set(current.getType());
+            populateCertificate(certificate, current);
+            result.add(certificate);
+        }
+    }
 
-            PublicKey publicKey = current.getPublicKey();
-            ModelNode publicKeyModel = new ModelNode();
-            publicKeyModel.get(ElytronDescriptionConstants.ALGORITHM).set(publicKey.getAlgorithm());
-            publicKeyModel.get(ElytronDescriptionConstants.FORMAT).set(publicKey.getFormat());
-            publicKeyModel.get(ElytronDescriptionConstants.ENCODED).set(encodedHexString(publicKey.getEncoded()));
-            certificate.get(ElytronDescriptionConstants.PUBLIC_KEY).set(publicKeyModel);
-
-            ModelNode fingerPrintsModel = new ModelNode();
-            byte[] encodedCertificate = current.getEncoded();
-
-            ModelNode sha1 = new ModelNode();
-            sha1.get(ElytronDescriptionConstants.ALGORITHM).set(SHA_1);
-            sha1.get(ElytronDescriptionConstants.VALUE).set(encodedHexString(digest(SHA_1, encodedCertificate)));
-            fingerPrintsModel.add(sha1);
-
-            ModelNode sha256 = new ModelNode();
-            sha256.get(ElytronDescriptionConstants.ALGORITHM).set(SHA_256);
-            sha256.get(ElytronDescriptionConstants.VALUE).set(encodedHexString(digest(SHA_256, encodedCertificate)));
-            fingerPrintsModel.add(sha256);
-
-            certificate.get(ElytronDescriptionConstants.FINGER_PRINTS).set(fingerPrintsModel);
-
-            certificate.get(ElytronDescriptionConstants.ENCODED).set(encodedHexString(encodedCertificate));
+    /**
+     * Populate the supplied response with the model representation of the certificate chain.
+     *
+     * @param result the response to populate.
+     * @param certificateChain the certificate chain to add to the response.
+     * @throws CertificateEncodingException
+     * @throws NoSuchAlgorithmException
+     */
+    static void writeX509Attribute(final ModelNode result, final Certificate[] certificateChain) throws CertificateEncodingException, NoSuchAlgorithmException {
+        for (Certificate current : certificateChain) {
+            ModelNode certificate = new ModelNode();
+            populateCertificate(certificate, current);
+            if (current instanceof X509Certificate) {
+                populateCertificate(certificate, (X509Certificate)current);
+            }
             result.add(certificate);
         }
     }
@@ -116,16 +186,17 @@ class CertificateChainAttributeDefintions {
     }
 
     private static String encodedHexString(byte[] encoded) {
-        StringBuilder sb = new StringBuilder();
-        char[] hexChars = HexConverter.convertToHexString(encoded).toCharArray();
+        return delimit(HexConverter.convertToHexString(encoded).toCharArray());
+    }
 
-        for (int i = 0; i < hexChars.length; i++) {
-            sb.append(hexChars[i]);
-            if (i + 1 < hexChars.length && (i + 1) % 2 == 0) {
+    private static String delimit(final char[] chars) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < chars.length; i++) {
+            sb.append(chars[i]);
+            if (i + 1 < chars.length && (i + 1) % 2 == 0) {
                 sb.append(':');
             }
         }
-
         return sb.toString();
     }
 

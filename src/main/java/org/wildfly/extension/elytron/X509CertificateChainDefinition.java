@@ -19,8 +19,8 @@
 package org.wildfly.extension.elytron;
 
 import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
-import static org.wildfly.extension.elytron.CertificateChainAttributeDefintions.CERTIFICATES;
-import static org.wildfly.extension.elytron.CertificateChainAttributeDefintions.writeAttribute;
+import static org.wildfly.extension.elytron.CertificateChainAttributeDefintions.X509_CERTIFICATES;
+import static org.wildfly.extension.elytron.CertificateChainAttributeDefintions.writeX509Attribute;
 import static org.wildfly.extension.elytron.KeyStoreAliasDefinition.alias;
 
 import java.security.KeyStore;
@@ -52,7 +52,7 @@ class X509CertificateChainDefinition extends SimpleResourceDefinition {
 
     @Override
     public void registerAttributes(ManagementResourceRegistration resourceRegistration) {
-        resourceRegistration.registerReadOnlyAttribute(CERTIFICATES, new ReadAttributeHandler() {
+        resourceRegistration.registerReadOnlyAttribute(X509_CERTIFICATES, new ReadAttributeHandler() {
 
             @Override
             protected void populateResult(ModelNode result, ModelNode operation, KeyStoreService keyStoreService) throws OperationFailedException {
@@ -60,7 +60,7 @@ class X509CertificateChainDefinition extends SimpleResourceDefinition {
                 KeyStore  keyStore = keyStoreService.getValue();
 
                 try {
-                    writeAttribute(result, keyStore.getCertificateChain(alias));
+                    writeX509Attribute(result, keyStore.getCertificateChain(alias));
                 } catch (KeyStoreException | IllegalStateException | IllegalArgumentException | CertificateEncodingException | NoSuchAlgorithmException e) {
                     throw ROOT_LOGGER.unableToPopulateResult(e);
                 }
