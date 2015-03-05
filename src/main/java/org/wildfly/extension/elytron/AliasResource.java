@@ -32,7 +32,6 @@ import org.jboss.as.controller.PathElement;
 import org.jboss.as.controller.registry.DelegatingResource;
 import org.jboss.as.controller.registry.PlaceholderResource;
 import org.jboss.as.controller.registry.Resource;
-import org.jboss.as.controller.registry.Resource.NoSuchResourceException;
 import org.jboss.msc.service.ServiceController;
 
 /**
@@ -136,13 +135,27 @@ class AliasResource extends DelegatingResource {
         return new AliasResource(alias, keyStoreServiceController, clonedDelegate);
     }
 
+    /**
+     * Identify the certificate chain type for the current alias.
+     *
+     * If all certificates are {@link X509Certificate} instances then the chain type will be x509, otherwise it will be default
+     * as all certificate types can be represented as default.
+     *
+     * @return The type of the certificate chain or {@code null} if there is no certificate chain.
+     */
     private ChainType chainType() {
         KeyStore keyStore;
         Certificate[] chain;
         try {
             if ((keyStore= getKeyStore(keyStoreServiceController)) != null && keyStore.containsAlias(alias) &&
                     (chain = keyStore.getCertificateChain(alias)) != null && chain.length > 0) {
-                return chain[0] instanceof X509Certificate ? ChainType.X509 : ChainType.DEFAULT;
+                for (Certificate current : chain) {
+                    if (current instanceof X509Certificate == false) {
+                        return ChainType.DEFAULT;
+                    }
+                }
+
+                return ChainType.X509;
             }
         } catch (KeyStoreException e) {
             return null;

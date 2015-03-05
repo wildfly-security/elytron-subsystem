@@ -18,12 +18,15 @@
 
 package org.wildfly.extension.elytron;
 
+import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
 import static org.wildfly.extension.elytron.CertificateChainAttributeDefintions.CERTIFICATES;
 import static org.wildfly.extension.elytron.CertificateChainAttributeDefintions.writeAttribute;
 import static org.wildfly.extension.elytron.KeyStoreAliasDefinition.alias;
 
 import java.security.KeyStore;
 import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 
 import org.jboss.as.controller.OperationFailedException;
@@ -58,12 +61,11 @@ class X509CertificateChainDefinition extends SimpleResourceDefinition {
 
                 try {
                     writeAttribute(result, keyStore.getCertificateChain(alias));
-                } catch (KeyStoreException | IllegalStateException | IllegalArgumentException e) {
-                    throw new OperationFailedException(e);
+                } catch (KeyStoreException | IllegalStateException | IllegalArgumentException | CertificateEncodingException | NoSuchAlgorithmException e) {
+                    throw ROOT_LOGGER.unableToPopulateResult(e);
                 }
             }
         });
     }
-
 
 }

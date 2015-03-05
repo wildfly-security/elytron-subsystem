@@ -85,4 +85,13 @@ public interface ElytronSubsystemMessages extends BasicLogger {
     @Message(id = 5, value = "Unable to access KeyStore to complete the requested operation.")
     OperationFailedException unableToAccessKeyStore(final @Cause Exception cause);
 
+    /**
+     * An {@link OperationFailedException} for operations that are unable to populate the result.
+     *
+     * @param cause the underlying cause of the failure.
+     * @return The {@link OperationFailedException} for the error.
+     */
+    @Message(id = 6, value = "Unable to populate result.")
+    OperationFailedException unableToPopulateResult(final @Cause Exception cause);
+
 }
