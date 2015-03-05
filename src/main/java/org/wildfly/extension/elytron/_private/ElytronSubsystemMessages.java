@@ -29,6 +29,8 @@ import org.jboss.logging.annotations.Cause;
 import org.jboss.logging.annotations.LogMessage;
 import org.jboss.logging.annotations.Message;
 import org.jboss.logging.annotations.MessageLogger;
+import org.jboss.msc.service.ServiceController.State;
+import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.StartException;
 
 /**
@@ -93,5 +95,15 @@ public interface ElytronSubsystemMessages extends BasicLogger {
      */
     @Message(id = 6, value = "Unable to populate result.")
     OperationFailedException unableToPopulateResult(@Cause Exception cause);
+
+    /**
+     * An {@link OperationFailedException} where an operation can not proceed as it's required service is not UP.
+     *
+     * @param serviceName the name of the service that is required.
+     * @param state the actual state of the service.
+     * @return The {@link OperationFailedException} for the error.
+     */
+    @Message(id = 7, value = "The required service '%s' is not UP, it is currently '%s'.")
+    OperationFailedException requiredServiceNotUp(ServiceName serviceName, State state);
 
 }

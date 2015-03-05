@@ -18,7 +18,6 @@
 
 package org.wildfly.extension.elytron;
 
-
 /**
  * Constants used in the Elytron subsystem.
  *
@@ -32,7 +31,6 @@ interface ElytronDescriptionConstants {
     String CERTIFICATES = "certificates";
     String CERTIFICATE_CHAIN = "certificate-chain";
     String CREATION_DATE = "creation-date";
-    String DEFAULT = "default";
     String DEFAULT_REALM = "default_realm";
     String DOMAIN = "domain";
     String DOMAINS = "domains";
@@ -46,6 +44,7 @@ interface ElytronDescriptionConstants {
     String ISSUER = "issuer";
     String KEYSTORE = "keystore";
     String KEYSTORES = "keystores";
+    String LOAD = "load";
     String LOADED = "loaded";
     String LOADED_PROVIDER = "loaded-provider";
     String NAME = "name";
@@ -59,6 +58,7 @@ interface ElytronDescriptionConstants {
     String REALMS = "realms";
     String RELATIVE_TO = "relative-to";
     String REQUIRED = "required";
+    String SAVE = "save";
     String SERIAL_NUMBER = "serial-number";
     String SIGNATURE = "signature";
     String SIGNATURE_ALGORITHM = "signature-algorithm";
@@ -69,6 +69,5 @@ interface ElytronDescriptionConstants {
     String VALUE = "value";
     String VERSION = "version";
     String WATCH = "watch";
-    String X509 = "x509";
 
 }

@@ -45,9 +45,10 @@ import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
 import org.jboss.as.controller.SimpleResourceDefinition;
 import org.jboss.as.controller.registry.ManagementResourceRegistration;
+import org.jboss.as.controller.registry.OperationEntry;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
-import org.wildfly.extension.elytron.KeyStoreDefinition.ReadAttributeHandler;
+import org.wildfly.extension.elytron.KeyStoreDefinition.KeyStoreRuntimeOnlyHandler;
 import org.wildfly.security.keystore.PasswordEntry;
 
 /**
@@ -69,15 +70,17 @@ public class KeyStoreAliasDefinition extends SimpleResourceDefinition {
 
     KeyStoreAliasDefinition() {
         super(PathElement.pathElement(ElytronDescriptionConstants.ALIAS), ElytronExtension
-                .getResourceDescriptionResolver(ElytronDescriptionConstants.KEYSTORE, ElytronDescriptionConstants.ALIAS));
+                .getResourceDescriptionResolver(ElytronDescriptionConstants.KEYSTORE, ElytronDescriptionConstants.ALIAS),
+                null, new RemoveHandler(), OperationEntry.Flag.RESTART_NONE,
+                OperationEntry.Flag.RESTART_RESOURCE_SERVICES, null);
     }
 
     @Override
     public void registerAttributes(ManagementResourceRegistration resourceRegistration) {
-        resourceRegistration.registerReadOnlyAttribute(CREATION_DATE, new ReadAttributeHandler() {
+        resourceRegistration.registerReadOnlyAttribute(CREATION_DATE, new KeyStoreRuntimeOnlyHandler(false) {
 
             @Override
-            protected void populateResult(ModelNode result, ModelNode operation, KeyStoreService keyStoreService) throws OperationFailedException {
+            protected void performRuntime(ModelNode result, ModelNode operation, KeyStoreService keyStoreService) throws OperationFailedException {
                 SimpleDateFormat sdf = new SimpleDateFormat(ISO_8601_FORMAT);
 
                 String alias = alias(operation);
@@ -93,10 +96,10 @@ public class KeyStoreAliasDefinition extends SimpleResourceDefinition {
             }
         });
 
-        resourceRegistration.registerReadOnlyAttribute(ENTRY_TYPE, new ReadAttributeHandler() {
+        resourceRegistration.registerReadOnlyAttribute(ENTRY_TYPE, new KeyStoreRuntimeOnlyHandler(false) {
 
             @Override
-            protected void populateResult(ModelNode result, ModelNode operation, KeyStoreService keyStoreService)
+            protected void performRuntime(ModelNode result, ModelNode operation, KeyStoreService keyStoreService)
                     throws OperationFailedException {
                 KeyStore keyStore = keyStoreService.getValue();
                 String alias = alias(operation);
@@ -119,10 +122,10 @@ public class KeyStoreAliasDefinition extends SimpleResourceDefinition {
             }
         });
 
-        resourceRegistration.registerReadOnlyAttribute(CERTIFICATE, new ReadAttributeHandler() {
+        resourceRegistration.registerReadOnlyAttribute(CERTIFICATE, new KeyStoreRuntimeOnlyHandler(false) {
 
             @Override
-            protected void populateResult(ModelNode result, ModelNode operation, KeyStoreService keyStoreService) throws OperationFailedException {
+            protected void performRuntime(ModelNode result, ModelNode operation, KeyStoreService keyStoreService) throws OperationFailedException {
                 String alias = alias(operation);
 
                 KeyStore keyStore = keyStoreService.getValue();
@@ -140,10 +143,10 @@ public class KeyStoreAliasDefinition extends SimpleResourceDefinition {
             }
         });
 
-        resourceRegistration.registerReadOnlyAttribute(CERTIFICATE_CHAIN, new ReadAttributeHandler() {
+        resourceRegistration.registerReadOnlyAttribute(CERTIFICATE_CHAIN, new KeyStoreRuntimeOnlyHandler(false) {
 
             @Override
-            protected void populateResult(ModelNode result, ModelNode operation, KeyStoreService keyStoreService) throws OperationFailedException {
+            protected void performRuntime(ModelNode result, ModelNode operation, KeyStoreService keyStoreService) throws OperationFailedException {
                 String alias = alias(operation);
 
                 KeyStore keyStore = keyStoreService.getValue();
@@ -159,6 +162,7 @@ public class KeyStoreAliasDefinition extends SimpleResourceDefinition {
             }
         });
     }
+
 
     static String alias(ModelNode operation) {
         String aliasName = null;
@@ -176,6 +180,27 @@ public class KeyStoreAliasDefinition extends SimpleResourceDefinition {
         }
 
         return aliasName;
+    }
+
+    private static class RemoveHandler extends KeyStoreRuntimeOnlyHandler {
+
+        RemoveHandler() {
+            super(true, true);
+        }
+
+        @Override
+        protected void performRuntime(ModelNode result, ModelNode operation, KeyStoreService keyStoreService) throws OperationFailedException {
+            String alias = alias(operation);
+
+            KeyStore keyStore = keyStoreService.getValue();
+
+            try {
+                keyStore.deleteEntry(alias);
+            } catch (KeyStoreException e) {
+                throw new OperationFailedException(e);
+            }
+        }
+
     }
 
 }

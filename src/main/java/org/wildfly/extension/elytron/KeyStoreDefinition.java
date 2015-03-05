@@ -57,6 +57,7 @@ import org.jboss.dmr.ModelType;
 import org.jboss.msc.service.ServiceBuilder;
 import org.jboss.msc.service.ServiceController;
 import org.jboss.msc.service.ServiceController.Mode;
+import org.jboss.msc.service.ServiceController.State;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.ServiceTarget;
 
@@ -148,10 +149,10 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
         for (AttributeDefinition current : CONFIG_ATTRIBUTES) {
             resourceRegistration.registerReadWriteAttribute(current, null, WRITE);
         }
-        resourceRegistration.registerReadOnlyAttribute(SIZE, new ReadAttributeHandler() {
+        resourceRegistration.registerReadOnlyAttribute(SIZE, new KeyStoreRuntimeOnlyHandler(false) {
 
             @Override
-            protected void populateResult(ModelNode result, ModelNode operation, KeyStoreService keyStoreService) throws OperationFailedException {
+            protected void performRuntime(ModelNode result, ModelNode operation, KeyStoreService keyStoreService) throws OperationFailedException {
                 try {
                     result.set(keyStoreService.getValue().size());
                 } catch (KeyStoreException e) {
@@ -160,19 +161,19 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
             }
         });
 
-        resourceRegistration.registerReadOnlyAttribute(LOADED, new ReadAttributeHandler() {
+        resourceRegistration.registerReadOnlyAttribute(LOADED, new KeyStoreRuntimeOnlyHandler(false) {
 
             @Override
-            protected void populateResult(ModelNode result, ModelNode operation, KeyStoreService keyStoreService) throws OperationFailedException {
+            protected void performRuntime(ModelNode result, ModelNode operation, KeyStoreService keyStoreService) throws OperationFailedException {
                 SimpleDateFormat sdf = new SimpleDateFormat(ISO_8601_FORMAT);
                 result.set(sdf.format(new Date(keyStoreService.timeLoaded())));
             }
         });
 
-        resourceRegistration.registerReadOnlyAttribute(LOADED_PROVIDER, new ReadAttributeHandler() {
+        resourceRegistration.registerReadOnlyAttribute(LOADED_PROVIDER, new KeyStoreRuntimeOnlyHandler(false) {
 
             @Override
-            protected void populateResult(ModelNode result, ModelNode operation, KeyStoreService keyStoreService)
+            protected void performRuntime(ModelNode result, ModelNode operation, KeyStoreService keyStoreService)
                     throws OperationFailedException {
                 populateResponse(result, keyStoreService.getValue().getProvider());
             }
@@ -289,25 +290,39 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
      * Runtime Attribute and Operation Handlers
      */
 
+    abstract static class KeyStoreRuntimeOnlyHandler extends AbstractRuntimeOnlyHandler {
 
-    abstract static class ReadAttributeHandler extends AbstractRuntimeOnlyHandler {
+        private final boolean serviceMustBeUp;
+        private final boolean writeAccess;
+
+        KeyStoreRuntimeOnlyHandler(final boolean serviceMustBeUp, final boolean writeAccess) {
+            this.serviceMustBeUp = serviceMustBeUp;
+            this.writeAccess = writeAccess;
+        }
+
+        KeyStoreRuntimeOnlyHandler(final boolean serviceMustBeUp) {
+            this(serviceMustBeUp, false);
+        }
+
 
         @Override
         protected void executeRuntimeStep(OperationContext context, ModelNode operation) throws OperationFailedException {
             ServiceName keyStoreName = keyStoreServiceName(operation);
             @SuppressWarnings("unchecked")
-            ServiceController<KeyStore> serviceContainer = (ServiceController<KeyStore>) context.getServiceRegistry(false).getRequiredService(keyStoreName);
-            KeyStoreService service = (KeyStoreService) serviceContainer.getService();
-
-            try {
-                ModelNode result = context.getResult();
-                populateResult(result, operation, service);
-            } catch (IllegalStateException e) {
-                throw ROOT_LOGGER.unableToAccessKeyStore(e);
+            ServiceController<KeyStore> serviceContainer = (ServiceController<KeyStore>) context.getServiceRegistry(writeAccess).getRequiredService(keyStoreName);
+            State serviceState;
+            if ((serviceState = serviceContainer.getState()) != State.UP) {
+                if (serviceMustBeUp) {
+                    throw ROOT_LOGGER.requiredServiceNotUp(keyStoreName, serviceState);
+                }
+                return;
             }
+
+            performRuntime(context.getResult(), operation, (KeyStoreService) serviceContainer.getService());
         }
 
-        protected abstract void populateResult(ModelNode result, ModelNode operation,  KeyStoreService keyStoreService) throws OperationFailedException;
+        protected abstract void performRuntime(ModelNode result, ModelNode operation,  KeyStoreService keyStoreService) throws OperationFailedException;
+
     }
 
 }
