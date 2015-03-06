@@ -61,6 +61,7 @@ interface ElytronDescriptionConstants {
     String SIGNATURE = "signature";
     String SIGNATURE_ALGORITHM = "signature-algorithm";
     String SIZE = "size";
+    String STATE = "state";
     String STORE = "store";
     String SUBJECT = "subject";
     String SYNCHRONIZED = "synchronized";

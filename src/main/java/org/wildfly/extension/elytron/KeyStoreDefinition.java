@@ -24,6 +24,8 @@ import static org.wildfly.extension.elytron.ElytronExtension.registerRuntimeReso
 import static org.wildfly.extension.elytron.KeyStoreServiceUtil.keyStoreServiceName;
 import static org.wildfly.extension.elytron.ProviderAttributeDefinition.LOADED_PROVIDER;
 import static org.wildfly.extension.elytron.ProviderAttributeDefinition.populateResponse;
+import static org.wildfly.extension.elytron.ServiceStateDefinition.STATE;
+import static org.wildfly.extension.elytron.ServiceStateDefinition.populateResponse;
 import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
 
 import java.security.KeyStore;
@@ -159,6 +161,19 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
         for (AttributeDefinition current : CONFIG_ATTRIBUTES) {
             resourceRegistration.registerReadWriteAttribute(current, null, WRITE);
         }
+
+        resourceRegistration.registerReadOnlyAttribute(STATE, new AbstractRuntimeOnlyHandler() {
+
+            @Override
+            protected void executeRuntimeStep(OperationContext context, ModelNode operation) throws OperationFailedException {
+                ServiceName keyStoreName = keyStoreServiceName(operation);
+                ServiceController<?> serviceController = context.getServiceRegistry(false).getRequiredService(keyStoreName);
+
+                populateResponse(context.getResult(), serviceController);
+            }
+
+        });
+
         resourceRegistration.registerReadOnlyAttribute(SIZE, new KeyStoreRuntimeOnlyHandler(false) {
 
             @Override
