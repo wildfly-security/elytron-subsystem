@@ -58,7 +58,6 @@ public class KeyStoreService implements Service<KeyStore> {
     private final String path;
     private final String relativeTo;
     private final boolean required;
-    private final boolean watch;
 
     private final InjectedValue<PathManager> pathManager = new InjectedValue<PathManager>();
 
@@ -68,22 +67,21 @@ public class KeyStoreService implements Service<KeyStore> {
     private long synched;
     private AtomicLoadKeyStore keyStore = null;
 
-    private KeyStoreService(String provider, String type, char[] password, String relativeTo, String path, boolean required, boolean watch) {
+    private KeyStoreService(String provider, String type, char[] password, String relativeTo, String path, boolean required) {
         this.provider = provider;
         this.type = type;
         this.password = password != null ? password.clone() : null;
         this.relativeTo = relativeTo;
         this.path = path;
         this.required = required;
-        this.watch = watch;
     }
 
     static KeyStoreService createFileLessKeyStoreService(String provider, String type, char[] password) {
-        return new KeyStoreService(provider, type, password, null, null, false, false);
+        return new KeyStoreService(provider, type, password, null, null, false);
     }
 
-    static KeyStoreService createFileBasedKeyStoreService(String provider, String type, char[] password, String relativeTo, String path, boolean required, boolean watch) {
-        return new KeyStoreService(provider, type, password, relativeTo, path, required, watch);
+    static KeyStoreService createFileBasedKeyStoreService(String provider, String type, char[] password, String relativeTo, String path, boolean required) {
+        return new KeyStoreService(provider, type, password, relativeTo, path, required);
     }
 
     /*

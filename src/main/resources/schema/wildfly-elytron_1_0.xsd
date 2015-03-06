@@ -186,14 +186,6 @@
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
-        <xs:attribute name="watch" type="xs:boolean" use="optional" default="true">
-            <xs:annotation>
-                <xs:documentation>
-                    Should the file be watched for notifications and automatically reloaded
-                    when any are detected?
-                </xs:documentation>
-            </xs:annotation>
-        </xs:attribute>
         <xs:attribute name="read-only" type="xs:boolean" use="optional" default="false">
             <xs:annotation>
                 <xs:documentation>

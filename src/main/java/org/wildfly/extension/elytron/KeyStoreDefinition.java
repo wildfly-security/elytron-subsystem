@@ -110,14 +110,6 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
         .setValidator(new StringLengthValidator(1, Integer.MAX_VALUE, true, true))
         .build();
 
-    static final SimpleAttributeDefinition WATCH = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.WATCH, ModelType.BOOLEAN, true)
-        .setDefaultValue(new ModelNode(true))
-        .setAllowExpression(true)
-        .setAttributeGroup(ElytronDescriptionConstants.FILE)
-        .setRequires(ElytronDescriptionConstants.PATH)
-        .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
-        .build();
-
     static final SimpleAttributeDefinition REQUIRED = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.REQUIRED, ModelType.BOOLEAN, true)
         .setDefaultValue(new ModelNode(false))
         .setAllowExpression(true)
@@ -148,7 +140,7 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
     static final SimpleOperationDefinition STORE = new SimpleOperationDefinitionBuilder(ElytronDescriptionConstants.STORE, RESOURCE_RESOLVER)
         .build();
 
-    private static final AttributeDefinition[] CONFIG_ATTRIBUTES = new AttributeDefinition[] { TYPE, PROVIDER, PASSWORD, PATH, RELATIVE_TO, WATCH, REQUIRED };
+    private static final AttributeDefinition[] CONFIG_ATTRIBUTES = new AttributeDefinition[] { TYPE, PROVIDER, PASSWORD, PATH, RELATIVE_TO, REQUIRED };
 
     private static final KeyStoreAddHandler ADD = new KeyStoreAddHandler();
     private static final OperationStepHandler REMOVE = new KeyStoreRemoveHandler(ADD);
@@ -229,15 +221,13 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
             String path = asStringIfDefined(context, PATH, model);
             String relativeTo = null;
             boolean required;
-            boolean watch;
 
             final KeyStoreService keyStoreService;
             if (path != null) {
                 relativeTo = asStringIfDefined(context, RELATIVE_TO, model);
                 required = REQUIRED.resolveModelAttribute(context, model).asBoolean();
-                watch = WATCH.resolveModelAttribute(context, model).asBoolean();
 
-                keyStoreService = KeyStoreService.createFileBasedKeyStoreService(provider, type, password.toCharArray(), relativeTo, path, required, watch);
+                keyStoreService = KeyStoreService.createFileBasedKeyStoreService(provider, type, password.toCharArray(), relativeTo, path, required);
             } else {
                 keyStoreService = KeyStoreService.createFileLessKeyStoreService(provider, type, password.toCharArray());
             }

@@ -37,7 +37,6 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDER
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.RELATIVE_TO;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REQUIRED;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.TYPE;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.WATCH;
 import static org.wildfly.extension.elytron.ElytronSubsystemParser.verifyNamespace;
 
 import java.util.Arrays;
@@ -144,9 +143,6 @@ class TlsParser {
                         pathFound = true;
                         KeyStoreDefinition.PATH.parseAndSetParameter(value, addOp, reader);
                         break;
-                    case WATCH:
-                        KeyStoreDefinition.WATCH.parseAndSetParameter(value, addOp, reader);
-                        break;
                     case REQUIRED:
                         KeyStoreDefinition.REQUIRED.parseAndSetParameter(value, addOp, reader);
                         break;
@@ -173,7 +169,6 @@ class TlsParser {
             writer.writeStartElement(FILE);
             KeyStoreDefinition.RELATIVE_TO.marshallAsAttribute(keyStore, writer);
             KeyStoreDefinition.PATH.marshallAsAttribute(keyStore, writer);
-            KeyStoreDefinition.WATCH.marshallAsAttribute(keyStore, writer);
             KeyStoreDefinition.REQUIRED.marshallAsAttribute(keyStore, writer);
 
             writer.writeEndElement();
