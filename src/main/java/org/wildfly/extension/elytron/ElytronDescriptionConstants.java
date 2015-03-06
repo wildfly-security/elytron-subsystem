@@ -46,6 +46,7 @@ interface ElytronDescriptionConstants {
     String KEYSTORES = "keystores";
     String LOAD = "load";
     String LOADED_PROVIDER = "loaded-provider";
+    String MODIFIED = "modified";
     String NAME = "name";
     String NOT_AFTER = "not-after";
     String NOT_BEFORE = "not-before";

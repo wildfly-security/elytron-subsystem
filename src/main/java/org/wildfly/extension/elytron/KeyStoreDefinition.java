@@ -134,6 +134,10 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
         .setStorageRuntime()
         .build();
 
+    static final SimpleAttributeDefinition MODIFIED = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.MODIFIED, ModelType.BOOLEAN)
+        .setStorageRuntime()
+        .build();
+
     // Operations
 
     static final SimpleOperationDefinition LOAD = new SimpleOperationDefinitionBuilder(ElytronDescriptionConstants.LOAD, RESOURCE_RESOLVER)
@@ -192,6 +196,14 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
             protected void performRuntime(ModelNode result, ModelNode operation, KeyStoreService keyStoreService) throws OperationFailedException {
                 SimpleDateFormat sdf = new SimpleDateFormat(ISO_8601_FORMAT);
                 result.set(sdf.format(new Date(keyStoreService.timeSynched())));
+            }
+        });
+
+        resourceRegistration.registerReadOnlyAttribute(MODIFIED, new KeyStoreRuntimeOnlyHandler(false) {
+
+            @Override
+            protected void performRuntime(ModelNode result, ModelNode operation, KeyStoreService keyStoreService) throws OperationFailedException {
+                result.set(keyStoreService.isModified());
             }
         });
 
