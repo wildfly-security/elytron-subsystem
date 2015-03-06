@@ -192,7 +192,7 @@ public class KeyStoreAliasDefinition extends SimpleResourceDefinition {
         protected void performRuntime(ModelNode result, ModelNode operation, KeyStoreService keyStoreService) throws OperationFailedException {
             String alias = alias(operation);
 
-            KeyStore keyStore = keyStoreService.getValue();
+            KeyStore keyStore = keyStoreService.getModifiableValue();
 
             try {
                 keyStore.deleteEntry(alias);

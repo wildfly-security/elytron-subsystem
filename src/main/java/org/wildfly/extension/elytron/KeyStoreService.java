@@ -44,6 +44,8 @@ import org.jboss.msc.service.StartException;
 import org.jboss.msc.service.StopContext;
 import org.jboss.msc.value.InjectedValue;
 import org.wildfly.security.keystore.AtomicLoadKeyStore;
+import org.wildfly.security.keystore.ModifyTrackingKeyStore;
+import org.wildfly.security.keystore.UnmodifiableKeyStore;
 
 /**
  * A {@link Service} responsible for a single {@link KeyStore} instance.
@@ -64,8 +66,10 @@ public class KeyStoreService implements Service<KeyStore> {
     private File resolvedPath;
     private Handle callbackHandle;
 
-    private long synched;
-    private AtomicLoadKeyStore keyStore = null;
+    private volatile long synched;
+    private volatile AtomicLoadKeyStore keyStore = null;
+    private volatile ModifyTrackingKeyStore trackingKeyStore = null;
+    private volatile KeyStore unmodifiableKeyStore = null;
 
     private KeyStoreService(String provider, String type, char[] password, String relativeTo, String path, boolean required) {
         this.provider = provider;
@@ -102,6 +106,8 @@ public class KeyStoreService implements Service<KeyStore> {
             }
 
             this.keyStore = keyStore;
+            this.trackingKeyStore = ModifyTrackingKeyStore.modifyTrackingKeyStore(keyStore);
+            this.unmodifiableKeyStore = UnmodifiableKeyStore.unmodifiableKeyStore(keyStore);
         } catch (GeneralSecurityException | IOException e) {
             throw ROOT_LOGGER.unableToInitialiseKeyStore(e);
         }
@@ -146,7 +152,11 @@ public class KeyStoreService implements Service<KeyStore> {
 
     @Override
     public KeyStore getValue() throws IllegalStateException, IllegalArgumentException {
-        return keyStore;
+        return unmodifiableKeyStore;
+    }
+
+    KeyStore getModifiableValue() {
+        return trackingKeyStore;
     }
 
     Injector<PathManager> getPathManagerInjector() {
@@ -166,7 +176,9 @@ public class KeyStoreService implements Service<KeyStore> {
             AtomicLoadKeyStore.LoadKey loadKey = load(keyStore);
             long originalSynced = synched;
             synched = System.currentTimeMillis();
-            return new LoadKey(loadKey, originalSynced);
+            boolean originalModified = trackingKeyStore.isModified();
+            trackingKeyStore.setModified(false);
+            return new LoadKey(loadKey, originalSynced, originalModified);
         } catch (GeneralSecurityException | IOException e) {
             throw ROOT_LOGGER.unableToCompleteOperation(e);
         }
@@ -175,6 +187,7 @@ public class KeyStoreService implements Service<KeyStore> {
     void revertLoad(final LoadKey loadKey) {
         keyStore.revert(loadKey.loadKey);
         synched = loadKey.modifiedTime;
+        trackingKeyStore.setModified(loadKey.modified);
     }
 
     void save() throws OperationFailedException {
@@ -184,18 +197,25 @@ public class KeyStoreService implements Service<KeyStore> {
         try (FileOutputStream fos = new FileOutputStream(resolvedPath)) {
             keyStore.store(fos, password);
             synched = System.currentTimeMillis();
+            trackingKeyStore.setModified(false);
         } catch (IOException | KeyStoreException | NoSuchAlgorithmException | CertificateException e) {
             throw ROOT_LOGGER.unableToCompleteOperation(e);
         }
     }
 
+    boolean isModified() {
+        return trackingKeyStore.isModified();
+    }
+
     class LoadKey {
         private final AtomicLoadKeyStore.LoadKey loadKey;
         private final long modifiedTime;
+        private final boolean modified;
 
-        LoadKey(AtomicLoadKeyStore.LoadKey loadKey, long modifiedTime) {
+        LoadKey(AtomicLoadKeyStore.LoadKey loadKey, long modifiedTime, boolean modified) {
             this.loadKey = loadKey;
             this.modifiedTime = modifiedTime;
+            this.modified = modified;
         }
     }
 
