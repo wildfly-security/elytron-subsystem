@@ -45,7 +45,6 @@ interface ElytronDescriptionConstants {
     String KEYSTORE = "keystore";
     String KEYSTORES = "keystores";
     String LOAD = "load";
-    String LOADED = "loaded";
     String LOADED_PROVIDER = "loaded-provider";
     String NAME = "name";
     String NOT_AFTER = "not-after";
@@ -58,12 +57,13 @@ interface ElytronDescriptionConstants {
     String REALMS = "realms";
     String RELATIVE_TO = "relative-to";
     String REQUIRED = "required";
-    String SAVE = "save";
     String SERIAL_NUMBER = "serial-number";
     String SIGNATURE = "signature";
     String SIGNATURE_ALGORITHM = "signature-algorithm";
     String SIZE = "size";
+    String STORE = "store";
     String SUBJECT = "subject";
+    String SYNCHRONIZED = "synchronized";
     String TLS = "tls";
     String TYPE = "type";
     String VALUE = "value";

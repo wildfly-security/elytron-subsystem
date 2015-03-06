@@ -106,4 +106,31 @@ public interface ElytronSubsystemMessages extends BasicLogger {
     @Message(id = 7, value = "The required service '%s' is not UP, it is currently '%s'.")
     OperationFailedException requiredServiceNotUp(ServiceName serviceName, State state);
 
+    /**
+     * An {@link OperationFailedException} where the name of the operation does not match the expected names.
+     *
+     * @param actualName the operation name contained within the request.
+     * @param expectedNames the expected operation names.
+     * @return The {@link OperationFailedException} for the error.
+     */
+    @Message(id = 8, value = "Invalid operation name '%s', expected one of '%s'")
+    OperationFailedException invalidOperationName(String actualName, String... expectedNames);
+
+    /**
+     * An {@link OperationFailedException} where an operation can not be completed.
+     *
+     * @param cause the underlying cause of the failure.
+     * @return The {@link OperationFailedException} for the error.
+     */
+    @Message(id = 9, value = "Unable to complete operation.")
+    OperationFailedException unableToCompleteOperation(@Cause Throwable cause);
+
+    /**
+     * An {@link OperationFailedException} where this an attempt to save a KeyStore without a File defined.
+     *
+     * @return The {@link OperationFailedException} for the error.
+     */
+    @Message(id = 10, value = "Unable to complete operation.")
+    OperationFailedException cantSaveWithoutFile();
+
 }

@@ -22,11 +22,16 @@ import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.RO
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
 
+import org.jboss.as.controller.OperationFailedException;
 import org.jboss.as.controller.services.path.PathEntry;
 import org.jboss.as.controller.services.path.PathManager;
 import org.jboss.as.controller.services.path.PathManager.Callback.Handle;
@@ -38,6 +43,7 @@ import org.jboss.msc.service.StartContext;
 import org.jboss.msc.service.StartException;
 import org.jboss.msc.service.StopContext;
 import org.jboss.msc.value.InjectedValue;
+import org.wildfly.security.keystore.AtomicLoadKeyStore;
 
 /**
  * A {@link Service} responsible for a single {@link KeyStore} instance.
@@ -59,8 +65,8 @@ public class KeyStoreService implements Service<KeyStore> {
     private File resolvedPath;
     private Handle callbackHandle;
 
-    private long loaded;
-    private KeyStore keyStore = null;
+    private long synched;
+    private AtomicLoadKeyStore keyStore = null;
 
     private KeyStoreService(String provider, String type, char[] password, String relativeTo, String path, boolean required, boolean watch) {
         this.provider = provider;
@@ -87,13 +93,15 @@ public class KeyStoreService implements Service<KeyStore> {
     @Override
     public void start(StartContext startContext) throws StartException {
         try {
-            KeyStore keyStore = provider == null ? KeyStore.getInstance(type) : KeyStore.getInstance(type, provider);
+            AtomicLoadKeyStore keyStore = provider == null ? AtomicLoadKeyStore.newInstance(type) : AtomicLoadKeyStore.newInstance(type, provider);
             if (path != null) {
                 resolveFileLocation();
             }
 
-            loaded = System.currentTimeMillis();
-            load(keyStore);
+            synched = System.currentTimeMillis();
+            try (InputStream is = resolvedPath != null ? new FileInputStream(resolvedPath) : null) {
+                keyStore.load(is, password);
+            }
 
             this.keyStore = keyStore;
         } catch (GeneralSecurityException | IOException e) {
@@ -124,9 +132,9 @@ public class KeyStoreService implements Service<KeyStore> {
         }
     }
 
-    private void load(KeyStore keyStore) throws GeneralSecurityException, IOException {
+    private AtomicLoadKeyStore.LoadKey load(AtomicLoadKeyStore keyStore) throws GeneralSecurityException, IOException {
         try (InputStream is = resolvedPath != null ? new FileInputStream(resolvedPath) : null) {
-            keyStore.load(is, password);
+            return keyStore.revertableload(is, password);
         }
     }
 
@@ -151,8 +159,46 @@ public class KeyStoreService implements Service<KeyStore> {
      * OperationStepHandler Access Methods
      */
 
-    long timeLoaded() {
-        return loaded;
+    long timeSynched() {
+        return synched;
+    }
+
+    LoadKey load() throws OperationFailedException {
+        try {
+            AtomicLoadKeyStore.LoadKey loadKey = load(keyStore);
+            long originalSynced = synched;
+            synched = System.currentTimeMillis();
+            return new LoadKey(loadKey, originalSynced);
+        } catch (GeneralSecurityException | IOException e) {
+            throw ROOT_LOGGER.unableToCompleteOperation(e);
+        }
+    }
+
+    void revertLoad(final LoadKey loadKey) {
+        keyStore.revert(loadKey.loadKey);
+        synched = loadKey.modifiedTime;
+    }
+
+    void save() throws OperationFailedException {
+        if (resolvedPath == null) {
+            throw ROOT_LOGGER.cantSaveWithoutFile();
+        }
+        try (FileOutputStream fos = new FileOutputStream(resolvedPath)) {
+            keyStore.store(fos, password);
+            synched = System.currentTimeMillis();
+        } catch (IOException | KeyStoreException | NoSuchAlgorithmException | CertificateException e) {
+            throw ROOT_LOGGER.unableToCompleteOperation(e);
+        }
+    }
+
+    class LoadKey {
+        private final AtomicLoadKeyStore.LoadKey loadKey;
+        private final long modifiedTime;
+
+        LoadKey(AtomicLoadKeyStore.LoadKey loadKey, long modifiedTime) {
+            this.loadKey = loadKey;
+            this.modifiedTime = modifiedTime;
+        }
     }
 
 }
