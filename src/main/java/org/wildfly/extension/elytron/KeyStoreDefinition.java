@@ -20,6 +20,7 @@ package org.wildfly.extension.elytron;
 
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP;
 import static org.wildfly.extension.elytron.ElytronExtension.ELYTRON_1_0_0;
+import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
 import static org.wildfly.extension.elytron.ElytronExtension.registerRuntimeResource;
 import static org.wildfly.extension.elytron.KeyStoreServiceUtil.keyStoreServiceName;
 import static org.wildfly.extension.elytron.ProviderAttributeDefinition.LOADED_PROVIDER;
@@ -287,15 +288,6 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
 
     private static ServiceName pathName(String relativeTo) {
         return ServiceName.JBOSS.append(ModelDescriptionConstants.SERVER, ModelDescriptionConstants.PATH, relativeTo);
-    }
-
-    private static String asStringIfDefined(OperationContext context, SimpleAttributeDefinition attributeDefintion, ModelNode model) throws OperationFailedException {
-        ModelNode value = attributeDefintion.resolveModelAttribute(context, model);
-        if (value.isDefined()) {
-            return value.asString();
-        }
-
-        return null;
     }
 
     private static class KeyStoreRemoveHandler extends ServiceRemoveStepHandler {

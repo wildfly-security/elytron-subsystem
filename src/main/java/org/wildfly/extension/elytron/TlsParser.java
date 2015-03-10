@@ -61,13 +61,13 @@ class TlsParser {
      * KeyStores
      */
 
-    public void readKeyStores(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> list) throws XMLStreamException {
+    void readKeyStores(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations) throws XMLStreamException {
         requireNoAttributes(reader);
         while(reader.hasNext() && reader.nextTag() != END_ELEMENT) {
             verifyNamespace(reader);
             String localName = reader.getLocalName();
             if (KEYSTORE.equals(localName)) {
-                readKeyStore(parentAddress, reader, list);
+                readKeyStore(parentAddress, reader, operations);
             } else {
                 throw unexpectedElement(reader);
             }
@@ -158,7 +158,7 @@ class TlsParser {
         requireNoContent(reader);
     }
 
-    public void writeKeyStore(String name, ModelNode keyStore, XMLExtendedStreamWriter writer) throws XMLStreamException {
+    void writeKeyStore(String name, ModelNode keyStore, XMLExtendedStreamWriter writer) throws XMLStreamException {
         writer.writeStartElement(KEYSTORE);
         writer.writeAttribute(NAME, name);
         KeyStoreDefinition.TYPE.marshallAsAttribute(keyStore, writer);

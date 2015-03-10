@@ -18,10 +18,16 @@
 
 package org.wildfly.extension.elytron;
 
+import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
+import static org.wildfly.extension.elytron.ProviderLoaderServiceUtil.providerLoaderServiceName;
+
 import java.security.Provider;
+import java.util.List;
 
 import org.jboss.as.controller.AbstractAddStepHandler;
 import org.jboss.as.controller.AttributeDefinition;
+import org.jboss.as.controller.OperationContext;
+import org.jboss.as.controller.OperationFailedException;
 import org.jboss.as.controller.OperationStepHandler;
 import org.jboss.as.controller.PathAddress;
 import org.jboss.as.controller.PathElement;
@@ -36,9 +42,14 @@ import org.jboss.as.controller.operations.validation.StringLengthValidator;
 import org.jboss.as.controller.registry.AttributeAccess;
 import org.jboss.as.controller.registry.ManagementResourceRegistration;
 import org.jboss.as.controller.registry.OperationEntry;
+import org.jboss.as.controller.registry.Resource;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
+import org.jboss.msc.service.Service;
+import org.jboss.msc.service.ServiceBuilder;
+import org.jboss.msc.service.ServiceController.Mode;
 import org.jboss.msc.service.ServiceName;
+import org.jboss.msc.service.ServiceTarget;
 
 /**
  * A {@link ResourceDefinition} for a loader of {@link Provider}s.
@@ -112,6 +123,40 @@ class ProviderLoaderDefinition extends SimpleResourceDefinition {
 
     private static class ProviderAddHandler extends AbstractAddStepHandler {
 
+        ProviderAddHandler() {
+            super(CONFIG_ATTRIBUTES);
+        }
+
+        @Override
+        protected void performRuntime(OperationContext context, ModelNode operation, Resource resource) throws OperationFailedException {
+            ModelNode model = resource.getModel();
+            String module = asStringIfDefined(context, ProviderLoaderDefinition.MODULE, model);
+            String slot = asStringIfDefined(context, ProviderLoaderDefinition.SLOT, model);
+            String[] classNames = asStringArrayIfDefined(context, ProviderLoaderDefinition.CLASSES, model);
+            boolean register = ProviderLoaderDefinition.REGISTER.resolveModelAttribute(context, model).asBoolean();
+
+            Service<Provider[]> providerLoaderService = ProviderLoaderService.newInstance(module, slot, classNames, register);
+            ServiceName serviceName = providerLoaderServiceName(operation);
+            ServiceTarget serviceTarget = context.getServiceTarget();
+            ServiceBuilder<Provider[]> serviceBuilder = serviceTarget.addService(serviceName, providerLoaderService)
+                    .setInitialMode(Mode.ACTIVE);
+
+            serviceBuilder.install();
+        }
+
+    }
+
+    private static String[] asStringArrayIfDefined(OperationContext context, StringListAttributeDefinition attributeDefintion, ModelNode model) throws OperationFailedException {
+        ModelNode resolved = attributeDefintion.resolveModelAttribute(context, model);
+        if (resolved.isDefined()) {
+            List<ModelNode> values = resolved.asList();
+            String[] response = new String[values.size()];
+            for (int i = 0; i < response.length; i++) {
+                response[i] = values.get(i).asString();
+            }
+            return response;
+        }
+        return null;
     }
 
     private static class ProviderRemoveHandler extends ServiceRemoveStepHandler {

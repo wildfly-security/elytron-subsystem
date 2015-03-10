@@ -48,7 +48,7 @@ import org.jboss.staxmapper.XMLExtendedStreamWriter;
  */
 class DomainParser {
 
-    public void readDomain(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> list)
+    void readDomain(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations)
             throws XMLStreamException {
         requireSingleAttribute(reader, NAME);
         String domainName = reader.getAttributeValue(0);
@@ -81,10 +81,10 @@ class DomainParser {
             throw missingRequired(reader, REALM);
         }
         DomainDefinition.DEFAULT_REALM.parseAndSetParameter(defaultRealm, addDomain, reader);
-        list.add(addDomain);
+        operations.add(addDomain);
     }
 
-    public void writeDomain(String name, ModelNode domain, XMLExtendedStreamWriter writer) throws XMLStreamException {
+    void writeDomain(String name, ModelNode domain, XMLExtendedStreamWriter writer) throws XMLStreamException {
         writer.writeStartElement(DOMAIN);
         writer.writeAttribute(NAME, name);
 

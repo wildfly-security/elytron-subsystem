@@ -26,8 +26,11 @@ import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.SUB
 import org.jboss.as.controller.Extension;
 import org.jboss.as.controller.ExtensionContext;
 import org.jboss.as.controller.ModelVersion;
+import org.jboss.as.controller.OperationContext;
+import org.jboss.as.controller.OperationFailedException;
 import org.jboss.as.controller.PathElement;
 import org.jboss.as.controller.ResourceDefinition;
+import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SubsystemRegistration;
 import org.jboss.as.controller.descriptions.StandardResourceDescriptionResolver;
 import org.jboss.as.controller.operations.common.GenericSubsystemDescribeHandler;
@@ -102,6 +105,15 @@ public class ElytronExtension implements Extension {
     static void registerRuntimeResource(ManagementResourceRegistration resourceRegistration, final ResourceDefinition resourceDefinition) {
         resourceRegistration = resourceRegistration.registerSubModel(resourceDefinition);
         resourceRegistration.setRuntimeOnly(true);
+    }
+
+    static String asStringIfDefined(OperationContext context, SimpleAttributeDefinition attributeDefintion, ModelNode model) throws OperationFailedException {
+        ModelNode value = attributeDefintion.resolveModelAttribute(context, model);
+        if (value.isDefined()) {
+            return value.asString();
+        }
+
+        return null;
     }
 
 }

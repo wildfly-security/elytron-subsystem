@@ -30,11 +30,81 @@
 
     <xs:complexType name="subsystemType">
         <xs:sequence>
+            <xs:element name="provider-loaders" type="providerLoadersType" minOccurs="0" />
             <xs:element name="domains" type="domainsType" minOccurs="0" />
             <xs:element name="tls" type="tlsType" minOccurs="0" />
         </xs:sequence>
     </xs:complexType>
-    
+
+    <!-- 
+        Providers
+     -->
+
+     <xs:complexType name="providerLoadersType">
+         <xs:annotation>
+             <xs:documentation>
+                 Container for definitions of java.security.Provider loaders.
+             </xs:documentation>
+         </xs:annotation>
+         <xs:sequence>
+             <xs:element name="provider-loader">
+                 <xs:annotation>
+                     <xs:documentation>
+                         An individual provider loader definitions.
+                     </xs:documentation>
+                 </xs:annotation>
+                 <xs:complexType>
+                     <!-- TODO - Still to add configuration properties. -->
+
+                     <xs:attribute name="name" type="xs:string" use="required">
+                         <xs:annotation>
+                             <xs:documentation>
+                                 The name to use to represent this provider in the management model. 
+                             </xs:documentation>
+                         </xs:annotation>
+                     </xs:attribute>
+                     <xs:attribute name="module" type="xs:string" use="optional">
+                         <xs:annotation>
+                             <xs:documentation>
+                                 The name of the module to use to load the providers.
+
+                                 If this is not specified the ClassLoader used to load the service will be used instead.
+                             </xs:documentation>
+                         </xs:annotation>
+                     </xs:attribute>
+                     <xs:attribute name="slot" type="xs:string" use="optional">
+                         <xs:annotation>
+                             <xs:documentation>
+                                 The slot of the module to use to load the providers.
+
+                                 This will only be required in rare situations where a single module is defined with multiple slots.
+                             </xs:documentation>
+                         </xs:annotation>
+                     </xs:attribute>
+                     <xs:attribute name="classes" type="stringListType" use="optional">
+                         <xs:annotation>
+                             <xs:documentation>
+                                 The fully qualified class names of the providers to load.
+
+                                 If this attributed is omitted then ServiceLoader based discovery is used instead.
+                             </xs:documentation>
+                         </xs:annotation>
+                     </xs:attribute>
+                     <xs:attribute name="register" type="xs:boolean" default="false">
+                         <xs:annotation>
+                             <xs:documentation>
+                                 Should this provider be globally registered.
+
+                                 If not registered globally security definitions within the subsystem can still use a provider by
+                                 referencing it's name as defined here.
+                             </xs:documentation>
+                         </xs:annotation>
+                     </xs:attribute>
+                 </xs:complexType>
+             </xs:element>
+         
+         </xs:sequence>
+     </xs:complexType>
     <!-- 
         Domains and Realms
      -->
@@ -207,6 +277,13 @@
             </xs:annotation>
         </xs:attribute>
     </xs:complexType>
+
+    <xs:simpleType name="stringListType">
+        <xs:annotation>
+            <xs:documentation>A list of String.</xs:documentation>
+        </xs:annotation>
+        <xs:list itemType="xs:string"/>
+    </xs:simpleType>
 
 </xs:schema>
 

@@ -26,6 +26,8 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.DOMAIN;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.DOMAINS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEYSTORE;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEYSTORES;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDER_LOADER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDER_LOADERS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REALMS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.TLS;
@@ -55,14 +57,15 @@ class ElytronSubsystemParser implements XMLElementReader<List<ModelNode>>, XMLEl
     private final DomainParser domainParser = new DomainParser();
     private final RealmParser realmParser = new RealmParser();
     private final TlsParser tlsParser = new TlsParser();
+    private final ProviderLoaderParser providerLoaderParser = new ProviderLoaderParser();
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public void readElement(XMLExtendedStreamReader reader, List<ModelNode> list) throws XMLStreamException {
+    public void readElement(XMLExtendedStreamReader reader, List<ModelNode> operations) throws XMLStreamException {
         ModelNode subsystemAdd = ElytronExtension.createAddSubsystemOperation();
-        list.add(subsystemAdd);
+        operations.add(subsystemAdd);
         ModelNode parentAddress = subsystemAdd.get(OP_ADDR);
 
         requireNoAttributes(reader);
@@ -76,14 +79,17 @@ class ElytronSubsystemParser implements XMLElementReader<List<ModelNode>>, XMLEl
             }
 
             switch (reader.getLocalName()) {
+                case PROVIDER_LOADERS:
+                    readProviderLoaders(parentAddress, reader, operations);
+                    break;
                 case DOMAINS:
-                    readDomains(parentAddress, reader, list);
+                    readDomains(parentAddress, reader, operations);
                     break;
                 case REALMS:
-                    readRealms(parentAddress, reader, list);
+                    readRealms(parentAddress, reader, operations);
                     break;
                 case TLS:
-                    readTls(parentAddress, reader, list);
+                    readTls(parentAddress, reader, operations);
                     break;
                 default:
                     throw unexpectedElement(reader);
@@ -91,35 +97,48 @@ class ElytronSubsystemParser implements XMLElementReader<List<ModelNode>>, XMLEl
         }
     }
 
-    private void readDomains(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> list)
+    public void readProviderLoaders(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations) throws XMLStreamException {
+        requireNoAttributes(reader);
+        while(reader.hasNext() && reader.nextTag() != END_ELEMENT) {
+            verifyNamespace(reader);
+            String localName = reader.getLocalName();
+            if (PROVIDER_LOADER.equals(localName)) {
+               providerLoaderParser.readProviderLoader(parentAddress, reader, operations);
+            } else {
+                throw unexpectedElement(reader);
+            }
+        }
+    }
+
+    private void readDomains(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations)
             throws XMLStreamException {
         requireNoAttributes(reader);
         while (reader.hasNext() && reader.nextTag() != END_ELEMENT) {
             verifyNamespace(reader);
             String localName = reader.getLocalName();
             if (DOMAIN.equals(localName)) {
-                domainParser.readDomain(parentAddress, reader, list);
+                domainParser.readDomain(parentAddress, reader, operations);
             } else {
                 throw unexpectedElement(reader);
             }
         }
     }
 
-    private void readRealms(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> list)
+    private void readRealms(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations)
             throws XMLStreamException {
         requireNoAttributes(reader);
         while (reader.hasNext() && reader.nextTag() != END_ELEMENT) {
             verifyNamespace(reader);
             String localName = reader.getLocalName();
             if (REALM.equals(localName)) {
-                realmParser.readElement(parentAddress, reader, list);
+                realmParser.readElement(parentAddress, reader, operations);
             } else {
                 throw unexpectedElement(reader);
             }
         }
     }
 
-    private void readTls(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> list) throws XMLStreamException {
+    private void readTls(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations) throws XMLStreamException {
         requireNoAttributes(reader);
         boolean keyStoresFound = false;
         while(reader.hasNext() && reader.nextTag() != END_ELEMENT) {
@@ -127,7 +146,7 @@ class ElytronSubsystemParser implements XMLElementReader<List<ModelNode>>, XMLEl
             String localName = reader.getLocalName();
             if (KEYSTORES.equals(localName) && keyStoresFound == false) {
                 keyStoresFound = true;
-                tlsParser.readKeyStores(parentAddress, reader, list);
+                tlsParser.readKeyStores(parentAddress, reader, operations);
             } else {
                 throw unexpectedElement(reader);
             }
@@ -142,6 +161,15 @@ class ElytronSubsystemParser implements XMLElementReader<List<ModelNode>>, XMLEl
         context.startSubsystemElement(ElytronExtension.NAMESPACE, false);
 
         ModelNode model = context.getModelNode();
+        if (model.hasDefined(PROVIDER_LOADER)) {
+            writer.writeStartElement(PROVIDER_LOADERS);
+            for (Property variable : model.get(PROVIDER_LOADER).asPropertyList()) {
+                ModelNode providerLoader = variable.getValue();
+                providerLoaderParser.writeProviderLoader(variable.getName(), providerLoader, writer);
+            }
+            writer.writeEndElement();
+        }
+
         if (model.hasDefined(DOMAIN)) {
             writer.writeStartElement(DOMAINS);
             for (Property variable : model.get(DOMAIN).asPropertyList()) {

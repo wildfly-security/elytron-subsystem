@@ -41,7 +41,7 @@ import org.jboss.staxmapper.XMLExtendedStreamWriter;
  */
 class RealmParser {
 
-    public void readElement(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> list)
+    void readElement(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations)
             throws XMLStreamException {
         requireSingleAttribute(reader, NAME);
         String realmName = reader.getAttributeValue(0);
@@ -49,12 +49,12 @@ class RealmParser {
         ModelNode addRealm = new ModelNode();
         addRealm.get(OP).set(ADD);
         addRealm.get(OP_ADDR).set(parentAddress).add(REALM, realmName);
-        list.add(addRealm);
+        operations.add(addRealm);
 
         requireNoContent(reader);
     }
 
-    public void writeRealm(String name, ModelNode realm, XMLExtendedStreamWriter writer) throws XMLStreamException {
+    void writeRealm(String name, ModelNode realm, XMLExtendedStreamWriter writer) throws XMLStreamException {
         writer.writeStartElement(REALM);
         writer.writeAttribute(NAME, name);
         writer.writeEndElement();
