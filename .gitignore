@@ -8,3 +8,12 @@ pom.xml.releaseBackup
 pom.xml.next
 release.properties
 /bin/
+# ignore IDEA files
+*.iml
+*.ipr
+*.iws
+.idea
+# ignore NetBeans files
+nbactions.xml
+nb-configuration.xml
+catalog.xml
