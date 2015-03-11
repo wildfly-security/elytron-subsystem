@@ -109,7 +109,7 @@ public class KeyStoreService implements Service<KeyStore> {
             this.trackingKeyStore = ModifyTrackingKeyStore.modifyTrackingKeyStore(keyStore);
             this.unmodifiableKeyStore = UnmodifiableKeyStore.unmodifiableKeyStore(keyStore);
         } catch (GeneralSecurityException | IOException e) {
-            throw ROOT_LOGGER.unableToInitialiseKeyStore(e);
+            throw ROOT_LOGGER.unableToStartService(e);
         }
     }
 

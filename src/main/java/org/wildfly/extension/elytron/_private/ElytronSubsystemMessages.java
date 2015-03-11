@@ -29,6 +29,7 @@ import org.jboss.logging.annotations.Cause;
 import org.jboss.logging.annotations.LogMessage;
 import org.jboss.logging.annotations.Message;
 import org.jboss.logging.annotations.MessageLogger;
+import org.jboss.msc.service.Service;
 import org.jboss.msc.service.ServiceController.State;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.StartException;
@@ -70,13 +71,13 @@ public interface ElytronSubsystemMessages extends BasicLogger {
     IllegalArgumentException operationAddressMissingKey(final String key);
 
     /**
-     * A {@link StartException} if it is not possible to initialise the {@link KeyStore}.
+     * A {@link StartException} if it is not possible to initialise the {@link Service}.
      *
      * @param cause the cause of the failure.
      * @return The {@link StartException} for the error.
      */
-    @Message(id = 4, value = "Unable to initialise the KeyStore.")
-    StartException unableToInitialiseKeyStore(@Cause Exception cause);
+    @Message(id = 4, value = "Unable to start the service.")
+    StartException unableToStartService(@Cause Exception cause);
 
     /**
      * An {@link OperationFailedException} if it is not possible to access the {@link KeyStore} at RUNTIME.
@@ -132,5 +133,14 @@ public interface ElytronSubsystemMessages extends BasicLogger {
      */
     @Message(id = 10, value = "Unable to complete operation.")
     OperationFailedException cantSaveWithoutFile();
+
+    /**
+     * A {@link StartException} for when provider registration fails due to an existing registration.
+     *
+     * @param name the name of the provider registration failed for.
+     * @return The {@link StartException} for the error.
+     */
+    @Message(id = 11, value = "A Provider is already registered for '%s'")
+    StartException providerAlreadyRegisteres(String name);
 
 }
