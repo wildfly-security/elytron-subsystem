@@ -47,6 +47,9 @@ public class ElytronDefinition extends SimpleResourceDefinition {
 
     @Override
     public void registerChildren(ManagementResourceRegistration resourceRegistration) {
+        // Provider Loader
+        resourceRegistration.registerSubModel(new ProviderLoaderDefinition());
+
         // Domain and Realm Model
         resourceRegistration.registerSubModel(new DomainDefinition());
         resourceRegistration.registerSubModel(new RealmDefinition());
