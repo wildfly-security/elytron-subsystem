@@ -19,7 +19,9 @@
 package org.wildfly.extension.elytron;
 
 import java.security.Provider;
+import java.security.Provider.Service;
 
+import org.jboss.as.controller.ObjectListAttributeDefinition;
 import org.jboss.as.controller.ObjectTypeAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
@@ -44,6 +46,32 @@ class ProviderAttributeDefinition {
         .setAllowNull(false)
         .build();
 
+    /*
+     * Service Attributes and Full Definition.
+     */
+
+    private static final SimpleAttributeDefinition TYPE = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.TYPE, ModelType.STRING).build();
+
+    private static final SimpleAttributeDefinition ALGORITHM = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ALGORITHM, ModelType.STRING).build();
+
+    private static final SimpleAttributeDefinition CLASS_NAME = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.CLASS_NAME, ModelType.STRING).build();
+
+    private static final ObjectTypeAttributeDefinition SERVICE = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.SERVICE, TYPE, ALGORITHM, CLASS_NAME)
+        .setStorageRuntime()
+        .setAllowNull(false)
+        .build();
+
+    private static final ObjectListAttributeDefinition SERVICES = new ObjectListAttributeDefinition.Builder(ElytronDescriptionConstants.SERVICES, SERVICE)
+        .build();
+
+    private static final ObjectTypeAttributeDefinition FULL_PROVIDER = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.PROVIDER, NAME, INFO, VERSION, SERVICES)
+        .build();
+
+    static final ObjectListAttributeDefinition PROVIDERS = new ObjectListAttributeDefinition.Builder(ElytronDescriptionConstants.PROVIDERS, FULL_PROVIDER)
+        .setStorageRuntime()
+        .setAllowNull(false)
+        .build();
+
     private ProviderAttributeDefinition() {
     }
 
@@ -53,9 +81,42 @@ class ProviderAttributeDefinition {
      * @param response the response to populate.
      * @param provider the {@link Provider} to use when populating the response.
      */
-    static void populateResponse(final ModelNode response, final Provider provider) {
+    static void populateProvider(final ModelNode response, final Provider provider, final boolean includeServices) {
         response.get(ElytronDescriptionConstants.NAME).set(provider.getName());
         response.get(ElytronDescriptionConstants.INFO).set(provider.getInfo());
         response.get(ElytronDescriptionConstants.VERSION).set(provider.getVersion());
+
+        if (includeServices) {
+            addServices(response, provider);
+        }
     }
+
+    /**
+     * Populate the supplied response {@link ModelNode} with information about each {@link Provider} in the included array.
+     *
+     * @param response the response to populate.
+     * @param providers the array or {@link Provider} instances to use to populate the response.
+     */
+    static void populateProviders(final ModelNode response, final Provider[] providers) {
+        for (Provider current : providers) {
+            ModelNode providerModel = new ModelNode();
+            populateProvider(providerModel, current, true);
+            response.add(providerModel);
+        }
+    }
+
+    private static void addServices(final ModelNode providerModel, final Provider provider) {
+        ModelNode servicesModel = providerModel.get(ElytronDescriptionConstants.SERVICES);
+
+        for (Service current : provider.getServices()) {
+            ModelNode serviceModel = new ModelNode();
+            serviceModel.get(ElytronDescriptionConstants.TYPE).set(current.getType());
+            serviceModel.get(ElytronDescriptionConstants.ALGORITHM).set(current.getAlgorithm());
+            serviceModel.get(ElytronDescriptionConstants.CLASS_NAME).set(current.getClassName());
+
+            servicesModel.add(serviceModel);
+        }
+
+    }
+
 }

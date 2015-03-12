@@ -19,12 +19,15 @@
 package org.wildfly.extension.elytron;
 
 import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
+import static org.wildfly.extension.elytron.ProviderAttributeDefinition.PROVIDERS;
+import static org.wildfly.extension.elytron.ProviderAttributeDefinition.populateProviders;
 import static org.wildfly.extension.elytron.ProviderLoaderServiceUtil.providerLoaderServiceName;
 
 import java.security.Provider;
 import java.util.List;
 
 import org.jboss.as.controller.AbstractAddStepHandler;
+import org.jboss.as.controller.AbstractRuntimeOnlyHandler;
 import org.jboss.as.controller.AttributeDefinition;
 import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
@@ -47,7 +50,9 @@ import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
 import org.jboss.msc.service.Service;
 import org.jboss.msc.service.ServiceBuilder;
+import org.jboss.msc.service.ServiceController;
 import org.jboss.msc.service.ServiceController.Mode;
+import org.jboss.msc.service.ServiceController.State;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.ServiceTarget;
 
@@ -102,6 +107,8 @@ class ProviderLoaderDefinition extends SimpleResourceDefinition {
         for (AttributeDefinition current : CONFIG_ATTRIBUTES) {
             resourceRegistration.registerReadWriteAttribute(current, null, WRITE);
         }
+
+        resourceRegistration.registerReadOnlyAttribute(PROVIDERS, new ProvidersAttributeHandler());
     }
 
     @Override
@@ -163,6 +170,22 @@ class ProviderLoaderDefinition extends SimpleResourceDefinition {
 
         protected ProviderRemoveHandler(AbstractAddStepHandler addOperation) {
             super(addOperation);
+        }
+
+    }
+
+    private static class ProvidersAttributeHandler extends AbstractRuntimeOnlyHandler {
+
+        @Override
+        protected void executeRuntimeStep(OperationContext context, ModelNode operation) throws OperationFailedException {
+            ServiceName providerLoaderName = providerLoaderServiceName(operation);
+            @SuppressWarnings("unchecked")
+            ServiceController<Provider[]> serviceContainer = (ServiceController<Provider[]>) context.getServiceRegistry(false).getRequiredService(providerLoaderName);
+            if (serviceContainer.getState() != State.UP) {
+                return;
+            }
+
+            populateProviders(context.getResult(), serviceContainer.getValue());
         }
 
     }

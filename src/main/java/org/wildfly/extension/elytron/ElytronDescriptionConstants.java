@@ -31,6 +31,7 @@ interface ElytronDescriptionConstants {
     String CERTIFICATES = "certificates";
     String CERTIFICATE_CHAIN = "certificate-chain";
     String CLASSES = "classes";
+    String CLASS_NAME = "class-name";
     String CREATION_DATE = "creation-date";
     String DEFAULT_REALM = "default_realm";
     String DOMAIN = "domain";
@@ -56,6 +57,7 @@ interface ElytronDescriptionConstants {
     String PATH = "path";
     String PASSWORD = "password";
     String PROVIDER = "provider";
+    String PROVIDERS = "providers";
     String PROVIDER_LOADER = "provider-loader";
     String PROVIDER_LOADERS = "provider-loaders";
     String PUBLIC_KEY = "public-key";
@@ -65,6 +67,8 @@ interface ElytronDescriptionConstants {
     String RELATIVE_TO = "relative-to";
     String REQUIRED = "required";
     String SERIAL_NUMBER = "serial-number";
+    String SERVICE = "service";
+    String SERVICES = "services";
     String SIGNATURE = "signature";
     String SIGNATURE_ALGORITHM = "signature-algorithm";
     String SIZE = "size";

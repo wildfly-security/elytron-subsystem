@@ -24,7 +24,7 @@ import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
 import static org.wildfly.extension.elytron.ElytronExtension.registerRuntimeResource;
 import static org.wildfly.extension.elytron.KeyStoreServiceUtil.keyStoreServiceName;
 import static org.wildfly.extension.elytron.ProviderAttributeDefinition.LOADED_PROVIDER;
-import static org.wildfly.extension.elytron.ProviderAttributeDefinition.populateResponse;
+import static org.wildfly.extension.elytron.ProviderAttributeDefinition.populateProvider;
 import static org.wildfly.extension.elytron.ServiceStateDefinition.STATE;
 import static org.wildfly.extension.elytron.ServiceStateDefinition.populateResponse;
 import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
@@ -213,7 +213,7 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
             @Override
             protected void performRuntime(ModelNode result, ModelNode operation, KeyStoreService keyStoreService)
                     throws OperationFailedException {
-                populateResponse(result, keyStoreService.getValue().getProvider());
+                populateProvider(result, keyStoreService.getValue().getProvider(), false);
             }
         });
     }

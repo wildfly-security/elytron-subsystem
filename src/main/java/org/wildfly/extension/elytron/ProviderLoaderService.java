@@ -41,7 +41,7 @@ import org.jboss.msc.service.StopContext;
  *
  * @author <a href="mailto:darran.lofthouse@jboss.com">Darran Lofthouse</a>
  */
-public class ProviderLoaderService implements Service<Provider[]> {
+class ProviderLoaderService implements Service<Provider[]> {
 
     private final String module;
     private final String slot;
