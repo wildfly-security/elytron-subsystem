@@ -41,7 +41,6 @@ import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
 import org.jboss.as.controller.SimpleResourceDefinition;
 import org.jboss.as.controller.StringListAttributeDefinition;
-import org.jboss.as.controller.operations.validation.StringLengthValidator;
 import org.jboss.as.controller.registry.AttributeAccess;
 import org.jboss.as.controller.registry.ManagementResourceRegistration;
 import org.jboss.as.controller.registry.OperationEntry;
@@ -65,12 +64,13 @@ class ProviderLoaderDefinition extends SimpleResourceDefinition {
 
     static final SimpleAttributeDefinition MODULE = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.MODULE, ModelType.STRING, true)
         .setAllowExpression(true)
+        .setMinSize(1)
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
-        .setValidator(new StringLengthValidator(1, Integer.MAX_VALUE, true, true))
         .build();
 
     static final SimpleAttributeDefinition SLOT = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.SLOT, ModelType.STRING, true)
         .setAllowExpression(true)
+        .setMinSize(1)
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
         .build();
 

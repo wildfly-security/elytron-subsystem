@@ -53,7 +53,6 @@ import org.jboss.as.controller.SimpleOperationDefinitionBuilder;
 import org.jboss.as.controller.SimpleResourceDefinition;
 import org.jboss.as.controller.descriptions.ModelDescriptionConstants;
 import org.jboss.as.controller.descriptions.StandardResourceDescriptionResolver;
-import org.jboss.as.controller.operations.validation.StringLengthValidator;
 import org.jboss.as.controller.registry.AttributeAccess;
 import org.jboss.as.controller.registry.ManagementResourceRegistration;
 import org.jboss.as.controller.registry.OperationEntry;
@@ -81,36 +80,36 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
 
     static final SimpleAttributeDefinition TYPE = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.TYPE, ModelType.STRING, false)
         .setAllowExpression(true)
+        .setMinSize(1)
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
-        .setValidator(new StringLengthValidator(1, Integer.MAX_VALUE, false, true))
         .build();
 
     static final SimpleAttributeDefinition PROVIDER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PROVIDER, ModelType.STRING, true)
         .setAllowExpression(true)
+        .setMinSize(1)
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
-        .setValidator(new StringLengthValidator(1, Integer.MAX_VALUE, true, true))
         .build();
 
     static final SimpleAttributeDefinition PASSWORD = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PASSWORD, ModelType.STRING, true)
         .setAllowExpression(true)
+        .setMinSize(1)
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
-        .setValidator(new StringLengthValidator(1, Integer.MAX_VALUE, true, true))
         .setDeprecated(ELYTRON_1_0_0) // Deprecate immediately as to be supplied by the vault.
         .build();
 
     static final SimpleAttributeDefinition PATH = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PATH, ModelType.STRING, true)
         .setAllowExpression(true)
+        .setMinSize(1)
         .setAttributeGroup(ElytronDescriptionConstants.FILE)
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
-        .setValidator(new StringLengthValidator(1, Integer.MAX_VALUE, true, true))
         .build();
 
     static final SimpleAttributeDefinition RELATIVE_TO = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.RELATIVE_TO, ModelType.STRING, true)
         .setAllowExpression(true)
+        .setMinSize(1)
         .setAttributeGroup(ElytronDescriptionConstants.FILE)
         .setRequires(ElytronDescriptionConstants.PATH)
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
-        .setValidator(new StringLengthValidator(1, Integer.MAX_VALUE, true, true))
         .build();
 
     static final SimpleAttributeDefinition REQUIRED = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.REQUIRED, ModelType.BOOLEAN, true)

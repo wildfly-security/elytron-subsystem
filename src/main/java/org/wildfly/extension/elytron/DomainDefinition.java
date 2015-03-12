@@ -36,7 +36,6 @@ import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
 import org.jboss.as.controller.SimpleResourceDefinition;
 import org.jboss.as.controller.StringListAttributeDefinition;
-import org.jboss.as.controller.operations.validation.StringLengthValidator;
 import org.jboss.as.controller.registry.AttributeAccess;
 import org.jboss.as.controller.registry.ManagementResourceRegistration;
 import org.jboss.as.controller.registry.OperationEntry;
@@ -58,8 +57,8 @@ class DomainDefinition extends SimpleResourceDefinition {
 
     static final SimpleAttributeDefinition DEFAULT_REALM = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.DEFAULT_REALM, ModelType.STRING, false)
              .setAllowExpression(false)
+             .setMinSize(1)
              .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
-             .setValidator(new StringLengthValidator(1, Integer.MAX_VALUE, false, false))
              .build();
 
     static final StringListAttributeDefinition REALMS =  new StringListAttributeDefinition.Builder(ElytronDescriptionConstants.REALMS)
