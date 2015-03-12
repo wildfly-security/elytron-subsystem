@@ -22,7 +22,6 @@ import static org.wildfly.extension.elytron.SecurityActions.doPrivileged;
 import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
 
 import java.security.PrivilegedAction;
-import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
 import java.security.Provider;
 import java.security.Security;
@@ -69,33 +68,28 @@ class ProviderLoaderService implements Service<Provider[]> {
     public void start(StartContext context) throws StartException {
 
         try {
-            Provider[] providers = classNames == null ? loadProviders() : loadProviders(classNames);
+            ClassLoader classLoader = doPrivileged((PrivilegedExceptionAction<ClassLoader>) () -> resolveClassLoader());
+            Provider[] providers = classNames == null ? loadProviders(classLoader) : loadProviders(classNames, classLoader);
+
             if (register) {
                 doPrivileged((PrivilegedExceptionAction<Void>) () -> {
                     registerProviders(providers);
                     return null;
                 });
-                registerProviders(providers);
             }
+
             this.providers = providers;
-        } catch (ModuleLoadException | ClassNotFoundException | InstantiationException | IllegalAccessException e) {
-            throw ROOT_LOGGER.unableToStartService(e);
-        } catch (PrivilegedActionException e) {
-            if (e.getCause() instanceof StartException) {
-                throw (StartException) e.getCause();
-            }
-            throw ROOT_LOGGER.unableToStartService(e);
         } catch (Exception e) {
             if (e instanceof StartException) {
                 throw (StartException) e;
+            } else if (e.getCause() instanceof StartException) {
+                throw (StartException) e.getCause();
             }
             throw ROOT_LOGGER.unableToStartService(e);
         }
     }
 
-    private Provider[] loadProviders() throws ModuleLoadException {
-        ClassLoader classLoader = resolveClassLoader();
-
+    private Provider[] loadProviders(ClassLoader classLoader) {
         ServiceLoader<Provider> loader = ServiceLoader.load(Provider.class, classLoader);
         ArrayList<Provider> providers = new ArrayList<Provider>();
         loader.iterator().forEachRemaining((Provider p) -> providers.add(p));
@@ -103,9 +97,7 @@ class ProviderLoaderService implements Service<Provider[]> {
         return providers.toArray(new Provider[providers.size()]);
     }
 
-    private Provider[] loadProviders(String[] classNames) throws ModuleLoadException, ClassNotFoundException, InstantiationException, IllegalAccessException {
-        ClassLoader classLoader = resolveClassLoader();
-
+    private Provider[] loadProviders(String[] classNames, ClassLoader classLoader) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
         Provider[] providers = new Provider[classNames.length];
         for (int i = 0; i < classNames.length; i++) {
             Class<Provider> currentClass = (Class<Provider>) classLoader.loadClass(classNames[i]);
