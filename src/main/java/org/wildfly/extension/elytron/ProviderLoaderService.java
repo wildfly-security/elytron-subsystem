@@ -21,6 +21,9 @@ package org.wildfly.extension.elytron;
 import static org.wildfly.extension.elytron.SecurityActions.doPrivileged;
 import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.security.PrivilegedAction;
 import java.security.PrivilegedExceptionAction;
 import java.security.Provider;
@@ -31,13 +34,22 @@ import java.util.List;
 import java.util.ServiceLoader;
 import java.util.Set;
 
+import org.jboss.as.controller.services.path.PathEntry;
+import org.jboss.as.controller.services.path.PathManager;
+import org.jboss.as.controller.services.path.PathManager.Callback;
+import org.jboss.as.controller.services.path.PathManager.Callback.Handle;
+import org.jboss.as.controller.services.path.PathManager.Event;
+import org.jboss.as.controller.services.path.PathManager.PathEventContext;
 import org.jboss.modules.Module;
 import org.jboss.modules.ModuleIdentifier;
 import org.jboss.modules.ModuleLoadException;
+import org.jboss.msc.inject.Injector;
 import org.jboss.msc.service.Service;
 import org.jboss.msc.service.StartContext;
 import org.jboss.msc.service.StartException;
 import org.jboss.msc.service.StopContext;
+import org.jboss.msc.value.InjectedValue;
+
 
 /**
  * A {@link Service} to return an ordered array of {@link Provider} instances.
@@ -51,6 +63,9 @@ class ProviderLoaderService implements Service<Provider[]> {
 
     private final boolean register;
     private final ProviderConfig[] providerConfig;
+
+    private final InjectedValue<PathManager> pathManager = new InjectedValue<PathManager>();
+    private final List<Handle> callbackHandles = new ArrayList<Handle>();
 
     private volatile Provider[] providers;
 
@@ -78,6 +93,7 @@ class ProviderLoaderService implements Service<Provider[]> {
 
             this.providers = providers;
         } catch (Exception e) {
+            clearCallbacks();
             if (e instanceof StartException) {
                 throw (StartException) e;
             } else if (e.getCause() instanceof StartException) {
@@ -106,7 +122,14 @@ class ProviderLoaderService implements Service<Provider[]> {
             }
         }
 
-        // TODO - This will be the point to configure the providers.
+        if (config.getPath() != null) {
+            File configFile = resolveFileLocation(config.getPath(), config.getRelativeTo());
+            for (Provider current : providers) {
+                try (InputStream is = new FileInputStream(configFile)) {
+                    current.load(is);
+                }
+            }
+        }
 
         return providers;
     }
@@ -122,6 +145,32 @@ class ProviderLoaderService implements Service<Provider[]> {
         }
     }
 
+    private File resolveFileLocation(String path, String relativeTo) {
+        final File resolvedPath;
+        if (relativeTo != null) {
+            PathManager pathManager = this.pathManager.getValue();
+            resolvedPath = new File(pathManager.resolveRelativePathEntry(path, relativeTo));
+            callbackHandles.add(pathManager.registerCallback(relativeTo, new Callback() {
+
+                        @Override
+                        public void pathModelEvent(PathEventContext eventContext, String name) {
+                            if (eventContext.isResourceServiceRestartAllowed() == false) {
+                                eventContext.reloadRequired();
+                            }
+                        }
+
+                        @Override
+                        public void pathEvent(Event event, PathEntry pathEntry) {
+                            // Service dependencies should trigger a stop and start.
+                        }
+                    }, Event.REMOVED, Event.UPDATED));
+        } else {
+            resolvedPath = new File(path);
+        }
+
+        return resolvedPath;
+    }
+
     private ClassLoader resolveClassLoader(ProviderConfig config) throws ModuleLoadException {
         Module current = Module.getCallerModule();
         if (config.getModule() != null) {
@@ -130,6 +179,12 @@ class ProviderLoaderService implements Service<Provider[]> {
         }
 
         return current.getClassLoader();
+    }
+
+    private void clearCallbacks() {
+        while(callbackHandles.isEmpty() == false) {
+            callbackHandles.remove(0).remove();
+        }
     }
 
     @Override
@@ -141,6 +196,8 @@ class ProviderLoaderService implements Service<Provider[]> {
             });
         }
 
+        clearCallbacks();
+
         providers = null;
     }
 
@@ -148,6 +205,10 @@ class ProviderLoaderService implements Service<Provider[]> {
         for (int i = providers.length - 1; i < 0; i--) {
             Security.removeProvider(providers[i].getName());
         }
+    }
+
+    Injector<PathManager> getPathManagerInjector() {
+        return pathManager;
     }
 
     @Override
@@ -161,12 +222,16 @@ class ProviderLoaderService implements Service<Provider[]> {
         private final String slot;
         private final boolean loadServices;
         private final String[] classNames;
+        private final String path;
+        private final String relativeTo;
 
-        private ProviderConfig(String module, String slot, boolean loadServices, String[] classNames) {
+        private ProviderConfig(String module, String slot, boolean loadServices, String[] classNames, String path, String relativeTo) {
             this.module = module;
             this.slot = slot;
             this.loadServices = loadServices;
             this.classNames = classNames;
+            this.path = path;
+            this.relativeTo = relativeTo;
         }
 
         private String getModule() {
@@ -183,6 +248,14 @@ class ProviderLoaderService implements Service<Provider[]> {
 
         private String[] getClassNames() {
             return classNames;
+        }
+
+        private String getPath() {
+            return path;
+        }
+
+        private String getRelativeTo() {
+            return relativeTo;
         }
     }
 
@@ -225,6 +298,8 @@ class ProviderLoaderService implements Service<Provider[]> {
         private String slot;
         private boolean loadServices;
         private String[] classNames;
+        private String path;
+        private String relativeTo;
 
         private ProviderConfigBuilder(ProviderLoaderServiceBuilder serviceBuilder) {
             this.serviceBuilder = serviceBuilder;
@@ -254,8 +329,20 @@ class ProviderLoaderService implements Service<Provider[]> {
             return this;
         }
 
+        ProviderConfigBuilder setPath(String path) {
+            this.path = path;
+
+            return this;
+        }
+
+        ProviderConfigBuilder setRelativeTo(String relativeTo) {
+            this.relativeTo = relativeTo;
+
+            return this;
+        }
+
         ProviderLoaderServiceBuilder build() {
-            serviceBuilder.add(new ProviderConfig(module, slot, loadServices, classNames));
+            serviceBuilder.add(new ProviderConfig(module, slot, loadServices, classNames, path, relativeTo));
 
             return serviceBuilder;
         }

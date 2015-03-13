@@ -21,8 +21,10 @@ package org.wildfly.extension.elytron;
 import org.jboss.as.controller.AttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
+import org.jboss.as.controller.descriptions.ModelDescriptionConstants;
 import org.jboss.as.controller.registry.AttributeAccess;
 import org.jboss.dmr.ModelType;
+import org.jboss.msc.service.ServiceName;
 
 /**
  * A holder for {@link AttributeDefinition} instances related to file locations.
@@ -46,5 +48,8 @@ class FileAttributeDefinitions {
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
         .build();
 
+    static ServiceName pathName(String relativeTo) {
+        return ServiceName.JBOSS.append(ModelDescriptionConstants.SERVER, ModelDescriptionConstants.PATH, relativeTo);
+    }
 
 }

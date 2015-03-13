@@ -55,8 +55,30 @@
                  </xs:annotation>
                  <xs:complexType>
                      <xs:sequence>
-                         <xs:element name="provider">
+                         <xs:element name="provider" minOccurs="0" maxOccurs="unbounded">
                              <xs:complexType>
+                                 <xs:choice minOccurs="0">
+                                     <xs:element name="configuration-file">
+                                         <xs:complexType>
+                                                 <!-- TODO Put this pair of attributes in a common type or attribute group. -->
+                                                 <xs:attribute name="relative-to" type="xs:string" use="optional">
+                                                     <xs:annotation>
+                                                         <xs:documentation>
+                                                             A reference to a previously defined path that the file name is
+                                                             relative to.
+                                                         </xs:documentation>
+                                                     </xs:annotation>
+                                                 </xs:attribute>
+                                                 <xs:attribute name="path" type="xs:string" use="required">
+                                                     <xs:annotation>
+                                                         <xs:documentation>
+                                                             The remaining path to the file referenced.
+                                                         </xs:documentation>
+                                                     </xs:annotation>
+                                                 </xs:attribute>
+                                         </xs:complexType>
+                                     </xs:element>
+                                 </xs:choice>
                                  <xs:attribute name="module" type="xs:string" use="optional">
                                      <xs:annotation>
                                          <xs:documentation>

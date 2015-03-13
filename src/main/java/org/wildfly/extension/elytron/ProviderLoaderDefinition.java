@@ -19,6 +19,7 @@
 package org.wildfly.extension.elytron;
 
 import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
+import static org.wildfly.extension.elytron.FileAttributeDefinitions.pathName;
 import static org.wildfly.extension.elytron.ProviderAttributeDefinition.INDEXED_PROVIDERS;
 import static org.wildfly.extension.elytron.ProviderAttributeDefinition.LOADED_PROVIDERS;
 import static org.wildfly.extension.elytron.ProviderAttributeDefinition.PROVIDERS;
@@ -26,7 +27,9 @@ import static org.wildfly.extension.elytron.ProviderAttributeDefinition.populate
 import static org.wildfly.extension.elytron.ProviderLoaderServiceUtil.providerLoaderServiceName;
 
 import java.security.Provider;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.jboss.as.controller.AbstractAddStepHandler;
 import org.jboss.as.controller.AbstractRuntimeOnlyHandler;
@@ -50,15 +53,17 @@ import org.jboss.as.controller.registry.AttributeAccess;
 import org.jboss.as.controller.registry.ManagementResourceRegistration;
 import org.jboss.as.controller.registry.OperationEntry;
 import org.jboss.as.controller.registry.Resource;
+import org.jboss.as.controller.services.path.PathManager;
+import org.jboss.as.controller.services.path.PathManagerService;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
-import org.jboss.msc.service.Service;
 import org.jboss.msc.service.ServiceBuilder;
 import org.jboss.msc.service.ServiceController;
 import org.jboss.msc.service.ServiceController.Mode;
 import org.jboss.msc.service.ServiceController.State;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.ServiceTarget;
+import org.wildfly.extension.elytron.ProviderLoaderService.ProviderConfigBuilder;
 import org.wildfly.extension.elytron.ProviderLoaderService.ProviderLoaderServiceBuilder;
 
 /**
@@ -138,23 +143,41 @@ class ProviderLoaderDefinition extends SimpleResourceDefinition {
             ProviderLoaderServiceBuilder builder = ProviderLoaderService.builder();
             builder.setRegister(ProviderLoaderDefinition.REGISTER.resolveModelAttribute(context, model).asBoolean());
 
+            Set<String> relativeToSet = new HashSet<String>();
+
             if (model.hasDefined(ElytronDescriptionConstants.PROVIDERS)) {
                 List<ModelNode> nodes = model.require(ElytronDescriptionConstants.PROVIDERS).asList();
                 for (ModelNode current : nodes) {
-                    builder.addProviderConfig()
+                    ProviderConfigBuilder providerBuilder = builder.addProviderConfig()
                     .setModule(asStringIfDefined(context, ProviderAttributeDefinition.MODULE, current))
                     .setSlot(asStringIfDefined(context, ProviderAttributeDefinition.SLOT, current))
                     .setLoadServices(ProviderAttributeDefinition.LOAD_SERVICES.resolveModelAttribute(context, current).asBoolean())
                     .setClassNames(asStringArrayIfDefined(context, ProviderAttributeDefinition.CLASS_NAMES, current))
-                    .build();
+                    .setPath(asStringIfDefined(context, FileAttributeDefinitions.PATH, current));
+
+                    String relativeTo = asStringIfDefined(context, FileAttributeDefinitions.RELATIVE_TO, current);
+                    if (relativeTo != null) {
+                        providerBuilder.setRelativeTo(relativeTo);
+                        relativeToSet.add(relativeTo);
+                    }
+
+                    providerBuilder.build();
+                    //.build();
                 }
             }
 
-            Service<Provider[]> providerLoaderService = builder.build();
+            ProviderLoaderService providerLoaderService = builder.build();
             ServiceName serviceName = providerLoaderServiceName(operation);
             ServiceTarget serviceTarget = context.getServiceTarget();
             ServiceBuilder<Provider[]> serviceBuilder = serviceTarget.addService(serviceName, providerLoaderService)
                     .setInitialMode(Mode.ACTIVE);
+
+            if (relativeToSet.isEmpty() == false) {
+                serviceBuilder.addDependency(PathManagerService.SERVICE_NAME, PathManager.class, providerLoaderService.getPathManagerInjector());
+                for (String relativeTo : relativeToSet) {
+                    serviceBuilder.addDependency(pathName(relativeTo));
+                }
+            }
 
             serviceBuilder.install();
         }

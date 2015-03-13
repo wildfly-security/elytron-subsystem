@@ -24,6 +24,7 @@ import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
 import static org.wildfly.extension.elytron.ElytronExtension.registerRuntimeResource;
 import static org.wildfly.extension.elytron.FileAttributeDefinitions.PATH;
 import static org.wildfly.extension.elytron.FileAttributeDefinitions.RELATIVE_TO;
+import static org.wildfly.extension.elytron.FileAttributeDefinitions.pathName;
 import static org.wildfly.extension.elytron.KeyStoreServiceUtil.keyStoreServiceName;
 import static org.wildfly.extension.elytron.ProviderAttributeDefinition.LOADED_PROVIDER;
 import static org.wildfly.extension.elytron.ProviderAttributeDefinition.populateProvider;
@@ -53,7 +54,6 @@ import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
 import org.jboss.as.controller.SimpleOperationDefinition;
 import org.jboss.as.controller.SimpleOperationDefinitionBuilder;
 import org.jboss.as.controller.SimpleResourceDefinition;
-import org.jboss.as.controller.descriptions.ModelDescriptionConstants;
 import org.jboss.as.controller.descriptions.StandardResourceDescriptionResolver;
 import org.jboss.as.controller.registry.AttributeAccess;
 import org.jboss.as.controller.registry.ManagementResourceRegistration;
@@ -270,10 +270,6 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
             return resource;
         }
 
-    }
-
-    private static ServiceName pathName(String relativeTo) {
-        return ServiceName.JBOSS.append(ModelDescriptionConstants.SERVER, ModelDescriptionConstants.PATH, relativeTo);
     }
 
     private static class KeyStoreRemoveHandler extends ServiceRemoveStepHandler {

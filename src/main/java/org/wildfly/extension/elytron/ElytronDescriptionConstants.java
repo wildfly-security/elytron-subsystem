@@ -32,6 +32,7 @@ interface ElytronDescriptionConstants {
     String CERTIFICATE_CHAIN = "certificate-chain";
     String CLASS_NAME = "class-name";
     String CLASS_NAMES = "class-names";
+    String CONFIGURATION_FILE = "configuration-file";
     String CREATION_DATE = "creation-date";
     String DEFAULT_REALM = "default_realm";
     String DOMAIN = "domain";

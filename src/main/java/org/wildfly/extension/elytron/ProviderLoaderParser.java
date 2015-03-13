@@ -34,8 +34,11 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDERS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDER_LOADER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CONFIGURATION_FILE;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REGISTER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SLOT;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PATH;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.RELATIVE_TO;
 import static org.wildfly.extension.elytron.ElytronSubsystemParser.verifyNamespace;
 
 import java.util.Arrays;
@@ -132,8 +135,48 @@ class ProviderLoaderParser {
             }
         }
 
-        requireNoContent(reader);
+        while(reader.hasNext() && reader.nextTag() != END_ELEMENT) {
+            verifyNamespace(reader);
+            String localName = reader.getLocalName();
+            if (CONFIGURATION_FILE.equals(localName)) {
+                readFileAttributes(provider, reader);
+            } else {
+                throw unexpectedElement(reader);
+            }
+        }
+
         providerLoaderAdd.get(PROVIDERS).add(provider);
+    }
+
+    private void readFileAttributes(ModelNode provider, XMLExtendedStreamReader reader) throws XMLStreamException {
+        Set<String> requiredAttributes = new HashSet<String>(Arrays.asList(new String[] { PATH }));
+
+        final int count = reader.getAttributeCount();
+        for (int i = 0; i < count; i++) {
+            final String value = reader.getAttributeValue(i);
+            if (!isNoNamespaceAttribute(reader, i)) {
+                throw unexpectedAttribute(reader, i);
+            } else {
+                String attribute = reader.getAttributeLocalName(i);
+                requiredAttributes.remove(attribute);
+                switch (attribute) {
+                    case PATH:
+                        FileAttributeDefinitions.PATH.parseAndSetParameter(value, provider, reader);
+                        break;
+                    case RELATIVE_TO:
+                        FileAttributeDefinitions.RELATIVE_TO.parseAndSetParameter(value, provider, reader);
+                        break;
+                    default:
+                        throw unexpectedAttribute(reader, i);
+                }
+            }
+        }
+
+        if (requiredAttributes.isEmpty() == false) {
+            throw missingRequired(reader, requiredAttributes);
+        }
+
+        requireNoContent(reader);
     }
 
     void writeProviderLoader(String name, ModelNode providerLoader, XMLExtendedStreamWriter writer) throws XMLStreamException {
@@ -149,6 +192,14 @@ class ProviderLoaderParser {
                 ProviderAttributeDefinition.SLOT.marshallAsAttribute(currentProvider, writer);
                 ProviderAttributeDefinition.LOAD_SERVICES.marshallAsAttribute(currentProvider, writer);
                 ProviderAttributeDefinition.CLASS_NAMES.getAttributeMarshaller().marshallAsAttribute(ProviderAttributeDefinition.CLASS_NAMES, currentProvider, false, writer);
+
+                if (currentProvider.hasDefined(PATH)) {
+                    writer.writeStartElement(CONFIGURATION_FILE);
+                    FileAttributeDefinitions.PATH.marshallAsAttribute(currentProvider, writer);
+                    FileAttributeDefinitions.RELATIVE_TO.marshallAsAttribute(currentProvider, writer);
+                    writer.writeEndElement();
+                }
+
                 writer.writeEndElement();
             }
         }

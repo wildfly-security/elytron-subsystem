@@ -18,6 +18,9 @@
 
 package org.wildfly.extension.elytron;
 
+import static org.wildfly.extension.elytron.FileAttributeDefinitions.PATH;
+import static org.wildfly.extension.elytron.FileAttributeDefinitions.RELATIVE_TO;
+
 import java.security.Provider;
 import java.security.Provider.Service;
 
@@ -101,7 +104,7 @@ class ProviderAttributeDefinition {
         .setAllowNull(true)
         .build();
 
-    private static final AttributeDefinition[] PROVIDER_ATTRIBUTES = { MODULE, SLOT, LOAD_SERVICES, CLASS_NAMES };
+    private static final AttributeDefinition[] PROVIDER_ATTRIBUTES = { MODULE, SLOT, LOAD_SERVICES, CLASS_NAMES, PATH, RELATIVE_TO };
 
     static final ObjectTypeAttributeDefinition PROVIDER = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.PROVIDER, PROVIDER_ATTRIBUTES)
         .build();
