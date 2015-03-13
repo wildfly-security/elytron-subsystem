@@ -26,7 +26,10 @@ import java.security.PrivilegedExceptionAction;
 import java.security.Provider;
 import java.security.Security;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.ServiceLoader;
+import java.util.Set;
 
 import org.jboss.modules.Module;
 import org.jboss.modules.ModuleIdentifier;
@@ -46,31 +49,26 @@ import org.jboss.msc.service.StopContext;
  */
 class ProviderLoaderService implements Service<Provider[]> {
 
-    private final String module;
-    private final String slot;
-    private final String[] classNames;
     private final boolean register;
+    private final ProviderConfig[] providerConfig;
 
     private volatile Provider[] providers;
 
-    private ProviderLoaderService(final String module, final String slot, final String[] classNames, final boolean register) {
-        this.module = module;
-        this.slot = slot;
-        this.classNames = classNames == null ? null : classNames.clone();
+    private ProviderLoaderService(final boolean register, final ProviderConfig[] providerConfig) {
         this.register = register;
-    }
-
-    static Service<Provider[]> newInstance(final String module, final String slot, final String[] classNames, final boolean register) {
-        return new ProviderLoaderService(module, slot, classNames, register);
+        this.providerConfig = providerConfig;
     }
 
     @Override
     public void start(StartContext context) throws StartException {
 
         try {
-            ClassLoader classLoader = doPrivileged((PrivilegedExceptionAction<ClassLoader>) () -> resolveClassLoader());
-            Provider[] providers = classNames == null ? loadProviders(classLoader) : loadProviders(classNames, classLoader);
+            ArrayList<Provider> providerList = new ArrayList<Provider>();
+            for (ProviderConfig currentConfig : providerConfig) {
+                providerList.addAll(loadProviders(currentConfig));
+            }
 
+            Provider[] providers = providerList.toArray(new Provider[providerList.size()]);
             if (register) {
                 doPrivileged((PrivilegedExceptionAction<Void>) () -> {
                     registerProviders(providers);
@@ -89,20 +87,26 @@ class ProviderLoaderService implements Service<Provider[]> {
         }
     }
 
-    private Provider[] loadProviders(ClassLoader classLoader) {
-        ServiceLoader<Provider> loader = ServiceLoader.load(Provider.class, classLoader);
+    private List<Provider> loadProviders(ProviderConfig config) throws Exception {
+        ClassLoader classLoader = doPrivileged((PrivilegedExceptionAction<ClassLoader>) () -> resolveClassLoader(config));
         ArrayList<Provider> providers = new ArrayList<Provider>();
-        loader.iterator().forEachRemaining((Provider p) -> providers.add(p));
+        Set<String> discovered = new HashSet<String>();
 
-        return providers.toArray(new Provider[providers.size()]);
-    }
-
-    private Provider[] loadProviders(String[] classNames, ClassLoader classLoader) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
-        Provider[] providers = new Provider[classNames.length];
-        for (int i = 0; i < classNames.length; i++) {
-            Class<Provider> currentClass = (Class<Provider>) classLoader.loadClass(classNames[i]);
-            providers[i] = currentClass.newInstance();
+        if (config.loadServices()) {
+            ServiceLoader<Provider> loader = ServiceLoader.load(Provider.class, classLoader);
+            loader.iterator().forEachRemaining((Provider p) -> {
+                providers.add(p);
+                discovered.add(p.getClass().getName());
+            });
         }
+
+        for (String className : config.getClassNames()) {
+            if (discovered.contains(className) == false) {
+                providers.add(((Class<Provider>) classLoader.loadClass(className)).newInstance());
+            }
+        }
+
+        // TODO - This will be the point to configure the providers.
 
         return providers;
     }
@@ -118,10 +122,10 @@ class ProviderLoaderService implements Service<Provider[]> {
         }
     }
 
-    private ClassLoader resolveClassLoader() throws ModuleLoadException {
+    private ClassLoader resolveClassLoader(ProviderConfig config) throws ModuleLoadException {
         Module current = Module.getCallerModule();
-        if (module != null) {
-            ModuleIdentifier mi = ModuleIdentifier.create(module, slot);
+        if (config.getModule() != null) {
+            ModuleIdentifier mi = ModuleIdentifier.create(config.getModule(), config.getSlot());
             current = current.getModule(mi);
         }
 
@@ -150,4 +154,111 @@ class ProviderLoaderService implements Service<Provider[]> {
     public Provider[] getValue() throws IllegalStateException, IllegalArgumentException {
         return providers == null ? null : providers.clone();
     }
+
+    private static class ProviderConfig {
+
+        private final String module;
+        private final String slot;
+        private final boolean loadServices;
+        private final String[] classNames;
+
+        private ProviderConfig(String module, String slot, boolean loadServices, String[] classNames) {
+            this.module = module;
+            this.slot = slot;
+            this.loadServices = loadServices;
+            this.classNames = classNames;
+        }
+
+        private String getModule() {
+            return module;
+        }
+
+        private String getSlot() {
+            return slot;
+        }
+
+        private boolean loadServices() {
+            return loadServices;
+        }
+
+        private String[] getClassNames() {
+            return classNames;
+        }
+    }
+
+    static ProviderLoaderServiceBuilder builder() {
+        return new ProviderLoaderServiceBuilder();
+    }
+
+    static class ProviderLoaderServiceBuilder {
+
+        private boolean register = false;
+        private ArrayList<ProviderConfig> providerConfig = new ArrayList<ProviderLoaderService.ProviderConfig>();
+
+        private ProviderLoaderServiceBuilder() {
+        }
+
+        ProviderLoaderServiceBuilder setRegister(final boolean register) {
+            this.register = register;
+
+            return this;
+        }
+
+        ProviderConfigBuilder addProviderConfig() {
+            return new ProviderConfigBuilder(this);
+        }
+
+        private void add(ProviderConfig config) {
+            providerConfig.add(config);
+        }
+
+        ProviderLoaderService build() {
+            return new ProviderLoaderService(register, providerConfig.toArray(new ProviderConfig[providerConfig.size()]));
+        }
+    }
+
+    static class ProviderConfigBuilder {
+
+        private final ProviderLoaderServiceBuilder serviceBuilder;
+
+        private String module;
+        private String slot;
+        private boolean loadServices;
+        private String[] classNames;
+
+        private ProviderConfigBuilder(ProviderLoaderServiceBuilder serviceBuilder) {
+            this.serviceBuilder = serviceBuilder;
+        }
+
+        ProviderConfigBuilder setModule(String module) {
+            this.module = module;
+
+            return this;
+        }
+
+        ProviderConfigBuilder setSlot(String slot) {
+            this.slot = slot;
+
+            return this;
+        }
+
+        ProviderConfigBuilder setLoadServices(boolean loadServices) {
+            this.loadServices = loadServices;
+
+            return this;
+        }
+
+        ProviderConfigBuilder setClassNames(final String[] classNames) {
+            this.classNames = classNames == null ? new String[0] : classNames.clone();
+
+            return this;
+        }
+
+        ProviderLoaderServiceBuilder build() {
+            serviceBuilder.add(new ProviderConfig(module, slot, loadServices, classNames));
+
+            return serviceBuilder;
+        }
+    }
+
 }

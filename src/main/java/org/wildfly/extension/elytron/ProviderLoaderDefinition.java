@@ -18,9 +18,10 @@
 
 package org.wildfly.extension.elytron;
 
+import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
+import static org.wildfly.extension.elytron.ProviderAttributeDefinition.INDEXED_PROVIDERS;
 import static org.wildfly.extension.elytron.ProviderAttributeDefinition.LOADED_PROVIDERS;
 import static org.wildfly.extension.elytron.ProviderAttributeDefinition.PROVIDERS;
-import static org.wildfly.extension.elytron.ProviderAttributeDefinition.INDEXED_PROVIDERS;
 import static org.wildfly.extension.elytron.ProviderAttributeDefinition.populateProviders;
 import static org.wildfly.extension.elytron.ProviderLoaderServiceUtil.providerLoaderServiceName;
 
@@ -51,9 +52,14 @@ import org.jboss.as.controller.registry.OperationEntry;
 import org.jboss.as.controller.registry.Resource;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
+import org.jboss.msc.service.Service;
+import org.jboss.msc.service.ServiceBuilder;
 import org.jboss.msc.service.ServiceController;
+import org.jboss.msc.service.ServiceController.Mode;
 import org.jboss.msc.service.ServiceController.State;
 import org.jboss.msc.service.ServiceName;
+import org.jboss.msc.service.ServiceTarget;
+import org.wildfly.extension.elytron.ProviderLoaderService.ProviderLoaderServiceBuilder;
 
 /**
  * A {@link ResourceDefinition} for a loader of {@link Provider}s.
@@ -127,21 +133,31 @@ class ProviderLoaderDefinition extends SimpleResourceDefinition {
 
         @Override
         protected void performRuntime(OperationContext context, ModelNode operation, Resource resource) throws OperationFailedException {
-//            ModelNode model = resource.getModel();
-//            String module = asStringIfDefined(context, ProviderLoaderDefinition.MODULE, model);
-//            String slot = asStringIfDefined(context, ProviderLoaderDefinition.SLOT, model);
-//            String[] classNames = asStringArrayIfDefined(context, ProviderLoaderDefinition.CLASSES, model);
-//            boolean register = ProviderLoaderDefinition.REGISTER.resolveModelAttribute(context, model).asBoolean();
-//
-//            Service<Provider[]> providerLoaderService = ProviderLoaderService.newInstance(module, slot, classNames, register);
-//            ServiceName serviceName = providerLoaderServiceName(operation);
-//            ServiceTarget serviceTarget = context.getServiceTarget();
-//            ServiceBuilder<Provider[]> serviceBuilder = serviceTarget.addService(serviceName, providerLoaderService)
-//                    .setInitialMode(Mode.ACTIVE);
-//
-//            serviceBuilder.install();
-        }
+            ModelNode model = resource.getModel();
 
+            ProviderLoaderServiceBuilder builder = ProviderLoaderService.builder();
+            builder.setRegister(ProviderLoaderDefinition.REGISTER.resolveModelAttribute(context, model).asBoolean());
+
+            if (model.hasDefined(ElytronDescriptionConstants.PROVIDERS)) {
+                List<ModelNode> nodes = model.require(ElytronDescriptionConstants.PROVIDERS).asList();
+                for (ModelNode current : nodes) {
+                    builder.addProviderConfig()
+                    .setModule(asStringIfDefined(context, ProviderAttributeDefinition.MODULE, current))
+                    .setSlot(asStringIfDefined(context, ProviderAttributeDefinition.SLOT, current))
+                    .setLoadServices(ProviderAttributeDefinition.LOAD_SERVICES.resolveModelAttribute(context, current).asBoolean())
+                    .setClassNames(asStringArrayIfDefined(context, ProviderAttributeDefinition.CLASS_NAMES, current))
+                    .build();
+                }
+            }
+
+            Service<Provider[]> providerLoaderService = builder.build();
+            ServiceName serviceName = providerLoaderServiceName(operation);
+            ServiceTarget serviceTarget = context.getServiceTarget();
+            ServiceBuilder<Provider[]> serviceBuilder = serviceTarget.addService(serviceName, providerLoaderService)
+                    .setInitialMode(Mode.ACTIVE);
+
+            serviceBuilder.install();
+        }
     }
 
     private static String[] asStringArrayIfDefined(OperationContext context, StringListAttributeDefinition attributeDefintion, ModelNode model) throws OperationFailedException {
