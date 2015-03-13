@@ -22,6 +22,8 @@ import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP;
 import static org.wildfly.extension.elytron.ElytronExtension.ELYTRON_1_0_0;
 import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
 import static org.wildfly.extension.elytron.ElytronExtension.registerRuntimeResource;
+import static org.wildfly.extension.elytron.FileAttributeDefinitions.PATH;
+import static org.wildfly.extension.elytron.FileAttributeDefinitions.RELATIVE_TO;
 import static org.wildfly.extension.elytron.KeyStoreServiceUtil.keyStoreServiceName;
 import static org.wildfly.extension.elytron.ProviderAttributeDefinition.LOADED_PROVIDER;
 import static org.wildfly.extension.elytron.ProviderAttributeDefinition.populateProvider;
@@ -95,21 +97,6 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
         .setMinSize(1)
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
         .setDeprecated(ELYTRON_1_0_0) // Deprecate immediately as to be supplied by the vault.
-        .build();
-
-    static final SimpleAttributeDefinition PATH = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PATH, ModelType.STRING, true)
-        .setAllowExpression(true)
-        .setMinSize(1)
-        .setAttributeGroup(ElytronDescriptionConstants.FILE)
-        .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
-        .build();
-
-    static final SimpleAttributeDefinition RELATIVE_TO = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.RELATIVE_TO, ModelType.STRING, true)
-        .setAllowExpression(true)
-        .setMinSize(1)
-        .setAttributeGroup(ElytronDescriptionConstants.FILE)
-        .setRequires(ElytronDescriptionConstants.PATH)
-        .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
         .build();
 
     static final SimpleAttributeDefinition REQUIRED = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.REQUIRED, ModelType.BOOLEAN, true)

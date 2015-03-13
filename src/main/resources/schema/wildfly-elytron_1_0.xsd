@@ -54,46 +54,59 @@
                      </xs:documentation>
                  </xs:annotation>
                  <xs:complexType>
-                     <!-- TODO - Still to add configuration properties. -->
+                     <xs:sequence>
+                         <xs:element name="provider">
+                             <xs:complexType>
+                                 <xs:attribute name="module" type="xs:string" use="optional">
+                                     <xs:annotation>
+                                         <xs:documentation>
+                                             The name of the module to use to load the providers.
 
+                                             If this is not specified the ClassLoader used to load the service will be used instead.
+                                         </xs:documentation>
+                                     </xs:annotation>
+                                 </xs:attribute>
+                                 <xs:attribute name="slot" type="xs:string" use="optional">
+                                     <xs:annotation>
+                                         <xs:documentation>
+                                             The slot of the module to use to load the providers.
+
+                                             This will only be required in rare situations where a single module is defined with multiple slots.
+                                         </xs:documentation>
+                                     </xs:annotation>
+                                 </xs:attribute>
+                                 <xs:attribute name="load-services" type="xs:boolean" default="false">
+                                     <xs:annotation>
+                                         <xs:documentation>
+                                             Should ServiceLoader discovery be used to identify the providers?
+                                             
+                                             Note: ServiceLoader discovery happens before any specified classes are loaded.
+                                         </xs:documentation>
+                                     </xs:annotation>
+                                 </xs:attribute>
+                                 <xs:attribute name="class-names" type="stringListType" use="optional">
+                                     <xs:annotation>
+                                         <xs:documentation>
+                                             The fully qualified class names of the providers to load.
+
+                                             These providers are loaded after ServiceLoader based discovery, duplicates are silently skipped.
+                                         </xs:documentation>
+                                     </xs:annotation>
+                                 </xs:attribute>
+                             </xs:complexType>
+                         </xs:element>
+                     </xs:sequence>
                      <xs:attribute name="name" type="xs:string" use="required">
                          <xs:annotation>
                              <xs:documentation>
-                                 The name to use to represent this provider in the management model. 
-                             </xs:documentation>
-                         </xs:annotation>
-                     </xs:attribute>
-                     <xs:attribute name="module" type="xs:string" use="optional">
-                         <xs:annotation>
-                             <xs:documentation>
-                                 The name of the module to use to load the providers.
-
-                                 If this is not specified the ClassLoader used to load the service will be used instead.
-                             </xs:documentation>
-                         </xs:annotation>
-                     </xs:attribute>
-                     <xs:attribute name="slot" type="xs:string" use="optional">
-                         <xs:annotation>
-                             <xs:documentation>
-                                 The slot of the module to use to load the providers.
-
-                                 This will only be required in rare situations where a single module is defined with multiple slots.
-                             </xs:documentation>
-                         </xs:annotation>
-                     </xs:attribute>
-                     <xs:attribute name="classes" type="stringListType" use="optional">
-                         <xs:annotation>
-                             <xs:documentation>
-                                 The fully qualified class names of the providers to load.
-
-                                 If this attributed is omitted then ServiceLoader based discovery is used instead.
+                                 The name to use to represent this provider loader in the management model. 
                              </xs:documentation>
                          </xs:annotation>
                      </xs:attribute>
                      <xs:attribute name="register" type="xs:boolean" default="false">
                          <xs:annotation>
                              <xs:documentation>
-                                 Should this provider be globally registered.
+                                 Should the providers defined here be globally registered.
 
                                  If not registered globally security definitions within the subsystem can still use a provider by
                                  referencing it's name as defined here.

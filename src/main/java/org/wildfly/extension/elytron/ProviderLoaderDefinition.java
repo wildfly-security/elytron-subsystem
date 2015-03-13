@@ -18,8 +18,9 @@
 
 package org.wildfly.extension.elytron;
 
-import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
+import static org.wildfly.extension.elytron.ProviderAttributeDefinition.LOADED_PROVIDERS;
 import static org.wildfly.extension.elytron.ProviderAttributeDefinition.PROVIDERS;
+import static org.wildfly.extension.elytron.ProviderAttributeDefinition.INDEXED_PROVIDERS;
 import static org.wildfly.extension.elytron.ProviderAttributeDefinition.populateProviders;
 import static org.wildfly.extension.elytron.ProviderLoaderServiceUtil.providerLoaderServiceName;
 
@@ -28,7 +29,6 @@ import java.util.List;
 
 import org.jboss.as.controller.AbstractAddStepHandler;
 import org.jboss.as.controller.AbstractRuntimeOnlyHandler;
-import org.jboss.as.controller.AttributeDefinition;
 import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
 import org.jboss.as.controller.OperationStepHandler;
@@ -39,21 +39,21 @@ import org.jboss.as.controller.RestartParentWriteAttributeHandler;
 import org.jboss.as.controller.ServiceRemoveStepHandler;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
+import org.jboss.as.controller.SimpleOperationDefinition;
+import org.jboss.as.controller.SimpleOperationDefinitionBuilder;
 import org.jboss.as.controller.SimpleResourceDefinition;
 import org.jboss.as.controller.StringListAttributeDefinition;
+import org.jboss.as.controller.descriptions.ModelDescriptionConstants;
+import org.jboss.as.controller.descriptions.StandardResourceDescriptionResolver;
 import org.jboss.as.controller.registry.AttributeAccess;
 import org.jboss.as.controller.registry.ManagementResourceRegistration;
 import org.jboss.as.controller.registry.OperationEntry;
 import org.jboss.as.controller.registry.Resource;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
-import org.jboss.msc.service.Service;
-import org.jboss.msc.service.ServiceBuilder;
 import org.jboss.msc.service.ServiceController;
-import org.jboss.msc.service.ServiceController.Mode;
 import org.jboss.msc.service.ServiceController.State;
 import org.jboss.msc.service.ServiceName;
-import org.jboss.msc.service.ServiceTarget;
 
 /**
  * A {@link ResourceDefinition} for a loader of {@link Provider}s.
@@ -62,53 +62,44 @@ import org.jboss.msc.service.ServiceTarget;
  */
 class ProviderLoaderDefinition extends SimpleResourceDefinition {
 
-    static final SimpleAttributeDefinition MODULE = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.MODULE, ModelType.STRING, true)
-        .setAllowExpression(true)
-        .setMinSize(1)
-        .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
-        .build();
-
-    static final SimpleAttributeDefinition SLOT = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.SLOT, ModelType.STRING, true)
-        .setAllowExpression(true)
-        .setMinSize(1)
-        .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
-        .build();
-
-    static final StringListAttributeDefinition CLASSES = new StringListAttributeDefinition.Builder(ElytronDescriptionConstants.CLASSES)
-        .setAllowExpression(true)
-        .setAllowNull(true)
-        .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
-        .build();
-
-    // TODO - Classes is not really going to work, instead need a set of sub-definitions so that config can be supplied.
-
     static final SimpleAttributeDefinition REGISTER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.REGISTER, ModelType.BOOLEAN, true)
         .setDefaultValue(new ModelNode(false))
         .setAllowExpression(true)
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
         .build();
 
-    private static final AttributeDefinition[] CONFIG_ATTRIBUTES = new AttributeDefinition[] { MODULE, SLOT, CLASSES, REGISTER };
-
     private static final AbstractAddStepHandler ADD = new ProviderAddHandler();
     private static final OperationStepHandler REMOVE = new ProviderRemoveHandler(ADD);
     private static final OperationStepHandler WRITE = new WriteAttributeHandler();
 
+    private static final StandardResourceDescriptionResolver RESOLVER = ElytronExtension.getResourceDescriptionResolver(ElytronDescriptionConstants.PROVIDER_LOADER);
+
+    private static final SimpleOperationDefinition ADD_DEFINITION = new SimpleOperationDefinitionBuilder(ModelDescriptionConstants.ADD, RESOLVER)
+        .setParameters(REGISTER, PROVIDERS)
+        .build();
+
     public ProviderLoaderDefinition() {
         super(PathElement.pathElement(ElytronDescriptionConstants.PROVIDER_LOADER),
-                ElytronExtension.getResourceDescriptionResolver(ElytronDescriptionConstants.PROVIDER_LOADER),
-                ADD, REMOVE,
+                RESOLVER,
+                null, REMOVE,
                 OperationEntry.Flag.RESTART_RESOURCE_SERVICES,
                 OperationEntry.Flag.RESTART_RESOURCE_SERVICES);
     }
 
+
+
     @Override
     public void registerAttributes(ManagementResourceRegistration resourceRegistration) {
-        for (AttributeDefinition current : CONFIG_ATTRIBUTES) {
-            resourceRegistration.registerReadWriteAttribute(current, null, WRITE);
-        }
+        resourceRegistration.registerReadWriteAttribute(REGISTER, null, WRITE);
 
-        resourceRegistration.registerReadOnlyAttribute(PROVIDERS, new ProvidersAttributeHandler());
+        resourceRegistration.registerReadOnlyAttribute(INDEXED_PROVIDERS, new ProvidersAttributeHandler());
+        resourceRegistration.registerReadOnlyAttribute(LOADED_PROVIDERS, new LoadedProvidersAttributeHandler());
+    }
+
+    @Override
+    public void registerOperations(ManagementResourceRegistration resourceRegistration) {
+        super.registerOperations(resourceRegistration);
+        resourceRegistration.registerOperationHandler(ADD_DEFINITION, ADD);
     }
 
     @Override
@@ -118,7 +109,7 @@ class ProviderLoaderDefinition extends SimpleResourceDefinition {
     private static class WriteAttributeHandler extends RestartParentWriteAttributeHandler {
 
         WriteAttributeHandler() {
-            super(ElytronDescriptionConstants.PROVIDER_LOADER, CONFIG_ATTRIBUTES);
+            super(ElytronDescriptionConstants.PROVIDER_LOADER, REGISTER);
         }
 
         @Override
@@ -131,24 +122,24 @@ class ProviderLoaderDefinition extends SimpleResourceDefinition {
     private static class ProviderAddHandler extends AbstractAddStepHandler {
 
         ProviderAddHandler() {
-            super(CONFIG_ATTRIBUTES);
+            super(REGISTER, PROVIDERS);
         }
 
         @Override
         protected void performRuntime(OperationContext context, ModelNode operation, Resource resource) throws OperationFailedException {
-            ModelNode model = resource.getModel();
-            String module = asStringIfDefined(context, ProviderLoaderDefinition.MODULE, model);
-            String slot = asStringIfDefined(context, ProviderLoaderDefinition.SLOT, model);
-            String[] classNames = asStringArrayIfDefined(context, ProviderLoaderDefinition.CLASSES, model);
-            boolean register = ProviderLoaderDefinition.REGISTER.resolveModelAttribute(context, model).asBoolean();
-
-            Service<Provider[]> providerLoaderService = ProviderLoaderService.newInstance(module, slot, classNames, register);
-            ServiceName serviceName = providerLoaderServiceName(operation);
-            ServiceTarget serviceTarget = context.getServiceTarget();
-            ServiceBuilder<Provider[]> serviceBuilder = serviceTarget.addService(serviceName, providerLoaderService)
-                    .setInitialMode(Mode.ACTIVE);
-
-            serviceBuilder.install();
+//            ModelNode model = resource.getModel();
+//            String module = asStringIfDefined(context, ProviderLoaderDefinition.MODULE, model);
+//            String slot = asStringIfDefined(context, ProviderLoaderDefinition.SLOT, model);
+//            String[] classNames = asStringArrayIfDefined(context, ProviderLoaderDefinition.CLASSES, model);
+//            boolean register = ProviderLoaderDefinition.REGISTER.resolveModelAttribute(context, model).asBoolean();
+//
+//            Service<Provider[]> providerLoaderService = ProviderLoaderService.newInstance(module, slot, classNames, register);
+//            ServiceName serviceName = providerLoaderServiceName(operation);
+//            ServiceTarget serviceTarget = context.getServiceTarget();
+//            ServiceBuilder<Provider[]> serviceBuilder = serviceTarget.addService(serviceName, providerLoaderService)
+//                    .setInitialMode(Mode.ACTIVE);
+//
+//            serviceBuilder.install();
         }
 
     }
@@ -174,7 +165,24 @@ class ProviderLoaderDefinition extends SimpleResourceDefinition {
 
     }
 
-    private static class ProvidersAttributeHandler extends AbstractRuntimeOnlyHandler {
+    private static class ProvidersAttributeHandler implements OperationStepHandler {
+
+        @Override
+        public void execute(OperationContext context, ModelNode operation) throws OperationFailedException {
+            ModelNode model = context.readResource(PathAddress.EMPTY_ADDRESS).getModel();
+            ModelNode result = context.getResult();
+
+            if (model.hasDefined(ElytronDescriptionConstants.PROVIDERS)) {
+                int index = 0;
+                model.require(ElytronDescriptionConstants.PROVIDERS).asList().iterator().forEachRemaining((ModelNode m) -> result.add(m));
+                for (ModelNode currentProvider : result.asList()) {
+                    currentProvider.get(ElytronDescriptionConstants.INDEX).set(index++);
+                }
+            }
+        }
+    }
+
+    private static class LoadedProvidersAttributeHandler extends AbstractRuntimeOnlyHandler {
 
         @Override
         protected void executeRuntimeStep(OperationContext context, ModelNode operation) throws OperationFailedException {

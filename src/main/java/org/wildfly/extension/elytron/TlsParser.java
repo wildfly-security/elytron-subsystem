@@ -137,11 +137,11 @@ class TlsParser {
                 String attribute = reader.getAttributeLocalName(i);
                 switch (attribute) {
                     case RELATIVE_TO:
-                        KeyStoreDefinition.RELATIVE_TO.parseAndSetParameter(value, addOp, reader);
+                        FileAttributeDefinitions.RELATIVE_TO.parseAndSetParameter(value, addOp, reader);
                         break;
                     case PATH:
                         pathFound = true;
-                        KeyStoreDefinition.PATH.parseAndSetParameter(value, addOp, reader);
+                        FileAttributeDefinitions.PATH.parseAndSetParameter(value, addOp, reader);
                         break;
                     case REQUIRED:
                         KeyStoreDefinition.REQUIRED.parseAndSetParameter(value, addOp, reader);
@@ -167,8 +167,8 @@ class TlsParser {
 
         if (keyStore.hasDefined(PATH)) {
             writer.writeStartElement(FILE);
-            KeyStoreDefinition.RELATIVE_TO.marshallAsAttribute(keyStore, writer);
-            KeyStoreDefinition.PATH.marshallAsAttribute(keyStore, writer);
+            FileAttributeDefinitions.RELATIVE_TO.marshallAsAttribute(keyStore, writer);
+            FileAttributeDefinitions.PATH.marshallAsAttribute(keyStore, writer);
             KeyStoreDefinition.REQUIRED.marshallAsAttribute(keyStore, writer);
 
             writer.writeEndElement();

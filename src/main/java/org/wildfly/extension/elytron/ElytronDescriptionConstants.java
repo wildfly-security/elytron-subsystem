@@ -30,8 +30,8 @@ interface ElytronDescriptionConstants {
     String CERTIFICATE = "certificate";
     String CERTIFICATES = "certificates";
     String CERTIFICATE_CHAIN = "certificate-chain";
-    String CLASSES = "classes";
     String CLASS_NAME = "class-name";
+    String CLASS_NAMES = "class-names";
     String CREATION_DATE = "creation-date";
     String DEFAULT_REALM = "default_realm";
     String DOMAIN = "domain";
@@ -42,12 +42,15 @@ interface ElytronDescriptionConstants {
     String FINGER_PRINT = "finger-print";
     String FINGER_PRINTS = "finger-prints";
     String FORMAT = "format";
+    String INDEX = "index";
     String INFO = "info";
     String ISSUER = "issuer";
     String KEYSTORE = "keystore";
     String KEYSTORES = "keystores";
     String LOAD = "load";
     String LOADED_PROVIDER = "loaded-provider";
+    String LOADED_PROVIDERS = "loaded-providers";
+    String LOAD_SERVICES = "load-services";
     String MODIFIED = "modified";
     String MODULE = "module";
     String MODULE_REFERENCE = "module-reference";

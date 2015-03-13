@@ -18,6 +18,7 @@
 
 package org.wildfly.extension.elytron;
 
+import static javax.xml.stream.XMLStreamConstants.END_ELEMENT;
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.ADD;
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP;
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP_ADDR;
@@ -25,12 +26,17 @@ import static org.jboss.as.controller.parsing.ParseUtils.isNoNamespaceAttribute;
 import static org.jboss.as.controller.parsing.ParseUtils.missingRequired;
 import static org.jboss.as.controller.parsing.ParseUtils.requireNoContent;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedAttribute;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CLASSES;
+import static org.jboss.as.controller.parsing.ParseUtils.unexpectedElement;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CLASS_NAMES;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.LOAD_SERVICES;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MODULE;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDERS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDER_LOADER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REGISTER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SLOT;
+import static org.wildfly.extension.elytron.ElytronSubsystemParser.verifyNamespace;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -68,17 +74,6 @@ class ProviderLoaderParser {
                     case NAME:
                         name = value;
                         break;
-                    case MODULE:
-                        ProviderLoaderDefinition.MODULE.parseAndSetParameter(value, operation, reader);
-                        break;
-                    case SLOT:
-                        ProviderLoaderDefinition.SLOT.parseAndSetParameter(value, operation, reader);
-                        break;
-                    case CLASSES:
-                        for (String className : reader.getListAttributeValue(i)) {
-                            ProviderLoaderDefinition.CLASSES.parseAndAddParameterElement(className, operation, reader);
-                        }
-                        break;
                     case REGISTER:
                         ProviderLoaderDefinition.REGISTER.parseAndSetParameter(value, operation, reader);
                         break;
@@ -95,17 +90,68 @@ class ProviderLoaderParser {
         operation.get(OP_ADDR).set(parentAddress).add(PROVIDER_LOADER, name);
         operations.add(operation);
 
+        while(reader.hasNext() && reader.nextTag() != END_ELEMENT) {
+            verifyNamespace(reader);
+            String localName = reader.getLocalName();
+            if (PROVIDER.equals(localName)) {
+                readProvider(operation, reader);
+            } else {
+                throw unexpectedElement(reader);
+            }
+        }
+    }
+
+    private void readProvider(ModelNode providerLoaderAdd, XMLExtendedStreamReader reader) throws XMLStreamException {
+        ModelNode provider = new ModelNode();
+
+        final int count = reader.getAttributeCount();
+        for (int i = 0; i < count; i++) {
+            final String value = reader.getAttributeValue(i);
+            if (!isNoNamespaceAttribute(reader, i)) {
+                throw unexpectedAttribute(reader, i);
+            } else {
+                String attribute = reader.getAttributeLocalName(i);
+                switch (attribute) {
+                    case MODULE:
+                        ProviderAttributeDefinition.MODULE.parseAndSetParameter(value, provider, reader);
+                        break;
+                    case SLOT:
+                        ProviderAttributeDefinition.SLOT.parseAndSetParameter(value, provider, reader);
+                        break;
+                    case LOAD_SERVICES:
+                        ProviderAttributeDefinition.LOAD_SERVICES.parseAndSetParameter(value, provider, reader);
+                        break;
+                    case CLASS_NAMES:
+                        for (String className : reader.getListAttributeValue(i)) {
+                            ProviderAttributeDefinition.CLASS_NAMES.parseAndAddParameterElement(className, provider, reader);
+                        }
+                        break;
+                    default:
+                        throw unexpectedAttribute(reader, i);
+                }
+            }
+        }
+
         requireNoContent(reader);
+        providerLoaderAdd.get(PROVIDERS).add(provider);
     }
 
     void writeProviderLoader(String name, ModelNode providerLoader, XMLExtendedStreamWriter writer) throws XMLStreamException {
         writer.writeStartElement(PROVIDER_LOADER);
         writer.writeAttribute(NAME, name);
-
-        ProviderLoaderDefinition.MODULE.marshallAsAttribute(providerLoader, writer);
-        ProviderLoaderDefinition.SLOT.marshallAsAttribute(providerLoader, writer);
-        ProviderLoaderDefinition.CLASSES.getAttributeMarshaller().marshallAsAttribute(ProviderLoaderDefinition.CLASSES, providerLoader, false, writer);
         ProviderLoaderDefinition.REGISTER.marshallAsAttribute(providerLoader, writer);
+        ModelNode providers = providerLoader.get(PROVIDERS);
+        if (providers.isDefined()) {
+            List<ModelNode> providersList = providers.asList();
+            for (ModelNode currentProvider : providersList) {
+                writer.writeStartElement(PROVIDER);
+                ProviderAttributeDefinition.MODULE.marshallAsAttribute(currentProvider, writer);
+                ProviderAttributeDefinition.SLOT.marshallAsAttribute(currentProvider, writer);
+                ProviderAttributeDefinition.LOAD_SERVICES.marshallAsAttribute(currentProvider, writer);
+                ProviderAttributeDefinition.CLASS_NAMES.getAttributeMarshaller().marshallAsAttribute(ProviderAttributeDefinition.CLASS_NAMES, providerLoader, false, writer);
+                writer.writeEndElement();
+            }
+        }
 
         writer.writeEndElement();
     }

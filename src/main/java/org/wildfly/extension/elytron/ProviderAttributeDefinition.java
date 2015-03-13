@@ -21,10 +21,12 @@ package org.wildfly.extension.elytron;
 import java.security.Provider;
 import java.security.Provider.Service;
 
+import org.jboss.as.controller.AttributeDefinition;
 import org.jboss.as.controller.ObjectListAttributeDefinition;
 import org.jboss.as.controller.ObjectTypeAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
+import org.jboss.as.controller.StringListAttributeDefinition;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
 
@@ -67,10 +69,54 @@ class ProviderAttributeDefinition {
     private static final ObjectTypeAttributeDefinition FULL_PROVIDER = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.PROVIDER, NAME, INFO, VERSION, SERVICES)
         .build();
 
-    static final ObjectListAttributeDefinition PROVIDERS = new ObjectListAttributeDefinition.Builder(ElytronDescriptionConstants.PROVIDERS, FULL_PROVIDER)
+    static final ObjectListAttributeDefinition LOADED_PROVIDERS = new ObjectListAttributeDefinition.Builder(ElytronDescriptionConstants.LOADED_PROVIDERS, FULL_PROVIDER)
         .setStorageRuntime()
         .setAllowNull(false)
         .build();
+
+    /*
+     *  Provider Configuration Attributes
+     */
+
+    private static final SimpleAttributeDefinition INDEX = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.INDEX, ModelType.INT)
+        .build();
+
+    static final SimpleAttributeDefinition MODULE = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.MODULE, ModelType.STRING, true)
+        .setAllowExpression(true)
+        .setMinSize(1)
+        .build();
+
+    static final SimpleAttributeDefinition SLOT = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.SLOT, ModelType.STRING, true)
+        .setAllowExpression(true)
+        .setMinSize(1)
+        .build();
+
+    static final SimpleAttributeDefinition LOAD_SERVICES = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.LOAD_SERVICES, ModelType.BOOLEAN)
+        .setAllowExpression(true)
+        .setDefaultValue(new ModelNode(false))
+        .build();
+
+    static final StringListAttributeDefinition CLASS_NAMES = new StringListAttributeDefinition.Builder(ElytronDescriptionConstants.CLASS_NAMES)
+        .setAllowExpression(true)
+        .setAllowNull(true)
+        .build();
+
+    private static final AttributeDefinition[] PROVIDER_ATTRIBUTES = { MODULE, SLOT, LOAD_SERVICES, CLASS_NAMES };
+
+    static final ObjectTypeAttributeDefinition PROVIDER = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.PROVIDER, PROVIDER_ATTRIBUTES)
+        .build();
+
+    private static final ObjectTypeAttributeDefinition INDEXED_PROVIDER = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.PROVIDER, combine(INDEX, PROVIDER_ATTRIBUTES))
+        .build();
+
+    static final ObjectListAttributeDefinition PROVIDERS = new ObjectListAttributeDefinition.Builder(ElytronDescriptionConstants.PROVIDERS, PROVIDER)
+        .setAllowNull(true)
+        .build();
+
+    static final ObjectListAttributeDefinition INDEXED_PROVIDERS = new ObjectListAttributeDefinition.Builder(ElytronDescriptionConstants.PROVIDERS, INDEXED_PROVIDER)
+        .setAllowNull(true)
+        .build();
+
 
     private ProviderAttributeDefinition() {
     }
@@ -117,6 +163,14 @@ class ProviderAttributeDefinition {
             servicesModel.add(serviceModel);
         }
 
+    }
+
+    private static AttributeDefinition[] combine(AttributeDefinition first, AttributeDefinition[] remaining) {
+        AttributeDefinition[] response = new AttributeDefinition[remaining.length + 1];
+        response[0] = first;
+        System.arraycopy(remaining, 0, response, 1, remaining.length);
+
+        return response;
     }
 
 }
