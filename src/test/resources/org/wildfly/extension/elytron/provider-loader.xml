@@ -1,6 +1,12 @@
 <subsystem xmlns="urn:wildfly:elytron:1.0">
     <provider-loaders>
-        <provider-loader name="ByServiceLoader" module="test.module" slot="testing" register="true" />
-        <provider-loader name="ByClassNames" module="test.module" slot="testing" classes="org.wildfly.elytron.TestOne org.wildfly.elytron.TestTwo" />
+        <provider-loader name="ByServiceLoader" register="true">
+            <provider module="test.module" slot="testing" />
+            <provider module="test.Anothermodule" slot="testing" />
+        </provider-loader>
+        <provider-loader name="ByClassNames">
+            <provider module="test.class.module" slot="testing" class-names="org.wildfly.elytron.TestOne org.wildfly.elytron.TestTwo"/>
+            <provider module="test.class.Anothermodule" slot="testing" class-names="org.wildfly.elytron.TestThree" />
+        </provider-loader>
     </provider-loaders>
 </subsystem>

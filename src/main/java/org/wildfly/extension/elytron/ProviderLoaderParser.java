@@ -148,7 +148,7 @@ class ProviderLoaderParser {
                 ProviderAttributeDefinition.MODULE.marshallAsAttribute(currentProvider, writer);
                 ProviderAttributeDefinition.SLOT.marshallAsAttribute(currentProvider, writer);
                 ProviderAttributeDefinition.LOAD_SERVICES.marshallAsAttribute(currentProvider, writer);
-                ProviderAttributeDefinition.CLASS_NAMES.getAttributeMarshaller().marshallAsAttribute(ProviderAttributeDefinition.CLASS_NAMES, providerLoader, false, writer);
+                ProviderAttributeDefinition.CLASS_NAMES.getAttributeMarshaller().marshallAsAttribute(ProviderAttributeDefinition.CLASS_NAMES, currentProvider, false, writer);
                 writer.writeEndElement();
             }
         }
