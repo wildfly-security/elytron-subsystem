@@ -6,12 +6,24 @@
             <provider module="test.Configuredmodule" slot="testing">
                 <configuration-file path="config.test" relative-to="some.path" />
             </provider>
+            <provider module="test.ConfiguredByProps" slot="testing">
+                <configuration-properties>
+                    <property key="b" value="BB" />
+                    <property key="a" value="AA" />
+                </configuration-properties>
+            </provider>
         </provider-loader>
         <provider-loader name="ByClassNames">
             <provider module="test.class.module" slot="testing" class-names="org.wildfly.elytron.TestOne org.wildfly.elytron.TestTwo"/>
             <provider module="test.class.Anothermodule" slot="testing" class-names="org.wildfly.elytron.TestThree" />
             <provider module="test.class.Configuredmodule" slot="testing" class-names="org.wildfly.elytron.TestFour">
                 <configuration-file path="config.test" relative-to="some.path" />
+            </provider>
+            <provider module="test.class.ConfiguredByProps" slot="testing" class-names="org.wildfly.elytron.TestFour">
+                <configuration-properties>
+                    <property key="b" value="BB" />
+                    <property key="a" value="AA" />
+                </configuration-properties>
             </provider>
         </provider-loader>
     </provider-loaders>
