@@ -78,6 +78,35 @@
                                                  </xs:attribute>
                                          </xs:complexType>
                                      </xs:element>
+                                     <xs:element name="configuration-properties">
+                                         <xs:annotation>
+                                             <xs:documentation>
+                                                 An ordered list of properties to be used to configure all of the providers.
+                                             </xs:documentation>
+                                         </xs:annotation>
+                                         <xs:complexType>
+                                             <xs:sequence>
+                                                 <xs:element name="property">
+                                                     <xs:complexType>
+                                                         <xs:attribute name="key" type="xs:string" use="required">
+                                                             <xs:annotation>
+                                                                 <xs:documentation>
+                                                                     The key for this property.
+                                                                 </xs:documentation>
+                                                             </xs:annotation>
+                                                         </xs:attribute>
+                                                         <xs:attribute name="value" type="xs:string" use="required">
+                                                             <xs:annotation>
+                                                                 <xs:documentation>
+                                                                     The value for this property.
+                                                                 </xs:documentation>
+                                                             </xs:annotation>
+                                                         </xs:attribute>
+                                                     </xs:complexType>
+                                                 </xs:element>
+                                             </xs:sequence>
+                                         </xs:complexType>
+                                     </xs:element>
                                  </xs:choice>
                                  <xs:attribute name="module" type="xs:string" use="optional">
                                      <xs:annotation>

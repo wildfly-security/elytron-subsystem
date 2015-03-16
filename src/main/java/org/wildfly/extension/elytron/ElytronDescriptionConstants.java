@@ -33,6 +33,7 @@ interface ElytronDescriptionConstants {
     String CLASS_NAME = "class-name";
     String CLASS_NAMES = "class-names";
     String CONFIGURATION_FILE = "configuration-file";
+    String CONFIGURATION_PROPERTIES = "configuration-properties";
     String CREATION_DATE = "creation-date";
     String DEFAULT_REALM = "default_realm";
     String DOMAIN = "domain";
@@ -46,6 +47,7 @@ interface ElytronDescriptionConstants {
     String INDEX = "index";
     String INFO = "info";
     String ISSUER = "issuer";
+    String KEY = "key";
     String KEYSTORE = "keystore";
     String KEYSTORES = "keystores";
     String LOAD = "load";
@@ -60,6 +62,8 @@ interface ElytronDescriptionConstants {
     String NOT_BEFORE = "not-before";
     String PATH = "path";
     String PASSWORD = "password";
+    String PROPERTY = "property";
+    String PROPERTY_LIST = "property-list";
     String PROVIDER = "provider";
     String PROVIDERS = "providers";
     String PROVIDER_LOADER = "provider-loader";

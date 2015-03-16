@@ -21,15 +21,18 @@ package org.wildfly.extension.elytron;
 import static org.wildfly.extension.elytron.SecurityActions.doPrivileged;
 import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
+import java.nio.charset.StandardCharsets;
 import java.security.PrivilegedAction;
 import java.security.PrivilegedExceptionAction;
 import java.security.Provider;
 import java.security.Security;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.ServiceLoader;
@@ -118,7 +121,14 @@ class ProviderLoaderService implements Service<Provider[]> {
             });
         }
 
-        Supplier<InputStream> configurationStreamSupplier = getConfigurationSupplier(config);
+        final Supplier<InputStream> configurationStreamSupplier = getConfigurationSupplier(config);
+        if (configurationStreamSupplier != null) {
+            for (Provider p : providers) {
+                try (InputStream is = configurationStreamSupplier.get()) {
+                    p.load(is);
+                }
+            }
+        }
 
         for (String className : config.getClassNames()) {
             if (discovered.contains(className) == false) {
@@ -178,6 +188,17 @@ class ProviderLoaderService implements Service<Provider[]> {
             final File configFile = resolveFileLocation(config.getPath(), config.getRelativeTo());
 
             return () -> toInputStream(configFile);
+        }
+
+        List<Property> configurationProperties = config.getPropertyList();
+        if (configurationProperties != null) {
+            StringBuilder sb = new StringBuilder();
+            for (Property current : configurationProperties) {
+                sb.append(current.getKey()).append('=').append(current.getValue()).append('\n');
+            }
+            byte[] configBytes = sb.toString().getBytes(StandardCharsets.UTF_8);
+
+            return () -> new ByteArrayInputStream(configBytes);
         }
 
         return null;
@@ -254,6 +275,25 @@ class ProviderLoaderService implements Service<Provider[]> {
         return providers == null ? null : providers.clone();
     }
 
+    private static class Property {
+
+        private final String key;
+        private final String value;
+
+        private Property(String key, String value) {
+            this.key = key;
+            this.value = value;
+        }
+
+        private String getKey() {
+            return key;
+        }
+
+        private String getValue() {
+            return value;
+        }
+    }
+
     private static class ProviderConfig {
 
         private final String module;
@@ -262,14 +302,16 @@ class ProviderLoaderService implements Service<Provider[]> {
         private final String[] classNames;
         private final String path;
         private final String relativeTo;
+        private final List<Property> propertyList;
 
-        private ProviderConfig(String module, String slot, boolean loadServices, String[] classNames, String path, String relativeTo) {
+        private ProviderConfig(String module, String slot, boolean loadServices, String[] classNames, String path, String relativeTo, List<Property> propertyList) {
             this.module = module;
             this.slot = slot;
             this.loadServices = loadServices;
             this.classNames = classNames;
             this.path = path;
             this.relativeTo = relativeTo;
+            this.propertyList = propertyList;
         }
 
         private String getModule() {
@@ -294,6 +336,10 @@ class ProviderLoaderService implements Service<Provider[]> {
 
         private String getRelativeTo() {
             return relativeTo;
+        }
+
+        private List<Property> getPropertyList() {
+            return propertyList;
         }
 
     }
@@ -339,6 +385,7 @@ class ProviderLoaderService implements Service<Provider[]> {
         private String[] classNames;
         private String path;
         private String relativeTo;
+        private List<Property> propertyList;
 
         private ProviderConfigBuilder(ProviderLoaderServiceBuilder serviceBuilder) {
             this.serviceBuilder = serviceBuilder;
@@ -380,11 +427,43 @@ class ProviderLoaderService implements Service<Provider[]> {
             return this;
         }
 
+        PropertyListBuilder addPropertyList() {
+            return new PropertyListBuilder(this);
+        }
+
+        private ProviderConfigBuilder setPropertyList(final List<Property> propertyList) {
+            this.propertyList = propertyList;
+
+            return this;
+        }
+
         ProviderLoaderServiceBuilder build() {
-            serviceBuilder.add(new ProviderConfig(module, slot, loadServices, classNames, path, relativeTo));
+            serviceBuilder.add(new ProviderConfig(module, slot, loadServices, classNames, path, relativeTo, propertyList));
 
             return serviceBuilder;
         }
+    }
+
+    static class PropertyListBuilder {
+
+        private final ProviderConfigBuilder configBuilder;
+
+        private final List<Property> propertyList = new ArrayList<Property>();
+
+        private PropertyListBuilder(ProviderConfigBuilder configBuilder) {
+            this.configBuilder = configBuilder;
+        }
+
+        PropertyListBuilder add(String key, String value) {
+            propertyList.add(new Property(key, value));
+
+            return this;
+        }
+
+        ProviderConfigBuilder build() {
+            return configBuilder.setPropertyList(Collections.unmodifiableList(propertyList));
+        }
+
     }
 
 }

@@ -104,12 +104,40 @@ class ProviderAttributeDefinition {
         .setAllowNull(true)
         .build();
 
-    private static final AttributeDefinition[] PROVIDER_ATTRIBUTES = { MODULE, SLOT, LOAD_SERVICES, CLASS_NAMES, PATH, RELATIVE_TO };
-
-    static final ObjectTypeAttributeDefinition PROVIDER = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.PROVIDER, PROVIDER_ATTRIBUTES)
+    static final SimpleAttributeDefinition KEY = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.KEY, ModelType.STRING, false)
+        .setAllowExpression(true)
+        .setMinSize(1)
         .build();
 
-    private static final ObjectTypeAttributeDefinition INDEXED_PROVIDER = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.PROVIDER, combine(INDEX, PROVIDER_ATTRIBUTES))
+    static final SimpleAttributeDefinition VALUE = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.VALUE, ModelType.STRING, false)
+        .setAllowExpression(true)
+        .setMinSize(1)
+        .build();
+
+    private static final AttributeDefinition[] PROPERTY_ATTRIBUTES = { KEY, VALUE };
+
+    private static final ObjectTypeAttributeDefinition PROPERTY = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.PROPERTY, PROPERTY_ATTRIBUTES)
+        .build();
+
+    private static final AttributeDefinition[] INDEXED_PROPERTY_ATTRIBUTES = combine(INDEX, PROPERTY_ATTRIBUTES);
+
+    private static final ObjectTypeAttributeDefinition INDEXED_PROPERTY = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.PROPERTY, INDEXED_PROPERTY_ATTRIBUTES)
+        .build();
+
+    static final ObjectListAttributeDefinition PROPERTY_LIST = new ObjectListAttributeDefinition.Builder(ElytronDescriptionConstants.PROPERTY_LIST, PROPERTY)
+        .setAllowDuplicates(true)
+        .build();
+
+    static final ObjectListAttributeDefinition INDEXED_PROPERTY_LIST = new ObjectListAttributeDefinition.Builder(ElytronDescriptionConstants.PROPERTY_LIST, INDEXED_PROPERTY)
+        .setAllowDuplicates(true)
+        .build();
+
+    private static final AttributeDefinition[] PROVIDER_ATTRIBUTES = { MODULE, SLOT, LOAD_SERVICES, CLASS_NAMES, PATH, RELATIVE_TO };
+
+    static final ObjectTypeAttributeDefinition PROVIDER = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.PROVIDER, combine(null, PROVIDER_ATTRIBUTES, PROPERTY_LIST))
+        .build();
+
+    private static final ObjectTypeAttributeDefinition INDEXED_PROVIDER = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.PROVIDER, combine(INDEX, PROVIDER_ATTRIBUTES, INDEXED_PROPERTY_LIST))
         .build();
 
     static final ObjectListAttributeDefinition PROVIDERS = new ObjectListAttributeDefinition.Builder(ElytronDescriptionConstants.PROVIDERS, PROVIDER)
@@ -168,11 +196,15 @@ class ProviderAttributeDefinition {
 
     }
 
-    private static AttributeDefinition[] combine(AttributeDefinition first, AttributeDefinition[] remaining) {
-        AttributeDefinition[] response = new AttributeDefinition[remaining.length + 1];
-        response[0] = first;
-        System.arraycopy(remaining, 0, response, 1, remaining.length);
-
+    private static AttributeDefinition[] combine(AttributeDefinition first, AttributeDefinition[] remaining, AttributeDefinition... more) {
+        AttributeDefinition[] response = new AttributeDefinition[(first == null ? 0 : 1) + remaining.length + more.length];
+        int pos = 0;
+        if (first != null) {
+            response[pos++] = first;
+        }
+        System.arraycopy(remaining, 0, response, pos, remaining.length);
+        pos += remaining.length;
+        System.arraycopy(more, 0, response, pos, more.length);
         return response;
     }
 

@@ -63,6 +63,7 @@ import org.jboss.msc.service.ServiceController.Mode;
 import org.jboss.msc.service.ServiceController.State;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.ServiceTarget;
+import org.wildfly.extension.elytron.ProviderLoaderService.PropertyListBuilder;
 import org.wildfly.extension.elytron.ProviderLoaderService.ProviderConfigBuilder;
 import org.wildfly.extension.elytron.ProviderLoaderService.ProviderLoaderServiceBuilder;
 
@@ -161,8 +162,16 @@ class ProviderLoaderDefinition extends SimpleResourceDefinition {
                         relativeToSet.add(relativeTo);
                     }
 
+                    if (current.hasDefined(ElytronDescriptionConstants.PROPERTY_LIST)) {
+                        PropertyListBuilder propertyBuilder = providerBuilder.addPropertyList();
+                        for (ModelNode currentProp : current.require(ElytronDescriptionConstants.PROPERTY_LIST).asList()) {
+                            propertyBuilder.add(ProviderAttributeDefinition.KEY.resolveModelAttribute(context, currentProp).asString(),
+                                    ProviderAttributeDefinition.VALUE.resolveModelAttribute(context, currentProp).asString());
+                        }
+                        providerBuilder = propertyBuilder.build();
+                    }
+
                     providerBuilder.build();
-                    //.build();
                 }
             }
 
