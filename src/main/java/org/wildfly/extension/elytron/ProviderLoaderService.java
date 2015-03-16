@@ -24,6 +24,7 @@ import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.RO
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.lang.reflect.Constructor;
 import java.security.PrivilegedAction;
 import java.security.PrivilegedExceptionAction;
 import java.security.Provider;
@@ -33,6 +34,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.ServiceLoader;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import org.jboss.as.controller.services.path.PathEntry;
 import org.jboss.as.controller.services.path.PathManager;
@@ -116,18 +118,35 @@ class ProviderLoaderService implements Service<Provider[]> {
             });
         }
 
+        Supplier<InputStream> configurationStreamSupplier = getConfigurationSupplier(config);
+
         for (String className : config.getClassNames()) {
             if (discovered.contains(className) == false) {
-                providers.add(((Class<Provider>) classLoader.loadClass(className)).newInstance());
-            }
-        }
-
-        if (config.getPath() != null) {
-            File configFile = resolveFileLocation(config.getPath(), config.getRelativeTo());
-            for (Provider current : providers) {
-                try (InputStream is = new FileInputStream(configFile)) {
-                    current.load(is);
+                Class<Provider> providerClazz = (Class<Provider>) classLoader.loadClass(className);
+                Provider provider = null;
+                if (configurationStreamSupplier != null) {
+                    Constructor<Provider>[] constructors = (Constructor<Provider>[]) providerClazz.getConstructors();
+                    for (Constructor<Provider> current : constructors) {
+                        Class<?>[] parameterTypes = current.getParameterTypes();
+                        if (parameterTypes.length == 1 && parameterTypes[0].isAssignableFrom(InputStream.class)) {
+                            try (InputStream is = configurationStreamSupplier.get()) {
+                                provider = current.newInstance(configurationStreamSupplier.get());
+                            }
+                            break;
+                        }
+                    }
                 }
+
+                if (provider == null) {
+                    provider = providerClazz.newInstance();
+                    if (configurationStreamSupplier != null) {
+                        try (InputStream is = configurationStreamSupplier.get()) {
+                            provider.load(configurationStreamSupplier.get());
+                        }
+                    }
+                }
+
+                providers.add(provider);
             }
         }
 
@@ -143,6 +162,25 @@ class ProviderLoaderService implements Service<Provider[]> {
                 throw ROOT_LOGGER.providerAlreadyRegisteres(providers[i].getName());
             }
         }
+    }
+
+    private static InputStream toInputStream(final File file) {
+        try {
+            SecurityActions.doPrivileged((PrivilegedExceptionAction<InputStream>) () -> new FileInputStream(file) );
+            return new FileInputStream(file);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private Supplier<InputStream> getConfigurationSupplier(ProviderConfig config) {
+        if (config.getPath() != null) {
+            final File configFile = resolveFileLocation(config.getPath(), config.getRelativeTo());
+
+            return () -> toInputStream(configFile);
+        }
+
+        return null;
     }
 
     private File resolveFileLocation(String path, String relativeTo) {
@@ -257,6 +295,7 @@ class ProviderLoaderService implements Service<Provider[]> {
         private String getRelativeTo() {
             return relativeTo;
         }
+
     }
 
     static ProviderLoaderServiceBuilder builder() {
