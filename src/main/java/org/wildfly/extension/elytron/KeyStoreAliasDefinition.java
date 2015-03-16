@@ -88,8 +88,9 @@ public class KeyStoreAliasDefinition extends SimpleResourceDefinition {
                 Date creationDate;
                 try {
                     creationDate = keyStoreService.getValue().getCreationDate(alias);
-                } catch (KeyStoreException | IllegalStateException | IllegalArgumentException e) {
-                    throw new OperationFailedException(e);
+                } catch (KeyStoreException | RuntimeException e) {
+                    ROOT_LOGGER.tracef(e, "Unable to populate %s", CREATION_DATE);
+                    return;
                 }
 
                 result.set(sdf.format(creationDate));
@@ -115,8 +116,9 @@ public class KeyStoreAliasDefinition extends SimpleResourceDefinition {
                     } else {
                         result.set("Other");
                     }
-                } catch (KeyStoreException e) {
-                    throw new OperationFailedException(e);
+                } catch (KeyStoreException | RuntimeException e) {
+                    ROOT_LOGGER.tracef(e, "Unable to populate %s", ENTRY_TYPE);
+                    return;
                 }
 
             }
@@ -137,8 +139,9 @@ public class KeyStoreAliasDefinition extends SimpleResourceDefinition {
                             writeCertificate(result, cert);
                         }
                     }
-                } catch (KeyStoreException | CertificateEncodingException | NoSuchAlgorithmException e) {
-                    throw ROOT_LOGGER.unableToPopulateResult(e);
+                } catch (KeyStoreException | NoSuchAlgorithmException| RuntimeException | CertificateEncodingException e) {
+                    ROOT_LOGGER.tracef(e, "Unable to populate %s", CERTIFICATE);
+                    return;
                 }
             }
         });
@@ -156,8 +159,9 @@ public class KeyStoreAliasDefinition extends SimpleResourceDefinition {
                         writeCertificateChain(result, chain);
                     }
 
-                } catch (KeyStoreException | CertificateEncodingException | NoSuchAlgorithmException e) {
-                    throw ROOT_LOGGER.unableToPopulateResult(e);
+                } catch (KeyStoreException | CertificateEncodingException | NoSuchAlgorithmException | RuntimeException e) {
+                    ROOT_LOGGER.tracef(e, "Unable to populate %s", CERTIFICATE_CHAIN);
+                    return;
                 }
             }
         });
