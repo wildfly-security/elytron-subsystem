@@ -18,7 +18,6 @@
 
 package org.wildfly.extension.elytron;
 
-import static org.wildfly.extension.elytron.FileAttributeDefinitions.PATH;
 import static org.wildfly.extension.elytron.FileAttributeDefinitions.RELATIVE_TO;
 
 import java.security.Provider;
@@ -85,21 +84,25 @@ class ProviderAttributeDefinition {
         .build();
 
     static final SimpleAttributeDefinition MODULE = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.MODULE, ModelType.STRING, true)
+        .setAttributeGroup(ElytronDescriptionConstants.CLASS_LOADING)
         .setAllowExpression(true)
         .setMinSize(1)
         .build();
 
     static final SimpleAttributeDefinition SLOT = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.SLOT, ModelType.STRING, true)
+        .setAttributeGroup(ElytronDescriptionConstants.CLASS_LOADING)
         .setAllowExpression(true)
         .setMinSize(1)
         .build();
 
     static final SimpleAttributeDefinition LOAD_SERVICES = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.LOAD_SERVICES, ModelType.BOOLEAN)
+        .setAttributeGroup(ElytronDescriptionConstants.CLASS_LOADING)
         .setAllowExpression(true)
         .setDefaultValue(new ModelNode(false))
         .build();
 
     static final StringListAttributeDefinition CLASS_NAMES = new StringListAttributeDefinition.Builder(ElytronDescriptionConstants.CLASS_NAMES)
+        .setAttributeGroup(ElytronDescriptionConstants.CLASS_LOADING)
         .setAllowExpression(true)
         .setAllowNull(true)
         .build();
@@ -125,11 +128,24 @@ class ProviderAttributeDefinition {
         .build();
 
     static final ObjectListAttributeDefinition PROPERTY_LIST = new ObjectListAttributeDefinition.Builder(ElytronDescriptionConstants.PROPERTY_LIST, PROPERTY)
+        .setAttributeGroup(ElytronDescriptionConstants.CONFIGURATION)
+        .setAlternatives(ElytronDescriptionConstants.PATH)
         .setAllowDuplicates(true)
         .build();
 
     static final ObjectListAttributeDefinition INDEXED_PROPERTY_LIST = new ObjectListAttributeDefinition.Builder(ElytronDescriptionConstants.PROPERTY_LIST, INDEXED_PROPERTY)
+        .setAttributeGroup(ElytronDescriptionConstants.CONFIGURATION)
+        .setAlternatives(ElytronDescriptionConstants.PATH)
         .setAllowDuplicates(true)
+        .build();
+
+    private static final SimpleAttributeDefinition PATH = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PATH, FileAttributeDefinitions.PATH)
+        .setAttributeGroup(ElytronDescriptionConstants.CONFIGURATION)
+        .setAlternatives(ElytronDescriptionConstants.PROPERTY_LIST)
+        .build();
+
+    private static final SimpleAttributeDefinition RELATIVE_TO = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.RELATIVE_TO, FileAttributeDefinitions.RELATIVE_TO)
+        .setAttributeGroup(ElytronDescriptionConstants.CONFIGURATION)
         .build();
 
     private static final AttributeDefinition[] PROVIDER_ATTRIBUTES = { MODULE, SLOT, LOAD_SERVICES, CLASS_NAMES, PATH, RELATIVE_TO };

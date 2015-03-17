@@ -30,8 +30,10 @@ interface ElytronDescriptionConstants {
     String CERTIFICATE = "certificate";
     String CERTIFICATES = "certificates";
     String CERTIFICATE_CHAIN = "certificate-chain";
+    String CLASS_LOADING = "class-loading";
     String CLASS_NAME = "class-name";
     String CLASS_NAMES = "class-names";
+    String CONFIGURATION = "configuration";
     String CONFIGURATION_FILE = "configuration-file";
     String CONFIGURATION_PROPERTIES = "configuration-properties";
     String CREATION_DATE = "creation-date";
