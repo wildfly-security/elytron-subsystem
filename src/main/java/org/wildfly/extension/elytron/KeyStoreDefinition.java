@@ -25,7 +25,6 @@ import static org.wildfly.extension.elytron.ElytronExtension.registerRuntimeReso
 import static org.wildfly.extension.elytron.FileAttributeDefinitions.PATH;
 import static org.wildfly.extension.elytron.FileAttributeDefinitions.RELATIVE_TO;
 import static org.wildfly.extension.elytron.FileAttributeDefinitions.pathName;
-import static org.wildfly.extension.elytron.KeyStoreServiceUtil.keyStoreServiceName;
 import static org.wildfly.extension.elytron.ProviderAttributeDefinition.LOADED_PROVIDER;
 import static org.wildfly.extension.elytron.ProviderAttributeDefinition.populateProvider;
 import static org.wildfly.extension.elytron.ServiceStateDefinition.STATE;
@@ -70,13 +69,14 @@ import org.jboss.msc.service.ServiceController.State;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.ServiceTarget;
 import org.wildfly.extension.elytron.KeyStoreService.LoadKey;
-
 /**
  * A {@link ResourceDefinition} for a single KeyStore.
  *
  * @author <a href="mailto:darran.lofthouse@jboss.com">Darran Lofthouse</a>
  */
 final class KeyStoreDefinition extends SimpleResourceDefinition {
+
+    private static final ServiceUtil<KeyStore> KEY_STORE_UTIL = ServiceUtil.newInstance(ElytronDescriptionConstants.KEYSTORE, KeyStore.class);
 
     static final String ISO_8601_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
 
@@ -157,7 +157,7 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
 
             @Override
             protected void executeRuntimeStep(OperationContext context, ModelNode operation) throws OperationFailedException {
-                ServiceName keyStoreName = keyStoreServiceName(operation);
+                ServiceName keyStoreName = KEY_STORE_UTIL.serviceName(operation);
                 ServiceController<?> serviceController = context.getServiceRegistry(false).getRequiredService(keyStoreName);
 
                 populateResponse(context.getResult(), serviceController);
@@ -247,7 +247,7 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
             }
 
             ServiceTarget serviceTarget = context.getServiceTarget();
-            ServiceName serviceName = keyStoreServiceName(operation);
+            ServiceName serviceName = KEY_STORE_UTIL.serviceName(operation);
             ServiceBuilder<KeyStore> serviceBuilder = serviceTarget.addService(serviceName, keyStoreService)
                     .setInitialMode(Mode.ACTIVE);
 
@@ -314,7 +314,7 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
 
         @Override
         protected void executeRuntimeStep(OperationContext context, ModelNode operation) throws OperationFailedException {
-            ServiceName keyStoreName = keyStoreServiceName(operation);
+            ServiceName keyStoreName = KEY_STORE_UTIL.serviceName(operation);
             @SuppressWarnings("unchecked")
             ServiceController<KeyStore> serviceContainer = (ServiceController<KeyStore>) context.getServiceRegistry(writeAccess).getRequiredService(keyStoreName);
             State serviceState;

@@ -18,8 +18,6 @@
 
 package org.wildfly.extension.elytron;
 
-import static org.wildfly.extension.elytron.SecurityRealmServiceUtil.realmServiceName;
-
 import org.jboss.as.controller.AbstractAddStepHandler;
 import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
@@ -43,6 +41,8 @@ import org.wildfly.security.auth.provider.SecurityRealm;
  */
 public class RealmDefinition extends SimpleResourceDefinition {
 
+    static final ServiceUtil<SecurityRealm> REALM_SERVICE_UTIL = ServiceUtil.newInstance(ElytronDescriptionConstants.REALM, SecurityRealm.class);
+
     private static final RealmAddHandler ADD = new RealmAddHandler();
     private static final RealmRemoveHandler REMOVE = new RealmRemoveHandler(ADD);
 
@@ -60,7 +60,7 @@ public class RealmDefinition extends SimpleResourceDefinition {
         protected void performRuntime(OperationContext context, ModelNode operation, ModelNode model)
                 throws OperationFailedException {
             ServiceTarget serviceTarget = context.getServiceTarget();
-            ServiceName realmName = realmServiceName(operation);
+            ServiceName realmName = REALM_SERVICE_UTIL.serviceName(operation);
             Service<SecurityRealm> realm = new DummyRealmService();
 
             serviceTarget.addService(realmName, realm)
@@ -78,7 +78,7 @@ public class RealmDefinition extends SimpleResourceDefinition {
 
         @Override
         protected ServiceName serviceName(String name) {
-            return realmServiceName(name);
+            return REALM_SERVICE_UTIL.serviceName(name);
         }
 
     }

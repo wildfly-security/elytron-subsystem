@@ -18,11 +18,9 @@
 
 package org.wildfly.extension.elytron;
 
-import static org.wildfly.extension.elytron.SecurityDomainServiceUtil.domainServiceName;
-import static org.wildfly.extension.elytron.SecurityRealmServiceUtil.realmDependency;
-
 import java.util.List;
 
+import static org.wildfly.extension.elytron.RealmDefinition.REALM_SERVICE_UTIL;
 import org.jboss.as.controller.AbstractAddStepHandler;
 import org.jboss.as.controller.AttributeDefinition;
 import org.jboss.as.controller.OperationContext;
@@ -54,6 +52,8 @@ import org.wildfly.security.auth.provider.SecurityDomain;
  * @author <a href="mailto:darran.lofthouse@jboss.com">Darran Lofthouse</a>
  */
 class DomainDefinition extends SimpleResourceDefinition {
+
+    private static final ServiceUtil<SecurityDomain> DOMAIN_SERVICE_UTIL = ServiceUtil.newInstance(ElytronDescriptionConstants.DOMAIN, SecurityDomain.class);
 
     static final SimpleAttributeDefinition DEFAULT_REALM = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.DEFAULT_REALM, ModelType.STRING, false)
              .setAllowExpression(false)
@@ -100,7 +100,7 @@ class DomainDefinition extends SimpleResourceDefinition {
                 .setInitialMode(Mode.LAZY);
 
         for (String current : realms) {
-            realmDependency(domainBuilder, domain.createRealmInjector(current), current);
+            REALM_SERVICE_UTIL.addInjection(domainBuilder, domain.createRealmInjector(current), current);
         }
 
         return domainBuilder.install();
@@ -112,11 +112,10 @@ class DomainDefinition extends SimpleResourceDefinition {
             super(ATTRIBUTES);
         }
 
-
         @Override
         protected void performRuntime(OperationContext context, ModelNode operation, ModelNode model)
                 throws OperationFailedException {
-            ServiceName domainName = domainServiceName(operation);
+            ServiceName domainName = DOMAIN_SERVICE_UTIL.serviceName(operation);
 
             installService(context, domainName, model);
         }
@@ -145,7 +144,8 @@ class DomainDefinition extends SimpleResourceDefinition {
 
         @Override
         protected ServiceName getParentServiceName(PathAddress parentAddress) {
-            return domainServiceName(parentAddress.toModelNode());
+            // TODO - This does not look correct.
+            return DOMAIN_SERVICE_UTIL.serviceName(parentAddress.toModelNode());
         }
 
 

@@ -32,7 +32,7 @@ import org.jboss.msc.service.ServiceController.State;
  */
 class ServiceStateDefinition {
 
-    static SimpleAttributeDefinition STATE = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.STATE, ModelType.STRING)
+    static final SimpleAttributeDefinition STATE = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.STATE, ModelType.STRING)
         .setStorageRuntime()
         .setAllowedValues(allowedValues(State.values()))
         .build();
