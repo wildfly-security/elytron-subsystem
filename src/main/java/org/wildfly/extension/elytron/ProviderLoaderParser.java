@@ -217,10 +217,10 @@ class ProviderLoaderParser {
                         requiredAttributes.remove(attribute);
                         switch (attribute) {
                             case KEY:
-                                ProviderAttributeDefinition.KEY.parseAndSetParameter(value, provider, reader);
+                                ProviderAttributeDefinition.KEY.parseAndSetParameter(value, property, reader);
                                 break;
                             case VALUE:
-                                ProviderAttributeDefinition.VALUE.parseAndSetParameter(value, provider, reader);
+                                ProviderAttributeDefinition.VALUE.parseAndSetParameter(value, property, reader);
                                 break;
                             default:
                                 throw unexpectedAttribute(reader, i);
