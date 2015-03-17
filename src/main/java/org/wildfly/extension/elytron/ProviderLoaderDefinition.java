@@ -73,7 +73,7 @@ import org.wildfly.extension.elytron.ProviderLoaderService.ProviderLoaderService
  */
 class ProviderLoaderDefinition extends SimpleResourceDefinition {
 
-    private static final ServiceUtil<Provider[]> PROVIDER_LOADER_SERVICE_UTIL = ServiceUtil.newInstance(ElytronDescriptionConstants.PROVIDER_LOADER, Provider[].class);
+    static final ServiceUtil<Provider[]> PROVIDER_LOADER_SERVICE_UTIL = ServiceUtil.newInstance(ElytronDescriptionConstants.PROVIDER_LOADER, Provider[].class);
 
     static final SimpleAttributeDefinition REGISTER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.REGISTER, ModelType.BOOLEAN, true)
         .setDefaultValue(new ModelNode(false))

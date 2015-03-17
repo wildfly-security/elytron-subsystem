@@ -46,6 +46,7 @@ interface ElytronDescriptionConstants {
     String FINGER_PRINT = "finger-print";
     String FINGER_PRINTS = "finger-prints";
     String FORMAT = "format";
+    String IMPLEMENTATION = "implementation";
     String INDEX = "index";
     String INFO = "info";
     String ISSUER = "issuer";

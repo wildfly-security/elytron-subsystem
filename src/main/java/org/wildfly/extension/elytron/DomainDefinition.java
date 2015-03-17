@@ -18,9 +18,10 @@
 
 package org.wildfly.extension.elytron;
 
+import static org.wildfly.extension.elytron.RealmDefinition.REALM_SERVICE_UTIL;
+
 import java.util.List;
 
-import static org.wildfly.extension.elytron.RealmDefinition.REALM_SERVICE_UTIL;
 import org.jboss.as.controller.AbstractAddStepHandler;
 import org.jboss.as.controller.AttributeDefinition;
 import org.jboss.as.controller.OperationContext;

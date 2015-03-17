@@ -47,7 +47,7 @@ import org.jboss.msc.service.ServiceName;
 public class ElytronExtension implements Extension {
 
     /**
-     * The name space used for the {@code substystem} element
+     * The name space used for the {@code subsystem} element
      */
     public static final String NAMESPACE = "urn:wildfly:elytron:1.0";
 

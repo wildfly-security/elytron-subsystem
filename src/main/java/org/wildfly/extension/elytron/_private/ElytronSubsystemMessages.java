@@ -21,6 +21,7 @@ package org.wildfly.extension.elytron._private;
 import static org.jboss.logging.Logger.Level.INFO;
 
 import java.security.KeyStore;
+import java.security.Provider;
 
 import org.jboss.as.controller.OperationFailedException;
 import org.jboss.logging.BasicLogger;
@@ -142,5 +143,14 @@ public interface ElytronSubsystemMessages extends BasicLogger {
      */
     @Message(id = 11, value = "A Provider is already registered for '%s'")
     StartException providerAlreadyRegisteres(String name);
+
+    /**
+     * A {@link StartException} where a service can not identify a suitable {@link Provider}
+     *
+     * @param type the type being searched for.
+     * @return The {@link StartException} for the error.
+     */
+    @Message(id = 12, value = "No suitable provider found for type '%s'")
+    StartException noSuitableProvider(String type);
 
 }

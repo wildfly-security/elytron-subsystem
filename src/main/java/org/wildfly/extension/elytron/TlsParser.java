@@ -34,6 +34,7 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PASSWORD;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PATH;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDER_LOADER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.RELATIVE_TO;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REQUIRED;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.TYPE;
@@ -97,6 +98,9 @@ class TlsParser {
                         break;
                     case PROVIDER:
                         KeyStoreDefinition.PROVIDER.parseAndSetParameter(value, addKeyStore, reader);
+                        break;
+                    case PROVIDER_LOADER:
+                        KeyStoreDefinition.PROVIDER_LOADER.parseAndSetParameter(value, addKeyStore, reader);
                         break;
                     case PASSWORD:
                         KeyStoreDefinition.PASSWORD.parseAndSetParameter(value, addKeyStore, reader);
@@ -163,6 +167,7 @@ class TlsParser {
         writer.writeAttribute(NAME, name);
         KeyStoreDefinition.TYPE.marshallAsAttribute(keyStore, writer);
         KeyStoreDefinition.PROVIDER.marshallAsAttribute(keyStore, writer);
+        KeyStoreDefinition.PROVIDER_LOADER.marshallAsAttribute(keyStore, writer);
         KeyStoreDefinition.PASSWORD.marshallAsAttribute(keyStore, writer);
 
         if (keyStore.hasDefined(PATH)) {

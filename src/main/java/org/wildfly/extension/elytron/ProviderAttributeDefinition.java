@@ -18,8 +18,6 @@
 
 package org.wildfly.extension.elytron;
 
-import static org.wildfly.extension.elytron.FileAttributeDefinitions.RELATIVE_TO;
-
 import java.security.Provider;
 import java.security.Provider.Service;
 

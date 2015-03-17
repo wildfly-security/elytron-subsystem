@@ -18,6 +18,7 @@
 
 package org.wildfly.extension.elytron;
 
+import static org.wildfly.extension.elytron.ProviderUtil.identifyProvider;
 import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
 
 import java.io.File;
@@ -29,6 +30,8 @@ import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.Provider;
+import java.security.Security;
 import java.security.cert.CertificateException;
 
 import org.jboss.as.controller.OperationFailedException;
@@ -62,6 +65,7 @@ public class KeyStoreService implements Service<KeyStore> {
     private final boolean required;
 
     private final InjectedValue<PathManager> pathManager = new InjectedValue<PathManager>();
+    private final InjectedValue<Provider[]> providers = new InjectedValue<Provider[]>();
 
     private File resolvedPath;
     private Handle callbackHandle;
@@ -95,7 +99,7 @@ public class KeyStoreService implements Service<KeyStore> {
     @Override
     public void start(StartContext startContext) throws StartException {
         try {
-            AtomicLoadKeyStore keyStore = provider == null ? AtomicLoadKeyStore.newInstance(type) : AtomicLoadKeyStore.newInstance(type, provider);
+            AtomicLoadKeyStore keyStore = AtomicLoadKeyStore.newInstance(type, resolveProvider());
             if (path != null) {
                 resolveFileLocation();
             }
@@ -111,6 +115,15 @@ public class KeyStoreService implements Service<KeyStore> {
         } catch (GeneralSecurityException | IOException e) {
             throw ROOT_LOGGER.unableToStartService(e);
         }
+    }
+
+    private Provider resolveProvider() throws StartException {
+        Provider[] candidates = providers.getOptionalValue();
+        Provider identified = identifyProvider(candidates == null ? Security.getProviders() : candidates, provider, KeyStore.class, type);
+        if (identified == null) {
+            throw ROOT_LOGGER.noSuitableProvider(type);
+        }
+        return identified;
     }
 
     private void resolveFileLocation() {
@@ -161,6 +174,10 @@ public class KeyStoreService implements Service<KeyStore> {
 
     Injector<PathManager> getPathManagerInjector() {
         return pathManager;
+    }
+
+    Injector<Provider[]> getProvidersInjector() {
+        return providers;
     }
 
     /*
