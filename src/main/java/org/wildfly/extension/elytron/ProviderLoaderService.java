@@ -132,15 +132,15 @@ class ProviderLoaderService implements Service<Provider[]> {
 
         for (String className : config.getClassNames()) {
             if (discovered.contains(className) == false) {
-                Class<Provider> providerClazz = (Class<Provider>) classLoader.loadClass(className);
+                Class<? extends Provider> providerClazz = classLoader.loadClass(className).asSubclass(Provider.class);
                 Provider provider = null;
                 if (configurationStreamSupplier != null) {
-                    Constructor<Provider>[] constructors = (Constructor<Provider>[]) providerClazz.getConstructors();
-                    for (Constructor<Provider> current : constructors) {
+                    Constructor<?>[] constructors = providerClazz.getConstructors();
+                    for (Constructor<?> current : constructors) {
                         Class<?>[] parameterTypes = current.getParameterTypes();
                         if (parameterTypes.length == 1 && parameterTypes[0].isAssignableFrom(InputStream.class)) {
                             try (InputStream is = configurationStreamSupplier.get()) {
-                                provider = current.newInstance(configurationStreamSupplier.get());
+                                provider = (Provider) current.newInstance(configurationStreamSupplier.get());
                             }
                             break;
                         }
