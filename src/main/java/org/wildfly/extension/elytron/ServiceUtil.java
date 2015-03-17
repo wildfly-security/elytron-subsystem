@@ -20,77 +20,85 @@ package org.wildfly.extension.elytron;
 
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP_ADDR;
 import static org.jboss.msc.service.ServiceBuilder.DependencyType.REQUIRED;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEYSTORE;
 import static org.wildfly.extension.elytron.ElytronExtension.BASE_SERVICE_NAME;
 import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
-
-import java.security.KeyStore;
 
 import org.jboss.as.controller.PathAddress;
 import org.jboss.as.controller.PathElement;
 import org.jboss.dmr.ModelNode;
 import org.jboss.msc.inject.Injector;
+import org.jboss.msc.service.Service;
 import org.jboss.msc.service.ServiceBuilder;
 import org.jboss.msc.service.ServiceName;
 
 /**
- * A utility class for creating a {@link ServiceName} for KeyStores and handling injection.
+ * A utility class for creating a {@link ServiceName} for and handling injections.
  *
  * @author <a href="mailto:darran.lofthouse@jboss.com">Darran Lofthouse</a>
  */
-final class KeyStoreServiceUtil {
+public final class ServiceUtil<T> {
 
-    private KeyStoreServiceUtil() {
-        // Prevent Instantiation.
+    private final ServiceName baseServiceName;
+    private final String key;
+    private final Class<T> clazz;
+
+    private ServiceUtil(ServiceName baseServiceName, String key, Class<T> injectionClass) {
+        this.baseServiceName = baseServiceName;
+        this.key = key;
+        clazz = injectionClass;
     }
 
     /**
-     * Construct the {@link ServiceName} for a KeyStore given it's simple name.
+     * Construct the {@link ServiceName} for a {@link Service} given it's simple name.
      *
-     * @param name - the simple name of the KeyStore.
-     * @return The fully qualified {@link ServiceName} of the KeyStore.
+     * @param name - the simple name of the service.
+     * @return The fully qualified {@link ServiceName} of the service.
      */
-    static ServiceName keyStoreServiceName(final String name) {
-        return BASE_SERVICE_NAME.append(KEYSTORE, name);
+    ServiceName serviceName(final String name) {
+        return baseServiceName.append(key, name);
     }
 
     /**
-     * From a given operation extract the address of the operation, identify the simple name of the KeyStore being referenced and
-     * convert it into a {@link ServiceName} for that KeyStore.
+     * From a given operation extract the address of the operation, identify the simple name of the {@link Service} being
+     * referenced and convert it into a {@link ServiceName} for that {@link Service}.
      *
-     * @param operation - the operation to extract the KeyStore name from.
-     * @return The fully qualified {@link ServiceName} of the KeyStore.
+     * @param operation - the operation to extract the simple name from.
+     * @return The fully qualified {@link ServiceName} of the service.
      */
-    static ServiceName keyStoreServiceName(final ModelNode operation) {
-        String keyStoreName = null;
+    ServiceName serviceName(final ModelNode operation) {
+        String name = null;
         PathAddress pa = PathAddress.pathAddress(operation.require(OP_ADDR));
         for (int i = pa.size() - 1; i > 0; i--) {
             PathElement pe = pa.getElement(i);
-            if (KEYSTORE.equals(pe.getKey())) {
-                keyStoreName = pe.getValue();
+            if (key.equals(pe.getKey())) {
+                name = pe.getValue();
                 break;
             }
         }
 
-        if (keyStoreName == null) {
-            throw ROOT_LOGGER.operationAddressMissingKey(KEYSTORE);
+        if (name == null) {
+            throw ROOT_LOGGER.operationAddressMissingKey(key);
         }
 
-        return keyStoreServiceName(keyStoreName);
+        return serviceName(name);
     }
 
     /**
-     * Using the supplied {@link Injector} add a dependency on the {@link KeyStore} identified by the supplied KeyStore name.
+     * Using the supplied {@link Injector} add a dependency on the {@link Service} identified by the supplied name.
      *
      * @param sb - the {@link ServiceBuilder} to use for the injection.
      * @param injector - the {@link Injector} to inject into.
-     * @param realmName - the name of the KeyStore to inject.
+     * @param name - the simple name of the service to inject.
      * @return The {@link ServiceBuilder} passed in to allow method chaining.
      */
-    static ServiceBuilder<?> keyStoreDependency(ServiceBuilder<?> sb, Injector<KeyStore> injector, String keyStoreName) {
-        sb.addDependency(REQUIRED, keyStoreServiceName(keyStoreName), KeyStore.class, injector);
+    ServiceBuilder<?> addInjection(ServiceBuilder<?> sb, Injector<T> injector, String name) {
+        sb.addDependency(REQUIRED, serviceName(name), clazz, injector);
 
         return sb;
+    }
+
+    public static <T> ServiceUtil<T> newInstance(String key, Class<T> injectionClass) {
+        return new ServiceUtil<T>(BASE_SERVICE_NAME, key, injectionClass);
     }
 
 }
