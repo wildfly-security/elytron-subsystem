@@ -41,12 +41,9 @@ public class ElytronDefinition extends SimpleResourceDefinition {
     }
 
     @Override
-    public void registerAttributes(ManagementResourceRegistration resourceRegistration) {
-    }
-
-
-    @Override
     public void registerChildren(ManagementResourceRegistration resourceRegistration) {
+        // Security Properties
+        resourceRegistration.registerSubModel(new SecurityPropertyResourceDefinition());
         // Provider Loader
         resourceRegistration.registerSubModel(new ProviderLoaderDefinition());
 

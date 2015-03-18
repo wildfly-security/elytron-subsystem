@@ -77,6 +77,8 @@ interface ElytronDescriptionConstants {
     String REGISTER = "register";
     String RELATIVE_TO = "relative-to";
     String REQUIRED = "required";
+    String SECURITY_PROPERTIES = "security-properties";
+    String SECURITY_PROPERTY = "security-property";
     String SERIAL_NUMBER = "serial-number";
     String SERVICE = "service";
     String SERVICES = "services";
