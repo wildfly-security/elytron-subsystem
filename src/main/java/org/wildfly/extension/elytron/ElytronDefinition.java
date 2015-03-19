@@ -30,9 +30,11 @@ import org.jboss.as.controller.SimpleResourceDefinition;
 import org.jboss.as.controller.registry.ManagementResourceRegistration;
 import org.jboss.as.controller.registry.Resource;
 import org.jboss.dmr.ModelNode;
+import org.jboss.msc.service.Service;
 import org.jboss.msc.service.ServiceBuilder;
 import org.jboss.msc.service.ServiceController;
 import org.jboss.msc.service.ServiceController.Mode;
+import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.ServiceRegistry;
 import org.jboss.msc.service.ServiceTarget;
 
@@ -71,12 +73,12 @@ public class ElytronDefinition extends SimpleResourceDefinition {
 
     static ServiceBuilder<?> commonDependencies(ServiceBuilder<?> serviceBuilder) {
         serviceBuilder.addDependencies(SecurityPropertyService.SERVICE_NAME);
+        serviceBuilder.addDependencies(CoreService.SERVICE_NAME);
         return serviceBuilder;
     }
 
-    private static void installService(SecurityPropertyService service, OperationContext context) {
-        ServiceTarget serviceTarget = context.getServiceTarget();
-        serviceTarget.addService(SecurityPropertyService.SERVICE_NAME, service)
+    private static void installService(ServiceName serviceName, Service<?> service, ServiceTarget serviceTarget) {
+        serviceTarget.addService(serviceName, service)
             .setInitialMode(Mode.ACTIVE)
             .install();
     }
@@ -109,13 +111,15 @@ public class ElytronDefinition extends SimpleResourceDefinition {
         @Override
         protected void performBoottime(OperationContext context, ModelNode operation, Resource resource)
                 throws OperationFailedException {
-            SecurityPropertyService securityPropertyService = new SecurityPropertyService();
-            installService(securityPropertyService, context);
+            ServiceTarget target = context.getServiceTarget();
+            installService(SecurityPropertyService.SERVICE_NAME, new SecurityPropertyService(), target);
+            installService(CoreService.SERVICE_NAME, new CoreService(), target);
         }
 
         @Override
         protected void rollbackRuntime(OperationContext context, ModelNode operation, Resource resource) {
             uninstallSecurityPropertyService(context);
+            context.removeService(CoreService.SERVICE_NAME);
         }
 
     }
@@ -131,15 +135,18 @@ public class ElytronDefinition extends SimpleResourceDefinition {
             if (securityPropertyService != null) {
                 context.attach(SECURITY_PROPERTY_SERVICE_KEY, securityPropertyService);
             }
+            context.removeService(CoreService.SERVICE_NAME);
         }
 
         @Override
         protected void recoverServices(OperationContext context, ModelNode operation, ModelNode model)
                 throws OperationFailedException {
+            ServiceTarget target = context.getServiceTarget();
             SecurityPropertyService securityPropertyService = context.getAttachment(SECURITY_PROPERTY_SERVICE_KEY);
             if (securityPropertyService != null) {
-                installService(securityPropertyService, context);
+                installService(SecurityPropertyService.SERVICE_NAME, securityPropertyService, target);
             }
+            installService(CoreService.SERVICE_NAME, new CoreService(), target);
         }
 
     }
