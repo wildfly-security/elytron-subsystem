@@ -18,9 +18,23 @@
 
 package org.wildfly.extension.elytron;
 
+import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
+
+import org.jboss.as.controller.AbstractBoottimeAddStepHandler;
+import org.jboss.as.controller.AbstractRemoveStepHandler;
+import org.jboss.as.controller.OperationContext;
+import org.jboss.as.controller.OperationContext.AttachmentKey;
+import org.jboss.as.controller.OperationFailedException;
 import org.jboss.as.controller.ResourceDefinition;
 import org.jboss.as.controller.SimpleResourceDefinition;
 import org.jboss.as.controller.registry.ManagementResourceRegistration;
+import org.jboss.as.controller.registry.Resource;
+import org.jboss.dmr.ModelNode;
+import org.jboss.msc.service.ServiceBuilder;
+import org.jboss.msc.service.ServiceController;
+import org.jboss.msc.service.ServiceController.Mode;
+import org.jboss.msc.service.ServiceRegistry;
+import org.jboss.msc.service.ServiceTarget;
 
 /**
  * Top level {@link ResourceDefinition} for the Elytron subsystem.
@@ -29,15 +43,15 @@ import org.jboss.as.controller.registry.ManagementResourceRegistration;
  * @author <a href="mailto:darran.lofthouse@jboss.com">Darran Lofthouse</a>
  */
 public class ElytronDefinition extends SimpleResourceDefinition {
+
     public static final ElytronDefinition INSTANCE = new ElytronDefinition();
+
+    private static final AttachmentKey<SecurityPropertyService> SECURITY_PROPERTY_SERVICE_KEY = AttachmentKey.create(SecurityPropertyService.class);
 
     private ElytronDefinition() {
         super(ElytronExtension.SUBSYSTEM_PATH,
                 ElytronExtension.getResourceDescriptionResolver(),
-                //We always need to add an 'add' operation
-                ElytronAdd.INSTANCE,
-                //Every resource that is added, normally needs a remove operation
-                ElytronRemove.INSTANCE);
+                new ElytronAdd(),new ElytronRemove());
     }
 
     @Override
@@ -55,9 +69,79 @@ public class ElytronDefinition extends SimpleResourceDefinition {
         resourceRegistration.registerSubModel(new KeyStoreDefinition());
     }
 
-    @Override
-    public void registerOperations(ManagementResourceRegistration resourceRegistration) {
-        super.registerOperations(resourceRegistration);
+    static ServiceBuilder<?> commonDependencies(ServiceBuilder<?> serviceBuilder) {
+        serviceBuilder.addDependencies(SecurityPropertyService.SERVICE_NAME);
+        return serviceBuilder;
+    }
+
+    private static void installService(SecurityPropertyService service, OperationContext context) {
+        ServiceTarget serviceTarget = context.getServiceTarget();
+        serviceTarget.addService(SecurityPropertyService.SERVICE_NAME, service)
+            .setInitialMode(Mode.ACTIVE)
+            .install();
+    }
+
+    private static SecurityPropertyService uninstallSecurityPropertyService(OperationContext context) {
+        ServiceRegistry serviceRegistry = context.getServiceRegistry(true);
+
+        ServiceController<?> service = serviceRegistry.getService(SecurityPropertyService.SERVICE_NAME);
+        if (service != null) {
+            Object serviceImplementation = service.getService();
+            context.removeService(service);
+            if (serviceImplementation != null && serviceImplementation instanceof SecurityPropertyService) {
+                return (SecurityPropertyService) serviceImplementation;
+            }
+        }
+
+        return null;
+    }
+
+    private static class ElytronAdd extends AbstractBoottimeAddStepHandler {
+
+        private ElytronAdd() {
+        }
+
+        @Override
+        protected void populateModel(ModelNode operation, ModelNode model) throws OperationFailedException {
+            ROOT_LOGGER.iAmElytron();
+        }
+
+        @Override
+        protected void performBoottime(OperationContext context, ModelNode operation, Resource resource)
+                throws OperationFailedException {
+            SecurityPropertyService securityPropertyService = new SecurityPropertyService();
+            installService(securityPropertyService, context);
+        }
+
+        @Override
+        protected void rollbackRuntime(OperationContext context, ModelNode operation, Resource resource) {
+            uninstallSecurityPropertyService(context);
+        }
+
+    }
+
+    private static class ElytronRemove extends AbstractRemoveStepHandler {
+
+        private ElytronRemove() {
+        }
+
+        @Override
+        protected void performRuntime(OperationContext context, ModelNode operation, ModelNode model) throws OperationFailedException {
+            SecurityPropertyService securityPropertyService = uninstallSecurityPropertyService(context);
+            if (securityPropertyService != null) {
+                context.attach(SECURITY_PROPERTY_SERVICE_KEY, securityPropertyService);
+            }
+        }
+
+        @Override
+        protected void recoverServices(OperationContext context, ModelNode operation, ModelNode model)
+                throws OperationFailedException {
+            SecurityPropertyService securityPropertyService = context.getAttachment(SECURITY_PROPERTY_SERVICE_KEY);
+            if (securityPropertyService != null) {
+                installService(securityPropertyService, context);
+            }
+        }
+
     }
 
 }

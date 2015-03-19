@@ -18,6 +18,7 @@
 
 package org.wildfly.extension.elytron;
 
+import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
 import static org.wildfly.extension.elytron.RealmDefinition.REALM_SERVICE_UTIL;
 
 import java.util.List;
@@ -104,6 +105,7 @@ class DomainDefinition extends SimpleResourceDefinition {
             REALM_SERVICE_UTIL.addInjection(domainBuilder, domain.createRealmInjector(current), current);
         }
 
+        commonDependencies(domainBuilder);
         return domainBuilder.install();
     }
 

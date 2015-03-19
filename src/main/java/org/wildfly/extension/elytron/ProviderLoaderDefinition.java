@@ -18,6 +18,7 @@
 
 package org.wildfly.extension.elytron;
 
+import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
 import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
 import static org.wildfly.extension.elytron.FileAttributeDefinitions.pathName;
 import static org.wildfly.extension.elytron.ProviderAttributeDefinition.INDEXED_PROVIDERS;
@@ -189,6 +190,7 @@ class ProviderLoaderDefinition extends SimpleResourceDefinition {
                 }
             }
 
+            commonDependencies(serviceBuilder);
             serviceBuilder.install();
         }
     }

@@ -18,6 +18,7 @@
 
 package org.wildfly.extension.elytron;
 
+import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
 import org.jboss.as.controller.AbstractAddStepHandler;
 import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
@@ -63,8 +64,8 @@ public class RealmDefinition extends SimpleResourceDefinition {
             ServiceName realmName = REALM_SERVICE_UTIL.serviceName(operation);
             Service<SecurityRealm> realm = new DummyRealmService();
 
-            serviceTarget.addService(realmName, realm)
-                    .setInitialMode(Mode.LAZY)
+            commonDependencies(serviceTarget.addService(realmName, realm)
+                    .setInitialMode(Mode.LAZY))
                     .install();
         }
 
