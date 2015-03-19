@@ -30,6 +30,7 @@
 
     <xs:complexType name="subsystemType">
         <xs:sequence>
+            <xs:element name="security-properties" type="securityPropertiesType" minOccurs="0" />
             <xs:element name="provider-loaders" type="providerLoadersType" minOccurs="0" />
             <xs:element name="domains" type="domainsType" minOccurs="0" />
             <xs:element name="tls" type="tlsType" minOccurs="0" />
@@ -37,6 +38,44 @@
     </xs:complexType>
 
     <!-- 
+        Security Properties
+     -->
+
+    <xs:complexType name="securityPropertiesType">
+        <xs:annotation>
+            <xs:documentation>
+                Type to contain a list of security properties to be set.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="security-property" type="propertyType" maxOccurs="unbounded" />
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="propertyType">
+        <xs:annotation>
+            <xs:documentation>
+                Representation of a key/value property
+                pair.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="key" type="xs:string" use="required">
+            <xs:annotation>
+                <xs:documentation>
+                    The key for this property.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="value" type="xs:string" use="required">
+            <xs:annotation>
+                <xs:documentation>
+                    The value for this property.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:complexType>
+
+    <!--
         Providers
      -->
 
@@ -86,24 +125,7 @@
                                          </xs:annotation>
                                          <xs:complexType>
                                              <xs:sequence>
-                                                 <xs:element name="property">
-                                                     <xs:complexType>
-                                                         <xs:attribute name="key" type="xs:string" use="required">
-                                                             <xs:annotation>
-                                                                 <xs:documentation>
-                                                                     The key for this property.
-                                                                 </xs:documentation>
-                                                             </xs:annotation>
-                                                         </xs:attribute>
-                                                         <xs:attribute name="value" type="xs:string" use="required">
-                                                             <xs:annotation>
-                                                                 <xs:documentation>
-                                                                     The value for this property.
-                                                                 </xs:documentation>
-                                                             </xs:annotation>
-                                                         </xs:attribute>
-                                                     </xs:complexType>
-                                                 </xs:element>
+                                                 <xs:element name="property" type="propertyType" />
                                              </xs:sequence>
                                          </xs:complexType>
                                      </xs:element>

@@ -103,7 +103,7 @@ class SecurityPropertyService implements Service<Void> {
     }
 
     private void setPropertyImmediate(String name, String value) {
-        String original = Security.getProperty(name);
+        String original = valuesSet.containsKey(name) ? valuesSet.get(name).previousValue : Security.getProperty(name);
         Security.setProperty(name, value);
         valuesSet.put(name, new SetState(original, value));
     }

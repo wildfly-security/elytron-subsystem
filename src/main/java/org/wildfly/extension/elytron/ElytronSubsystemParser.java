@@ -19,20 +19,33 @@
 package org.wildfly.extension.elytron;
 
 import static javax.xml.stream.XMLStreamConstants.END_ELEMENT;
+import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.ADD;
+import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP;
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP_ADDR;
+import static org.jboss.as.controller.parsing.ParseUtils.isNoNamespaceAttribute;
+import static org.jboss.as.controller.parsing.ParseUtils.missingRequired;
 import static org.jboss.as.controller.parsing.ParseUtils.requireNoAttributes;
+import static org.jboss.as.controller.parsing.ParseUtils.requireNoContent;
+import static org.jboss.as.controller.parsing.ParseUtils.unexpectedAttribute;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedElement;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.DOMAIN;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.DOMAINS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEYSTORE;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEYSTORES;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDER_LOADER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDER_LOADERS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REALMS;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REGISTER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.TLS;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SECURITY_PROPERTIES;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SECURITY_PROPERTY;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEY;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.VALUE;
 import static org.wildfly.extension.elytron.ElytronExtension.NAMESPACE;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -79,6 +92,9 @@ class ElytronSubsystemParser implements XMLElementReader<List<ModelNode>>, XMLEl
             }
 
             switch (reader.getLocalName()) {
+                case SECURITY_PROPERTIES:
+                    readSecurityProperties(parentAddress, reader, operations);
+                    break;
                 case PROVIDER_LOADERS:
                     readProviderLoaders(parentAddress, reader, operations);
                     break;
@@ -93,6 +109,51 @@ class ElytronSubsystemParser implements XMLElementReader<List<ModelNode>>, XMLEl
                     break;
                 default:
                     throw unexpectedElement(reader);
+            }
+        }
+    }
+
+    public void readSecurityProperties(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations) throws XMLStreamException {
+        requireNoAttributes(reader);
+        while(reader.hasNext() && reader.nextTag() != END_ELEMENT) {
+            verifyNamespace(reader);
+            String localName = reader.getLocalName();
+            if (SECURITY_PROPERTY.equals(localName)) {
+                ModelNode operation = new ModelNode();
+                operation.get(OP).set(ADD);
+                Set<String> requiredAttributes = new HashSet<String>(Arrays.asList(new String[] { KEY, VALUE }));
+                String name = null;
+
+                final int count = reader.getAttributeCount();
+                for (int i = 0; i < count; i++) {
+                    final String value = reader.getAttributeValue(i);
+                    if (!isNoNamespaceAttribute(reader, i)) {
+                        throw unexpectedAttribute(reader, i);
+                    } else {
+                        String attribute = reader.getAttributeLocalName(i);
+                        requiredAttributes.remove(attribute);
+                        switch (attribute) {
+                            case NAME:
+                                name = value;
+                                break;
+                            case VALUE:
+                                SecurityPropertyResourceDefinition.VALUE.parseAndSetParameter(value, operation, reader);
+                                break;
+                            default:
+                                throw unexpectedAttribute(reader, i);
+                        }
+                    }
+                }
+
+                if (requiredAttributes.isEmpty() == false) {
+                    throw missingRequired(reader, requiredAttributes);
+                }
+                operation.get(OP_ADDR).set(parentAddress).add(SECURITY_PROPERTY, name);
+                operations.add(operation);
+
+                requireNoContent(reader);
+            } else {
+                throw unexpectedElement(reader);
             }
         }
     }
@@ -161,6 +222,17 @@ class ElytronSubsystemParser implements XMLElementReader<List<ModelNode>>, XMLEl
         context.startSubsystemElement(ElytronExtension.NAMESPACE, false);
 
         ModelNode model = context.getModelNode();
+        if (model.hasDefined(SECURITY_PROPERTY)) {
+            writer.writeStartElement(SECURITY_PROPERTIES);
+            for (Property variable : model.get(SECURITY_PROPERTY).asPropertyList()) {
+                writer.writeEmptyElement(SECURITY_PROPERTY);
+                writer.writeAttribute(NAME, variable.getName());
+                SecurityPropertyResourceDefinition.VALUE.marshallAsAttribute(variable.getValue(), writer);
+            }
+
+            writer.writeEndElement();
+        }
+
         if (model.hasDefined(PROVIDER_LOADER)) {
             writer.writeStartElement(PROVIDER_LOADERS);
             for (Property variable : model.get(PROVIDER_LOADER).asPropertyList()) {
