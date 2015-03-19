@@ -95,7 +95,6 @@ class SecurityPropertyService implements Service<Void> {
                 Properties props = (Properties) f.get(null);
                 props.remove(name);
             } catch (NoSuchFieldException | IllegalAccessException ignored) {
-                ignored.printStackTrace(); // TODO REMOVE ME
             }
         } else {
             Security.setProperty(name, restorationValue);

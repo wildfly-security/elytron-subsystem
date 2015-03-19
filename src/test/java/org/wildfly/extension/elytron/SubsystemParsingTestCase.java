@@ -116,10 +116,9 @@ public class SubsystemParsingTestCase extends AbstractSubsystemTest {
      * Starts a controller with a given subsystem xml and then checks that a second
      * controller started with the xml marshalled from the first one results in the same model
      */
-    @Test
-    public void testParseAndMarshalModel_KeyStore() throws Exception {
+    private void testParseAndMarshalModel(final String fileName) throws Exception {
         //Parse the subsystem xml and install into the first controller
-        KernelServices servicesA = super.createKernelServicesBuilder(null).setSubsystemXmlResource("keystore.xml").build();
+        KernelServices servicesA = super.createKernelServicesBuilder(null).setSubsystemXmlResource(fileName).build();
         //Get the model and the persisted xml from the first controller
         ModelNode modelA = servicesA.readWholeModel();
         System.out.println(modelA.toString());
@@ -134,26 +133,20 @@ public class SubsystemParsingTestCase extends AbstractSubsystemTest {
         super.compare(modelA, modelB);
     }
 
-    /**
-     * Starts a controller with a given subsystem xml and then checks that a second
-     * controller started with the xml marshalled from the first one results in the same model
-     */
+
+    @Test
+    public void testParseAndMarshalModel_KeyStore() throws Exception {
+        testParseAndMarshalModel("keystore.xml");
+    }
+
     @Test
     public void testParseAndMarshalModel_ProviderLoader() throws Exception {
-        //Parse the subsystem xml and install into the first controller
-        KernelServices servicesA = super.createKernelServicesBuilder(null).setSubsystemXmlResource("provider-loader.xml").build();
-        //Get the model and the persisted xml from the first controller
-        ModelNode modelA = servicesA.readWholeModel();
-        System.out.println(modelA.toString());
-        String marshalled = servicesA.getPersistedSubsystemXml();
-        System.out.println(marshalled);
+        testParseAndMarshalModel("provider-loader.xml");
+    }
 
-        //Install the persisted xml from the first controller into a second controller
-        KernelServices servicesB = super.createKernelServicesBuilder(null).setSubsystemXml(marshalled).build();
-        ModelNode modelB = servicesB.readWholeModel();
-
-        //Make sure the models from the two controllers are identical
-        super.compare(modelA, modelB);
+    @Test
+    public void testParseAndMarshalModel_SecurityProperties() throws Exception {
+        testParseAndMarshalModel("security-properties.xml");
     }
 
     /**

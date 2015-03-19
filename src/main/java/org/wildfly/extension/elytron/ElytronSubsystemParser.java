@@ -30,18 +30,16 @@ import static org.jboss.as.controller.parsing.ParseUtils.unexpectedAttribute;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedElement;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.DOMAIN;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.DOMAINS;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEYSTORE;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEYSTORES;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDER_LOADER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDER_LOADERS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REALMS;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REGISTER;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.TLS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SECURITY_PROPERTIES;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SECURITY_PROPERTY;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEY;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.TLS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.VALUE;
 import static org.wildfly.extension.elytron.ElytronExtension.NAMESPACE;
 
@@ -133,7 +131,7 @@ class ElytronSubsystemParser implements XMLElementReader<List<ModelNode>>, XMLEl
                         String attribute = reader.getAttributeLocalName(i);
                         requiredAttributes.remove(attribute);
                         switch (attribute) {
-                            case NAME:
+                            case KEY:
                                 name = value;
                                 break;
                             case VALUE:
@@ -226,7 +224,7 @@ class ElytronSubsystemParser implements XMLElementReader<List<ModelNode>>, XMLEl
             writer.writeStartElement(SECURITY_PROPERTIES);
             for (Property variable : model.get(SECURITY_PROPERTY).asPropertyList()) {
                 writer.writeEmptyElement(SECURITY_PROPERTY);
-                writer.writeAttribute(NAME, variable.getName());
+                writer.writeAttribute(KEY, variable.getName());
                 SecurityPropertyResourceDefinition.VALUE.marshallAsAttribute(variable.getValue(), writer);
             }
 
