@@ -53,6 +53,7 @@ interface ElytronDescriptionConstants {
     String ISSUER = "issuer";
     String KEY = "key";
     String KEYSTORE = "keystore";
+    String KEYSTORE_REALM = "keystore-realm";
     String KEYSTORES = "keystores";
     String LOAD = "load";
     String LOADED_PROVIDER = "loaded-provider";

@@ -63,8 +63,10 @@ public class ElytronDefinition extends SimpleResourceDefinition {
         // Provider Loader
         resourceRegistration.registerSubModel(new ProviderLoaderDefinition());
 
-        // Domain and Realm Model
+        // Domain
         resourceRegistration.registerSubModel(new DomainDefinition());
+        // Security Realms
+        resourceRegistration.registerSubModel(new KeyStoreRealmDefinition());
         resourceRegistration.registerSubModel(new RealmDefinition());
 
         // TLS Building Blocks
