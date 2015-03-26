@@ -273,6 +273,9 @@
                 Container for the KeyStore definitions.
             </xs:documentation>
         </xs:annotation>
+        <xs:sequence>
+            <xs:element name="keystore" type="keyStoreType" maxOccurs="unbounded" />
+        </xs:sequence>
     </xs:complexType>
 
     <xs:complexType name="keyStoreType">
