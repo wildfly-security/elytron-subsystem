@@ -237,17 +237,37 @@
             </xs:documentation>
         </xs:annotation>
         <xs:sequence>
-            <xs:element name="realm" type="realmType" maxOccurs="unbounded" />
+            <xs:element name="keystore-realm" type="keyStoreRealmType" minOccurs="0" maxOccurs="unbounded" />
         </xs:sequence>
     </xs:complexType>
     
-    <xs:complexType name="realmType">
+    <xs:complexType name="realmType" abstract="true">
         <xs:annotation>
             <xs:documentation>
-                Complex type for the definition of a single security realm.
+                Base type for all realm definitions.
             </xs:documentation>
         </xs:annotation>
-        <xs:attribute name="name" type="xs:string" use="required" />
+        <xs:attribute name="name" type="xs:string" use="required">
+            <xs:annotation>
+                <xs:documentation>
+                    The unique name for the realm, not names used for realms must be unique across the whole context.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:complexType>
+    
+    <xs:complexType name="keyStoreRealmType">
+        <xs:complexContent>
+            <xs:extension base="realmType">
+                <xs:attribute name="keystore" type="xs:string" use="required">
+                    <xs:annotation>
+                        <xs:documentation>
+                            Reference to the KeyStore to be used by this realm.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+            </xs:extension>
+        </xs:complexContent>
     </xs:complexType>
 
     <!-- 

@@ -18,19 +18,26 @@
 
 package org.wildfly.extension.elytron;
 
+import static javax.xml.stream.XMLStreamConstants.END_ELEMENT;
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.ADD;
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP;
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP_ADDR;
+import static org.jboss.as.controller.parsing.ParseUtils.requireNoAttributes;
 import static org.jboss.as.controller.parsing.ParseUtils.requireNoContent;
 import static org.jboss.as.controller.parsing.ParseUtils.requireSingleAttribute;
+import static org.jboss.as.controller.parsing.ParseUtils.unexpectedElement;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEYSTORE_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REALM;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REALMS;
+import static org.wildfly.extension.elytron.ElytronSubsystemParser.verifyNamespace;
 
 import java.util.List;
 
 import javax.xml.stream.XMLStreamException;
 
 import org.jboss.dmr.ModelNode;
+import org.jboss.dmr.Property;
 import org.jboss.staxmapper.XMLExtendedStreamReader;
 import org.jboss.staxmapper.XMLExtendedStreamWriter;
 
@@ -40,6 +47,20 @@ import org.jboss.staxmapper.XMLExtendedStreamWriter;
  * <a href="mailto:darran.lofthouse@jboss.com">Darran Lofthouse</a>
  */
 class RealmParser {
+
+    void readRealms(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations)
+            throws XMLStreamException {
+        requireNoAttributes(reader);
+        while (reader.hasNext() && reader.nextTag() != END_ELEMENT) {
+            verifyNamespace(reader);
+            String localName = reader.getLocalName();
+            if (REALM.equals(localName)) {
+                readElement(parentAddress, reader, operations);
+            } else {
+                throw unexpectedElement(reader);
+            }
+        }
+    }
 
     void readElement(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations)
             throws XMLStreamException {
@@ -52,6 +73,37 @@ class RealmParser {
         operations.add(addRealm);
 
         requireNoContent(reader);
+    }
+
+    private void startRealms(XMLExtendedStreamWriter writer) throws XMLStreamException {
+        writer.writeStartElement(REALMS);
+    }
+
+    private boolean writeKeyStoreRealms(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
+        if (subsystem.hasDefined(KEYSTORE_REALM)) {
+            if (started == false) {
+                startRealms(writer);
+            }
+            List<Property> realms = subsystem.require(KEYSTORE_REALM).asPropertyList();
+            for (Property current : realms) {
+                writer.writeStartElement(KEYSTORE_REALM);
+                writer.writeAttribute(NAME, current.getName());
+                KeyStoreRealmDefinition.KEYSTORE.marshallAsAttribute(current.getValue(), writer);
+                writer.writeEndElement();
+            }
+            return true;
+        }
+        return false;
+    }
+
+    void writeRealms(ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
+        boolean realmsStarted = false;
+
+        realmsStarted = realmsStarted & writeKeyStoreRealms(realmsStarted, subsystem, writer);
+
+        if (realmsStarted) {
+            writer.writeEndElement();
+        }
     }
 
     void writeRealm(String name, ModelNode realm, XMLExtendedStreamWriter writer) throws XMLStreamException {
