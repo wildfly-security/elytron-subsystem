@@ -1,0 +1,6 @@
+<subsystem xmlns="urn:wildfly:elytron:1.0">
+    <realms>
+        <keystore-realm name="RealmOne" keystore="KeyStoreOne" />
+        <keystore-realm name="RealmTwo" keystore="KeyStoreTwo" />
+    </realms>
+</subsystem>

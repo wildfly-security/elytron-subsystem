@@ -51,7 +51,7 @@ import org.wildfly.security.auth.provider.SecurityRealm;
  */
 class KeyStoreRealmDefinition extends SimpleResourceDefinition {
 
-    static final ServiceUtil<SecurityRealm> REALM_SERVICE_UTIL = ServiceUtil.newInstance(ElytronDescriptionConstants.REALM, SecurityRealm.class);
+    static final ServiceUtil<SecurityRealm> REALM_SERVICE_UTIL = ServiceUtil.newInstance(ElytronDescriptionConstants.KEYSTORE_REALM, SecurityRealm.class);
 
     static final SimpleAttributeDefinition KEYSTORE = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.KEYSTORE, ModelType.STRING, false)
         .setAllowExpression(true)
@@ -76,6 +76,10 @@ class KeyStoreRealmDefinition extends SimpleResourceDefinition {
     }
 
     private static class RealmAddHandler extends AbstractAddStepHandler {
+
+        private RealmAddHandler() {
+            super(KEYSTORE);
+        }
 
         @Override
         protected void performRuntime(OperationContext context, ModelNode operation, ModelNode model)

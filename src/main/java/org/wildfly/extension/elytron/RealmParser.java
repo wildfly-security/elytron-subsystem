@@ -22,17 +22,22 @@ import static javax.xml.stream.XMLStreamConstants.END_ELEMENT;
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.ADD;
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP;
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP_ADDR;
+import static org.jboss.as.controller.parsing.ParseUtils.isNoNamespaceAttribute;
+import static org.jboss.as.controller.parsing.ParseUtils.missingRequired;
 import static org.jboss.as.controller.parsing.ParseUtils.requireNoAttributes;
 import static org.jboss.as.controller.parsing.ParseUtils.requireNoContent;
-import static org.jboss.as.controller.parsing.ParseUtils.requireSingleAttribute;
+import static org.jboss.as.controller.parsing.ParseUtils.unexpectedAttribute;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedElement;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEYSTORE;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEYSTORE_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REALMS;
 import static org.wildfly.extension.elytron.ElytronSubsystemParser.verifyNamespace;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.xml.stream.XMLStreamException;
 
@@ -54,22 +59,49 @@ class RealmParser {
         while (reader.hasNext() && reader.nextTag() != END_ELEMENT) {
             verifyNamespace(reader);
             String localName = reader.getLocalName();
-            if (REALM.equals(localName)) {
-                readElement(parentAddress, reader, operations);
+            if (KEYSTORE_REALM.equals(localName)) {
+                readKeyStoreRealm(parentAddress, reader, operations);
             } else {
                 throw unexpectedElement(reader);
             }
         }
     }
 
-    void readElement(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations)
+    private void readKeyStoreRealm(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations)
             throws XMLStreamException {
-        requireSingleAttribute(reader, NAME);
-        String realmName = reader.getAttributeValue(0);
-
         ModelNode addRealm = new ModelNode();
         addRealm.get(OP).set(ADD);
-        addRealm.get(OP_ADDR).set(parentAddress).add(REALM, realmName);
+
+        Set<String> requiredAttributes = new HashSet<String>(Arrays.asList(new String[] { NAME, KEYSTORE }));
+        String name = null;
+
+        final int count = reader.getAttributeCount();
+        for (int i = 0; i < count; i++) {
+            final String value = reader.getAttributeValue(i);
+            if (!isNoNamespaceAttribute(reader, i)) {
+                throw unexpectedAttribute(reader, i);
+            } else {
+                String attribute = reader.getAttributeLocalName(i);
+                requiredAttributes.remove(attribute);
+                switch (attribute) {
+                    case NAME:
+                        name = value;
+                        break;
+                    case KEYSTORE:
+                        KeyStoreRealmDefinition.KEYSTORE.parseAndSetParameter(value, addRealm, reader);
+                        break;
+                    default:
+                        throw unexpectedAttribute(reader, i);
+                }
+            }
+        }
+
+        if (requiredAttributes.isEmpty() == false) {
+            throw missingRequired(reader, requiredAttributes);
+        }
+
+        addRealm.get(OP_ADDR).set(parentAddress).add(KEYSTORE_REALM, name);
+
         operations.add(addRealm);
 
         requireNoContent(reader);
@@ -104,12 +136,6 @@ class RealmParser {
         if (realmsStarted) {
             writer.writeEndElement();
         }
-    }
-
-    void writeRealm(String name, ModelNode realm, XMLExtendedStreamWriter writer) throws XMLStreamException {
-        writer.writeStartElement(REALM);
-        writer.writeAttribute(NAME, name);
-        writer.writeEndElement();
     }
 
 }
