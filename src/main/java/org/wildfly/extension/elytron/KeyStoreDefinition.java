@@ -244,6 +244,7 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
             String provider = asStringIfDefined(context, PROVIDER, model);
             String type = TYPE.resolveModelAttribute(context, model).asString();
             String password = asStringIfDefined(context, PASSWORD, model);
+            char[] passwordArray = password != null ? password.toCharArray() : null;
             String path = asStringIfDefined(context, PATH, model);
             String relativeTo = null;
             boolean required;
@@ -253,9 +254,9 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
                 relativeTo = asStringIfDefined(context, RELATIVE_TO, model);
                 required = REQUIRED.resolveModelAttribute(context, model).asBoolean();
 
-                keyStoreService = KeyStoreService.createFileBasedKeyStoreService(provider, type, password.toCharArray(), relativeTo, path, required);
+                keyStoreService = KeyStoreService.createFileBasedKeyStoreService(provider, type, passwordArray, relativeTo, path, required);
             } else {
-                keyStoreService = KeyStoreService.createFileLessKeyStoreService(provider, type, password.toCharArray());
+                keyStoreService = KeyStoreService.createFileLessKeyStoreService(provider, type, passwordArray);
             }
 
             ServiceTarget serviceTarget = context.getServiceTarget();

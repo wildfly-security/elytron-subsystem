@@ -93,7 +93,9 @@ public class KeyStoreAliasDefinition extends SimpleResourceDefinition {
                     return;
                 }
 
-                result.set(sdf.format(creationDate));
+                if (creationDate != null) {
+                    result.set(sdf.format(creationDate));
+                }
             }
         });
 

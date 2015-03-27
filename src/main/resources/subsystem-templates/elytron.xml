@@ -20,14 +20,6 @@
 <config>
     <extension-module>org.wildfly.extension.elytron</extension-module>
     <subsystem xmlns="urn:wildfly:elytron:1.0">
-        <domains>
-            <domain name="TestDomain">
-                <realm name="TestRealm" />
-            </domain>
-        </domains>
-        <realms>
-            <realm name="TestRealm" />
-        </realms>
     </subsystem>
 </config>
 
