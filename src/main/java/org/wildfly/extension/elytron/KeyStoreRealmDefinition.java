@@ -19,6 +19,9 @@
 package org.wildfly.extension.elytron;
 
 import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
+import static org.wildfly.extension.elytron.KeyStoreDefinition.KEY_STORE_UTIL;
+
+import java.security.KeyStore;
 
 import org.jboss.as.controller.AbstractAddStepHandler;
 import org.jboss.as.controller.OperationContext;
@@ -37,11 +40,10 @@ import org.jboss.as.controller.registry.ManagementResourceRegistration;
 import org.jboss.as.controller.registry.OperationEntry;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
-import org.jboss.msc.service.Service;
+import org.jboss.msc.service.ServiceBuilder;
+import org.jboss.msc.service.ServiceController.Mode;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.ServiceTarget;
-import org.jboss.msc.service.ServiceController.Mode;
-import org.wildfly.extension.elytron.junk.DummyRealmService;
 import org.wildfly.security.auth.provider.SecurityRealm;
 
 /**
@@ -86,11 +88,14 @@ class KeyStoreRealmDefinition extends SimpleResourceDefinition {
                 throws OperationFailedException {
             ServiceTarget serviceTarget = context.getServiceTarget();
             ServiceName realmName = REALM_SERVICE_UTIL.serviceName(operation);
-            Service<SecurityRealm> realm = new DummyRealmService();
+            KeyStoreRealmService keyStoreRealmService = new KeyStoreRealmService();
 
-            commonDependencies(serviceTarget.addService(realmName, realm)
-                    .setInitialMode(Mode.LAZY))
-                    .install();
+            ServiceBuilder<SecurityRealm> serviceBuilder = serviceTarget.addService(realmName, keyStoreRealmService);
+
+            KEY_STORE_UTIL.addInjection(serviceBuilder, keyStoreRealmService.getKeyStoreInjector(), KEYSTORE.resolveModelAttribute(context, model).asString());
+            commonDependencies(serviceBuilder)
+                .setInitialMode(Mode.ACTIVE)
+                .install();
         }
 
     }
