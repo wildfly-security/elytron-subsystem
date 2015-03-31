@@ -41,7 +41,7 @@ import org.jboss.msc.service.ServiceRegistry;
  *
  * @author <a href="mailto:darran.lofthouse@jboss.com">Darran Lofthouse</a>
  */
-public class SecurityPropertyResourceDefinition extends SimpleResourceDefinition {
+class SecurityPropertyResourceDefinition extends SimpleResourceDefinition {
 
     static final SimpleAttributeDefinition VALUE = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.VALUE, ModelType.STRING, false)
         .setAllowExpression(true)

@@ -41,7 +41,7 @@ import org.wildfly.security.auth.provider.SecurityRealm;
  *
  * @author <a href="mailto:darran.lofthouse@jboss.com">Darran Lofthouse</a>
  */
-public class RealmDefinition extends SimpleResourceDefinition {
+class RealmDefinition extends SimpleResourceDefinition {
 
     static final ServiceUtil<SecurityRealm> REALM_SERVICE_UTIL = ServiceUtil.newInstance(ElytronDescriptionConstants.REALM, SecurityRealm.class);
 

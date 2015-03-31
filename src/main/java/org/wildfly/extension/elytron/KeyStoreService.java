@@ -55,7 +55,7 @@ import org.wildfly.security.keystore.UnmodifiableKeyStore;
  *
  * @author <a href="mailto:darran.lofthouse@jboss.com">Darran Lofthouse</a>
  */
-public class KeyStoreService implements Service<KeyStore> {
+class KeyStoreService implements Service<KeyStore> {
 
     private final String provider;
     private final String type;

@@ -56,7 +56,7 @@ import org.wildfly.security.keystore.PasswordEntry;
  *
  * @author <a href="mailto:darran.lofthouse@jboss.com">Darran Lofthouse</a>
  */
-public class KeyStoreAliasDefinition extends SimpleResourceDefinition {
+class KeyStoreAliasDefinition extends SimpleResourceDefinition {
 
     static final SimpleAttributeDefinition CREATION_DATE = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.CREATION_DATE, ModelType.STRING)
         .setStorageRuntime()

@@ -44,7 +44,7 @@ import org.jboss.msc.service.ServiceTarget;
  * @author <a href="mailto:tcerar@redhat.com">Tomaz Cerar</a>
  * @author <a href="mailto:darran.lofthouse@jboss.com">Darran Lofthouse</a>
  */
-public class ElytronDefinition extends SimpleResourceDefinition {
+class ElytronDefinition extends SimpleResourceDefinition {
 
     public static final ElytronDefinition INSTANCE = new ElytronDefinition();
 

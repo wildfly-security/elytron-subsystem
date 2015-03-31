@@ -36,7 +36,7 @@ import org.jboss.msc.service.ServiceName;
  *
  * @author <a href="mailto:darran.lofthouse@jboss.com">Darran Lofthouse</a>
  */
-public final class ServiceUtil<T> {
+final class ServiceUtil<T> {
 
     private final ServiceName baseServiceName;
     private final String key;
