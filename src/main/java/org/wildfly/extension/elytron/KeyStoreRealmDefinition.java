@@ -18,6 +18,7 @@
 
 package org.wildfly.extension.elytron;
 
+import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
 import static org.wildfly.extension.elytron.KeyStoreDefinition.KEY_STORE_UTIL;
 
@@ -35,6 +36,7 @@ import org.jboss.as.controller.ServiceRemoveStepHandler;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
 import org.jboss.as.controller.SimpleResourceDefinition;
+import org.jboss.as.controller.capability.RuntimeCapability;
 import org.jboss.as.controller.registry.AttributeAccess;
 import org.jboss.as.controller.registry.ManagementResourceRegistration;
 import org.jboss.as.controller.registry.OperationEntry;
@@ -80,14 +82,15 @@ class KeyStoreRealmDefinition extends SimpleResourceDefinition {
     private static class RealmAddHandler extends AbstractAddStepHandler {
 
         private RealmAddHandler() {
-            super(KEYSTORE);
+            super(SECURITY_REALM_RUNTIME_CAPABILITY, KEYSTORE);
         }
 
         @Override
         protected void performRuntime(OperationContext context, ModelNode operation, ModelNode model)
                 throws OperationFailedException {
             ServiceTarget serviceTarget = context.getServiceTarget();
-            ServiceName realmName = REALM_SERVICE_UTIL.serviceName(operation);
+            RuntimeCapability<Void> runtimeCapability = RuntimeCapability.fromBaseCapability(SECURITY_REALM_RUNTIME_CAPABILITY, context.getCurrentAddressValue());
+            ServiceName realmName = runtimeCapability.getCapabilityServiceName(SecurityRealm.class);
             KeyStoreRealmService keyStoreRealmService = new KeyStoreRealmService();
 
             ServiceBuilder<SecurityRealm> serviceBuilder = serviceTarget.addService(realmName, keyStoreRealmService);
@@ -103,7 +106,7 @@ class KeyStoreRealmDefinition extends SimpleResourceDefinition {
     private static class RealmRemoveHandler extends ServiceRemoveStepHandler {
 
         public RealmRemoveHandler(AbstractAddStepHandler addOperation) {
-            super(addOperation);
+            super(addOperation, SECURITY_REALM_RUNTIME_CAPABILITY);
         }
 
         @Override

@@ -18,6 +18,7 @@
 
 package org.wildfly.extension.elytron;
 
+import static org.wildfly.extension.elytron.Capabilities.SECURITY_DOMAIN_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
 import static org.wildfly.extension.elytron.RealmDefinition.REALM_SERVICE_UTIL;
 
@@ -36,6 +37,7 @@ import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
 import org.jboss.as.controller.SimpleResourceDefinition;
 import org.jboss.as.controller.StringListAttributeDefinition;
+import org.jboss.as.controller.capability.RuntimeCapability;
 import org.jboss.as.controller.registry.AttributeAccess;
 import org.jboss.as.controller.registry.ManagementResourceRegistration;
 import org.jboss.as.controller.registry.OperationEntry;
@@ -112,13 +114,14 @@ class DomainDefinition extends SimpleResourceDefinition {
     private static class DomainAddHandler extends AbstractAddStepHandler {
 
         private DomainAddHandler() {
-            super(ATTRIBUTES);
+            super(SECURITY_DOMAIN_RUNTIME_CAPABILITY, ATTRIBUTES);
         }
 
         @Override
         protected void performRuntime(OperationContext context, ModelNode operation, ModelNode model)
                 throws OperationFailedException {
-            ServiceName domainName = DOMAIN_SERVICE_UTIL.serviceName(operation);
+            RuntimeCapability<Void> runtimeCapability = RuntimeCapability.fromBaseCapability(SECURITY_DOMAIN_RUNTIME_CAPABILITY, context.getCurrentAddressValue());
+            ServiceName domainName = runtimeCapability.getCapabilityServiceName(SecurityDomain.class);
 
             installService(context, domainName, model);
         }
@@ -128,7 +131,7 @@ class DomainDefinition extends SimpleResourceDefinition {
     private static class DomainRemoveHandler extends ServiceRemoveStepHandler {
 
         public DomainRemoveHandler(AbstractAddStepHandler addOperation) {
-            super(addOperation);
+            super(addOperation, SECURITY_DOMAIN_RUNTIME_CAPABILITY);
         }
 
         @Override

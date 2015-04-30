@@ -18,6 +18,7 @@
 
 package org.wildfly.extension.elytron;
 
+import static org.wildfly.extension.elytron.Capabilities.PROVIDERS_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
 import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
 import static org.wildfly.extension.elytron.FileAttributeDefinitions.pathName;
@@ -47,6 +48,7 @@ import org.jboss.as.controller.SimpleOperationDefinition;
 import org.jboss.as.controller.SimpleOperationDefinitionBuilder;
 import org.jboss.as.controller.SimpleResourceDefinition;
 import org.jboss.as.controller.StringListAttributeDefinition;
+import org.jboss.as.controller.capability.RuntimeCapability;
 import org.jboss.as.controller.descriptions.ModelDescriptionConstants;
 import org.jboss.as.controller.descriptions.StandardResourceDescriptionResolver;
 import org.jboss.as.controller.registry.AttributeAccess;
@@ -136,7 +138,7 @@ class ProviderLoaderDefinition extends SimpleResourceDefinition {
     private static class ProviderAddHandler extends AbstractAddStepHandler {
 
         ProviderAddHandler() {
-            super(REGISTER, PROVIDERS);
+            super(PROVIDERS_RUNTIME_CAPABILITY, REGISTER, PROVIDERS);
         }
 
         @Override
@@ -178,7 +180,8 @@ class ProviderLoaderDefinition extends SimpleResourceDefinition {
             }
 
             ProviderLoaderService providerLoaderService = builder.build();
-            ServiceName serviceName = PROVIDER_LOADER_SERVICE_UTIL.serviceName(operation);
+            RuntimeCapability<Void> runtimeCapability = RuntimeCapability.fromBaseCapability(PROVIDERS_RUNTIME_CAPABILITY, context.getCurrentAddressValue());
+            ServiceName serviceName = runtimeCapability.getCapabilityServiceName(Provider[].class);
             ServiceTarget serviceTarget = context.getServiceTarget();
             ServiceBuilder<Provider[]> serviceBuilder = serviceTarget.addService(serviceName, providerLoaderService)
                     .setInitialMode(Mode.ACTIVE);
@@ -211,7 +214,7 @@ class ProviderLoaderDefinition extends SimpleResourceDefinition {
     private static class ProviderRemoveHandler extends ServiceRemoveStepHandler {
 
         protected ProviderRemoveHandler(AbstractAddStepHandler addOperation) {
-            super(addOperation);
+            super(addOperation, PROVIDERS_RUNTIME_CAPABILITY);
         }
 
     }

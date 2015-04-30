@@ -18,6 +18,7 @@
 
 package org.wildfly.extension.elytron;
 
+import static org.wildfly.extension.elytron.Capabilities.KEY_STORE_RUNTIME_CAPABILITY;
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP;
 import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
 import static org.wildfly.extension.elytron.ElytronExtension.ELYTRON_1_0_0;
@@ -55,6 +56,7 @@ import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
 import org.jboss.as.controller.SimpleOperationDefinition;
 import org.jboss.as.controller.SimpleOperationDefinitionBuilder;
 import org.jboss.as.controller.SimpleResourceDefinition;
+import org.jboss.as.controller.capability.RuntimeCapability;
 import org.jboss.as.controller.descriptions.StandardResourceDescriptionResolver;
 import org.jboss.as.controller.registry.AttributeAccess;
 import org.jboss.as.controller.registry.ManagementResourceRegistration;
@@ -234,7 +236,7 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
     private static class KeyStoreAddHandler extends AbstractAddStepHandler {
 
         private KeyStoreAddHandler() {
-            super(CONFIG_ATTRIBUTES);
+            super(KEY_STORE_RUNTIME_CAPABILITY, CONFIG_ATTRIBUTES);
         }
 
         @Override
@@ -260,7 +262,8 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
             }
 
             ServiceTarget serviceTarget = context.getServiceTarget();
-            ServiceName serviceName = KEY_STORE_UTIL.serviceName(operation);
+            RuntimeCapability<Void> runtimeCapability = RuntimeCapability.fromBaseCapability(KEY_STORE_RUNTIME_CAPABILITY, context.getCurrentAddressValue());
+            ServiceName serviceName = runtimeCapability.getCapabilityServiceName(KeyStore.class);
             ServiceBuilder<KeyStore> serviceBuilder = serviceTarget.addService(serviceName, keyStoreService)
                     .setInitialMode(Mode.ACTIVE);
 
@@ -278,7 +281,6 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
 
             assert resource instanceof KeyStoreResource;
             ((KeyStoreResource)resource).setKeyStoreServiceController(serviceController);
-
         }
 
         @Override
@@ -294,7 +296,7 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
     private static class KeyStoreRemoveHandler extends ServiceRemoveStepHandler {
 
         private KeyStoreRemoveHandler(final AbstractAddStepHandler add) {
-            super(add);
+            super(add, KEY_STORE_RUNTIME_CAPABILITY);
         }
 
     }
