@@ -91,8 +91,12 @@ final class ServiceUtil<T> {
      * @param name - the simple name of the service to inject.
      * @return The {@link ServiceBuilder} passed in to allow method chaining.
      */
-    ServiceBuilder<?> addInjection(ServiceBuilder<?> sb, Injector<T> injector, String name) {
-        sb.addDependency(REQUIRED, serviceName(name), clazz, injector);
+    private ServiceBuilder<?> addInjection(ServiceBuilder<?> sb, Injector<T> injector, String name) {
+        return addInjection(sb, injector, serviceName(name));
+    }
+
+    ServiceBuilder<?> addInjection(ServiceBuilder<?> sb, Injector<T> injector, ServiceName serviceName) {
+        sb.addDependency(REQUIRED, serviceName, clazz, injector);
 
         return sb;
     }

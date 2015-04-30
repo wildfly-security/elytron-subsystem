@@ -18,7 +18,9 @@
 
 package org.wildfly.extension.elytron;
 
+import static org.wildfly.extension.elytron.Capabilities.SECURITY_DOMAIN_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SECURITY_DOMAIN_RUNTIME_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_CAPABILITY;
 import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
 import static org.wildfly.extension.elytron.RealmDefinition.REALM_SERVICE_UTIL;
 
@@ -49,6 +51,7 @@ import org.jboss.msc.service.ServiceController.Mode;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.ServiceTarget;
 import org.wildfly.security.auth.provider.SecurityDomain;
+import org.wildfly.security.auth.provider.SecurityRealm;
 
 /**
  * A {@link ResourceDefinition} for a single domain.
@@ -68,6 +71,7 @@ class DomainDefinition extends SimpleResourceDefinition {
     static final StringListAttributeDefinition REALMS =  new StringListAttributeDefinition.Builder(ElytronDescriptionConstants.REALMS)
              .setAllowExpression(true)
              .setAllowNull(false)
+             .setCapabilityReference(SECURITY_REALM_CAPABILITY, SECURITY_DOMAIN_CAPABILITY, true)
              .build();
 
     private static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] { DEFAULT_REALM, REALMS };
@@ -104,7 +108,10 @@ class DomainDefinition extends SimpleResourceDefinition {
                 .setInitialMode(Mode.LAZY);
 
         for (String current : realms) {
-            REALM_SERVICE_UTIL.addInjection(domainBuilder, domain.createRealmInjector(current), current);
+            String runtimeCapability = RuntimeCapability.buildDynamicCapabilityName(SECURITY_REALM_CAPABILITY, current);
+            ServiceName realmServiceName = context.getCapabilityServiceName(runtimeCapability, SecurityRealm.class);
+
+            REALM_SERVICE_UTIL.addInjection(domainBuilder, domain.createRealmInjector(current), realmServiceName);
         }
 
         commonDependencies(domainBuilder);

@@ -18,8 +18,10 @@
 
 package org.wildfly.extension.elytron;
 
-import static org.wildfly.extension.elytron.Capabilities.KEY_STORE_RUNTIME_CAPABILITY;
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP;
+import static org.wildfly.extension.elytron.Capabilities.KEYSTORE_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.KEY_STORE_RUNTIME_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.PROVIDERS_CAPABILITY;
 import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
 import static org.wildfly.extension.elytron.ElytronExtension.ELYTRON_1_0_0;
 import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
@@ -36,6 +38,7 @@ import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.RO
 
 import java.security.KeyStore;
 import java.security.KeyStoreException;
+import java.security.Provider;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -103,6 +106,7 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
         .setAllowExpression(true)
         .setMinSize(1)
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+        .setCapabilityReference(PROVIDERS_CAPABILITY, KEYSTORE_CAPABILITY, true)
         .build();
 
     static final SimpleAttributeDefinition PASSWORD = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PASSWORD, ModelType.STRING, true)
@@ -273,7 +277,9 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
             }
 
             if (providerLoader != null) {
-                PROVIDER_LOADER_SERVICE_UTIL.addInjection(serviceBuilder, keyStoreService.getProvidersInjector(), providerLoader);
+                String providersCapabilityName = RuntimeCapability.buildDynamicCapabilityName(PROVIDERS_CAPABILITY, providerLoader);
+                ServiceName providerLoaderServiceName = context.getCapabilityServiceName(providersCapabilityName, Provider[].class);
+                PROVIDER_LOADER_SERVICE_UTIL.addInjection(serviceBuilder, keyStoreService.getProvidersInjector(), providerLoaderServiceName);
             }
 
             commonDependencies(serviceBuilder);

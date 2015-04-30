@@ -18,6 +18,8 @@
 
 package org.wildfly.extension.elytron;
 
+import static org.wildfly.extension.elytron.Capabilities.KEYSTORE_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
 import static org.wildfly.extension.elytron.KeyStoreDefinition.KEY_STORE_UTIL;
@@ -61,6 +63,7 @@ class KeyStoreRealmDefinition extends SimpleResourceDefinition {
         .setAllowExpression(true)
         .setMinSize(1)
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+        .setCapabilityReference(KEYSTORE_CAPABILITY, SECURITY_REALM_CAPABILITY, true)
         .build();
 
     private static final AbstractAddStepHandler ADD = new RealmAddHandler();
@@ -95,7 +98,9 @@ class KeyStoreRealmDefinition extends SimpleResourceDefinition {
 
             ServiceBuilder<SecurityRealm> serviceBuilder = serviceTarget.addService(realmName, keyStoreRealmService);
 
-            KEY_STORE_UTIL.addInjection(serviceBuilder, keyStoreRealmService.getKeyStoreInjector(), KEYSTORE.resolveModelAttribute(context, model).asString());
+            String keyStoreCapabilityName = RuntimeCapability.buildDynamicCapabilityName(KEYSTORE_CAPABILITY, KEYSTORE.resolveModelAttribute(context, model).asString());
+            ServiceName keyStoreServiceName = context.getCapabilityServiceName(keyStoreCapabilityName, KeyStore.class);
+            KEY_STORE_UTIL.addInjection(serviceBuilder, keyStoreRealmService.getKeyStoreInjector(), keyStoreServiceName);
             commonDependencies(serviceBuilder)
                 .setInitialMode(Mode.ACTIVE)
                 .install();
