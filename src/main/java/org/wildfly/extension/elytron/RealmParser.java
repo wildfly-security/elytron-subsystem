@@ -131,7 +131,7 @@ class RealmParser {
     void writeRealms(ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         boolean realmsStarted = false;
 
-        realmsStarted = realmsStarted & writeKeyStoreRealms(realmsStarted, subsystem, writer);
+        realmsStarted = realmsStarted | writeKeyStoreRealms(realmsStarted, subsystem, writer);
 
         if (realmsStarted) {
             writer.writeEndElement();

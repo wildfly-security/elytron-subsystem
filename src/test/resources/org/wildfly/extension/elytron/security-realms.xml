@@ -1,4 +1,14 @@
 <subsystem xmlns="urn:wildfly:elytron:1.0">
+    <tls>
+        <keystores>
+            <keystore name="KeyStoreOne" type="jks" password="password">
+                <file relative-to="jboss.server.config.dir" path="keystore.jks" required="true" />
+            </keystore>
+            <keystore name="KeyStoreTwo" type="jks" password="password">
+                <file relative-to="jboss.server.config.dir" path="keystore.jks" required="true" />
+            </keystore>
+        </keystores>
+    </tls>
     <realms>
         <keystore-realm name="RealmOne" keystore="KeyStoreOne" />
         <keystore-realm name="RealmTwo" keystore="KeyStoreTwo" />
