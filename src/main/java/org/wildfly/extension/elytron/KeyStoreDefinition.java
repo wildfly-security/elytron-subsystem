@@ -83,7 +83,7 @@ import org.wildfly.extension.elytron.KeyStoreService.LoadKey;
  */
 final class KeyStoreDefinition extends SimpleResourceDefinition {
 
-    static final ServiceUtil<KeyStore> KEY_STORE_UTIL = ServiceUtil.newInstance(ElytronDescriptionConstants.KEYSTORE, KeyStore.class);
+    static final ServiceUtil<KeyStore> KEY_STORE_UTIL = ServiceUtil.newInstance(KEY_STORE_RUNTIME_CAPABILITY, ElytronDescriptionConstants.KEYSTORE, KeyStore.class);
 
     static final String ISO_8601_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
 

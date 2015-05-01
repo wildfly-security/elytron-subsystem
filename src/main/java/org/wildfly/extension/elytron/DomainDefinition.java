@@ -60,7 +60,7 @@ import org.wildfly.security.auth.provider.SecurityRealm;
  */
 class DomainDefinition extends SimpleResourceDefinition {
 
-    private static final ServiceUtil<SecurityDomain> DOMAIN_SERVICE_UTIL = ServiceUtil.newInstance(ElytronDescriptionConstants.DOMAIN, SecurityDomain.class);
+    private static final ServiceUtil<SecurityDomain> DOMAIN_SERVICE_UTIL = ServiceUtil.newInstance(SECURITY_DOMAIN_RUNTIME_CAPABILITY, ElytronDescriptionConstants.DOMAIN, SecurityDomain.class);
 
     static final SimpleAttributeDefinition DEFAULT_REALM = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.DEFAULT_REALM, ModelType.STRING, false)
              .setAllowExpression(false)

@@ -18,6 +18,7 @@
 
 package org.wildfly.extension.elytron;
 
+import static org.wildfly.extension.elytron.Capabilities.KEY_STORE_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
 
 import org.jboss.as.controller.AbstractAddStepHandler;
@@ -43,7 +44,7 @@ import org.wildfly.security.auth.provider.SecurityRealm;
  */
 class RealmDefinition extends SimpleResourceDefinition {
 
-    static final ServiceUtil<SecurityRealm> REALM_SERVICE_UTIL = ServiceUtil.newInstance(ElytronDescriptionConstants.REALM, SecurityRealm.class);
+    static final ServiceUtil<SecurityRealm> REALM_SERVICE_UTIL = ServiceUtil.newInstance(KEY_STORE_RUNTIME_CAPABILITY, ElytronDescriptionConstants.REALM, SecurityRealm.class);
 
     private static final RealmAddHandler ADD = new RealmAddHandler();
     private static final RealmRemoveHandler REMOVE = new RealmRemoveHandler(ADD);
@@ -62,7 +63,7 @@ class RealmDefinition extends SimpleResourceDefinition {
         protected void performRuntime(OperationContext context, ModelNode operation, ModelNode model)
                 throws OperationFailedException {
             ServiceTarget serviceTarget = context.getServiceTarget();
-            ServiceName realmName = REALM_SERVICE_UTIL.serviceName(operation);
+            ServiceName realmName = REALM_SERVICE_UTIL.serviceName(context.getCurrentAddressValue());
             Service<SecurityRealm> realm = new DummyRealmService();
 
             commonDependencies(serviceTarget.addService(realmName, realm)

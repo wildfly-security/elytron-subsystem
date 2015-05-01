@@ -20,11 +20,11 @@ package org.wildfly.extension.elytron;
 
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP_ADDR;
 import static org.jboss.msc.service.ServiceBuilder.DependencyType.REQUIRED;
-import static org.wildfly.extension.elytron.ElytronExtension.BASE_SERVICE_NAME;
 import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
 
 import org.jboss.as.controller.PathAddress;
 import org.jboss.as.controller.PathElement;
+import org.jboss.as.controller.capability.RuntimeCapability;
 import org.jboss.dmr.ModelNode;
 import org.jboss.msc.inject.Injector;
 import org.jboss.msc.service.Service;
@@ -38,12 +38,12 @@ import org.jboss.msc.service.ServiceName;
  */
 final class ServiceUtil<T> {
 
-    private final ServiceName baseServiceName;
+    private final RuntimeCapability runtimeCapability;
     private final String key;
     private final Class<T> clazz;
 
-    private ServiceUtil(ServiceName baseServiceName, String key, Class<T> injectionClass) {
-        this.baseServiceName = baseServiceName;
+    private ServiceUtil(RuntimeCapability runtimeCapability, String key, Class<T> injectionClass) {
+        this.runtimeCapability = runtimeCapability;
         this.key = key;
         clazz = injectionClass;
     }
@@ -55,7 +55,8 @@ final class ServiceUtil<T> {
      * @return The fully qualified {@link ServiceName} of the service.
      */
     ServiceName serviceName(final String name) {
-        return baseServiceName.append(key, name);
+        RuntimeCapability dynamicCapability = RuntimeCapability.fromBaseCapability(runtimeCapability, name);
+        return dynamicCapability.getCapabilityServiceName(clazz);
     }
 
     /**
@@ -91,7 +92,7 @@ final class ServiceUtil<T> {
      * @param name - the simple name of the service to inject.
      * @return The {@link ServiceBuilder} passed in to allow method chaining.
      */
-    private ServiceBuilder<?> addInjection(ServiceBuilder<?> sb, Injector<T> injector, String name) {
+    ServiceBuilder<?> addInjection(ServiceBuilder<?> sb, Injector<T> injector, String name) {
         return addInjection(sb, injector, serviceName(name));
     }
 
@@ -101,8 +102,8 @@ final class ServiceUtil<T> {
         return sb;
     }
 
-    public static <T> ServiceUtil<T> newInstance(String key, Class<T> injectionClass) {
-        return new ServiceUtil<T>(BASE_SERVICE_NAME, key, injectionClass);
+    public static <T> ServiceUtil<T> newInstance(RuntimeCapability runtimeCapability, String key, Class<T> injectionClass) {
+        return new ServiceUtil<T>(runtimeCapability, key, injectionClass);
     }
 
 }
