@@ -85,14 +85,17 @@ public class ElytronExtension implements Extension {
         context.setSubsystemXmlMapping(SUBSYSTEM_NAME, NAMESPACE, parser);
     }
 
-
     @Override
     public void initialize(ExtensionContext context) {
-        final SubsystemRegistration subsystem = context.registerSubsystem(SUBSYSTEM_NAME, ELYTRON_CURRENT);
-        final ManagementResourceRegistration registration = subsystem.registerSubsystemModel(ElytronDefinition.INSTANCE);
+        final SubsystemRegistration subsystemRegistration = context.registerSubsystem(SUBSYSTEM_NAME, ELYTRON_CURRENT);
+
+        // Elytron is expected to be used everywhere.
+        subsystemRegistration.setHostCapable();
+
+        final ManagementResourceRegistration registration = subsystemRegistration.registerSubsystemModel(ElytronDefinition.INSTANCE);
         registration.registerOperationHandler(GenericSubsystemDescribeHandler.DEFINITION, GenericSubsystemDescribeHandler.INSTANCE);
 
-        subsystem.registerXMLElementWriter(parser);
+        subsystemRegistration.registerXMLElementWriter(parser);
     }
 
     static ModelNode createAddSubsystemOperation() {
