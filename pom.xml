@@ -35,7 +35,7 @@
     <packaging>jar</packaging>
 
     <properties>
-        <version.elytron>1.0.0.Alpha1-SNAPSHOT</version.elytron>
+        <version.elytron>1.0.0.Alpha2-SNAPSHOT</version.elytron>
 
         <!-- This MUST match the version the feature-pack and distribution are using. -->
         <version.wildfly.core>2.0.0.Alpha1-SNAPSHOT</version.wildfly.core>
