@@ -22,8 +22,9 @@ import java.security.KeyStore;
 import java.security.Provider;
 
 import org.jboss.as.controller.capability.RuntimeCapability;
-import org.wildfly.security.auth.provider.SecurityDomain;
-import org.wildfly.security.auth.provider.SecurityRealm;
+import org.wildfly.security.auth.login.SecurityDomain;
+import org.wildfly.security.auth.spi.SecurityRealm;
+
 
 /**
  * The capabilities provided by and required by this subsystem.

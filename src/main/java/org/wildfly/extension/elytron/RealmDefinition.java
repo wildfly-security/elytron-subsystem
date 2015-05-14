@@ -35,7 +35,8 @@ import org.jboss.msc.service.ServiceController.Mode;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.ServiceTarget;
 import org.wildfly.extension.elytron.junk.DummyRealmService;
-import org.wildfly.security.auth.provider.SecurityRealm;
+import org.wildfly.security.auth.spi.SecurityRealm;
+
 
 /**
  * A {@link ResourceDefinition} for a single realm.

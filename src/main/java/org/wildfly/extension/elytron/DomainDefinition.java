@@ -50,8 +50,8 @@ import org.jboss.msc.service.ServiceController;
 import org.jboss.msc.service.ServiceController.Mode;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.ServiceTarget;
-import org.wildfly.security.auth.provider.SecurityDomain;
-import org.wildfly.security.auth.provider.SecurityRealm;
+import org.wildfly.security.auth.login.SecurityDomain;
+import org.wildfly.security.auth.spi.SecurityRealm;
 
 /**
  * A {@link ResourceDefinition} for a single domain.

@@ -34,7 +34,7 @@ import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
-import org.wildfly.security.sasl.util.HexConverter;
+import org.wildfly.security.util.ByteIterator;
 
 /**
  * Class to contain the attribute definitions for certificates and their chains.
@@ -181,7 +181,7 @@ class CertificateChainAttributeDefintions {
     }
 
     private static String encodedHexString(byte[] encoded) {
-        return delimit(HexConverter.convertToHexString(encoded).toCharArray());
+        return delimit(ByteIterator.ofBytes(encoded).hexEncode().drainToString().toCharArray());
     }
 
     private static String delimit(final char[] chars) {

@@ -20,11 +20,12 @@ package org.wildfly.extension.elytron.junk;
 
 import java.security.Principal;
 
-import org.wildfly.security.auth.provider.AuthenticatedRealmIdentity;
-import org.wildfly.security.auth.provider.CredentialSupport;
-import org.wildfly.security.auth.provider.RealmIdentity;
-import org.wildfly.security.auth.provider.RealmUnavailableException;
-import org.wildfly.security.auth.provider.SecurityRealm;
+import org.wildfly.security.auth.spi.AuthenticatedRealmIdentity;
+import org.wildfly.security.auth.spi.CredentialSupport;
+import org.wildfly.security.auth.spi.RealmIdentity;
+import org.wildfly.security.auth.spi.RealmUnavailableException;
+import org.wildfly.security.auth.spi.SecurityRealm;
+
 
 /**
  * A dummy {@link SecurityRealm} implementation that doesn't do anything.

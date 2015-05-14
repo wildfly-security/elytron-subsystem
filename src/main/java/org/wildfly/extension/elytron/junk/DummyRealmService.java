@@ -22,7 +22,8 @@ import org.jboss.msc.service.Service;
 import org.jboss.msc.service.StartContext;
 import org.jboss.msc.service.StartException;
 import org.jboss.msc.service.StopContext;
-import org.wildfly.security.auth.provider.SecurityRealm;
+import org.wildfly.security.auth.spi.SecurityRealm;
+
 
 /**
  * A simple {@link Service} that produces a {@link DummySecurityRealm}.

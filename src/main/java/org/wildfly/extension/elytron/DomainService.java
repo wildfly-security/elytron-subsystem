@@ -31,8 +31,9 @@ import org.jboss.msc.service.StartContext;
 import org.jboss.msc.service.StartException;
 import org.jboss.msc.service.StopContext;
 import org.jboss.msc.value.InjectedValue;
-import org.wildfly.security.auth.provider.SecurityDomain;
-import org.wildfly.security.auth.provider.SecurityRealm;
+import org.wildfly.security.auth.login.SecurityDomain;
+import org.wildfly.security.auth.spi.SecurityRealm;
+
 
 /**
  * A {@link Service} responsible for managing the lifecycle of a single {@link SecurityDomain}.
