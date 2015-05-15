@@ -151,7 +151,7 @@ class KeyStoreService implements Service<KeyStore> {
 
     private AtomicLoadKeyStore.LoadKey load(AtomicLoadKeyStore keyStore) throws GeneralSecurityException, IOException {
         try (InputStream is = resolvedPath != null ? new FileInputStream(resolvedPath) : null) {
-            return keyStore.revertableload(is, password);
+            return keyStore.revertibleLoad(is, password);
         }
     }
 
