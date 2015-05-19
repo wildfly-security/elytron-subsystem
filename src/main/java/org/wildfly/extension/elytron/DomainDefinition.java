@@ -23,6 +23,7 @@ import static org.wildfly.extension.elytron.Capabilities.SECURITY_DOMAIN_RUNTIME
 import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_CAPABILITY;
 import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
 import static org.wildfly.extension.elytron.RealmDefinition.REALM_SERVICE_UTIL;
+import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
 
 import java.util.List;
 
@@ -43,6 +44,7 @@ import org.jboss.as.controller.capability.RuntimeCapability;
 import org.jboss.as.controller.registry.AttributeAccess;
 import org.jboss.as.controller.registry.ManagementResourceRegistration;
 import org.jboss.as.controller.registry.OperationEntry;
+import org.jboss.as.controller.registry.Resource;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
 import org.jboss.msc.service.ServiceBuilder;
@@ -122,6 +124,20 @@ class DomainDefinition extends SimpleResourceDefinition {
 
         private DomainAddHandler() {
             super(SECURITY_DOMAIN_RUNTIME_CAPABILITY, ATTRIBUTES);
+        }
+
+        @Override
+        protected void populateModel(final OperationContext context, final ModelNode operation, final Resource resource)
+                throws OperationFailedException {
+            super.populateModel(context, operation, resource);
+
+            ModelNode model = resource.getModel();
+            String defaultRealm = DomainDefinition.DEFAULT_REALM.resolveModelAttribute(context, model).asString();
+            List<String> realms = DomainDefinition.REALMS.unwrap(context, model);
+
+            if (realms.contains(defaultRealm) == false) {
+                throw ROOT_LOGGER.defaultRealmNotReferenced(defaultRealm);
+            }
         }
 
         @Override

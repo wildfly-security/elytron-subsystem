@@ -18,6 +18,8 @@
 
 package org.wildfly.extension.elytron;
 
+import javax.security.auth.login.LoginContext;
+
 import org.jboss.msc.service.Service;
 import org.jboss.msc.service.StartContext;
 import org.jboss.msc.service.StartException;

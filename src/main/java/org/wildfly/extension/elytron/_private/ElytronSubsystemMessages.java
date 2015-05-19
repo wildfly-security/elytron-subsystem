@@ -153,4 +153,14 @@ public interface ElytronSubsystemMessages extends BasicLogger {
     @Message(id = 12, value = "No suitable provider found for type '%s'")
     StartException noSuitableProvider(String type);
 
+    /**
+     * A {@link OperationFailedException} for when an attempt is made to define a domain that has a default realm specified that
+     * it does not actually reference.
+     *
+     * @param defaultRealm the name of the default_realm specified.
+     * @return The {@link OperationFailedException} for the error.
+     */
+    @Message(id = 13, value = "The default_realm '%s' is not in the list or realms referenced by this domain.")
+    OperationFailedException defaultRealmNotReferenced(String defaultRealm);
+
 }
