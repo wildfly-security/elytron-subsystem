@@ -103,7 +103,6 @@ class DomainParser {
         for (ModelNode current : realms) {
             if (defaultRealm.equals(current.asString()) == false) {
                 writeRealm(current.asString(), writer);
-                break;
             }
         }
 
