@@ -47,6 +47,7 @@ interface ElytronDescriptionConstants {
     String FINGER_PRINT = "finger-print";
     String FINGER_PRINTS = "finger-prints";
     String FORMAT = "format";
+    String GROUPS_PROPERTIES = "groups-properties";
     String IMPLEMENTATION = "implementation";
     String INDEX = "index";
     String INFO = "info";
@@ -68,6 +69,8 @@ interface ElytronDescriptionConstants {
     String NOT_BEFORE = "not-before";
     String PATH = "path";
     String PASSWORD = "password";
+    String PLAIN_TEXT = "plain-text";
+    String PROPERTIES_REALM = "properties-realm";
     String PROPERTY = "property";
     String PROPERTY_LIST = "property-list";
     String PROVIDER = "provider";
@@ -95,6 +98,7 @@ interface ElytronDescriptionConstants {
     String SYNCHRONIZED = "synchronized";
     String TLS = "tls";
     String TYPE = "type";
+    String USERS_PROPERTIES = "users-properties";
     String VALUE = "value";
     String VERSION = "version";
     String WATCH = "watch";
