@@ -10,7 +10,9 @@
         </keystores>
     </tls>
     <realms>
-        <keystore-realm name="RealmOne" keystore="KeyStoreOne" />
-        <keystore-realm name="RealmTwo" keystore="KeyStoreTwo" />
+        <jaas-realm name="RealmOne" />
+        <jaas-realm name="RealmTwo" configuration="custom-domain" />
+        <keystore-realm name="RealmThree" keystore="KeyStoreOne" />
+        <keystore-realm name="RealmFour" keystore="KeyStoreTwo" />
     </realms>
 </subsystem>
