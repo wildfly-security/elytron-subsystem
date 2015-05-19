@@ -30,6 +30,8 @@ import static org.jboss.as.controller.parsing.ParseUtils.unexpectedAttribute;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedElement;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEYSTORE;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEYSTORE_REALM;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.JAAS_REALM;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CONFIGURATION;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REALMS;
 import static org.wildfly.extension.elytron.ElytronSubsystemParser.verifyNamespace;
@@ -59,12 +61,55 @@ class RealmParser {
         while (reader.hasNext() && reader.nextTag() != END_ELEMENT) {
             verifyNamespace(reader);
             String localName = reader.getLocalName();
-            if (KEYSTORE_REALM.equals(localName)) {
-                readKeyStoreRealm(parentAddress, reader, operations);
-            } else {
-                throw unexpectedElement(reader);
+            switch (localName) {
+                case JAAS_REALM:
+                    readJaasRealm(parentAddress, reader, operations);
+                    break;
+                case KEYSTORE_REALM:
+                    readKeyStoreRealm(parentAddress, reader, operations);
+                    break;
+                default:
+                    throw unexpectedElement(reader);
             }
         }
+    }
+
+    private void readJaasRealm(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations)
+            throws XMLStreamException {
+        ModelNode addRealm = new ModelNode();
+        addRealm.get(OP).set(ADD);
+
+        String name = null;
+
+        final int count = reader.getAttributeCount();
+        for (int i = 0; i < count; i++) {
+            final String value = reader.getAttributeValue(i);
+            if (!isNoNamespaceAttribute(reader, i)) {
+                throw unexpectedAttribute(reader, i);
+            } else {
+                String attribute = reader.getAttributeLocalName(i);
+                switch (attribute) {
+                    case NAME:
+                        name = value;
+                        break;
+                    case CONFIGURATION:
+                        JaasRealmDefinition.CONFIGURATION.parseAndSetParameter(value, addRealm, reader);
+                        break;
+                    default:
+                        throw unexpectedAttribute(reader, i);
+                }
+            }
+        }
+
+        if (name == null) {
+            throw missingRequired(reader, NAME);
+        }
+
+        addRealm.get(OP_ADDR).set(parentAddress).add(JAAS_REALM, name);
+
+        operations.add(addRealm);
+
+        requireNoContent(reader);
     }
 
     private void readKeyStoreRealm(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations)
@@ -107,15 +152,32 @@ class RealmParser {
         requireNoContent(reader);
     }
 
-    private void startRealms(XMLExtendedStreamWriter writer) throws XMLStreamException {
-        writer.writeStartElement(REALMS);
+    private void startRealms(boolean started, XMLExtendedStreamWriter writer) throws XMLStreamException {
+        if (started == false) {
+            writer.writeStartElement(REALMS);
+        }
+    }
+
+    private boolean writeJaasRealms(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
+        if (subsystem.hasDefined(JAAS_REALM)) {
+            startRealms(started, writer);
+
+            List<Property> realms = subsystem.require(JAAS_REALM).asPropertyList();
+            for (Property current : realms) {
+                writer.writeStartElement(JAAS_REALM);
+                writer.writeAttribute(NAME, current.getName());
+                JaasRealmDefinition.CONFIGURATION.marshallAsAttribute(current.getValue(), writer);
+                writer.writeEndElement();
+            }
+            return true;
+        }
+        return false;
     }
 
     private boolean writeKeyStoreRealms(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (subsystem.hasDefined(KEYSTORE_REALM)) {
-            if (started == false) {
-                startRealms(writer);
-            }
+            startRealms(started, writer);
+
             List<Property> realms = subsystem.require(KEYSTORE_REALM).asPropertyList();
             for (Property current : realms) {
                 writer.writeStartElement(KEYSTORE_REALM);
@@ -131,6 +193,7 @@ class RealmParser {
     void writeRealms(ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         boolean realmsStarted = false;
 
+        realmsStarted = realmsStarted | writeJaasRealms(realmsStarted, subsystem, writer);
         realmsStarted = realmsStarted | writeKeyStoreRealms(realmsStarted, subsystem, writer);
 
         if (realmsStarted) {

@@ -51,6 +51,7 @@ interface ElytronDescriptionConstants {
     String INDEX = "index";
     String INFO = "info";
     String ISSUER = "issuer";
+    String JAAS_REALM = "jaas-realm";
     String KEY = "key";
     String KEYSTORE = "keystore";
     String KEYSTORE_REALM = "keystore-realm";

@@ -66,6 +66,7 @@ class ElytronDefinition extends SimpleResourceDefinition {
         // Domain
         resourceRegistration.registerSubModel(new DomainDefinition());
         // Security Realms
+        resourceRegistration.registerSubModel(new JaasRealmDefinition());
         resourceRegistration.registerSubModel(new KeyStoreRealmDefinition());
         resourceRegistration.registerSubModel(new RealmDefinition());
 

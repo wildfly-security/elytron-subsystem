@@ -236,9 +236,10 @@
                 Container for the security realm definitions.
             </xs:documentation>
         </xs:annotation>
-        <xs:sequence>
+        <xs:choice maxOccurs="unbounded">
+            <xs:element name="jaas-realm" type="jaasRealmType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="keystore-realm" type="keyStoreRealmType" minOccurs="0" maxOccurs="unbounded" />
-        </xs:sequence>
+        </xs:choice>
     </xs:complexType>
     
     <xs:complexType name="realmType" abstract="true">
@@ -255,6 +256,29 @@
             </xs:annotation>
         </xs:attribute>
     </xs:complexType>
+    
+    <xs:complexType name="jaasRealmType">
+        <xs:annotation>
+            <xs:documentation>
+              Realm definition for a realm backed by a JAAS security domain.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="realmType">
+                <xs:attribute name="configuration" type="xs:string" use="optional">
+                    <xs:annotation>
+                        <xs:documentation>
+                            The name of the configuration passed in when the LoginContext is instantiated.
+                            
+                            If this attribute is omitted then the name of the realm will be assumed to be the
+                            name of the configuration.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    
     
     <xs:complexType name="keyStoreRealmType">
         <xs:complexContent>
