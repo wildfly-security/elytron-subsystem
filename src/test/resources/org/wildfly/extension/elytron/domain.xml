@@ -1,0 +1,14 @@
+<subsystem xmlns="urn:wildfly:elytron:1.0">
+    <domains>
+        <domain name="MyDomain">
+            <realm name="RealmTwo" />
+            <realm name="RealmOne" />
+            <realm name="RealmThree" />
+        </domain>
+    </domains>
+    <realms>
+        <jaas-realm name="RealmOne" />
+        <jaas-realm name="RealmTwo" configuration="custom-domain" />
+        <jaas-realm name="RealmThree" configuration="custom-domain" />
+    </realms>
+</subsystem>

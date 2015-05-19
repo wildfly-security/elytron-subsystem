@@ -133,6 +133,10 @@ public class SubsystemParsingTestCase extends AbstractSubsystemTest {
         super.compare(modelA, modelB);
     }
 
+    @Test
+    public void testParseAndMarshalModel_Domain() throws Exception {
+        testParseAndMarshalModel("domain.xml");
+    }
 
     @Test
     public void testParseAndMarshalModel_KeyStore() throws Exception {
