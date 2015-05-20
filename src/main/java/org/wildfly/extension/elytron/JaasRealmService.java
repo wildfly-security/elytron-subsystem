@@ -24,7 +24,7 @@ import org.jboss.msc.service.Service;
 import org.jboss.msc.service.StartContext;
 import org.jboss.msc.service.StartException;
 import org.jboss.msc.service.StopContext;
-import org.wildfly.security.auth.provider.JAASSecurityRealm;
+import org.wildfly.security.auth.provider.JaasSecurityRealm;
 import org.wildfly.security.auth.spi.SecurityRealm;
 
 /**
@@ -44,7 +44,7 @@ class JaasRealmService implements Service<SecurityRealm> {
 
     @Override
     public void start(StartContext startContext) throws StartException {
-        securityRealm = new JAASSecurityRealm(configuration);
+        securityRealm = new JaasSecurityRealm(configuration);
     }
 
     @Override
