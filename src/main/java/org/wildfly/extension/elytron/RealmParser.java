@@ -192,6 +192,7 @@ class RealmParser {
         if (name == null) {
             throw missingRequired(reader, NAME);
         }
+        addRealm.get(OP_ADDR).set(parentAddress).add(PROPERTIES_REALM, name);
 
         boolean usersPropertiesFound = false;
         while (reader.hasNext() && reader.nextTag() != END_ELEMENT) {
@@ -207,7 +208,7 @@ class RealmParser {
                 case GROUPS_PROPERTIES:
                     ModelNode groupsProperties = new ModelNode();
                     readFileAttributes(groupsProperties, reader);
-                    addRealm.get(USERS_PROPERTIES).set(groupsProperties);
+                    addRealm.get(GROUPS_PROPERTIES).set(groupsProperties);
                     break;
                 default:
                     throw unexpectedElement(reader);
@@ -217,6 +218,8 @@ class RealmParser {
         if (usersPropertiesFound == false) {
             throw missingRequiredElement(reader, Collections.singleton(USERS_PROPERTIES));
         }
+
+        operations.add(addRealm);
     }
 
     private void readFileAttributes(ModelNode file, XMLExtendedStreamReader reader) throws XMLStreamException {
@@ -291,7 +294,7 @@ class RealmParser {
         if (subsystem.hasDefined(PROPERTIES_REALM)) {
             startRealms(started, writer);
 
-            List<Property> realms = subsystem.require(KEYSTORE_REALM).asPropertyList();
+            List<Property> realms = subsystem.require(PROPERTIES_REALM).asPropertyList();
             for (Property current : realms) {
                 writer.writeStartElement(PROPERTIES_REALM);
                 writer.writeAttribute(NAME, current.getName());

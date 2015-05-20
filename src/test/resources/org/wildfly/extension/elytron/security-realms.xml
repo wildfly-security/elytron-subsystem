@@ -14,5 +14,12 @@
         <jaas-realm name="RealmTwo" configuration="custom-domain" />
         <keystore-realm name="RealmThree" keystore="KeyStoreOne" />
         <keystore-realm name="RealmFour" keystore="KeyStoreTwo" />
+        <properties-realm name="RealmFive">
+            <users-properties path="my.properties" />
+        </properties-realm>
+        <properties-realm name="RealmSix" plain-text="true">
+            <users-properties path="my.properties" relative-to="my.path" />
+            <groups-properties path="mygroup.properties" relative-to="mygroup.path" />
+        </properties-realm>
     </realms>
 </subsystem>
