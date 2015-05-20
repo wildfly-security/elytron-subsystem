@@ -18,10 +18,10 @@
 
 package org.wildfly.extension.elytron;
 
-import static org.wildfly.extension.elytron.Capabilities.SECURITY_DOMAIN_CAPABILITY;
-import static org.wildfly.extension.elytron.Capabilities.SECURITY_DOMAIN_RUNTIME_CAPABILITY;
-import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_CAPABILITY;
-import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY;
+import static org.jboss.as.controller.security.Capabilities.SECURITY_DOMAIN_CAPABILITY;
+import static org.jboss.as.controller.security.Capabilities.SECURITY_DOMAIN_RUNTIME_CAPABILITY;
+import static org.jboss.as.controller.security.Capabilities.SECURITY_REALM_CAPABILITY;
+import static org.jboss.as.controller.security.Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
 import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
 

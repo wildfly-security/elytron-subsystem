@@ -18,9 +18,9 @@
 
 package org.wildfly.extension.elytron;
 
-import static org.wildfly.extension.elytron.Capabilities.KEYSTORE_CAPABILITY;
-import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_CAPABILITY;
-import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY;
+import static org.jboss.as.controller.security.Capabilities.KEYSTORE_CAPABILITY;
+import static org.jboss.as.controller.security.Capabilities.SECURITY_REALM_CAPABILITY;
+import static org.jboss.as.controller.security.Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
 import static org.wildfly.extension.elytron.KeyStoreDefinition.KEY_STORE_UTIL;
 
