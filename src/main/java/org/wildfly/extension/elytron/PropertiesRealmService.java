@@ -18,13 +18,28 @@
 
 package org.wildfly.extension.elytron;
 
+import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import org.jboss.as.controller.services.path.PathEntry;
 import org.jboss.as.controller.services.path.PathManager;
+import org.jboss.as.controller.services.path.PathManager.Callback.Handle;
+import org.jboss.as.controller.services.path.PathManager.Event;
+import org.jboss.as.controller.services.path.PathManager.PathEventContext;
 import org.jboss.msc.inject.Injector;
 import org.jboss.msc.service.Service;
 import org.jboss.msc.service.StartContext;
 import org.jboss.msc.service.StartException;
 import org.jboss.msc.service.StopContext;
 import org.jboss.msc.value.InjectedValue;
+import org.wildfly.security.auth.provider.LegacyPropertiesSecurityRealm;
 import org.wildfly.security.auth.spi.SecurityRealm;
 
 /**
@@ -41,6 +56,7 @@ class PropertiesRealmService implements Service<SecurityRealm> {
     private final boolean plainText;
 
     private final InjectedValue<PathManager> pathManager = new InjectedValue<PathManager>();
+    private final List<Handle> callbackHandles = new ArrayList<>();
     private volatile SecurityRealm securityRealm;
 
     PropertiesRealmService(String usersPath, String usersRelativeTo, String groupsPath, String groupsRelativeTo, boolean plainText) {
@@ -53,12 +69,58 @@ class PropertiesRealmService implements Service<SecurityRealm> {
 
     @Override
     public void start(StartContext context) throws StartException {
+        File usersFile = resolveFileLocation(usersPath, usersRelativeTo);
+        File groupsFile = groupsPath != null ? resolveFileLocation(groupsPath, groupsRelativeTo) : null;
 
+        try (InputStream usersInputStream = new FileInputStream(usersFile);
+                InputStream groupsInputStream = groupsFile != null ? new FileInputStream(groupsFile) : null) {
+            securityRealm = LegacyPropertiesSecurityRealm.builder()
+                    .setPasswordsStream(usersInputStream)
+                    .setGroupsStream(groupsInputStream)
+                    .setPlainText(plainText)
+                    .build();
+
+        } catch (IOException e) {
+            throw ROOT_LOGGER.unableToLoadPropertiesFiles(e);
+        }
+    }
+
+    private File resolveFileLocation(String path, String relativeTo) {
+        final File resolvedPath;
+        if (relativeTo != null) {
+            PathManager pathManager = this.pathManager.getValue();
+            resolvedPath = new File(pathManager.resolveRelativePathEntry(path, relativeTo));
+            Handle callbackHandle = pathManager.registerCallback(relativeTo, new org.jboss.as.controller.services.path.PathManager.Callback() {
+
+                @Override
+                public void pathModelEvent(PathEventContext eventContext, String name) {
+                    if (eventContext.isResourceServiceRestartAllowed() == false) {
+                        eventContext.reloadRequired();
+                    }
+                }
+
+                @Override
+                public void pathEvent(Event event, PathEntry pathEntry) {
+                    // Service dependencies should trigger a stop and start.
+                }
+            }, Event.REMOVED, Event.UPDATED);
+            callbackHandles.add(callbackHandle);
+        } else {
+            resolvedPath = new File(path);
+        }
+
+        return resolvedPath;
     }
 
     @Override
     public void stop(StopContext context) {
         securityRealm = null;
+        Iterator<Handle> it = callbackHandles.iterator();
+        while (it.hasNext()) {
+            Handle handle = it.next();
+            handle.remove();
+            it.remove();
+        }
     }
 
     Injector<PathManager> getPathManagerInjector() {

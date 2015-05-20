@@ -163,4 +163,14 @@ public interface ElytronSubsystemMessages extends BasicLogger {
     @Message(id = 13, value = "The default_realm '%s' is not in the list or realms referenced by this domain.")
     OperationFailedException defaultRealmNotReferenced(String defaultRealm);
 
+    /**
+     * A {@link StartException} for when the properties file backed realm can not be started due to problems loading the
+     * properties files.
+     *
+     * @param cause the underlying cause of the error.
+     * @return The {@link StartException} for the error.
+     */
+    @Message(id = 14, value = "Unable to load the properties files required to start the properties file backed realm.")
+    StartException unableToLoadPropertiesFiles(@Cause Exception cause);
+
 }

@@ -19,6 +19,11 @@
 package org.wildfly.extension.elytron;
 
 import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY;
+import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
+import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
+import static org.wildfly.extension.elytron.FileAttributeDefinitions.PATH;
+import static org.wildfly.extension.elytron.FileAttributeDefinitions.RELATIVE_TO;
+import static org.wildfly.extension.elytron.FileAttributeDefinitions.pathName;
 
 import org.jboss.as.controller.AbstractAddStepHandler;
 import org.jboss.as.controller.AttributeDefinition;
@@ -34,12 +39,18 @@ import org.jboss.as.controller.ServiceRemoveStepHandler;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
 import org.jboss.as.controller.SimpleResourceDefinition;
+import org.jboss.as.controller.capability.RuntimeCapability;
 import org.jboss.as.controller.registry.AttributeAccess;
 import org.jboss.as.controller.registry.ManagementResourceRegistration;
 import org.jboss.as.controller.registry.OperationEntry;
+import org.jboss.as.controller.services.path.PathManager;
+import org.jboss.as.controller.services.path.PathManagerService;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
+import org.jboss.msc.service.ServiceBuilder;
+import org.jboss.msc.service.ServiceController.Mode;
 import org.jboss.msc.service.ServiceName;
+import org.jboss.msc.service.ServiceTarget;
 import org.wildfly.security.auth.spi.SecurityRealm;
 
 /**
@@ -51,12 +62,12 @@ public class PropertiesRealmDefinition extends SimpleResourceDefinition {
 
     static final ServiceUtil<SecurityRealm> REALM_SERVICE_UTIL = ServiceUtil.newInstance(SECURITY_REALM_RUNTIME_CAPABILITY, ElytronDescriptionConstants.PROPERTIES_REALM, SecurityRealm.class);
 
-    static final ObjectTypeAttributeDefinition USERS_PROPERTIES = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.USERS_PROPERTIES, FileAttributeDefinitions.PATH, FileAttributeDefinitions.RELATIVE_TO)
+    static final ObjectTypeAttributeDefinition USERS_PROPERTIES = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.USERS_PROPERTIES, PATH, RELATIVE_TO)
         .setAllowNull(false)
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
         .build();
 
-    static final ObjectTypeAttributeDefinition GROUPS_PROPERTIES = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.GROUPS_PROPERTIES, FileAttributeDefinitions.PATH, FileAttributeDefinitions.RELATIVE_TO)
+    static final ObjectTypeAttributeDefinition GROUPS_PROPERTIES = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.GROUPS_PROPERTIES, PATH, RELATIVE_TO)
         .setAllowNull(true)
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
         .build();
@@ -97,20 +108,46 @@ public class PropertiesRealmDefinition extends SimpleResourceDefinition {
         @Override
         protected void performRuntime(OperationContext context, ModelNode operation, ModelNode model)
                 throws OperationFailedException {
-            /*ServiceTarget serviceTarget = context.getServiceTarget();
+            ServiceTarget serviceTarget = context.getServiceTarget();
             RuntimeCapability<Void> runtimeCapability = RuntimeCapability.fromBaseCapability(SECURITY_REALM_RUNTIME_CAPABILITY, context.getCurrentAddressValue());
             ServiceName realmName = runtimeCapability.getCapabilityServiceName(SecurityRealm.class);
 
-            ModelNode configurationNode = CONFIGURATION.resolveModelAttribute(context, model);
-            final String configuration = configurationNode.isDefined() ? configurationNode.asString() : context.getCurrentAddressValue();
+            final String usersPath;
+            final String usersRelativeTo;
+            final String groupsPath;
+            final String groupsRelativeTo;
+            final boolean plainText = PLAIN_TEXT.resolveModelAttribute(context, model).asBoolean();
 
+            ModelNode usersProperties = USERS_PROPERTIES.resolveModelAttribute(context, model);
+            usersPath = asStringIfDefined(context, PATH, usersProperties);
+            usersRelativeTo = asStringIfDefined(context, RELATIVE_TO, usersProperties);
 
-            JaasRealmService jaasRealmService = new JaasRealmService(configuration);
+            ModelNode groupsProperties = GROUPS_PROPERTIES.resolveModelAttribute(context, model);
+            if (groupsProperties.isDefined()) {
+                groupsPath = asStringIfDefined(context, PATH, groupsProperties);
+                groupsRelativeTo = asStringIfDefined(context, RELATIVE_TO, groupsProperties);
+            } else {
+                groupsPath = null;
+                groupsRelativeTo = null;
+            }
 
-            ServiceBuilder<SecurityRealm> serviceBuilder = serviceTarget.addService(realmName, jaasRealmService);
+            PropertiesRealmService propertiesRealmService = new PropertiesRealmService(usersPath, usersRelativeTo, groupsPath, groupsRelativeTo, plainText);
+
+            ServiceBuilder<SecurityRealm> serviceBuilder = serviceTarget.addService(realmName, propertiesRealmService);
+            if (usersRelativeTo != null || groupsRelativeTo != null) {
+                serviceBuilder.addDependency(PathManagerService.SERVICE_NAME, PathManager.class,
+                        propertiesRealmService.getPathManagerInjector());
+                if (usersRelativeTo != null) {
+                    serviceBuilder.addDependency(pathName(usersRelativeTo));
+                }
+                if (groupsRelativeTo != null) {
+                    serviceBuilder.addDependency(pathName(groupsRelativeTo));
+                }
+            }
+
             commonDependencies(serviceBuilder)
                 .setInitialMode(Mode.ACTIVE)
-                .install();*/
+                .install();
         }
 
     }

@@ -24,19 +24,27 @@ import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP;
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP_ADDR;
 import static org.jboss.as.controller.parsing.ParseUtils.isNoNamespaceAttribute;
 import static org.jboss.as.controller.parsing.ParseUtils.missingRequired;
+import static org.jboss.as.controller.parsing.ParseUtils.missingRequiredElement;
 import static org.jboss.as.controller.parsing.ParseUtils.requireNoAttributes;
 import static org.jboss.as.controller.parsing.ParseUtils.requireNoContent;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedAttribute;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedElement;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CONFIGURATION;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.GROUPS_PROPERTIES;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.JAAS_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEYSTORE;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEYSTORE_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PATH;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PLAIN_TEXT;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROPERTIES_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REALMS;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.RELATIVE_TO;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.USERS_PROPERTIES;
 import static org.wildfly.extension.elytron.ElytronSubsystemParser.verifyNamespace;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -67,6 +75,9 @@ class RealmParser {
                     break;
                 case KEYSTORE_REALM:
                     readKeyStoreRealm(parentAddress, reader, operations);
+                    break;
+                case PROPERTIES_REALM:
+                    readPropertiesRealm(parentAddress, reader, operations);
                     break;
                 default:
                     throw unexpectedElement(reader);
@@ -152,6 +163,92 @@ class RealmParser {
         requireNoContent(reader);
     }
 
+    private void readPropertiesRealm(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations) throws XMLStreamException {
+        ModelNode addRealm = new ModelNode();
+        addRealm.get(OP).set(ADD);
+
+        String name = null;
+
+        final int count = reader.getAttributeCount();
+        for (int i = 0; i < count; i++) {
+            final String value = reader.getAttributeValue(i);
+            if (!isNoNamespaceAttribute(reader, i)) {
+                throw unexpectedAttribute(reader, i);
+            } else {
+                String attribute = reader.getAttributeLocalName(i);
+                switch (attribute) {
+                    case NAME:
+                        name = value;
+                        break;
+                    case PLAIN_TEXT:
+                        PropertiesRealmDefinition.PLAIN_TEXT.parseAndSetParameter(value, addRealm, reader);
+                        break;
+                    default:
+                        throw unexpectedAttribute(reader, i);
+                }
+            }
+        }
+
+        if (name == null) {
+            throw missingRequired(reader, NAME);
+        }
+
+        boolean usersPropertiesFound = false;
+        while (reader.hasNext() && reader.nextTag() != END_ELEMENT) {
+            verifyNamespace(reader);
+            String localName = reader.getLocalName();
+            switch (localName) {
+                case USERS_PROPERTIES:
+                    ModelNode usersProperties = new ModelNode();
+                    readFileAttributes(usersProperties, reader);
+                    addRealm.get(USERS_PROPERTIES).set(usersProperties);
+                    usersPropertiesFound = true;
+                    break;
+                case GROUPS_PROPERTIES:
+                    ModelNode groupsProperties = new ModelNode();
+                    readFileAttributes(groupsProperties, reader);
+                    addRealm.get(USERS_PROPERTIES).set(groupsProperties);
+                    break;
+                default:
+                    throw unexpectedElement(reader);
+            }
+        }
+
+        if (usersPropertiesFound == false) {
+            throw missingRequiredElement(reader, Collections.singleton(USERS_PROPERTIES));
+        }
+    }
+
+    private void readFileAttributes(ModelNode file, XMLExtendedStreamReader reader) throws XMLStreamException {
+        boolean pathFound = false;
+        final int count = reader.getAttributeCount();
+        for (int i = 0; i < count; i++) {
+            final String value = reader.getAttributeValue(i);
+            if (!isNoNamespaceAttribute(reader, i)) {
+                throw unexpectedAttribute(reader, i);
+            } else {
+                String attribute = reader.getAttributeLocalName(i);
+                switch (attribute) {
+                    case PATH:
+                        FileAttributeDefinitions.PATH.parseAndSetParameter(value, file, reader);
+                        pathFound = true;
+                        break;
+                    case RELATIVE_TO:
+                        FileAttributeDefinitions.RELATIVE_TO.parseAndSetParameter(value, file, reader);
+                        break;
+                    default:
+                        throw unexpectedAttribute(reader, i);
+                }
+            }
+        }
+
+        if (pathFound == false) {
+            throw missingRequired(reader, PATH);
+        }
+
+        requireNoContent(reader);
+    }
+
     private void startRealms(boolean started, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (started == false) {
             writer.writeStartElement(REALMS);
@@ -190,11 +287,42 @@ class RealmParser {
         return false;
     }
 
+    private boolean writePropertiesRealms(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
+        if (subsystem.hasDefined(PROPERTIES_REALM)) {
+            startRealms(started, writer);
+
+            List<Property> realms = subsystem.require(KEYSTORE_REALM).asPropertyList();
+            for (Property current : realms) {
+                writer.writeStartElement(PROPERTIES_REALM);
+                writer.writeAttribute(NAME, current.getName());
+                ModelNode model = current.getValue();
+                PropertiesRealmDefinition.PLAIN_TEXT.marshallAsAttribute(model, writer);
+                writeFile(USERS_PROPERTIES, model.get(USERS_PROPERTIES), writer);
+                writeFile(GROUPS_PROPERTIES, model.get(GROUPS_PROPERTIES), writer);
+                writer.writeEndElement();
+            }
+
+            return true;
+        }
+        return false;
+    }
+
+    private void writeFile(String elementName, ModelNode fileAttribute, XMLExtendedStreamWriter writer)
+            throws XMLStreamException {
+        if (fileAttribute.isDefined()) {
+            writer.writeStartElement(elementName);
+            FileAttributeDefinitions.PATH.marshallAsAttribute(fileAttribute, writer);
+            FileAttributeDefinitions.RELATIVE_TO.marshallAsAttribute(fileAttribute, writer);
+            writer.writeEndElement();
+        }
+    }
+
     void writeRealms(ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         boolean realmsStarted = false;
 
         realmsStarted = realmsStarted | writeJaasRealms(realmsStarted, subsystem, writer);
         realmsStarted = realmsStarted | writeKeyStoreRealms(realmsStarted, subsystem, writer);
+        realmsStarted = realmsStarted | writePropertiesRealms(realmsStarted, subsystem, writer);
 
         if (realmsStarted) {
             writer.writeEndElement();
