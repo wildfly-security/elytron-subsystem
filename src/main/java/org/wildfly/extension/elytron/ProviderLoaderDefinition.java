@@ -18,7 +18,7 @@
 
 package org.wildfly.extension.elytron;
 
-import static org.jboss.as.controller.security.Capabilities.PROVIDERS_RUNTIME_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.PROVIDERS_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
 import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
 import static org.wildfly.extension.elytron.FileAttributeDefinitions.pathName;

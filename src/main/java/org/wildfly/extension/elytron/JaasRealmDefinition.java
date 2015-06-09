@@ -18,7 +18,7 @@
 
 package org.wildfly.extension.elytron;
 
-import static org.jboss.as.controller.security.Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
 
 import javax.security.auth.login.LoginContext;

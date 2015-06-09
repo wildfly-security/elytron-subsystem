@@ -18,10 +18,10 @@
 
 package org.wildfly.extension.elytron;
 
-import static org.jboss.as.controller.security.Capabilities.KEYSTORE_CAPABILITY;
-import static org.jboss.as.controller.security.Capabilities.KEYSTORE_RUNTIME_CAPABILITY;
-import static org.jboss.as.controller.security.Capabilities.PROVIDERS_CAPABILITY;
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP;
+import static org.wildfly.extension.elytron.Capabilities.KEYSTORE_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.KEY_STORE_RUNTIME_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.PROVIDERS_CAPABILITY;
 import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
 import static org.wildfly.extension.elytron.ElytronExtension.ELYTRON_1_0_0;
 import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
@@ -83,7 +83,7 @@ import org.wildfly.extension.elytron.KeyStoreService.LoadKey;
  */
 final class KeyStoreDefinition extends SimpleResourceDefinition {
 
-    static final ServiceUtil<KeyStore> KEY_STORE_UTIL = ServiceUtil.newInstance(KEYSTORE_RUNTIME_CAPABILITY, ElytronDescriptionConstants.KEYSTORE, KeyStore.class);
+    static final ServiceUtil<KeyStore> KEY_STORE_UTIL = ServiceUtil.newInstance(KEY_STORE_RUNTIME_CAPABILITY, ElytronDescriptionConstants.KEYSTORE, KeyStore.class);
 
     static final String ISO_8601_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
 
@@ -240,7 +240,7 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
     private static class KeyStoreAddHandler extends AbstractAddStepHandler {
 
         private KeyStoreAddHandler() {
-            super(KEYSTORE_RUNTIME_CAPABILITY, CONFIG_ATTRIBUTES);
+            super(KEY_STORE_RUNTIME_CAPABILITY, CONFIG_ATTRIBUTES);
         }
 
         @Override
@@ -266,7 +266,7 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
             }
 
             ServiceTarget serviceTarget = context.getServiceTarget();
-            RuntimeCapability<Void> runtimeCapability = RuntimeCapability.fromBaseCapability(KEYSTORE_RUNTIME_CAPABILITY, context.getCurrentAddressValue());
+            RuntimeCapability<Void> runtimeCapability = RuntimeCapability.fromBaseCapability(KEY_STORE_RUNTIME_CAPABILITY, context.getCurrentAddressValue());
             ServiceName serviceName = runtimeCapability.getCapabilityServiceName(KeyStore.class);
             ServiceBuilder<KeyStore> serviceBuilder = serviceTarget.addService(serviceName, keyStoreService)
                     .setInitialMode(Mode.ACTIVE);
@@ -302,7 +302,7 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
     private static class KeyStoreRemoveHandler extends ServiceRemoveStepHandler {
 
         private KeyStoreRemoveHandler(final AbstractAddStepHandler add) {
-            super(add, KEYSTORE_RUNTIME_CAPABILITY);
+            super(add, KEY_STORE_RUNTIME_CAPABILITY);
         }
 
     }
