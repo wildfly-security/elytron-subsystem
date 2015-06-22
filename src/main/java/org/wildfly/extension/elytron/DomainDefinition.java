@@ -233,7 +233,6 @@ class DomainDefinition extends SimpleResourceDefinition {
                 .build();
 
         private AuthenticatorOperationHandler() {
-            
         }
 
         @Override
