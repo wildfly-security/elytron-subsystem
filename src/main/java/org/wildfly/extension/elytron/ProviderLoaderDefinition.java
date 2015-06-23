@@ -95,14 +95,11 @@ class ProviderLoaderDefinition extends SimpleResourceDefinition {
         .build();
 
     public ProviderLoaderDefinition() {
-        super(PathElement.pathElement(ElytronDescriptionConstants.PROVIDER_LOADER),
-                RESOLVER,
-                null, REMOVE,
-                OperationEntry.Flag.RESTART_RESOURCE_SERVICES,
-                OperationEntry.Flag.RESTART_RESOURCE_SERVICES);
+        super(new Parameters(PathElement.pathElement(ElytronDescriptionConstants.PROVIDER_LOADER), RESOLVER)
+                .setRemoveHandler(REMOVE)
+                .setAddRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
+                .setRemoveRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES));
     }
-
-
 
     @Override
     public void registerAttributes(ManagementResourceRegistration resourceRegistration) {
@@ -115,11 +112,8 @@ class ProviderLoaderDefinition extends SimpleResourceDefinition {
     @Override
     public void registerOperations(ManagementResourceRegistration resourceRegistration) {
         super.registerOperations(resourceRegistration);
+        // We needed a custom add operation so we could specify the parameters.
         resourceRegistration.registerOperationHandler(ADD_DEFINITION, ADD);
-    }
-
-    @Override
-    public void registerChildren(ManagementResourceRegistration resourceRegistration) {
     }
 
     private static class WriteAttributeHandler extends RestartParentWriteAttributeHandler {

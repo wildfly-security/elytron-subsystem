@@ -98,12 +98,11 @@ class DomainDefinition extends SimpleResourceDefinition {
     private static final AuthenticatorOperationHandler AUTHENTICATE = new AuthenticatorOperationHandler();
 
     DomainDefinition() {
-        super(PathElement.pathElement(ElytronDescriptionConstants.SECURITY_DOMAIN),
-                ElytronExtension.getResourceDescriptionResolver(ElytronDescriptionConstants.SECURITY_DOMAIN),
-                ADD, REMOVE,
-                OperationEntry.Flag.RESTART_RESOURCE_SERVICES,
-                OperationEntry.Flag.RESTART_RESOURCE_SERVICES);
-
+        super(new Parameters(PathElement.pathElement(ElytronDescriptionConstants.SECURITY_DOMAIN), ElytronExtension.getResourceDescriptionResolver(ElytronDescriptionConstants.SECURITY_DOMAIN))
+            .setAddHandler(ADD)
+            .setRemoveHandler(REMOVE)
+            .setAddRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
+            .setRemoveRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES));
     }
 
     @Override
@@ -120,7 +119,8 @@ class DomainDefinition extends SimpleResourceDefinition {
     }
 
     private void registerAuthenticatorOperationHandler(ManagementResourceRegistration resourceRegistration) {
-        resourceRegistration.registerOperationHandler(new SimpleOperationDefinition(AUTHENTICATE.getOperationName(),getResourceDescriptionResolver(), AUTHENTICATE.getParameterDefinitions()), AUTHENTICATE);
+        resourceRegistration.registerOperationHandler(new SimpleOperationDefinition(AuthenticatorOperationHandler.getOperationName(), getResourceDescriptionResolver(),
+                AuthenticatorOperationHandler.getParameterDefinitions()), AUTHENTICATE);
     }
 
     private static ServiceController<SecurityDomain> installService(OperationContext context, ServiceName domainName, ModelNode model) throws OperationFailedException {
@@ -299,6 +299,7 @@ class DomainDefinition extends SimpleResourceDefinition {
 
         private SecurityDomain getSecurityDomain(OperationContext context, ModelNode operation) {
             ServiceRegistry serviceRegistry = context.getServiceRegistry(false);
+            @SuppressWarnings("unchecked")
             ServiceController<SecurityDomain> serviceController = (ServiceController<SecurityDomain>) serviceRegistry.getRequiredService(DOMAIN_SERVICE_UTIL.serviceName(operation));
             Service<SecurityDomain> service = serviceController.getService();
 

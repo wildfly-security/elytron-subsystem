@@ -157,11 +157,11 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
     private static final WriteAttributeHandler WRITE = new WriteAttributeHandler();
 
     KeyStoreDefinition() {
-        super(PathElement.pathElement(ElytronDescriptionConstants.KEYSTORE),
-                RESOURCE_RESOLVER,
-                ADD, REMOVE,
-                OperationEntry.Flag.RESTART_RESOURCE_SERVICES,
-                OperationEntry.Flag.RESTART_RESOURCE_SERVICES);
+        super(new Parameters(PathElement.pathElement(ElytronDescriptionConstants.KEYSTORE), RESOURCE_RESOLVER)
+            .setAddHandler(ADD)
+            .setRemoveHandler(REMOVE)
+            .setAddRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
+            .setRemoveRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES));
     }
 
     @Override

@@ -66,11 +66,11 @@ class JaasRealmDefinition extends SimpleResourceDefinition {
     private static final OperationStepHandler REMOVE = new RealmRemoveHandler(ADD);
 
     JaasRealmDefinition() {
-        super(PathElement.pathElement(ElytronDescriptionConstants.JAAS_REALM),
-                ElytronExtension.getResourceDescriptionResolver(ElytronDescriptionConstants.JAAS_REALM),
-                ADD, REMOVE,
-                OperationEntry.Flag.RESTART_RESOURCE_SERVICES,
-                OperationEntry.Flag.RESTART_RESOURCE_SERVICES);
+        super(new Parameters(PathElement.pathElement(ElytronDescriptionConstants.JAAS_REALM), ElytronExtension.getResourceDescriptionResolver(ElytronDescriptionConstants.JAAS_REALM))
+            .setAddHandler(ADD)
+            .setRemoveHandler(REMOVE)
+            .setAddRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
+            .setRemoveRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES));
     }
 
     @Override

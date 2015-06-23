@@ -84,11 +84,11 @@ public class PropertiesRealmDefinition extends SimpleResourceDefinition {
     private static final OperationStepHandler REMOVE = new RealmRemoveHandler(ADD);
 
     PropertiesRealmDefinition() {
-        super(PathElement.pathElement(ElytronDescriptionConstants.PROPERTIES_REALM),
-                ElytronExtension.getResourceDescriptionResolver(ElytronDescriptionConstants.PROPERTIES_REALM),
-                ADD, REMOVE,
-                OperationEntry.Flag.RESTART_RESOURCE_SERVICES,
-                OperationEntry.Flag.RESTART_RESOURCE_SERVICES);
+        super(new Parameters(PathElement.pathElement(ElytronDescriptionConstants.PROPERTIES_REALM), ElytronExtension.getResourceDescriptionResolver(ElytronDescriptionConstants.PROPERTIES_REALM))
+            .setAddHandler(ADD)
+            .setRemoveHandler(REMOVE)
+            .setAddRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
+            .setRemoveRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES));
     }
 
     @Override
