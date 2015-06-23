@@ -39,8 +39,6 @@ interface ElytronDescriptionConstants {
     String CORE_SERVICE = "core-service";
     String CREATION_DATE = "creation-date";
     String DEFAULT_REALM = "default_realm";
-    String DOMAIN = "domain";
-    String DOMAINS = "domains";
     String ENCODED = "encoded";
     String ENTRY_TYPE = "entry-type";
     String FILE = "file";
@@ -83,6 +81,8 @@ interface ElytronDescriptionConstants {
     String REGISTER = "register";
     String RELATIVE_TO = "relative-to";
     String REQUIRED = "required";
+    String SECURITY_DOMAIN = "security-domain";
+    String SECURITY_DOMAINS = "security-domains";
     String SECURITY_PROPERTIES = "security-properties";
     String SECURITY_PROPERTY = "security-property";
     String SERIAL_NUMBER = "serial-number";

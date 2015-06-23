@@ -28,8 +28,8 @@ import static org.jboss.as.controller.parsing.ParseUtils.requireNoAttributes;
 import static org.jboss.as.controller.parsing.ParseUtils.requireNoContent;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedAttribute;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedElement;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.DOMAIN;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.DOMAINS;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SECURITY_DOMAIN;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SECURITY_DOMAINS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEYSTORE;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEYSTORES;
@@ -95,7 +95,7 @@ class ElytronSubsystemParser implements XMLElementReader<List<ModelNode>>, XMLEl
                 case PROVIDER_LOADERS:
                     readProviderLoaders(parentAddress, reader, operations);
                     break;
-                case DOMAINS:
+                case SECURITY_DOMAINS:
                     readDomains(parentAddress, reader, operations);
                     break;
                 case REALMS:
@@ -174,7 +174,7 @@ class ElytronSubsystemParser implements XMLElementReader<List<ModelNode>>, XMLEl
         while (reader.hasNext() && reader.nextTag() != END_ELEMENT) {
             verifyNamespace(reader);
             String localName = reader.getLocalName();
-            if (DOMAIN.equals(localName)) {
+            if (SECURITY_DOMAIN.equals(localName)) {
                 domainParser.readDomain(parentAddress, reader, operations);
             } else {
                 throw unexpectedElement(reader);
@@ -225,9 +225,9 @@ class ElytronSubsystemParser implements XMLElementReader<List<ModelNode>>, XMLEl
             writer.writeEndElement();
         }
 
-        if (model.hasDefined(DOMAIN)) {
-            writer.writeStartElement(DOMAINS);
-            for (Property variable : model.get(DOMAIN).asPropertyList()) {
+        if (model.hasDefined(SECURITY_DOMAIN)) {
+            writer.writeStartElement(SECURITY_DOMAINS);
+            for (Property variable : model.get(SECURITY_DOMAIN).asPropertyList()) {
                 ModelNode domain = variable.getValue();
                 domainParser.writeDomain(variable.getName(), domain, writer);
             }

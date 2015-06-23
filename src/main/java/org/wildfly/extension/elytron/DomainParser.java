@@ -27,10 +27,10 @@ import static org.jboss.as.controller.parsing.ParseUtils.requireNoContent;
 import static org.jboss.as.controller.parsing.ParseUtils.requireSingleAttribute;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedElement;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.DEFAULT_REALM;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.DOMAIN;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REALMS;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SECURITY_DOMAIN;
 import static org.wildfly.extension.elytron.ElytronSubsystemParser.verifyNamespace;
 
 import java.util.List;
@@ -55,7 +55,7 @@ class DomainParser {
 
         ModelNode addDomain = new ModelNode();
         addDomain.get(OP).set(ADD);
-        addDomain.get(OP_ADDR).set(parentAddress).add(DOMAIN, domainName);
+        addDomain.get(OP_ADDR).set(parentAddress).add(SECURITY_DOMAIN, domainName);
 
         String defaultRealm = null;
 
@@ -85,7 +85,7 @@ class DomainParser {
     }
 
     void writeDomain(String name, ModelNode domain, XMLExtendedStreamWriter writer) throws XMLStreamException {
-        writer.writeStartElement(DOMAIN);
+        writer.writeStartElement(SECURITY_DOMAIN);
         writer.writeAttribute(NAME, name);
 
         String defaultRealm = domain.require(DEFAULT_REALM).asString();

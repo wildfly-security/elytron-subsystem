@@ -75,7 +75,7 @@ import org.wildfly.security.password.spec.ClearPasswordSpec;
  */
 class DomainDefinition extends SimpleResourceDefinition {
 
-    private static final ServiceUtil<SecurityDomain> DOMAIN_SERVICE_UTIL = ServiceUtil.newInstance(SECURITY_DOMAIN_RUNTIME_CAPABILITY, ElytronDescriptionConstants.DOMAIN, SecurityDomain.class);
+    private static final ServiceUtil<SecurityDomain> DOMAIN_SERVICE_UTIL = ServiceUtil.newInstance(SECURITY_DOMAIN_RUNTIME_CAPABILITY, ElytronDescriptionConstants.SECURITY_DOMAIN, SecurityDomain.class);
     private static final ServiceUtil<SecurityRealm> REALM_SERVICE_UTIL = ServiceUtil.newInstance(SECURITY_REALM_RUNTIME_CAPABILITY, null, SecurityRealm.class);
 
     static final SimpleAttributeDefinition DEFAULT_REALM = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.DEFAULT_REALM, ModelType.STRING, false)
@@ -94,12 +94,12 @@ class DomainDefinition extends SimpleResourceDefinition {
 
     private static final DomainAddHandler ADD = new DomainAddHandler();
     private static final DomainRemoveHandler REMOVE = new DomainRemoveHandler(ADD);
-    private static final WriteAttributeHandler WRITE = new WriteAttributeHandler(ElytronDescriptionConstants.DOMAIN);
+    private static final WriteAttributeHandler WRITE = new WriteAttributeHandler(ElytronDescriptionConstants.SECURITY_DOMAIN);
     private static final AuthenticatorOperationHandler AUTHENTICATE = new AuthenticatorOperationHandler();
 
     DomainDefinition() {
-        super(PathElement.pathElement(ElytronDescriptionConstants.DOMAIN),
-                ElytronExtension.getResourceDescriptionResolver(ElytronDescriptionConstants.DOMAIN),
+        super(PathElement.pathElement(ElytronDescriptionConstants.SECURITY_DOMAIN),
+                ElytronExtension.getResourceDescriptionResolver(ElytronDescriptionConstants.SECURITY_DOMAIN),
                 ADD, REMOVE,
                 OperationEntry.Flag.RESTART_RESOURCE_SERVICES,
                 OperationEntry.Flag.RESTART_RESOURCE_SERVICES);

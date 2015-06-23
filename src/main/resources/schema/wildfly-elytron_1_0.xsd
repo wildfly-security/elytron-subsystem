@@ -32,7 +32,7 @@
         <xs:sequence>
             <xs:element name="security-properties" type="securityPropertiesType" minOccurs="0" />
             <xs:element name="provider-loaders" type="providerLoadersType" minOccurs="0" />
-            <xs:element name="domains" type="domainsType" minOccurs="0" />
+            <xs:element name="security-domains" type="securityDomainsType" minOccurs="0" />
             <xs:element name="realms" type="realmsType" minOccurs="0" />
             <xs:element name="tls" type="tlsType" minOccurs="0" />
         </xs:sequence>
@@ -196,18 +196,18 @@
         Domains and Realms
      -->
     
-    <xs:complexType name="domainsType">
+    <xs:complexType name="securityDomainsType">
         <xs:annotation>
             <xs:documentation>
                 Container for the security domain definitions.
             </xs:documentation>
         </xs:annotation>
         <xs:sequence>
-            <xs:element name="domain" type="domainType" maxOccurs="unbounded" />
+            <xs:element name="security-domain" type="securityDomainType" maxOccurs="unbounded" />
         </xs:sequence>
     </xs:complexType>
     
-    <xs:complexType name="domainType">
+    <xs:complexType name="securityDomainType">
         <xs:annotation>
             <xs:documentation>
                 Complex type for the definition of a single security domain.
