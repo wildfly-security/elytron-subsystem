@@ -30,13 +30,16 @@ import static org.jboss.as.controller.parsing.ParseUtils.requireNoContent;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedAttribute;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedElement;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CONFIGURATION;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.DIR_CONTEXT;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.GROUPS_PROPERTIES;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.JAAS_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEYSTORE;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEYSTORE_REALM;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.LDAP_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PATH;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PLAIN_TEXT;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PRINCIPAL_MAPPING;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROPERTIES_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REALMS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.RELATIVE_TO;
@@ -51,10 +54,13 @@ import java.util.Set;
 
 import javax.xml.stream.XMLStreamException;
 
+import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.Property;
 import org.jboss.staxmapper.XMLExtendedStreamReader;
 import org.jboss.staxmapper.XMLExtendedStreamWriter;
+import org.wildfly.extension.elytron.LdapAttributeDefinitions.DirContextAttributes;
+import org.wildfly.extension.elytron.LdapAttributeDefinitions.PrincipalMappingAttributes;
 
 /**
  * A parser for the security realm definition.
@@ -78,6 +84,9 @@ class RealmParser {
                     break;
                 case PROPERTIES_REALM:
                     readPropertiesRealm(parentAddress, reader, operations);
+                    break;
+                case LDAP_REALM:
+                    readLdapRealm(parentAddress, reader, operations);
                     break;
                 default:
                     throw unexpectedElement(reader);
@@ -252,6 +261,87 @@ class RealmParser {
         requireNoContent(reader);
     }
 
+    private void readLdapRealm(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations) throws XMLStreamException {
+        ModelNode addRealm = new ModelNode();
+        addRealm.get(OP).set(ADD);
+
+        String name = null;
+
+        final int count = reader.getAttributeCount();
+        for (int i = 0; i < count; i++) {
+            final String value = reader.getAttributeValue(i);
+            if (!isNoNamespaceAttribute(reader, i)) {
+                throw unexpectedAttribute(reader, i);
+            } else {
+                String attribute = reader.getAttributeLocalName(i);
+                switch (attribute) {
+                    case NAME:
+                        name = value;
+                        break;
+                    default:
+                        throw unexpectedAttribute(reader, i);
+                }
+            }
+        }
+
+        if (name == null) {
+            throw missingRequired(reader, NAME);
+        }
+
+        addRealm.get(OP_ADDR).set(parentAddress).add(LDAP_REALM, name);
+
+        while (reader.hasNext() && reader.nextTag() != END_ELEMENT) {
+            verifyNamespace(reader);
+            String localName = reader.getLocalName();
+            switch (localName) {
+                case DIR_CONTEXT:
+                    ModelNode dirContextNode = readLdapObjectTypeAttribute(DirContextAttributes.ATTRIBUTES, reader);
+                    addRealm.get(DIR_CONTEXT).set(dirContextNode);
+                    break;
+                case PRINCIPAL_MAPPING:
+                    ModelNode principalMappingNode = readLdapObjectTypeAttribute(PrincipalMappingAttributes.ATTRIBUTES, reader);
+                    addRealm.get(PRINCIPAL_MAPPING).set(principalMappingNode);
+                    break;
+                default:
+                    throw unexpectedElement(reader);
+            }
+        }
+
+        operations.add(addRealm);
+    }
+
+    private ModelNode readLdapObjectTypeAttribute(SimpleAttributeDefinition[] attributes, XMLExtendedStreamReader reader) throws XMLStreamException {
+        ModelNode newPrincipalMappingModelNode = new ModelNode();
+
+        final int count = reader.getAttributeCount();
+        for (int i = 0; i < count; i++) {
+            final String value = reader.getAttributeValue(i);
+            if (!isNoNamespaceAttribute(reader, i)) {
+                throw unexpectedAttribute(reader, i);
+            } else {
+                String attribute = reader.getAttributeLocalName(i);
+                SimpleAttributeDefinition attributeDefinition = null;
+
+                for (SimpleAttributeDefinition current : attributes) {
+                    if (attribute.equals(current.getName())) {
+                        attributeDefinition = current;
+                        break;
+                    }
+                }
+
+                if (attributeDefinition == null) {
+                    throw unexpectedAttribute(reader, i);
+                }
+
+                attributeDefinition.parseAndSetParameter(value, newPrincipalMappingModelNode, reader);
+            }
+        }
+
+        requireNoContent(reader);
+
+        return newPrincipalMappingModelNode;
+    }
+
     private void startRealms(boolean started, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (started == false) {
             writer.writeStartElement(REALMS);
@@ -320,12 +410,46 @@ class RealmParser {
         }
     }
 
+    private boolean writeLdapRealms(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
+        if (subsystem.hasDefined(LDAP_REALM)) {
+            startRealms(started, writer);
+
+            List<Property> realms = subsystem.require(LDAP_REALM).asPropertyList();
+
+            for (Property current : realms) {
+                writer.writeStartElement(LDAP_REALM);
+                writer.writeAttribute(NAME, current.getName());
+
+                writeLdapObjectTypeAttribute(DIR_CONTEXT, DirContextAttributes.ATTRIBUTES, current.getValue(), writer);
+                writeLdapObjectTypeAttribute(PRINCIPAL_MAPPING, PrincipalMappingAttributes.ATTRIBUTES, current.getValue(), writer);
+
+                writer.writeEndElement();
+            }
+
+            return true;
+        }
+        return false;
+    }
+
+    private void writeLdapObjectTypeAttribute(String name, SimpleAttributeDefinition[] attributes, ModelNode ldapRealmNode, XMLExtendedStreamWriter writer)
+            throws XMLStreamException {
+        ModelNode attributeNode = ldapRealmNode.get(name);
+        writer.writeStartElement(name);
+
+        for (SimpleAttributeDefinition attributeDefinition : attributes) {
+            attributeDefinition.marshallAsAttribute(attributeNode, writer);
+        }
+
+        writer.writeEndElement();
+    }
+
     void writeRealms(ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         boolean realmsStarted = false;
 
         realmsStarted = realmsStarted | writeJaasRealms(realmsStarted, subsystem, writer);
         realmsStarted = realmsStarted | writeKeyStoreRealms(realmsStarted, subsystem, writer);
         realmsStarted = realmsStarted | writePropertiesRealms(realmsStarted, subsystem, writer);
+        realmsStarted = realmsStarted | writeLdapRealms(realmsStarted, subsystem, writer);
 
         if (realmsStarted) {
             writer.writeEndElement();
