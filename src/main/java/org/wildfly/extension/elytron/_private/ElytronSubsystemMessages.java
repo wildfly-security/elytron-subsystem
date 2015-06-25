@@ -34,6 +34,7 @@ import org.jboss.msc.service.Service;
 import org.jboss.msc.service.ServiceController.State;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.StartException;
+import org.wildfly.extension.elytron.ConfigurableSecurityRealm;
 
 /**
  * Messages for the Elytron subsystem.
@@ -172,5 +173,15 @@ public interface ElytronSubsystemMessages extends BasicLogger {
      */
     @Message(id = 14, value = "Unable to load the properties files required to start the properties file backed realm.")
     StartException unableToLoadPropertiesFiles(@Cause Exception cause);
+
+    /**
+     * A {@link StartException} where a custom {@link SecurityRealm} has been defined with configuration but does not implement
+     * the {@link ConfigurableSecurityRealm} interface.
+     *
+     * @param className the class name of the custom security realm implementation being loaded.
+     * @return The {@link StartException} for the error.
+     */
+    @Message(id = 15, value = "The custom security realm implementation '%s' doe not implement 'org.wildfly.extension.elytron.ConfigurableSecurityRealm' however configuration has been supplied.")
+    StartException realmNotConfigurable(final String className);
 
 }

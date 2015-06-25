@@ -10,6 +10,13 @@
         </keystores>
     </tls>
     <realms>
+        <custom-realm name="CustomOne" class-name="org.wildfly.security.ElytronRealm" />
+        <custom-realm name="CustomTwo" module="a.b.c" slot="d" class-name="org.wildfly.security.ElytronRealm">
+            <configuration>
+                <property key="a" value="b" />
+                <property key="c" value="d" />
+            </configuration>
+        </custom-realm>
         <jaas-realm name="RealmOne" />
         <jaas-realm name="RealmTwo" configuration="custom-domain" />
         <keystore-realm name="RealmThree" keystore="KeyStoreOne" />

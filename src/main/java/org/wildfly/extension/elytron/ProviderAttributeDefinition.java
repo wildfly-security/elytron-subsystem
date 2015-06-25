@@ -18,6 +18,10 @@
 
 package org.wildfly.extension.elytron;
 
+import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.CLASS_NAMES;
+import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.MODULE;
+import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.SLOT;
+
 import java.security.Provider;
 import java.security.Provider.Service;
 
@@ -26,7 +30,6 @@ import org.jboss.as.controller.ObjectListAttributeDefinition;
 import org.jboss.as.controller.ObjectTypeAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
-import org.jboss.as.controller.StringListAttributeDefinition;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
 
@@ -56,7 +59,8 @@ class ProviderAttributeDefinition {
 
     private static final SimpleAttributeDefinition ALGORITHM = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ALGORITHM, ModelType.STRING).build();
 
-    private static final SimpleAttributeDefinition CLASS_NAME = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.CLASS_NAME, ModelType.STRING).build();
+    private static final SimpleAttributeDefinition CLASS_NAME = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.CLASS_NAME, ModelType.STRING)
+        .build();
 
     private static final ObjectTypeAttributeDefinition SERVICE = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.SERVICE, TYPE, ALGORITHM, CLASS_NAME)
         .setStorageRuntime()
@@ -81,28 +85,10 @@ class ProviderAttributeDefinition {
     private static final SimpleAttributeDefinition INDEX = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.INDEX, ModelType.INT)
         .build();
 
-    static final SimpleAttributeDefinition MODULE = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.MODULE, ModelType.STRING, true)
-        .setAttributeGroup(ElytronDescriptionConstants.CLASS_LOADING)
-        .setAllowExpression(true)
-        .setMinSize(1)
-        .build();
-
-    static final SimpleAttributeDefinition SLOT = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.SLOT, ModelType.STRING, true)
-        .setAttributeGroup(ElytronDescriptionConstants.CLASS_LOADING)
-        .setAllowExpression(true)
-        .setMinSize(1)
-        .build();
-
     static final SimpleAttributeDefinition LOAD_SERVICES = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.LOAD_SERVICES, ModelType.BOOLEAN)
         .setAttributeGroup(ElytronDescriptionConstants.CLASS_LOADING)
         .setAllowExpression(true)
         .setDefaultValue(new ModelNode(false))
-        .build();
-
-    static final StringListAttributeDefinition CLASS_NAMES = new StringListAttributeDefinition.Builder(ElytronDescriptionConstants.CLASS_NAMES)
-        .setAttributeGroup(ElytronDescriptionConstants.CLASS_LOADING)
-        .setAllowExpression(true)
-        .setAllowNull(true)
         .build();
 
     static final SimpleAttributeDefinition KEY = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.KEY, ModelType.STRING, false)

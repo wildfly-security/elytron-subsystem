@@ -29,21 +29,28 @@ import static org.jboss.as.controller.parsing.ParseUtils.requireNoAttributes;
 import static org.jboss.as.controller.parsing.ParseUtils.requireNoContent;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedAttribute;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedElement;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CLASS_NAME;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CONFIGURATION;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CUSTOM_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.DIR_CONTEXT;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.GROUPS_PROPERTIES;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.JAAS_REALM;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEYSTORE;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEYSTORE_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.LDAP_REALM;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MODULE;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PATH;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PLAIN_TEXT;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PRINCIPAL_MAPPING;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROPERTIES_REALM;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROPERTY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REALMS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.RELATIVE_TO;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SLOT;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.USERS_PROPERTIES;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.VALUE;
 import static org.wildfly.extension.elytron.ElytronSubsystemParser.verifyNamespace;
 
 import java.util.Arrays;
@@ -76,6 +83,9 @@ class RealmParser {
             verifyNamespace(reader);
             String localName = reader.getLocalName();
             switch (localName) {
+                case CUSTOM_REALM:
+                    readCustomRealm(parentAddress, reader, operations);
+                    break;
                 case JAAS_REALM:
                     readJaasRealm(parentAddress, reader, operations);
                     break;
@@ -92,6 +102,111 @@ class RealmParser {
                     throw unexpectedElement(reader);
             }
         }
+    }
+
+    private void readCustomRealm(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations)
+            throws XMLStreamException {
+        ModelNode addRealm = new ModelNode();
+        addRealm.get(OP).set(ADD);
+
+        Set<String> requiredAttributes = new HashSet<String>(Arrays.asList(new String[] { NAME, CLASS_NAME }));
+        String name = null;
+
+        final int count = reader.getAttributeCount();
+        for (int i = 0; i < count; i++) {
+            final String value = reader.getAttributeValue(i);
+            if (!isNoNamespaceAttribute(reader, i)) {
+                throw unexpectedAttribute(reader, i);
+            } else {
+                String attribute = reader.getAttributeLocalName(i);
+                requiredAttributes.remove(attribute);
+                switch (attribute) {
+                    case NAME:
+                        name = value;
+                        break;
+                    case MODULE:
+                        ClassLoadingAttributeDefinitions.MODULE.parseAndSetParameter(value, addRealm, reader);
+                        break;
+                    case SLOT:
+                        ClassLoadingAttributeDefinitions.SLOT.parseAndSetParameter(value, addRealm, reader);
+                        break;
+                    case CLASS_NAME:
+                        ClassLoadingAttributeDefinitions.CLASS_NAME.parseAndSetParameter(value, addRealm, reader);
+                        break;
+                    default:
+                        throw unexpectedAttribute(reader, i);
+                }
+            }
+        }
+
+        if (requiredAttributes.isEmpty() == false) {
+            throw missingRequired(reader, requiredAttributes);
+        }
+
+        addRealm.get(OP_ADDR).set(parentAddress).add(CUSTOM_REALM, name);
+
+        while (reader.hasNext() && reader.nextTag() != END_ELEMENT) {
+            verifyNamespace(reader);
+            String localName = reader.getLocalName();
+            switch (localName) {
+                case CONFIGURATION:
+                    requireNoAttributes(reader);
+                    parseConfiguration(addRealm, reader);
+                    break;
+                default:
+                    throw unexpectedElement(reader);
+            }
+        }
+
+    }
+
+    private void parseConfiguration(ModelNode addOperation, XMLExtendedStreamReader reader) throws XMLStreamException {
+        while (reader.hasNext() && reader.nextTag() != END_ELEMENT) {
+            verifyNamespace(reader);
+            String localName = reader.getLocalName();
+            switch (localName) {
+                case PROPERTY:
+                    parsePropertyElement(addOperation, reader);
+                    break;
+                default:
+                    throw unexpectedElement(reader);
+            }
+        }
+    }
+
+    private void parsePropertyElement(ModelNode addOperation, XMLExtendedStreamReader reader) throws XMLStreamException {
+        Set<String> requiredAttributes = new HashSet<String>(Arrays.asList(new String[] { KEY, VALUE }));
+        String key = null;
+        String value = null;
+
+        final int count = reader.getAttributeCount();
+        for (int i = 0; i < count; i++) {
+            final String attributeValue = reader.getAttributeValue(i);
+            if (!isNoNamespaceAttribute(reader, i)) {
+                throw unexpectedAttribute(reader, i);
+            } else {
+                String attribute = reader.getAttributeLocalName(i);
+                requiredAttributes.remove(attribute);
+                switch (attribute) {
+                    case KEY:
+                        key = attributeValue;
+                        break;
+                    case VALUE:
+                        value = attributeValue;
+                        break;
+                    default:
+                        throw unexpectedAttribute(reader, i);
+                }
+            }
+        }
+
+        if (requiredAttributes.isEmpty() == false) {
+            throw missingRequired(reader, requiredAttributes);
+        }
+
+        requireNoContent(reader);
+
+        addOperation.get(CONFIGURATION).add(key, new ModelNode(value));
     }
 
     private void readJaasRealm(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations)
@@ -348,6 +463,26 @@ class RealmParser {
         }
     }
 
+    private boolean writeCustomRealms(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
+        if (subsystem.hasDefined(CUSTOM_REALM)) {
+            startRealms(started, writer);
+            List<Property> realms = subsystem.require(CUSTOM_REALM).asPropertyList();
+            for (Property current : realms) {
+                ModelNode realm = current.getValue();
+                writer.writeStartElement(CUSTOM_REALM);
+                ClassLoadingAttributeDefinitions.MODULE.marshallAsAttribute(realm, writer);
+                ClassLoadingAttributeDefinitions.SLOT.marshallAsAttribute(realm, writer);
+                ClassLoadingAttributeDefinitions.CLASS_NAME.marshallAsAttribute(realm, writer);
+                CustomRealmDefinition.CONFIGURATION.marshallAsElement(realm, writer);
+                writer.writeEndElement();
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
     private boolean writeJaasRealms(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (subsystem.hasDefined(JAAS_REALM)) {
             startRealms(started, writer);
@@ -446,6 +581,7 @@ class RealmParser {
     void writeRealms(ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         boolean realmsStarted = false;
 
+        realmsStarted = realmsStarted | writeCustomRealms(realmsStarted, subsystem, writer);
         realmsStarted = realmsStarted | writeJaasRealms(realmsStarted, subsystem, writer);
         realmsStarted = realmsStarted | writeKeyStoreRealms(realmsStarted, subsystem, writer);
         realmsStarted = realmsStarted | writePropertiesRealms(realmsStarted, subsystem, writer);

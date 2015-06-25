@@ -19,6 +19,9 @@
 package org.wildfly.extension.elytron;
 
 import static org.wildfly.extension.elytron.Capabilities.PROVIDERS_RUNTIME_CAPABILITY;
+import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.CLASS_NAMES;
+import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.MODULE;
+import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.SLOT;
 import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
 import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
 import static org.wildfly.extension.elytron.FileAttributeDefinitions.pathName;
@@ -148,10 +151,10 @@ class ProviderLoaderDefinition extends SimpleResourceDefinition {
                 List<ModelNode> nodes = model.require(ElytronDescriptionConstants.PROVIDERS).asList();
                 for (ModelNode current : nodes) {
                     ProviderConfigBuilder providerBuilder = builder.addProviderConfig()
-                    .setModule(asStringIfDefined(context, ProviderAttributeDefinition.MODULE, current))
-                    .setSlot(asStringIfDefined(context, ProviderAttributeDefinition.SLOT, current))
+                    .setModule(asStringIfDefined(context, MODULE, current))
+                    .setSlot(asStringIfDefined(context, SLOT, current))
                     .setLoadServices(ProviderAttributeDefinition.LOAD_SERVICES.resolveModelAttribute(context, current).asBoolean())
-                    .setClassNames(asStringArrayIfDefined(context, ProviderAttributeDefinition.CLASS_NAMES, current))
+                    .setClassNames(asStringArrayIfDefined(context, CLASS_NAMES, current))
                     .setPath(asStringIfDefined(context, FileAttributeDefinitions.PATH, current));
 
                     String relativeTo = asStringIfDefined(context, FileAttributeDefinitions.RELATIVE_TO, current);

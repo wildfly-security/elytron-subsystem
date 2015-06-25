@@ -41,6 +41,7 @@ interface ElytronDescriptionConstants {
     String CORE_SERVICE = "core-service";
     String CREATION_DATE = "creation-date";
     String CREDENTIAL = "credential";
+    String CUSTOM_REALM = "custom-realm";
     String DEFAULT_REALM = "default_realm";
     String DIR_CONTEXT = "dir-context";
     String ENCODED = "encoded";

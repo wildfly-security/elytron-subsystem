@@ -122,17 +122,17 @@ class ProviderLoaderParser {
                 String attribute = reader.getAttributeLocalName(i);
                 switch (attribute) {
                     case MODULE:
-                        ProviderAttributeDefinition.MODULE.parseAndSetParameter(value, provider, reader);
+                        ClassLoadingAttributeDefinitions.MODULE.parseAndSetParameter(value, provider, reader);
                         break;
                     case SLOT:
-                        ProviderAttributeDefinition.SLOT.parseAndSetParameter(value, provider, reader);
+                        ClassLoadingAttributeDefinitions.SLOT.parseAndSetParameter(value, provider, reader);
                         break;
                     case LOAD_SERVICES:
                         ProviderAttributeDefinition.LOAD_SERVICES.parseAndSetParameter(value, provider, reader);
                         break;
                     case CLASS_NAMES:
                         for (String className : reader.getListAttributeValue(i)) {
-                            ProviderAttributeDefinition.CLASS_NAMES.parseAndAddParameterElement(className, provider, reader);
+                            ClassLoadingAttributeDefinitions.CLASS_NAMES.parseAndAddParameterElement(className, provider, reader);
                         }
                         break;
                     default:
@@ -250,10 +250,10 @@ class ProviderLoaderParser {
             List<ModelNode> providersList = providers.asList();
             for (ModelNode currentProvider : providersList) {
                 writer.writeStartElement(PROVIDER);
-                ProviderAttributeDefinition.MODULE.marshallAsAttribute(currentProvider, writer);
-                ProviderAttributeDefinition.SLOT.marshallAsAttribute(currentProvider, writer);
+                ClassLoadingAttributeDefinitions.MODULE.marshallAsAttribute(currentProvider, writer);
+                ClassLoadingAttributeDefinitions.SLOT.marshallAsAttribute(currentProvider, writer);
                 ProviderAttributeDefinition.LOAD_SERVICES.marshallAsAttribute(currentProvider, writer);
-                ProviderAttributeDefinition.CLASS_NAMES.getAttributeMarshaller().marshallAsAttribute(ProviderAttributeDefinition.CLASS_NAMES, currentProvider, false, writer);
+                ClassLoadingAttributeDefinitions.CLASS_NAMES.getAttributeMarshaller().marshallAsAttribute(ClassLoadingAttributeDefinitions.CLASS_NAMES, currentProvider, false, writer);
 
                 if (currentProvider.hasDefined(PATH)) {
                     writer.writeStartElement(CONFIGURATION_FILE);

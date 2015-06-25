@@ -18,6 +18,7 @@
 
 package org.wildfly.extension.elytron;
 
+import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.resolveClassLoader;
 import static org.wildfly.extension.elytron.SecurityActions.doPrivileged;
 import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
 
@@ -45,9 +46,6 @@ import org.jboss.as.controller.services.path.PathManager.Callback;
 import org.jboss.as.controller.services.path.PathManager.Callback.Handle;
 import org.jboss.as.controller.services.path.PathManager.Event;
 import org.jboss.as.controller.services.path.PathManager.PathEventContext;
-import org.jboss.modules.Module;
-import org.jboss.modules.ModuleIdentifier;
-import org.jboss.modules.ModuleLoadException;
 import org.jboss.msc.inject.Injector;
 import org.jboss.msc.service.Service;
 import org.jboss.msc.service.StartContext;
@@ -109,7 +107,7 @@ class ProviderLoaderService implements Service<Provider[]> {
     }
 
     private List<Provider> loadProviders(ProviderConfig config) throws Exception {
-        ClassLoader classLoader = doPrivileged((PrivilegedExceptionAction<ClassLoader>) () -> resolveClassLoader(config));
+        ClassLoader classLoader = doPrivileged((PrivilegedExceptionAction<ClassLoader>) () -> resolveClassLoader(config.getModule(), config.getSlot()));
         ArrayList<Provider> providers = new ArrayList<Provider>();
         Set<String> discovered = new HashSet<String>();
 
@@ -228,16 +226,6 @@ class ProviderLoaderService implements Service<Provider[]> {
         }
 
         return resolvedPath;
-    }
-
-    private ClassLoader resolveClassLoader(ProviderConfig config) throws ModuleLoadException {
-        Module current = Module.getCallerModule();
-        if (config.getModule() != null) {
-            ModuleIdentifier mi = ModuleIdentifier.create(config.getModule(), config.getSlot());
-            current = current.getModule(mi);
-        }
-
-        return current.getClassLoader();
     }
 
     private void clearCallbacks() {
