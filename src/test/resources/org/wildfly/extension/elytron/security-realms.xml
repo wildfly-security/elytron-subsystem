@@ -21,5 +21,9 @@
             <users-properties path="my.properties" relative-to="my.path" />
             <groups-properties path="mygroup.properties" relative-to="mygroup.path" />
         </properties-realm>
+        <ldap-realm name="RealmEight">
+            <dir-context url="ldap://localhost:389" principal="uid=server,dc=elytron,dc=wildfly,dc=org" credential="password"/>
+            <principal-mapping cache-principal="false" name-attribute="uid" use-x500-name="false" use-x500-principal="true" use-recursive-search="true" search-base-dn="dc=elytron,dc=wildfly,dc=org"/>
+        </ldap-realm>
     </realms>
 </subsystem>

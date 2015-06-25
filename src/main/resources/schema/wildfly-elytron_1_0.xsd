@@ -38,7 +38,7 @@
         </xs:sequence>
     </xs:complexType>
 
-    <!-- 
+    <!--
         Security Properties
      -->
 
@@ -153,7 +153,7 @@
                                      <xs:annotation>
                                          <xs:documentation>
                                              Should ServiceLoader discovery be used to identify the providers?
-                                             
+
                                              Note: ServiceLoader discovery happens before any specified classes are loaded.
                                          </xs:documentation>
                                      </xs:annotation>
@@ -173,7 +173,7 @@
                      <xs:attribute name="name" type="xs:string" use="required">
                          <xs:annotation>
                              <xs:documentation>
-                                 The name to use to represent this provider loader in the management model. 
+                                 The name to use to represent this provider loader in the management model.
                              </xs:documentation>
                          </xs:annotation>
                      </xs:attribute>
@@ -189,13 +189,13 @@
                      </xs:attribute>
                  </xs:complexType>
              </xs:element>
-         
+
          </xs:sequence>
      </xs:complexType>
-    <!-- 
+    <!--
         Domains and Realms
      -->
-    
+
     <xs:complexType name="securityDomainsType">
         <xs:annotation>
             <xs:documentation>
@@ -206,12 +206,12 @@
             <xs:element name="security-domain" type="securityDomainType" maxOccurs="unbounded" />
         </xs:sequence>
     </xs:complexType>
-    
+
     <xs:complexType name="securityDomainType">
         <xs:annotation>
             <xs:documentation>
                 Complex type for the definition of a single security domain.
-                
+
                 A domain requires a minimum of one realm and the first realm in the list is used as the default realm.
             </xs:documentation>
         </xs:annotation>
@@ -240,9 +240,10 @@
             <xs:element name="jaas-realm" type="jaasRealmType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="keystore-realm" type="keyStoreRealmType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="properties-realm" type="propertiesRealmType" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="ldap-realm" type="ldapRealmType" minOccurs="0" maxOccurs="unbounded" />
         </xs:choice>
     </xs:complexType>
-    
+
     <xs:complexType name="realmType" abstract="true">
         <xs:annotation>
             <xs:documentation>
@@ -257,7 +258,7 @@
             </xs:annotation>
         </xs:attribute>
     </xs:complexType>
-    
+
     <xs:complexType name="jaasRealmType">
         <xs:annotation>
             <xs:documentation>
@@ -270,7 +271,7 @@
                     <xs:annotation>
                         <xs:documentation>
                             The name of the configuration passed in when the LoginContext is instantiated.
-                            
+
                             If this attribute is omitted then the name of the realm will be assumed to be the
                             name of the configuration.
                         </xs:documentation>
@@ -279,8 +280,8 @@
             </xs:extension>
         </xs:complexContent>
     </xs:complexType>
-    
-    
+
+
     <xs:complexType name="keyStoreRealmType">
         <xs:complexContent>
             <xs:extension base="realmType">
@@ -330,7 +331,111 @@
         </xs:complexContent>
     </xs:complexType>
 
-    <!-- 
+    <!-- Ldap Security Realm -->
+
+    <xs:complexType name="ldapRealmType">
+        <xs:annotation>
+            <xs:documentation>
+                A security realm definition backed by LDAP.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="realmType">
+                <xs:sequence>
+                    <xs:element name="dir-context" type="dirContextType" minOccurs="1" maxOccurs="1" nillable="false"/>
+                    <xs:element name="principal-mapping" type="principalMappingType" minOccurs="1" maxOccurs="1" nillable="false"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="dirContextType">
+        <xs:annotation>
+            <xs:documentation>
+                The configuration options that define how principals are mapped to their corresponding entries in the underlying LDAP server.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="url" type="xs:string" use="required">
+            <xs:annotation>
+                <xs:documentation>
+                    The connection url.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="authentication-level" type="xs:string" use="optional" default="simple">
+            <xs:annotation>
+                <xs:documentation>
+                    The authentication level.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="principal" type="xs:string" use="required">
+            <xs:annotation>
+                <xs:documentation>
+                    The principal to authenticate and connect to the LDAP server.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="credential" type="xs:string" use="required">
+            <xs:annotation>
+                <xs:documentation>
+                    The credential to authenticate and connect to the LDAP server.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="principalMappingType">
+        <xs:annotation>
+            <xs:documentation>
+                The configuration options that define how principals are mapped to their corresponding entries in the underlying LDAP server.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="use-x500-name" type="xs:boolean" default="false" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    Indicates if user names follow X.500 standard format.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="name-attribute" type="xs:string" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    The name of the attribute to be used to obtain the user name from an LDAP entry.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="use-x500-principal" type="xs:boolean" default="false" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    Indicates if the realm must return a principal as a X500Principal instance.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="cache-principal" type="xs:boolean" default="false" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    Indicates if the principal obtained from a realm should be cached.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="search-base-dn" type="xs:string" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    The base DN to be used when executing queries.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="use-recursive-search" type="xs:boolean" default="false" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    Indicates if queries are recursive.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:complexType>
+
+    <!--
         TLS Components
      -->
 
@@ -346,7 +451,7 @@
             <xs:element name="keystores" type="keyStoresType" minOccurs="0" />
         </xs:sequence>
     </xs:complexType>
-    
+
     <xs:complexType name="keyStoresType">
         <xs:annotation>
             <xs:documentation>
@@ -411,10 +516,10 @@
         </xs:attribute>
     </xs:complexType>
 
-    <!-- 
+    <!--
         General Types
      -->
-     
+
      <xs:complexType name="basicFileType">
          <xs:annotation>
              <xs:documentation>

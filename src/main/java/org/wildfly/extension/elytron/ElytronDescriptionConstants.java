@@ -27,6 +27,8 @@ interface ElytronDescriptionConstants {
 
     String ALGORITHM = "algorithm";
     String ALIAS = "alias";
+    String AUTHENTICATION_LEVEL = "authentication-level";
+    String CACHE_PRINCIPAL = "cache-principal";
     String CERTIFICATE = "certificate";
     String CERTIFICATES = "certificates";
     String CERTIFICATE_CHAIN = "certificate-chain";
@@ -38,7 +40,9 @@ interface ElytronDescriptionConstants {
     String CONFIGURATION_PROPERTIES = "configuration-properties";
     String CORE_SERVICE = "core-service";
     String CREATION_DATE = "creation-date";
+    String CREDENTIAL = "credential";
     String DEFAULT_REALM = "default_realm";
+    String DIR_CONTEXT = "dir-context";
     String ENCODED = "encoded";
     String ENTRY_TYPE = "entry-type";
     String FILE = "file";
@@ -55,6 +59,7 @@ interface ElytronDescriptionConstants {
     String KEYSTORE = "keystore";
     String KEYSTORE_REALM = "keystore-realm";
     String KEYSTORES = "keystores";
+    String LDAP_REALM = "ldap-realm";
     String LOAD = "load";
     String LOADED_PROVIDER = "loaded-provider";
     String LOADED_PROVIDERS = "loaded-providers";
@@ -63,11 +68,14 @@ interface ElytronDescriptionConstants {
     String MODULE = "module";
     String MODULE_REFERENCE = "module-reference";
     String NAME = "name";
+    String NAME_ATTRIBUTE = "name-attribute";
     String NOT_AFTER = "not-after";
     String NOT_BEFORE = "not-before";
     String PATH = "path";
     String PASSWORD = "password";
     String PLAIN_TEXT = "plain-text";
+    String PRINCIPAL = "principal";
+    String PRINCIPAL_MAPPING = "principal-mapping";
     String PROPERTIES_REALM = "properties-realm";
     String PROPERTY = "property";
     String PROPERTY_LIST = "property-list";
@@ -81,6 +89,7 @@ interface ElytronDescriptionConstants {
     String REGISTER = "register";
     String RELATIVE_TO = "relative-to";
     String REQUIRED = "required";
+    String SEARCH_BASE_DN = "search-base-dn";
     String SECURITY_DOMAIN = "security-domain";
     String SECURITY_DOMAINS = "security-domains";
     String SECURITY_PROPERTIES = "security-properties";
@@ -98,6 +107,10 @@ interface ElytronDescriptionConstants {
     String SYNCHRONIZED = "synchronized";
     String TLS = "tls";
     String TYPE = "type";
+    String URL = "url";
+    String USE_X500_NAME = "use-x500-name";
+    String USE_X500_PRINCIPAL = "use-x500-principal";
+    String USE_RECURSIVE_SEARCH = "use-recursive-search";
     String USERS_PROPERTIES = "users-properties";
     String VALUE = "value";
     String VERSION = "version";
