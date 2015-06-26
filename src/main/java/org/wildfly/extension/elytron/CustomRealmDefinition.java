@@ -112,7 +112,7 @@ class CustomRealmDefinition extends SimpleResourceDefinition {
     private static class RealmAddHandler extends AbstractAddStepHandler {
 
         private RealmAddHandler() {
-            super(ATTRIBUTES);
+            super(SECURITY_REALM_RUNTIME_CAPABILITY, ATTRIBUTES);
         }
 
         @Override
