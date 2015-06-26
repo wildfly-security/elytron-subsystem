@@ -207,6 +207,7 @@ class RealmParser {
             }
         }
 
+        operations.add(addRealm);
     }
 
     private void parseConfiguration(ModelNode addOperation, XMLExtendedStreamReader reader) throws XMLStreamException {
@@ -538,6 +539,7 @@ class RealmParser {
             for (Property current : realms) {
                 ModelNode realm = current.getValue();
                 writer.writeStartElement(CUSTOM_REALM);
+                writer.writeAttribute(NAME, current.getName());
                 ClassLoadingAttributeDefinitions.MODULE.marshallAsAttribute(realm, writer);
                 ClassLoadingAttributeDefinitions.SLOT.marshallAsAttribute(realm, writer);
                 ClassLoadingAttributeDefinitions.CLASS_NAME.marshallAsAttribute(realm, writer);
