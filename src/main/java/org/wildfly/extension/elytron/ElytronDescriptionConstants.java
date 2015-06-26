@@ -25,9 +25,12 @@ package org.wildfly.extension.elytron;
  */
 interface ElytronDescriptionConstants {
 
+    String AGGREGATE_REALM = "aggregate-realm";
     String ALGORITHM = "algorithm";
     String ALIAS = "alias";
     String AUTHENTICATION_LEVEL = "authentication-level";
+    String AUTHENTICATION_REALM = "authentication-realm";
+    String AUTHORIZATION_REALM = "authorization-realm";
     String CACHE_PRINCIPAL = "cache-principal";
     String CERTIFICATE = "certificate";
     String CERTIFICATES = "certificates";

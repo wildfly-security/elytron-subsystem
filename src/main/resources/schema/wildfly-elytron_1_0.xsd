@@ -237,6 +237,7 @@
             </xs:documentation>
         </xs:annotation>
         <xs:choice maxOccurs="unbounded">
+            <xs:element name="aggregate-realm" type="aggregatRealmType" minOccurs="0" maxOccurs="unbounded" /> 
             <xs:element name="custom-realm" type="customRealmType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="jaas-realm" type="jaasRealmType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="keystore-realm" type="keyStoreRealmType" minOccurs="0" maxOccurs="unbounded" />
@@ -258,6 +259,33 @@
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="aggregatRealmType">
+        <xs:annotation>
+            <xs:documentation>
+                Realm definition for an aggregate realm where authenticaton and authorization are handled by
+                two separate realms.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="realmType">
+                <xs:attribute name="authentication-realm" type="xs:string" use="required">
+                    <xs:annotation>
+                        <xs:documentation>
+                            The name of the realm to use for the authentication steps (obtaining or validating credentials).
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+                <xs:attribute name="authorization-realm" type="xs:string" use="required">
+                    <xs:annotation>
+                        <xs:documentation>
+                            The name of the realm to use for the authorization steps (loading of the identity).
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+            </xs:extension>
+        </xs:complexContent>
     </xs:complexType>
 
 	<xs:complexType name="customRealmType">

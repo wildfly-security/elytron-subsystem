@@ -29,6 +29,9 @@ import static org.jboss.as.controller.parsing.ParseUtils.requireNoAttributes;
 import static org.jboss.as.controller.parsing.ParseUtils.requireNoContent;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedAttribute;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedElement;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AGGREGATE_REALM;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AUTHENTICATION_REALM;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AUTHORIZATION_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CLASS_NAME;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CONFIGURATION;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CUSTOM_REALM;
@@ -83,6 +86,9 @@ class RealmParser {
             verifyNamespace(reader);
             String localName = reader.getLocalName();
             switch (localName) {
+                case AGGREGATE_REALM:
+                    readAggregateRealm(parentAddress, reader, operations);
+                    break;
                 case CUSTOM_REALM:
                     readCustomRealm(parentAddress, reader, operations);
                     break;
@@ -102,6 +108,49 @@ class RealmParser {
                     throw unexpectedElement(reader);
             }
         }
+    }
+
+    private void readAggregateRealm(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations)
+            throws XMLStreamException {
+        ModelNode addRealm = new ModelNode();
+        addRealm.get(OP).set(ADD);
+
+        Set<String> requiredAttributes = new HashSet<String>(Arrays.asList(new String[] { NAME, AUTHENTICATION_REALM, AUTHORIZATION_REALM }));
+        String name = null;
+
+        final int count = reader.getAttributeCount();
+        for (int i = 0; i < count; i++) {
+            final String value = reader.getAttributeValue(i);
+            if (!isNoNamespaceAttribute(reader, i)) {
+                throw unexpectedAttribute(reader, i);
+            } else {
+                String attribute = reader.getAttributeLocalName(i);
+                requiredAttributes.remove(attribute);
+                switch (attribute) {
+                    case NAME:
+                        name = value;
+                        break;
+                    case AUTHENTICATION_REALM:
+                        AggregateRealmDefinition.AUTHENTICATION_REALM.parseAndSetParameter(value, addRealm, reader);
+                        break;
+                    case AUTHORIZATION_REALM:
+                        AggregateRealmDefinition.AUTHORIZATION_REALM.parseAndSetParameter(value, addRealm, reader);
+                        break;
+                    default:
+                        throw unexpectedAttribute(reader, i);
+                }
+            }
+        }
+
+        if (requiredAttributes.isEmpty() == false) {
+            throw missingRequired(reader, requiredAttributes);
+        }
+
+        addRealm.get(OP_ADDR).set(parentAddress).add(AGGREGATE_REALM, name);
+
+        requireNoContent(reader);
+
+        operations.add(addRealm);
     }
 
     private void readCustomRealm(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations)
@@ -463,6 +512,25 @@ class RealmParser {
         }
     }
 
+    private boolean writeAggregateRealms(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
+        if (subsystem.hasDefined(AGGREGATE_REALM)) {
+            startRealms(started, writer);
+            List<Property> realms = subsystem.require(AGGREGATE_REALM).asPropertyList();
+            for (Property current : realms) {
+                ModelNode realm = current.getValue();
+                writer.writeStartElement(AGGREGATE_REALM);
+                writer.writeAttribute(NAME, current.getName());
+                AggregateRealmDefinition.AUTHENTICATION_REALM.marshallAsAttribute(realm, writer);
+                AggregateRealmDefinition.AUTHORIZATION_REALM.marshallAsAttribute(realm, writer);
+                writer.writeEndElement();
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
     private boolean writeCustomRealms(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (subsystem.hasDefined(CUSTOM_REALM)) {
             startRealms(started, writer);
@@ -581,6 +649,7 @@ class RealmParser {
     void writeRealms(ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         boolean realmsStarted = false;
 
+        realmsStarted = realmsStarted | writeAggregateRealms(realmsStarted, subsystem, writer);
         realmsStarted = realmsStarted | writeCustomRealms(realmsStarted, subsystem, writer);
         realmsStarted = realmsStarted | writeJaasRealms(realmsStarted, subsystem, writer);
         realmsStarted = realmsStarted | writeKeyStoreRealms(realmsStarted, subsystem, writer);

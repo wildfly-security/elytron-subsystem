@@ -10,6 +10,7 @@
         </keystores>
     </tls>
     <realms>
+        <aggregate-realm name="AggregateOne" authentication-realm="RealmOne" authorization-realm="RealmTwo" />
         <custom-realm name="CustomOne" class-name="org.wildfly.security.ElytronRealm" />
         <custom-realm name="CustomTwo" module="a.b.c" slot="d" class-name="org.wildfly.security.ElytronRealm">
             <configuration>
