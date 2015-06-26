@@ -306,7 +306,7 @@
 		                    <xs:documentation>
 		                        The configuration to apply to the SecurityRealm implementation.
 
-		                        Note: If configuration is supplied the realm MUST implement the ConfigurableSecurityRealm interface.
+		                        Note: If configuration is supplied the realm MUST implement the Configurable interface.
 		                    </xs:documentation>
 		                </xs:annotation>
 		                <xs:complexType>

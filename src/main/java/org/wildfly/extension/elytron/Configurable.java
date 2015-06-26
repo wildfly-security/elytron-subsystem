@@ -19,20 +19,18 @@ package org.wildfly.extension.elytron;
 
 import java.util.Map;
 
-import org.wildfly.security.auth.spi.SecurityRealm;
-
 /**
- * An extension to the {@link SecurityRealm} API that allows for generic configuration when used within the Elytron subsystem.
+ * A general purpose interface that can be implemented by custom implementations being plugged into the Elytron subsystem.
  *
- * Ideally {@link SecurityRealm} implementations will be provided by other subsystems that also have their own configuration
- * model, this approach should only be used for truly independent realm implementations.
+ * Where custom components implement this interface they can be dynamically be configured by the subsystem with
+ * a {@link Map<String, String>}.
  *
  * @author <a href="mailto:darran.lofthouse@jboss.com">Darran Lofthouse</a>
  */
-public interface ConfigurableSecurityRealm extends SecurityRealm {
+public interface Configurable {
 
     /**
-     * Initialize the {@link SecurityRealm} with the specified options.
+     * Initialize the {@link Configurable} class with the specified options.
      *
      * @param configuration
      */

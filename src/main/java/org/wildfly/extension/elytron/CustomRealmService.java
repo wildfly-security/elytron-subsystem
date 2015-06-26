@@ -64,10 +64,10 @@ class CustomRealmService implements Service<SecurityRealm> {
             SecurityRealm securityRealm = realmClazz.newInstance();
 
             if (configuration != null) {
-                if (securityRealm instanceof ConfigurableSecurityRealm == false) {
-                    throw ROOT_LOGGER.realmNotConfigurable(className);
+                if (securityRealm instanceof Configurable == false) {
+                    throw ROOT_LOGGER.componentNotConfigurable(className);
                 }
-                ConfigurableSecurityRealm configurableRealm = (ConfigurableSecurityRealm) securityRealm;
+                Configurable configurableRealm = (Configurable) securityRealm;
                 configurableRealm.initialize(configuration);
             }
 
