@@ -30,23 +30,24 @@ import org.jboss.msc.service.Service;
 import org.jboss.msc.service.StartContext;
 import org.jboss.msc.service.StartException;
 import org.jboss.msc.service.StopContext;
-import org.wildfly.security.auth.spi.SecurityRealm;
 
 /**
- * The {@link Service} implementation to manage the lifecycle of custom {@link SecurityRealm} instances.
+ * A general {@link Service} responsible for loading and configuring custom types within the subsystem
  *
  * @author <a href="mailto:darran.lofthouse@jboss.com">Darran Lofthouse</a>
  */
-class CustomRealmService implements Service<SecurityRealm> {
+class CustomComponentService<T> implements Service<T> {
 
+    private final Class<T> type;
     private final String module;
     private final String slot;
     private final String className;
     private final Map<String, String> configuration;
 
-    private SecurityRealm securityRealm;
+    private T component;
 
-    CustomRealmService(final String module, final String slot, final String className, final Map<String, String> configuration) {
+    CustomComponentService(final Class<T> type, final String module, final String slot, final String className, final Map<String, String> configuration) {
+        this.type = type;
         this.module = module;
         this.slot = slot;
         this.className = className;
@@ -59,19 +60,19 @@ class CustomRealmService implements Service<SecurityRealm> {
         try {
             classLoader = doPrivileged((PrivilegedExceptionAction<ClassLoader>) () -> resolveClassLoader(module, slot));
 
-            Class<? extends SecurityRealm> realmClazz = classLoader.loadClass(className).asSubclass(SecurityRealm.class);
+            Class<? extends T> typeClazz = classLoader.loadClass(className).asSubclass(type);
 
-            SecurityRealm securityRealm = realmClazz.newInstance();
+            T component = typeClazz.newInstance();
 
             if (configuration != null) {
-                if (securityRealm instanceof Configurable == false) {
-                    throw ROOT_LOGGER.componentNotConfigurable(className);
+                if (component instanceof Configurable == false) {
+                    throw ROOT_LOGGER.componentNotConfigurable(component.getClass().getName());
                 }
-                Configurable configurableRealm = (Configurable) securityRealm;
-                configurableRealm.initialize(configuration);
+                Configurable configurableComponent = (Configurable) component;
+                configurableComponent.initialize(configuration);
             }
 
-            this.securityRealm = securityRealm;
+            this.component = component;
         } catch (PrivilegedActionException e) {
             throw new StartException(e.getCause());
         } catch (Exception e) {
@@ -85,12 +86,12 @@ class CustomRealmService implements Service<SecurityRealm> {
 
     @Override
     public void stop(StopContext context) {
-        securityRealm = null;
+        component = null;
     }
 
     @Override
-    public SecurityRealm getValue() throws IllegalStateException, IllegalArgumentException {
-        return securityRealm;
+    public T getValue() throws IllegalStateException, IllegalArgumentException {
+        return component;
     }
 
 }

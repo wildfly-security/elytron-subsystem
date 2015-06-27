@@ -18,7 +18,6 @@
 
 package org.wildfly.extension.elytron;
 
-import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.CLASS_NAME;
 import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.MODULE;
 import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.SLOT;
@@ -56,23 +55,21 @@ import org.jboss.msc.service.ServiceBuilder;
 import org.jboss.msc.service.ServiceController.Mode;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.ServiceTarget;
-import org.wildfly.security.auth.spi.SecurityRealm;
+
 
 /**
- * A {@link SimpleResourceDefinition} for a custom security realm.
+ * A {@link SimpleResourceDefinition} for a custom configurable component.
  *
  * @author <a href="mailto:darran.lofthouse@jboss.com">Darran Lofthouse</a>
  */
-class CustomRealmDefinition extends SimpleResourceDefinition {
-
-    static final ServiceUtil<SecurityRealm> REALM_SERVICE_UTIL = ServiceUtil.newInstance(SECURITY_REALM_RUNTIME_CAPABILITY, ElytronDescriptionConstants.CUSTOM_REALM, SecurityRealm.class);
+class CustomComponentDefinition<T> extends SimpleResourceDefinition {
 
     static final SimpleMapAttributeDefinition CONFIGURATION = new SimpleMapAttributeDefinition.Builder(ElytronDescriptionConstants.CONFIGURATION, ModelType.STRING, true)
         .setAttributeMarshaller(new AttributeMarshaller() {
 
             @Override
             public void marshallAsElement(AttributeDefinition attribute, ModelNode resourceModel, boolean marshallDefault,
-                    XMLStreamWriter writer) throws XMLStreamException {
+                                XMLStreamWriter writer) throws XMLStreamException {
                 resourceModel = resourceModel.get(attribute.getName());
                 if (resourceModel.isDefined()) {
                     writer.writeStartElement(attribute.getName());
@@ -80,47 +77,61 @@ class CustomRealmDefinition extends SimpleResourceDefinition {
                         writer.writeEmptyElement(PROPERTY);
                         writer.writeAttribute(KEY, property.asProperty().getName());
                         writer.writeAttribute(VALUE, property.asProperty().getValue().asString());
-                    }
+                        }
                     writer.writeEndElement();
+                    }
                 }
-            }
 
-        })
+            })
         .build();
+
+    private final String pathKey;
 
     private static final AttributeDefinition[] ATTRIBUTES = {MODULE, SLOT, CLASS_NAME, CONFIGURATION};
 
-    private static final AbstractAddStepHandler ADD = new RealmAddHandler();
-    private static final OperationStepHandler REMOVE = new RealmRemoveHandler(ADD);
-
-    CustomRealmDefinition() {
-        super(new Parameters(PathElement.pathElement(ElytronDescriptionConstants.CUSTOM_REALM), ElytronExtension.getResourceDescriptionResolver(ElytronDescriptionConstants.CUSTOM_REALM))
-            .setAddHandler(ADD)
-            .setRemoveHandler(REMOVE)
+    CustomComponentDefinition(Class<T> serviceType, RuntimeCapability<Void> runtimeCapability, String pathKey) {
+        super(addAddRemoveHandlers(new Parameters(PathElement.pathElement(pathKey), ElytronExtension.getResourceDescriptionResolver(pathKey))
             .setAddRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
-            .setRemoveRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES));
+            .setRemoveRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES), runtimeCapability, serviceType));
+
+        this.pathKey = pathKey;
+    }
+
+    private static <T> Parameters addAddRemoveHandlers(Parameters parameters, RuntimeCapability<Void> runtimeCapability, Class<T> serviceType) {
+        AbstractAddStepHandler add = new ComponentAddHandler<T>(runtimeCapability, serviceType);
+        OperationStepHandler remove = new ComponentRemoveHandler<T>(add, runtimeCapability, serviceType);
+
+        parameters.setAddHandler(add);
+        parameters.setRemoveHandler(remove);
+
+        return parameters;
     }
 
     @Override
     public void registerAttributes(ManagementResourceRegistration resourceRegistration) {
-        WriteAttributeHandler writeHandler = new WriteAttributeHandler();
+        WriteAttributeHandler writeHandler = new WriteAttributeHandler(pathKey);
         for (AttributeDefinition current : ATTRIBUTES) {
             resourceRegistration.registerReadWriteAttribute(current, null, writeHandler);
         }
     }
 
-    private static class RealmAddHandler extends AbstractAddStepHandler {
+    private static class ComponentAddHandler<T> extends AbstractAddStepHandler {
 
-        private RealmAddHandler() {
-            super(SECURITY_REALM_RUNTIME_CAPABILITY, ATTRIBUTES);
+        private final RuntimeCapability<Void> runtimeCapability;
+        private final Class<T> serviceType;
+
+        private ComponentAddHandler(RuntimeCapability<Void> runtimeCapability, Class<T> serviceType) {
+            super(runtimeCapability, ATTRIBUTES);
+            this.runtimeCapability = runtimeCapability;
+            this.serviceType = serviceType;
         }
 
         @Override
         protected void performRuntime(OperationContext context, ModelNode operation, ModelNode model)
                 throws OperationFailedException {
             ServiceTarget serviceTarget = context.getServiceTarget();
-            RuntimeCapability<Void> runtimeCapability = RuntimeCapability.fromBaseCapability(SECURITY_REALM_RUNTIME_CAPABILITY, context.getCurrentAddressValue());
-            ServiceName realmName = runtimeCapability.getCapabilityServiceName(SecurityRealm.class);
+            RuntimeCapability<Void> runtimeCapability = RuntimeCapability.fromBaseCapability(this.runtimeCapability, context.getCurrentAddressValue());
+            ServiceName componentName = runtimeCapability.getCapabilityServiceName(serviceType);
 
             String module = asStringIfDefined(context, MODULE, model);
             String slot = asStringIfDefined(context, SLOT, model);
@@ -130,15 +141,14 @@ class CustomRealmDefinition extends SimpleResourceDefinition {
             ModelNode configuration = CONFIGURATION.resolveModelAttribute(context, model);
             if (configuration.isDefined()) {
                 configurationMap = new HashMap<String, String>();
-                configuration.asPropertyList().forEach(
-                        (Property p) -> configurationMap.put(p.getName(), p.getValue().asString()));
+                configuration.asPropertyList().forEach((Property p) -> configurationMap.put(p.getName(), p.getValue().asString()));
             } else {
                 configurationMap = null;
             }
 
-            CustomRealmService customRealmService = new CustomRealmService(module, slot, className, configurationMap);
+            CustomComponentService<T> customComponentService = new CustomComponentService<T>(serviceType, module, slot, className, configurationMap);
 
-            ServiceBuilder<SecurityRealm> serviceBuilder = serviceTarget.addService(realmName, customRealmService);
+            ServiceBuilder<T> serviceBuilder = serviceTarget.addService(componentName, customComponentService);
             commonDependencies(serviceBuilder)
                 .setInitialMode(Mode.ACTIVE)
                 .install();
@@ -146,23 +156,28 @@ class CustomRealmDefinition extends SimpleResourceDefinition {
 
     }
 
-    private static class RealmRemoveHandler extends ServiceRemoveStepHandler {
+    private static class ComponentRemoveHandler<T> extends ServiceRemoveStepHandler {
 
-        public RealmRemoveHandler(AbstractAddStepHandler addOperation) {
-            super(addOperation, SECURITY_REALM_RUNTIME_CAPABILITY);
+        private final RuntimeCapability<Void> runtimeCapability;
+        private final Class<T> serviceType;
+
+        public ComponentRemoveHandler(AbstractAddStepHandler addOperation, RuntimeCapability<Void> runtimeCapability, Class<T> serviceType) {
+            super(addOperation, runtimeCapability);
+            this.runtimeCapability = runtimeCapability;
+            this.serviceType = serviceType;
         }
 
         @Override
         protected ServiceName serviceName(String name) {
-            return REALM_SERVICE_UTIL.serviceName(name);
+            RuntimeCapability dynamicCapability = RuntimeCapability.fromBaseCapability(runtimeCapability, name);
+            return dynamicCapability.getCapabilityServiceName(serviceType);
         }
-
     }
 
     private static class WriteAttributeHandler extends RestartParentWriteAttributeHandler {
 
-        WriteAttributeHandler() {
-            super(ElytronDescriptionConstants.CUSTOM_REALM, ATTRIBUTES);
+        WriteAttributeHandler(String pathKey) {
+            super(pathKey, ATTRIBUTES);
         }
 
         @Override

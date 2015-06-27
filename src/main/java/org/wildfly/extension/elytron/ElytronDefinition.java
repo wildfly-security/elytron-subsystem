@@ -17,7 +17,8 @@
  */
 
 package org.wildfly.extension.elytron;
-
+import static org.wildfly.extension.elytron.Capabilities.NAME_REWRITER_RUNTIME_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
 
 import org.jboss.as.controller.AbstractBoottimeAddStepHandler;
@@ -37,6 +38,8 @@ import org.jboss.msc.service.ServiceController.Mode;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.ServiceRegistry;
 import org.jboss.msc.service.ServiceTarget;
+import org.wildfly.security.auth.spi.SecurityRealm;
+import org.wildfly.security.auth.util.NameRewriter;
 
 /**
  * Top level {@link ResourceDefinition} for the Elytron subsystem.
@@ -67,13 +70,14 @@ class ElytronDefinition extends SimpleResourceDefinition {
         resourceRegistration.registerSubModel(new DomainDefinition());
         // Security Realms
         resourceRegistration.registerSubModel(new AggregateRealmDefinition());
-        resourceRegistration.registerSubModel(new CustomRealmDefinition());
+        resourceRegistration.registerSubModel(new CustomComponentDefinition<SecurityRealm>(SecurityRealm.class, SECURITY_REALM_RUNTIME_CAPABILITY, ElytronDescriptionConstants.CUSTOM_REALM));
         resourceRegistration.registerSubModel(new JaasRealmDefinition());
         resourceRegistration.registerSubModel(new KeyStoreRealmDefinition());
         resourceRegistration.registerSubModel(new PropertiesRealmDefinition());
         resourceRegistration.registerSubModel(new LdapRealmDefinition());
 
         // Name Rewriters
+        resourceRegistration.registerSubModel(new CustomComponentDefinition<NameRewriter>(NameRewriter.class, NAME_REWRITER_RUNTIME_CAPABILITY, ElytronDescriptionConstants.CUSTOM_NAME_REWRITER));
         resourceRegistration.registerSubModel(NameRewriterDefinitions.getRegexNameRewriterDefinition());
         resourceRegistration.registerSubModel(NameRewriterDefinitions.getRegexNameValidatingRewriterDefinition());
 

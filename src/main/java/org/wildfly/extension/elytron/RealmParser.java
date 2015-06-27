@@ -543,7 +543,7 @@ class RealmParser {
                 ClassLoadingAttributeDefinitions.MODULE.marshallAsAttribute(realm, writer);
                 ClassLoadingAttributeDefinitions.SLOT.marshallAsAttribute(realm, writer);
                 ClassLoadingAttributeDefinitions.CLASS_NAME.marshallAsAttribute(realm, writer);
-                CustomRealmDefinition.CONFIGURATION.marshallAsElement(realm, writer);
+                CustomComponentDefinition.CONFIGURATION.marshallAsElement(realm, writer);
                 writer.writeEndElement();
             }
 

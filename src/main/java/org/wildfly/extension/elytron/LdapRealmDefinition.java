@@ -18,6 +18,9 @@
 
 package org.wildfly.extension.elytron;
 
+import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY;
+import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
+
 import org.jboss.as.controller.AbstractAddStepHandler;
 import org.jboss.as.controller.AttributeDefinition;
 import org.jboss.as.controller.OperationContext;
@@ -50,9 +53,6 @@ import org.wildfly.security.password.interfaces.ClearPassword;
 import org.wildfly.security.password.interfaces.SaltedSimpleDigestPassword;
 import org.wildfly.security.password.interfaces.SimpleDigestPassword;
 import org.wildfly.security.password.interfaces.UnixDESCryptPassword;
-
-import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY;
-import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
 
 /**
  * A {@link ResourceDefinition} for a {@link SecurityRealm} backed by LDAP.
