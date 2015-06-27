@@ -24,6 +24,7 @@ import java.security.Provider;
 import org.jboss.as.controller.capability.RuntimeCapability;
 import org.wildfly.security.auth.login.SecurityDomain;
 import org.wildfly.security.auth.spi.SecurityRealm;
+import org.wildfly.security.auth.util.NameRewriter;
 
 
 /**
@@ -45,11 +46,17 @@ class Capabilities {
         .Builder.of(KEYSTORE_CAPABILITY, true, KeyStore.class)
         .build();
 
+    static final String NAME_REWRITER_CAPABILITY = CAPABILITY_BASE + "name-rewriter";
+
+    static final RuntimeCapability<Void> NAME_REWRITER_RUNTIME_CAPABILITY =  RuntimeCapability
+        .Builder.of(NAME_REWRITER_CAPABILITY, true, NameRewriter.class)
+        .build();
+
     static final String PROVIDERS_CAPABILITY = CAPABILITY_BASE + "providers";
 
     static final RuntimeCapability<Void> PROVIDERS_RUNTIME_CAPABILITY =  RuntimeCapability
-            .Builder.of(PROVIDERS_CAPABILITY, true, Provider[].class)
-            .build();
+        .Builder.of(PROVIDERS_CAPABILITY, true, Provider[].class)
+        .build();
 
     static final String SECURITY_DOMAIN_CAPABILITY = CAPABILITY_BASE + "security-domain";
 

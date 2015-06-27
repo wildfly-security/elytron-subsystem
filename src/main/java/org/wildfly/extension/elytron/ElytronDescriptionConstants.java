@@ -68,6 +68,7 @@ interface ElytronDescriptionConstants {
     String LOADED_PROVIDER = "loaded-provider";
     String LOADED_PROVIDERS = "loaded-providers";
     String LOAD_SERVICES = "load-services";
+    String MATCH = "match";
     String MODIFIED = "modified";
     String MODULE = "module";
     String MODULE_REFERENCE = "module-reference";
@@ -76,6 +77,7 @@ interface ElytronDescriptionConstants {
     String NOT_AFTER = "not-after";
     String NOT_BEFORE = "not-before";
     String PATH = "path";
+    String PATTERN = "pattern";
     String PASSWORD = "password";
     String PLAIN_TEXT = "plain-text";
     String PRINCIPAL = "principal";
@@ -90,8 +92,12 @@ interface ElytronDescriptionConstants {
     String PUBLIC_KEY = "public-key";
     String REALM = "realm";
     String REALMS = "realms";
+    String REGEX_NAME_REWRITER = "regex-name-rewriter";
+    String REGEX_NAME_VALIDATING_REWRITER = "regex-name-validating-rewriter";
     String REGISTER = "register";
     String RELATIVE_TO = "relative-to";
+    String REPLACE_ALL = "replace-all";
+    String REPLACEMENT = "replacement";
     String REQUIRED = "required";
     String SEARCH_BASE_DN = "search-base-dn";
     String SECURITY_DOMAIN = "security-domain";

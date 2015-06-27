@@ -184,4 +184,13 @@ public interface ElytronSubsystemMessages extends BasicLogger {
     @Message(id = 15, value = "The custom component implementation '%s' doe not implement 'org.wildfly.extension.elytron.Configurable' however configuration has been supplied.")
     StartException componentNotConfigurable(final String className);
 
+    /**
+     * An {@link OperationFailedException} where validation of a specified regular expression has failed.
+     *
+     * @param pattern the regular expression that failed validation.
+     * @param cause the reported {@link Exception} during validation.
+     * @return The {@link OperationFailedException} for the error.
+     */
+    @Message(id = 16, value = "The supplied regular expression '%s' is invalid.")
+    OperationFailedException invalidRegularExpression(String pattern, @Cause Exception cause);
 }
