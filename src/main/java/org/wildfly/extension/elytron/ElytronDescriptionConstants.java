@@ -85,6 +85,8 @@ interface ElytronDescriptionConstants {
     String PATTERN = "pattern";
     String PASSWORD = "password";
     String PLAIN_TEXT = "plain-text";
+    String POST_REALM_NAME_REWRITER = "post-realm-name-rewriter";
+    String PRE_REALM_NAME_REWRITER = "pre-realm-name-rewriter";
     String PRINCIPAL = "principal";
     String PRINCIPAL_MAPPING = "principal-mapping";
     String PROPERTIES_REALM = "properties-realm";

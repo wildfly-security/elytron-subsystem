@@ -32,7 +32,9 @@ import org.jboss.msc.service.StartException;
 import org.jboss.msc.service.StopContext;
 import org.jboss.msc.value.InjectedValue;
 import org.wildfly.security.auth.login.SecurityDomain;
+import org.wildfly.security.auth.login.SecurityDomain.RealmBuilder;
 import org.wildfly.security.auth.spi.SecurityRealm;
+import org.wildfly.security.auth.util.NameRewriter;
 
 
 /**
@@ -46,11 +48,27 @@ class DomainService implements Service<SecurityDomain> {
 
     private final String name;
     private final String defaultRealm;
+    private final String preRealmNameRewriter;
+    private final String postRealmNameRewriter;
+    private final Map<String, InjectedValue<NameRewriter>> nameRewriters = new HashMap<>();
     private final Map<String, InjectedValue<SecurityRealm>> realms = new HashMap<>();
+    private final Map<String, String> realmRewriterMap = new HashMap<String, String>();
 
-    DomainService(final String name, final String defaultRealm) {
+    DomainService(final String name, final String defaultRealm, final String preRealmNameRewriter, final String postRealmNameRewriter) {
         this.name = name;
         this.defaultRealm = defaultRealm;
+        this.preRealmNameRewriter = preRealmNameRewriter;
+        this.postRealmNameRewriter = postRealmNameRewriter;
+    }
+
+    Injector<NameRewriter> createNameRewriterInjector(final String nameRewriterName) {
+        if (nameRewriters.containsKey(nameRewriterName)) {
+            return null; // i.e. should already be injected for this name.
+        }
+
+        InjectedValue<NameRewriter> nameRewriterInjector = new InjectedValue<>();
+        nameRewriters.put(nameRewriterName, nameRewriterInjector);
+        return nameRewriterInjector;
     }
 
     Injector<SecurityRealm> createRealmInjector(final String realmName) throws OperationFailedException {
@@ -63,12 +81,28 @@ class DomainService implements Service<SecurityDomain> {
         return injector;
     }
 
+    void associateRealmWithNameRewriter(final String realmName, final String nameRewriterName) {
+        realmRewriterMap.put(realmName, nameRewriterName);
+    }
+
     @Override
     public void start(StartContext context) throws StartException {
         SecurityDomain.Builder builder = SecurityDomain.builder();
+
+        if (preRealmNameRewriter != null) {
+            builder.setPreRealmRewriter(nameRewriters.get(preRealmNameRewriter).getValue());
+        }
+        if (postRealmNameRewriter != null) {
+            builder.setPostRealmRewriter(nameRewriters.get(postRealmNameRewriter).getValue());
+        }
+
         builder.setDefaultRealmName(defaultRealm);
         for (Entry<String, InjectedValue<SecurityRealm>> entry : realms.entrySet()) {
-            builder.addRealm(entry.getKey(), entry.getValue().getValue());
+            String realmName = entry.getKey();
+            RealmBuilder realmBuilder = builder.addRealm(realmName, entry.getValue().getValue());
+            if (realmRewriterMap.containsKey(realmName)) {
+                realmBuilder.setNameRewriter(nameRewriters.get(realmRewriterMap.get(realmName)).getValue());
+            }
         }
 
         securityDomain = builder.build();

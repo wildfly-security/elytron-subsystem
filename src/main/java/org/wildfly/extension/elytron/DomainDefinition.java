@@ -18,11 +18,14 @@
 
 package org.wildfly.extension.elytron;
 
+
+import static org.wildfly.extension.elytron.Capabilities.NAME_REWRITER_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SECURITY_DOMAIN_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SECURITY_DOMAIN_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
+import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
 import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
 
 import java.security.Principal;
@@ -30,6 +33,8 @@ import java.util.List;
 
 import org.jboss.as.controller.AbstractAddStepHandler;
 import org.jboss.as.controller.AttributeDefinition;
+import org.jboss.as.controller.ObjectListAttributeDefinition;
+import org.jboss.as.controller.ObjectTypeAttributeDefinition;
 import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
 import org.jboss.as.controller.OperationStepHandler;
@@ -42,7 +47,6 @@ import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
 import org.jboss.as.controller.SimpleOperationDefinition;
 import org.jboss.as.controller.SimpleResourceDefinition;
-import org.jboss.as.controller.StringListAttributeDefinition;
 import org.jboss.as.controller.capability.RuntimeCapability;
 import org.jboss.as.controller.registry.AttributeAccess;
 import org.jboss.as.controller.registry.ManagementResourceRegistration;
@@ -50,6 +54,7 @@ import org.jboss.as.controller.registry.OperationEntry;
 import org.jboss.as.controller.registry.Resource;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
+import org.jboss.msc.inject.Injector;
 import org.jboss.msc.service.Service;
 import org.jboss.msc.service.ServiceBuilder;
 import org.jboss.msc.service.ServiceController;
@@ -63,6 +68,7 @@ import org.wildfly.security.auth.login.SecurityIdentity;
 import org.wildfly.security.auth.login.ServerAuthenticationContext;
 import org.wildfly.security.auth.spi.CredentialSupport;
 import org.wildfly.security.auth.spi.SecurityRealm;
+import org.wildfly.security.auth.util.NameRewriter;
 import org.wildfly.security.password.Password;
 import org.wildfly.security.password.PasswordFactory;
 import org.wildfly.security.password.interfaces.ClearPassword;
@@ -79,18 +85,47 @@ class DomainDefinition extends SimpleResourceDefinition {
     private static final ServiceUtil<SecurityRealm> REALM_SERVICE_UTIL = ServiceUtil.newInstance(SECURITY_REALM_RUNTIME_CAPABILITY, null, SecurityRealm.class);
 
     static final SimpleAttributeDefinition DEFAULT_REALM = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.DEFAULT_REALM, ModelType.STRING, false)
-             .setAllowExpression(false)
-             .setMinSize(1)
-             .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
-             .build();
+         .setAllowExpression(false)
+         .setMinSize(1)
+         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+         .build();
 
-    static final StringListAttributeDefinition REALMS =  new StringListAttributeDefinition.Builder(ElytronDescriptionConstants.REALMS)
-             .setAllowExpression(true)
-             .setAllowNull(false)
-             .setCapabilityReference(SECURITY_REALM_CAPABILITY, SECURITY_DOMAIN_CAPABILITY, true)
-             .build();
+    static final SimpleAttributeDefinition PRE_REALM_NAME_REWRITER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PRE_REALM_NAME_REWRITER, ModelType.STRING, true)
+        .setAllowExpression(true)
+        .setMinSize(1)
+        .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+        .setCapabilityReference(NAME_REWRITER_CAPABILITY, SECURITY_DOMAIN_CAPABILITY, true)
+        .build();
 
-    private static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] { DEFAULT_REALM, REALMS };
+    static final SimpleAttributeDefinition POST_REALM_NAME_REWRITER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.POST_REALM_NAME_REWRITER, ModelType.STRING, true)
+        .setAllowExpression(true)
+        .setMinSize(1)
+        .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+        .setCapabilityReference(NAME_REWRITER_CAPABILITY, SECURITY_DOMAIN_CAPABILITY, true)
+        .build();
+
+    static final SimpleAttributeDefinition REALM_NAME = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.REALM, ModelType.STRING, false)
+        .setXmlName(ElytronDescriptionConstants.NAME)
+        .setAllowExpression(true)
+        .setMinSize(1)
+        .setCapabilityReference(SECURITY_REALM_CAPABILITY, SECURITY_DOMAIN_CAPABILITY, true)
+        .build();
+
+    static final SimpleAttributeDefinition REALM_NAME_REWRITER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.NAME_REWRITER, ModelType.STRING, true)
+        .setAllowExpression(true)
+        .setMinSize(1)
+        .setCapabilityReference(NAME_REWRITER_CAPABILITY, SECURITY_DOMAIN_CAPABILITY, true)
+        .build();
+
+    static final ObjectTypeAttributeDefinition REALM = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.REALM, REALM_NAME, REALM_NAME_REWRITER)
+        .build();
+
+    static final ObjectListAttributeDefinition REALMS = new ObjectListAttributeDefinition.Builder(ElytronDescriptionConstants.REALMS, REALM)
+        .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+        .build();
+
+
+    private static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] { PRE_REALM_NAME_REWRITER, POST_REALM_NAME_REWRITER, DEFAULT_REALM, REALMS };
 
     private static final DomainAddHandler ADD = new DomainAddHandler();
     private static final DomainRemoveHandler REMOVE = new DomainRemoveHandler(ADD);
@@ -128,22 +163,52 @@ class DomainDefinition extends SimpleResourceDefinition {
         String simpleName = domainName.getSimpleName();
 
         String defaultRealm = DomainDefinition.DEFAULT_REALM.resolveModelAttribute(context, model).asString();
-        List<String> realms = DomainDefinition.REALMS.unwrap(context, model);
+        List<ModelNode> realms = REALMS.resolveModelAttribute(context, model).asList();
 
-        DomainService domain = new DomainService(simpleName, defaultRealm);
+        String preRealmNameRewriter = asStringIfDefined(context, PRE_REALM_NAME_REWRITER, model);
+        String postRealmNameRewriter = asStringIfDefined(context, POST_REALM_NAME_REWRITER, model);
+
+        DomainService domain = new DomainService(simpleName, defaultRealm, preRealmNameRewriter, postRealmNameRewriter);
 
         ServiceBuilder<SecurityDomain> domainBuilder = serviceTarget.addService(domainName, domain)
                 .setInitialMode(Mode.ACTIVE);
 
-        for (String current : realms) {
-            String runtimeCapability = RuntimeCapability.buildDynamicCapabilityName(SECURITY_REALM_CAPABILITY, current);
+        injectNameRewriter(preRealmNameRewriter, context, domainBuilder, domain);
+        injectNameRewriter(postRealmNameRewriter, context, domainBuilder, domain);
+
+        for (ModelNode current : realms) {
+            String realmName = REALM_NAME.resolveModelAttribute(context, current).asString();
+            String runtimeCapability = RuntimeCapability.buildDynamicCapabilityName(SECURITY_REALM_CAPABILITY, realmName);
             ServiceName realmServiceName = context.getCapabilityServiceName(runtimeCapability, SecurityRealm.class);
 
-            REALM_SERVICE_UTIL.addInjection(domainBuilder, domain.createRealmInjector(current), realmServiceName);
+            REALM_SERVICE_UTIL.addInjection(domainBuilder, domain.createRealmInjector(realmName), realmServiceName);
+
+            String nameRewriter = asStringIfDefined(context, REALM_NAME_REWRITER, current);
+            if (nameRewriter != null) {
+                injectNameRewriter(nameRewriter, context, domainBuilder, domain);
+                domain.associateRealmWithNameRewriter(realmName, nameRewriter);
+            }
         }
 
         commonDependencies(domainBuilder);
         return domainBuilder.install();
+    }
+
+    private static void injectNameRewriter(String nameRewriter, OperationContext context, ServiceBuilder<SecurityDomain> domainBuilder, DomainService domain) {
+        if (nameRewriter == null) {
+            return;
+        }
+
+        Injector<NameRewriter> injector = domain.createNameRewriterInjector(nameRewriter);
+        if (injector == null) {
+            // Service did not supply one as one is already present for this name.
+            return;
+        }
+
+        String runtimeCapability = RuntimeCapability.buildDynamicCapabilityName(NAME_REWRITER_CAPABILITY, nameRewriter);
+        ServiceName nameRewriterServiceName = context.getCapabilityServiceName(runtimeCapability, NameRewriter.class);
+
+        domainBuilder.addDependency(nameRewriterServiceName, NameRewriter.class, injector);
     }
 
     private static class DomainAddHandler extends AbstractAddStepHandler {
@@ -159,9 +224,18 @@ class DomainDefinition extends SimpleResourceDefinition {
 
             ModelNode model = resource.getModel();
             String defaultRealm = DomainDefinition.DEFAULT_REALM.resolveModelAttribute(context, model).asString();
-            List<String> realms = DomainDefinition.REALMS.unwrap(context, model);
 
-            if (realms.contains(defaultRealm) == false) {
+            List<ModelNode> realms = REALMS.resolveModelAttribute(context, model).asList();
+            boolean defaultFound = false;
+            for (ModelNode current : realms) {
+                String realmName = REALM_NAME.resolveModelAttribute(context, current).asString();
+                if (defaultRealm.equals(realmName)) {
+                    defaultFound = true;
+                    break;
+                }
+            }
+
+            if (defaultFound == false) {
                 throw ROOT_LOGGER.defaultRealmNotReferenced(defaultRealm);
             }
         }
