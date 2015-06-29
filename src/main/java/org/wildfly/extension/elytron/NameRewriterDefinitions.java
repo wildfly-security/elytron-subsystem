@@ -89,6 +89,14 @@ class NameRewriterDefinitions {
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
         .build();
 
+    private static final AggregateComponentDefinition<NameRewriter> AGGREGATE_NAME_REWRITER = AggregateComponentDefinition.create(NameRewriter.class,
+            ElytronDescriptionConstants.AGGREGATE_NAME_REWRITER, ElytronDescriptionConstants.NAME_REWRITERS, NAME_REWRITER_RUNTIME_CAPABILITY,
+            (NameRewriter[] n) -> NameRewriter.aggregate(n));
+
+    static ResourceDefinition getAggregateNameRewriterDefinition() {
+        return AGGREGATE_NAME_REWRITER;
+    }
+
     static ResourceDefinition getRegexNameRewriterDefinition() {
         return new RegexNameRewriterDefinition();
     }

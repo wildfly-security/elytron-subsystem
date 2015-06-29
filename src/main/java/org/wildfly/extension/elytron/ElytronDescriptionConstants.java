@@ -25,6 +25,7 @@ package org.wildfly.extension.elytron;
  */
 interface ElytronDescriptionConstants {
 
+    String AGGREGATE_NAME_REWRITER = "aggregate-name-rewriter";
     String AGGREGATE_REALM = "aggregate-realm";
     String ALGORITHM = "algorithm";
     String ALIAS = "alias";
@@ -75,6 +76,7 @@ interface ElytronDescriptionConstants {
     String MODULE_REFERENCE = "module-reference";
     String NAME = "name";
     String NAME_ATTRIBUTE = "name-attribute";
+    String NAME_REWRITERS = "name-rewriters";
     String NOT_AFTER = "not-after";
     String NOT_BEFORE = "not-before";
     String PATH = "path";
