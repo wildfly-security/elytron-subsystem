@@ -28,9 +28,16 @@ import static org.jboss.as.controller.parsing.ParseUtils.requireNoAttributes;
 import static org.jboss.as.controller.parsing.ParseUtils.requireNoContent;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedAttribute;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedElement;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CLASS_NAME;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CONFIGURATION;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CUSTOM_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEYSTORE;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEYSTORES;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MAPPERS;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MODULE;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROPERTY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDER_LOADER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDER_LOADERS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REALMS;
@@ -38,6 +45,7 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SECURITY
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SECURITY_DOMAINS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SECURITY_PROPERTIES;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SECURITY_PROPERTY;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SLOT;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.TLS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.VALUE;
 import static org.wildfly.extension.elytron.ElytronExtension.NAMESPACE;
@@ -68,6 +76,7 @@ class ElytronSubsystemParser implements XMLElementReader<List<ModelNode>>, XMLEl
     private final RealmParser realmParser = new RealmParser();
     private final TlsParser tlsParser = new TlsParser();
     private final ProviderLoaderParser providerLoaderParser = new ProviderLoaderParser();
+    private final MapperParser mapperParser = new MapperParser();
 
     /**
      * {@inheritDoc}
@@ -100,6 +109,9 @@ class ElytronSubsystemParser implements XMLElementReader<List<ModelNode>>, XMLEl
                     break;
                 case REALMS:
                     realmParser.readRealms(parentAddress, reader, operations);
+                    break;
+                case MAPPERS:
+
                     break;
                 case TLS:
                     readTls(parentAddress, reader, operations);
@@ -195,6 +207,126 @@ class ElytronSubsystemParser implements XMLElementReader<List<ModelNode>>, XMLEl
                 throw unexpectedElement(reader);
             }
         }
+    }
+
+    /*
+     * Utility Parsing Methods
+     */
+
+    static void readCustomComponent(String componentType, ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations)
+            throws XMLStreamException {
+        ModelNode addComponent = new ModelNode();
+        addComponent.get(OP).set(ADD);
+
+        Set<String> requiredAttributes = new HashSet<String>(Arrays.asList(new String[] { NAME, CLASS_NAME }));
+        String name = null;
+
+        final int count = reader.getAttributeCount();
+        for (int i = 0; i < count; i++) {
+            final String value = reader.getAttributeValue(i);
+            if (!isNoNamespaceAttribute(reader, i)) {
+                throw unexpectedAttribute(reader, i);
+            } else {
+                String attribute = reader.getAttributeLocalName(i);
+                requiredAttributes.remove(attribute);
+                switch (attribute) {
+                    case NAME:
+                        name = value;
+                        break;
+                    case MODULE:
+                        ClassLoadingAttributeDefinitions.MODULE.parseAndSetParameter(value, addComponent, reader);
+                        break;
+                    case SLOT:
+                        ClassLoadingAttributeDefinitions.SLOT.parseAndSetParameter(value, addComponent, reader);
+                        break;
+                    case CLASS_NAME:
+                        ClassLoadingAttributeDefinitions.CLASS_NAME.parseAndSetParameter(value, addComponent, reader);
+                        break;
+                    default:
+                        throw unexpectedAttribute(reader, i);
+                }
+            }
+        }
+
+        if (requiredAttributes.isEmpty() == false) {
+            throw missingRequired(reader, requiredAttributes);
+        }
+
+        addComponent.get(OP_ADDR).set(parentAddress).add(componentType, name);
+
+        while (reader.hasNext() && reader.nextTag() != END_ELEMENT) {
+            verifyNamespace(reader);
+            String localName = reader.getLocalName();
+            switch (localName) {
+                case CONFIGURATION:
+                    requireNoAttributes(reader);
+                    parseConfiguration(addComponent, reader);
+                    break;
+                default:
+                    throw unexpectedElement(reader);
+            }
+        }
+
+        operations.add(addComponent);
+    }
+
+    private static void parseConfiguration(ModelNode addOperation, XMLExtendedStreamReader reader) throws XMLStreamException {
+        while (reader.hasNext() && reader.nextTag() != END_ELEMENT) {
+            verifyNamespace(reader);
+            String localName = reader.getLocalName();
+            switch (localName) {
+                case PROPERTY:
+                    parsePropertyElement(addOperation, reader);
+                    break;
+                default:
+                    throw unexpectedElement(reader);
+            }
+        }
+    }
+
+    private static void parsePropertyElement(ModelNode addOperation, XMLExtendedStreamReader reader) throws XMLStreamException {
+        Set<String> requiredAttributes = new HashSet<String>(Arrays.asList(new String[] { KEY, VALUE }));
+        String key = null;
+        String value = null;
+
+        final int count = reader.getAttributeCount();
+        for (int i = 0; i < count; i++) {
+            final String attributeValue = reader.getAttributeValue(i);
+            if (!isNoNamespaceAttribute(reader, i)) {
+                throw unexpectedAttribute(reader, i);
+            } else {
+                String attribute = reader.getAttributeLocalName(i);
+                requiredAttributes.remove(attribute);
+                switch (attribute) {
+                    case KEY:
+                        key = attributeValue;
+                        break;
+                    case VALUE:
+                        value = attributeValue;
+                        break;
+                    default:
+                        throw unexpectedAttribute(reader, i);
+                }
+            }
+        }
+
+        if (requiredAttributes.isEmpty() == false) {
+            throw missingRequired(reader, requiredAttributes);
+        }
+
+        requireNoContent(reader);
+
+        addOperation.get(CONFIGURATION).add(key, new ModelNode(value));
+    }
+
+    static void writeCustomComponent(String elementName, String componentName, ModelNode component, XMLExtendedStreamWriter writer) throws XMLStreamException {
+        writer.writeStartElement(CUSTOM_REALM);
+        writer.writeAttribute(NAME, componentName);
+        ClassLoadingAttributeDefinitions.MODULE.marshallAsAttribute(component, writer);
+        ClassLoadingAttributeDefinitions.SLOT.marshallAsAttribute(component, writer);
+        ClassLoadingAttributeDefinitions.CLASS_NAME.marshallAsAttribute(component, writer);
+        CustomComponentDefinition.CONFIGURATION.marshallAsElement(component, writer);
+        writer.writeEndElement();
     }
 
     /**

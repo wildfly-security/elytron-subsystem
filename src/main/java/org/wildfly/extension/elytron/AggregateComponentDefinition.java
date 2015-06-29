@@ -24,6 +24,7 @@ import java.util.function.Function;
 
 import org.jboss.as.controller.AbstractAddStepHandler;
 import org.jboss.as.controller.AttributeDefinition;
+import org.jboss.as.controller.ListAttributeDefinition;
 import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
 import org.jboss.as.controller.OperationStepHandler;
@@ -50,11 +51,11 @@ import org.jboss.msc.service.ServiceTarget;
  */
 class AggregateComponentDefinition<T> extends SimpleResourceDefinition {
 
-    private final AttributeDefinition aggregateReferences;
+    private final ListAttributeDefinition aggregateReferences;
     private final OperationStepHandler attributeWriteHandler;
 
     private AggregateComponentDefinition(Class<T> classType, String pathKey, OperationStepHandler addHandler, OperationStepHandler removeHandler,
-                                         AttributeDefinition aggregateReferences, OperationStepHandler attributeWriteHandler) {
+            ListAttributeDefinition aggregateReferences, OperationStepHandler attributeWriteHandler) {
         super(new Parameters(PathElement.pathElement(pathKey), ElytronExtension.getResourceDescriptionResolver(pathKey))
             .setAddHandler(addHandler)
             .setRemoveHandler(removeHandler)
@@ -65,7 +66,7 @@ class AggregateComponentDefinition<T> extends SimpleResourceDefinition {
         this.attributeWriteHandler = attributeWriteHandler;
     }
 
-    AttributeDefinition getReferencesAttribute() {
+    ListAttributeDefinition getReferencesAttribute() {
         return aggregateReferences;
     }
 

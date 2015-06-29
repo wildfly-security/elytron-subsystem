@@ -34,6 +34,7 @@
             <xs:element name="provider-loaders" type="providerLoadersType" minOccurs="0" />
             <xs:element name="security-domains" type="securityDomainsType" minOccurs="0" />
             <xs:element name="realms" type="realmsType" minOccurs="0" />
+            <xs:element name="mappers" type="mappersType" minOccurs="0" />
             <xs:element name="tls" type="tlsType" minOccurs="0" />
         </xs:sequence>
     </xs:complexType>
@@ -192,6 +193,7 @@
 
          </xs:sequence>
      </xs:complexType>
+
     <!--
         Domains and Realms
      -->
@@ -301,7 +303,7 @@
 		<xs:complexContent>
 		    <xs:extension base="realmType">
 		        <xs:sequence>
-		            <xs:element name="configuration" minOccurs="0"> 
+		            <xs:element name="configuration" type="customComponentConfiguration" minOccurs="0"> 
 		                <xs:annotation>
 		                    <xs:documentation>
 		                        The configuration to apply to the SecurityRealm implementation.
@@ -309,38 +311,9 @@
 		                        Note: If configuration is supplied the realm MUST implement the Configurable interface.
 		                    </xs:documentation>
 		                </xs:annotation>
-		                <xs:complexType>
-		                    <xs:sequence>
-		                        <xs:element name="property" type="propertyType" maxOccurs="unbounded" />
-		                    </xs:sequence>
-		                </xs:complexType>
 		            </xs:element>
 		        </xs:sequence>
-		        <xs:attribute name="module" type="xs:string">
-		            <xs:annotation>
-		                <xs:documentation>
-		                  The module to use to load the custom realm.
-		                </xs:documentation>
-		            </xs:annotation>
-		        </xs:attribute>
-		        <xs:attribute name="slot" type="xs:string">
-		            <xs:annotation>
-		                <xs:documentation>
-		                    The module slot to use when loading the custom security realm.
-
-		                    Note: This has no effect if a module is not specified.
-		                </xs:documentation>
-		            </xs:annotation>
-		        </xs:attribute>
-		        <xs:attribute name="class-name" type="xs:string" use="required">
-		            <xs:annotation>
-		                <xs:documentation>
-		                    The fully qualified class name of the custom realm implementation to load.
-
-		                    The specified class must have a public no-args constructor.
-		                </xs:documentation>
-		            </xs:annotation>
-		        </xs:attribute>
+                <xs:attributeGroup ref="customComponentAttributes" />
 		    </xs:extension>
 		</xs:complexContent>
 	</xs:complexType>
@@ -520,6 +493,153 @@
             </xs:annotation>
         </xs:attribute>
     </xs:complexType>
+    
+    <!-- 
+        General Mappers and Rewriters
+     -->
+
+    <xs:complexType name="mappersType">
+        <xs:annotation>
+            <xs:documentation>
+                A general container type to hold the various name rewriter and mapper definitions
+                as used within the subsystem.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:choice maxOccurs="unbounded">
+            <xs:element name="aggregate-name-rewriter" type="aggregateNameRewriterType" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="custom-name-rewriter" type="customNameRewriterType" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="regex-name-rewriter" type="regexNameRewriterType" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="regex-name-validating-rewriter" type="regexNameValidatingRewriter" minOccurs="0" maxOccurs="unbounded" />
+        </xs:choice>
+    </xs:complexType>
+
+    <xs:complexType name="nameRewriterType" abstract="true">
+        <xs:annotation>
+            <xs:documentation>
+                Base type for all NameRewriter definitions.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="name" type="xs:string" use="required">
+            <xs:annotation>
+                <xs:documentation>
+                    The unique name for the NameRewriter, note names used for NameRewriters must be unique
+                    across the whole context.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="regexNameRewriterType">
+        <xs:annotation>
+            <xs:documentation>
+                A NameRewriter definition using regular expressions and Matcher based
+                replacement.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="nameRewriterType">
+                <xs:attribute name="pattern" type="xs:string"
+                    use="required">
+                    <xs:annotation>
+                        <xs:documentation>
+                            The regular expression to use for this NameRewriter.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+                <xs:attribute name="replacment" type="xs:string"
+                    use="required">
+                    <xs:annotation>
+                        <xs:documentation>
+                            The replacement string for this NameRewriter.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+                <xs:attribute name="replace-all" type="xs:boolean"
+                    default="false">
+                    <xs:annotation>
+                        <xs:documentation>
+                            Should all occurences be replaced or just the first?
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="regexNameValidatingRewriter">
+        <xs:annotation>
+            <xs:documentation>
+                A NameWriter that instead of rewriting the name validates that it is
+                correct according to the supplied regular expression.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="nameRewriterType">
+                <xs:attribute name="pattern" type="xs:string"
+                    use="required">
+                    <xs:annotation>
+                        <xs:documentation>
+                            The regular expression to use for this NameRewriter.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+                <xs:attribute name="match" type="xs:boolean"
+                    default="true">
+                    <xs:annotation>
+                        <xs:documentation>
+                            Is the name being checked required to be matched by the regular
+                            expression.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="customNameRewriterType">
+        <xs:annotation>
+            <xs:documentation>
+                Realm definition for a custom NameRewriter implementation.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="nameRewriterType">
+                <xs:sequence>
+                    <xs:element name="configuration"
+                        type="customComponentConfiguration" minOccurs="0">
+                        <xs:annotation>
+                            <xs:documentation>
+                                The configuration to apply to the N implementation.
+
+                                Note: If configuration is supplied the realm MUST implement the Configurable interface.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+                <xs:attributeGroup ref="customComponentAttributes" />
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    
+    <xs:complexType name="aggregateNameRewriterType">
+        <xs:annotation>
+            <xs:documentation>
+                A NameRewriter definition that is actually an aggregation of other NameRewriters.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="name-rewriter" type="nameRewriterRefType" maxOccurs="unbounded" />
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="nameRewriterRefType">
+        <xs:annotation>
+            <xs:documentation>
+                A reference to a NameRewriter
+            </xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="name" type="xs:string" use="required" />
+    </xs:complexType>
 
     <!--
         TLS Components
@@ -662,6 +782,50 @@
             </xs:extension>
         </xs:complexContent>
     </xs:complexType>
+
+	<xs:attributeGroup name="customComponentAttributes">
+		<xs:annotation>
+			<xs:documentation>The attributes required for a custom component.
+			</xs:documentation>
+		</xs:annotation>
+		<xs:attribute name="module" type="xs:string">
+			<xs:annotation>
+				<xs:documentation>
+					The module to use to load the custom component.
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="slot" type="xs:string">
+			<xs:annotation>
+				<xs:documentation>
+					The module slot to use when loading the custom component.
+
+					Note: This has no effect if a module is not specified.
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="class-name" type="xs:string" use="required">
+			<xs:annotation>
+				<xs:documentation>
+					The fully qualified class name of the custom component implementation to
+					load.
+
+					The specified class must have a public no-args constructor.
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:attributeGroup>
+
+	<xs:complexType name="customComponentConfiguration">
+		<xs:annotation>
+			<xs:documentation>
+				The optional configuration for a custom component.
+			</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="property" type="propertyType" maxOccurs="unbounded" />
+		</xs:sequence>
+	</xs:complexType>
 
     <xs:simpleType name="stringListType">
         <xs:annotation>

@@ -71,11 +71,13 @@ interface ElytronDescriptionConstants {
     String LOADED_PROVIDERS = "loaded-providers";
     String LOAD_SERVICES = "load-services";
     String MATCH = "match";
+    String MAPPERS = "mappers";
     String MODIFIED = "modified";
     String MODULE = "module";
     String MODULE_REFERENCE = "module-reference";
     String NAME = "name";
     String NAME_ATTRIBUTE = "name-attribute";
+    String NAME_REWRITER = "name-rewriter";
     String NAME_REWRITERS = "name-rewriters";
     String NOT_AFTER = "not-after";
     String NOT_BEFORE = "not-before";

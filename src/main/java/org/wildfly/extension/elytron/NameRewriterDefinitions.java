@@ -93,7 +93,7 @@ class NameRewriterDefinitions {
             ElytronDescriptionConstants.AGGREGATE_NAME_REWRITER, ElytronDescriptionConstants.NAME_REWRITERS, NAME_REWRITER_RUNTIME_CAPABILITY,
             (NameRewriter[] n) -> NameRewriter.aggregate(n));
 
-    static ResourceDefinition getAggregateNameRewriterDefinition() {
+    static AggregateComponentDefinition<NameRewriter> getAggregateNameRewriterDefinition() {
         return AGGREGATE_NAME_REWRITER;
     }
 
