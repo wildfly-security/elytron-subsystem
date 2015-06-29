@@ -30,7 +30,6 @@ import static org.jboss.as.controller.parsing.ParseUtils.unexpectedAttribute;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedElement;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CLASS_NAME;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CONFIGURATION;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CUSTOM_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEYSTORE;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEYSTORES;
@@ -111,7 +110,7 @@ class ElytronSubsystemParser implements XMLElementReader<List<ModelNode>>, XMLEl
                     realmParser.readRealms(parentAddress, reader, operations);
                     break;
                 case MAPPERS:
-
+                    mapperParser.readMappers(parentAddress, reader, operations);
                     break;
                 case TLS:
                     readTls(parentAddress, reader, operations);
@@ -320,7 +319,7 @@ class ElytronSubsystemParser implements XMLElementReader<List<ModelNode>>, XMLEl
     }
 
     static void writeCustomComponent(String elementName, String componentName, ModelNode component, XMLExtendedStreamWriter writer) throws XMLStreamException {
-        writer.writeStartElement(CUSTOM_REALM);
+        writer.writeStartElement(elementName);
         writer.writeAttribute(NAME, componentName);
         ClassLoadingAttributeDefinitions.MODULE.marshallAsAttribute(component, writer);
         ClassLoadingAttributeDefinitions.SLOT.marshallAsAttribute(component, writer);
@@ -367,6 +366,7 @@ class ElytronSubsystemParser implements XMLElementReader<List<ModelNode>>, XMLEl
         }
 
         realmParser.writeRealms(model, writer);
+        mapperParser.writeMappers(model, writer);
 
         boolean hasTlsContent = false;
         boolean hasKeyStore = model.hasDefined(KEYSTORE);

@@ -112,8 +112,8 @@ class AggregateComponentDefinition<T> extends SimpleResourceDefinition {
         protected void performRuntime(OperationContext context, ModelNode operation, ModelNode model)
                 throws OperationFailedException {
             ServiceTarget serviceTarget = context.getServiceTarget();
-            RuntimeCapability<?> runtimeCapability = RuntimeCapability.fromBaseCapability(this.runtimeCapability, context.getCurrentAddressValue());
-            ServiceName componentName = runtimeCapability.getCapabilityServiceName(aggregationType);
+            RuntimeCapability<?> instanceRuntimeCapability = RuntimeCapability.fromBaseCapability(runtimeCapability, context.getCurrentAddressValue());
+            ServiceName componentName = instanceRuntimeCapability.getCapabilityServiceName(aggregationType);
 
             AggregateComponentService<T> aggregateComponentService = new AggregateComponentService<T>(aggregationType, aggregator);
 

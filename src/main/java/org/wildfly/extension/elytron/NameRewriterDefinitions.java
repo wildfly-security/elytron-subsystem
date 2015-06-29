@@ -52,7 +52,6 @@ import org.jboss.msc.service.ServiceTarget;
 import org.jboss.msc.service.StartContext;
 import org.jboss.msc.service.StartException;
 import org.jboss.msc.service.StopContext;
-import org.wildfly.security.auth.spi.SecurityRealm;
 import org.wildfly.security.auth.util.NameRewriter;
 import org.wildfly.security.auth.util.RegexNameRewriter;
 import org.wildfly.security.auth.util.RegexNameValidatingRewriter;
@@ -213,7 +212,7 @@ class NameRewriterDefinitions {
                 throws OperationFailedException {
             ServiceTarget serviceTarget = context.getServiceTarget();
             RuntimeCapability<Void> runtimeCapability = RuntimeCapability.fromBaseCapability(NAME_REWRITER_RUNTIME_CAPABILITY, context.getCurrentAddressValue());
-            ServiceName realmName = runtimeCapability.getCapabilityServiceName(SecurityRealm.class);
+            ServiceName realmName = runtimeCapability.getCapabilityServiceName(NameRewriter.class);
 
             NameRewriterService nameRewriterService = new NameRewriterService(getNameRewriterSupplier(context, operation, model));
 

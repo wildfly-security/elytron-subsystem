@@ -1,0 +1,12 @@
+<subsystem xmlns="urn:wildfly:elytron:1.0">
+    <mappers>
+        <aggregate-name-rewriter name="AggregateOne">
+            <name-rewriter name="CustomOne" />
+            <name-rewriter name="RegexOne" />
+            <name-rewriter name="RegexTwo" />
+        </aggregate-name-rewriter>
+        <custom-name-rewriter name="CustomOne" class-name="org.wildfly.elytron.CustomRewriter" module="a.b" slot="c" />
+        <regex-name-rewriter name="RegexOne" pattern=".?" replacement="X" replace-all="true" />
+        <regex-name-validating-rewriter name="RegexTwo" pattern="p*" match="false" />
+    </mappers>
+</subsystem>

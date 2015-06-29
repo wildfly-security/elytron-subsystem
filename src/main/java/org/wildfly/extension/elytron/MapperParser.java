@@ -34,6 +34,7 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MAPPERS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MATCH;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME_REWRITER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME_REWRITERS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PATTERN;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REGEX_NAME_REWRITER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REGEX_NAME_VALIDATING_REWRITER;
@@ -243,7 +244,7 @@ class MapperParser {
                 writer.writeStartElement(AGGREGATE_NAME_REWRITER);
                 writer.writeAttribute(NAME, current.getName());
 
-                List<ModelNode> nameRewriterReferences = nameRewriter.get(NAME_REWRITER).asList();
+                List<ModelNode> nameRewriterReferences = nameRewriter.get(NAME_REWRITERS).asList();
                 for (ModelNode currentReference : nameRewriterReferences) {
                     writer.writeStartElement(NAME_REWRITER);
                     writer.writeAttribute(NAME, currentReference.asString());
