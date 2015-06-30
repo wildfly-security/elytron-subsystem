@@ -509,12 +509,12 @@ class MapperParser {
     }
 
     private boolean writeMapRegexRealmMapper(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
-        if (subsystem.hasDefined(SIMPLE_REGEX_REALM_MAPPER)) {
+        if (subsystem.hasDefined(MAPPED_REGEX_REALM_MAPPER)) {
             startMappers(started, writer);
-            List<Property> nameRewriters = subsystem.require(SIMPLE_REGEX_REALM_MAPPER).asPropertyList();
+            List<Property> nameRewriters = subsystem.require(MAPPED_REGEX_REALM_MAPPER).asPropertyList();
             for (Property current : nameRewriters) {
                 ModelNode realmMapper = current.getValue();
-                writer.writeStartElement(SIMPLE_REGEX_REALM_MAPPER);
+                writer.writeStartElement(MAPPED_REGEX_REALM_MAPPER);
                 writer.writeAttribute(NAME, current.getName());
                 RegexAttributeDefinitions.PATTERN.marshallAsAttribute(realmMapper, writer);
                 RealmMapperDefinitions.DELEGATE_REALM_MAPPER.marshallAsAttribute(realmMapper, writer);

@@ -87,13 +87,11 @@ class RealmMapperDefinitions {
                         XMLStreamWriter writer) throws XMLStreamException {
                     resourceModel = resourceModel.get(attribute.getName());
                     if (resourceModel.isDefined()) {
-                        writer.writeStartElement(attribute.getName());
                         for (ModelNode property : resourceModel.asList()) {
                             writer.writeEmptyElement(REALM_MAPPING);
                             writer.writeAttribute(FROM, property.asProperty().getName());
                             writer.writeAttribute(TO, property.asProperty().getValue().asString());
                             }
-                        writer.writeEndElement();
                         }
                     }
 

@@ -8,5 +8,12 @@
         <custom-name-rewriter name="CustomOne" class-name="org.wildfly.elytron.CustomRewriter" module="a.b" slot="c" />
         <regex-name-rewriter name="RegexOne" pattern=".?" replacement="X" replace-all="true" />
         <regex-name-validating-rewriter name="RegexTwo" pattern="p*" match="false" />
+        
+        <custom-realm-mapper name="CustomRealmOne" class-name="org.wildfly.elytron.CustomRealmMapper" module="c.d" slot="e" />
+        <simple-regex-realm-mapper name="SimpleOne" pattern=".?" delegate-realm-mapper="CustomRealmOne" />
+        <mapped-regex-realm-mapper name="MappedOne" pattern=".?" delegate-realm-mapper="SimpleOne">
+            <realm-mapping from="a" to="b" />
+            <realm-mapping from="c" to="d" />
+        </mapped-regex-realm-mapper>
     </mappers>
 </subsystem>
