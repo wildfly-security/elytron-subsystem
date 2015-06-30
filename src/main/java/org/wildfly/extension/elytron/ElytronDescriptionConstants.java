@@ -57,6 +57,7 @@ interface ElytronDescriptionConstants {
     String FINGER_PRINT = "finger-print";
     String FINGER_PRINTS = "finger-prints";
     String FORMAT = "format";
+    String FROM = "from";
     String GROUPS_PROPERTIES = "groups-properties";
     String IMPLEMENTATION = "implementation";
     String INDEX = "index";
@@ -101,6 +102,7 @@ interface ElytronDescriptionConstants {
     String PROVIDER_LOADERS = "provider-loaders";
     String PUBLIC_KEY = "public-key";
     String REALM_MAP = "realm-map";
+    String REALM_MAPPING = "realm-mapping";
     String REALM = "realm";
     String REALMS = "realms";
     String REGEX_NAME_REWRITER = "regex-name-rewriter";
@@ -128,6 +130,7 @@ interface ElytronDescriptionConstants {
     String SUBJECT = "subject";
     String SYNCHRONIZED = "synchronized";
     String TLS = "tls";
+    String TO = "to";
     String TYPE = "type";
     String URL = "url";
     String USE_X500_NAME = "use-x500-name";

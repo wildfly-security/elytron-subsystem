@@ -559,24 +559,21 @@
         </xs:annotation>
         <xs:complexContent>
             <xs:extension base="nameRewriterType">
-                <xs:attribute name="pattern" type="xs:string"
-                    use="required">
+                <xs:attribute name="pattern" type="xs:string" use="required">
                     <xs:annotation>
                         <xs:documentation>
                             The regular expression to use for this NameRewriter.
                         </xs:documentation>
                     </xs:annotation>
                 </xs:attribute>
-                <xs:attribute name="replacment" type="xs:string"
-                    use="required">
+                <xs:attribute name="replacment" type="xs:string" use="required">
                     <xs:annotation>
                         <xs:documentation>
                             The replacement string for this NameRewriter.
                         </xs:documentation>
                     </xs:annotation>
                 </xs:attribute>
-                <xs:attribute name="replace-all" type="xs:boolean"
-                    default="false">
+                <xs:attribute name="replace-all" type="xs:boolean" default="false">
                     <xs:annotation>
                         <xs:documentation>
                             Should all occurences be replaced or just the first?
@@ -620,7 +617,7 @@
     <xs:complexType name="customNameRewriterType">
         <xs:annotation>
             <xs:documentation>
-                Realm definition for a custom NameRewriter implementation.
+                Generic definition for a custom NameRewriter implementation.
             </xs:documentation>
         </xs:annotation>
         <xs:complexContent>
@@ -630,9 +627,9 @@
                         type="customComponentConfiguration" minOccurs="0">
                         <xs:annotation>
                             <xs:documentation>
-                                The configuration to apply to the N implementation.
+                                The configuration to apply to the NameRewriter implementation.
 
-                                Note: If configuration is supplied the realm MUST implement the Configurable interface.
+                                Note: If configuration is supplied the NameRewriter MUST implement the Configurable interface.
                             </xs:documentation>
                         </xs:annotation>
                     </xs:element>
@@ -660,6 +657,122 @@
             </xs:documentation>
         </xs:annotation>
         <xs:attribute name="name" type="xs:string" use="required" />
+    </xs:complexType>
+
+    <xs:complexType name="realmMapperType" abstract="true">
+        <xs:annotation>
+            <xs:documentation>
+                Base type for all RealmMapper definitions.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="name" type="xs:string" use="required">
+            <xs:annotation>
+                <xs:documentation>
+                    The unique name for the RealmMapper, note names used for NameRewriters must be unique
+                    across the whole context.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="customRealmMapperType">
+        <xs:annotation>
+            <xs:documentation>
+                Generic definition for a custom RealmMapper implementation.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="realmMapperType">
+                <xs:sequence>
+                    <xs:element name="configuration"
+                        type="customComponentConfiguration" minOccurs="0">
+                        <xs:annotation>
+                            <xs:documentation>
+                                The configuration to apply to the RealmMapper implementation.
+
+                                Note: If configuration is supplied the RealmMapper MUST implement the Configurable interface.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+                <xs:attributeGroup ref="customComponentAttributes" />
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="simpleRegexRealmMapperType">
+        <xs:annotation>
+            <xs:documentation>
+                A simple RealmMapper definition that attempts to extract the realm name using the capture group from the regular expression, if that does not provide a
+                match then the delegate RealmMapper is used instead.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="realmMapperType">
+                <xs:attribute name="pattern" type="xs:string" use="required">
+                    <xs:annotation>
+                        <xs:documentation>
+                            The regular expression to use for this NameRewriter.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+                <xs:attribute name="delegate-realm-mapper" type="xs:string">
+                    <xs:annotation>
+                        <xs:documentation>
+                            The RealmMapper to delegate to if the pattern does not match.  If no delegate is specified then the default realm on 
+                            the domain will be used instead.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="mappedRegedRealmMapperType">
+        <xs:annotation>
+            <xs:documentation>
+              A RealmMapper implementaion that first uses a regular expression to extract the realm name, this is then converted using the configured mapping of realm names.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="realmMapperType">
+                <xs:sequence>
+                    <xs:element name="realm-mapping">
+                        <xs:complexType>
+                            <xs:attribute name="from" type="xs:string" use="required">
+                                <xs:annotation>
+                                    <xs:documentation>
+                                        The realm name to map from.
+                                    </xs:documentation>
+                                </xs:annotation>
+                            </xs:attribute>
+                            <xs:attribute name="to" type="xs:string" use="required">
+                                <xs:annotation>
+                                    <xs:documentation>
+                                        The realm name to map to.
+                                    </xs:documentation>
+                                </xs:annotation>
+                            </xs:attribute>
+                        </xs:complexType>
+                    </xs:element>
+                </xs:sequence>
+                <xs:attribute name="pattern" type="xs:string" use="required">
+                    <xs:annotation>
+                        <xs:documentation>
+                            The regular expression to use for this NameRewriter.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+                <xs:attribute name="delegate-realm-mapper" type="xs:string">
+                    <xs:annotation>
+                        <xs:documentation>
+                            The RealmMapper to delegate to if the pattern does not match.  If no delegate is specified then the default realm on 
+                            the domain will be used instead.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+            </xs:extension>
+        </xs:complexContent>
     </xs:complexType>
 
     <!--

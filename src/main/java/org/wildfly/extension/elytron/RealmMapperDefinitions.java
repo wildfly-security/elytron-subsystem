@@ -20,6 +20,9 @@ package org.wildfly.extension.elytron;
 import static org.wildfly.extension.elytron.Capabilities.REALM_MAPPER_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.REALM_MAPPER_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.FROM;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REALM_MAPPING;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.TO;
 import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
 import static org.wildfly.extension.elytron.RegexAttributeDefinitions.PATTERN;
 
@@ -28,8 +31,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
+
 import org.jboss.as.controller.AbstractAddStepHandler;
 import org.jboss.as.controller.AttributeDefinition;
+import org.jboss.as.controller.AttributeMarshaller;
 import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
 import org.jboss.as.controller.OperationStepHandler;
@@ -73,6 +80,24 @@ class RealmMapperDefinitions {
         .build();
 
     static final SimpleMapAttributeDefinition REALM_REALM_MAP = new SimpleMapAttributeDefinition.Builder(ElytronDescriptionConstants.REALM_MAP, ModelType.STRING, true)
+        .setAttributeMarshaller(new AttributeMarshaller() {
+
+                @Override
+                public void marshallAsElement(AttributeDefinition attribute, ModelNode resourceModel, boolean marshallDefault,
+                        XMLStreamWriter writer) throws XMLStreamException {
+                    resourceModel = resourceModel.get(attribute.getName());
+                    if (resourceModel.isDefined()) {
+                        writer.writeStartElement(attribute.getName());
+                        for (ModelNode property : resourceModel.asList()) {
+                            writer.writeEmptyElement(REALM_MAPPING);
+                            writer.writeAttribute(FROM, property.asProperty().getName());
+                            writer.writeAttribute(TO, property.asProperty().getValue().asString());
+                            }
+                        writer.writeEndElement();
+                        }
+                    }
+
+                })
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
         .build();
 
