@@ -47,7 +47,9 @@ interface ElytronDescriptionConstants {
     String CREDENTIAL = "credential";
     String CUSTOM_NAME_REWRITER = "custom-name-rewriter";
     String CUSTOM_REALM = "custom-realm";
+    String CUSTOM_REALM_MAPPER = "custom-realm-mapper";
     String DEFAULT_REALM = "default_realm";
+    String DELEGATE_REALM_MAPPER = "delegate-realm-mapper";
     String DIR_CONTEXT = "dir-context";
     String ENCODED = "encoded";
     String ENTRY_TYPE = "entry-type";
@@ -70,6 +72,7 @@ interface ElytronDescriptionConstants {
     String LOADED_PROVIDER = "loaded-provider";
     String LOADED_PROVIDERS = "loaded-providers";
     String LOAD_SERVICES = "load-services";
+    String MAPPED_REGEX_REALM_MAPPER = "mapped-regex-realm-mapper";
     String MATCH = "match";
     String MAPPERS = "mappers";
     String MODIFIED = "modified";
@@ -97,6 +100,7 @@ interface ElytronDescriptionConstants {
     String PROVIDER_LOADER = "provider-loader";
     String PROVIDER_LOADERS = "provider-loaders";
     String PUBLIC_KEY = "public-key";
+    String REALM_MAP = "realm-map";
     String REALM = "realm";
     String REALMS = "realms";
     String REGEX_NAME_REWRITER = "regex-name-rewriter";
@@ -116,6 +120,7 @@ interface ElytronDescriptionConstants {
     String SERVICES = "services";
     String SIGNATURE = "signature";
     String SIGNATURE_ALGORITHM = "signature-algorithm";
+    String SIMPLE_REGEX_REALM_MAPPER = "simple-regex-realm-mapper";
     String SIZE = "size";
     String SLOT = "slot";
     String STATE = "state";

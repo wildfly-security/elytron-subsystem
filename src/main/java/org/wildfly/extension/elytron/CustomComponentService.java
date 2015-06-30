@@ -38,6 +38,8 @@ import org.jboss.msc.service.StopContext;
  */
 class CustomComponentService<T> implements Service<T> {
 
+    // TODO - No injection so all of this could probably move to the definition and just use the TrivialService.
+
     private final Class<T> type;
     private final String module;
     private final String slot;

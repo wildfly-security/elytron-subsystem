@@ -160,7 +160,7 @@ class MapperParser {
                         name = value;
                         break;
                     case PATTERN:
-                        NameRewriterDefinitions.PATTERN.parseAndSetParameter(value, addNameRewriter, reader);
+                        RegexAttributeDefinitions.PATTERN.parseAndSetParameter(value, addNameRewriter, reader);
                         break;
                     case REPLACEMENT:
                         NameRewriterDefinitions.REPLACEMENT.parseAndSetParameter(value, addNameRewriter, reader);
@@ -207,7 +207,7 @@ class MapperParser {
                         name = value;
                         break;
                     case PATTERN:
-                        NameRewriterDefinitions.PATTERN.parseAndSetParameter(value, addNameRewriter, reader);
+                        RegexAttributeDefinitions.PATTERN.parseAndSetParameter(value, addNameRewriter, reader);
                         break;
                     case MATCH:
                         NameRewriterDefinitions.MATCH.parseAndSetParameter(value, addNameRewriter, reader);
@@ -284,7 +284,7 @@ class MapperParser {
                 ModelNode nameRewriter = current.getValue();
                 writer.writeStartElement(REGEX_NAME_REWRITER);
                 writer.writeAttribute(NAME, current.getName());
-                NameRewriterDefinitions.PATTERN.marshallAsAttribute(nameRewriter, writer);
+                RegexAttributeDefinitions.PATTERN.marshallAsAttribute(nameRewriter, writer);
                 NameRewriterDefinitions.REPLACEMENT.marshallAsAttribute(nameRewriter, writer);
                 NameRewriterDefinitions.REPLACE_ALL.marshallAsAttribute(nameRewriter, writer);
                 writer.writeEndElement();
@@ -304,7 +304,7 @@ class MapperParser {
                 ModelNode nameRewriter = current.getValue();
                 writer.writeStartElement(REGEX_NAME_VALIDATING_REWRITER);
                 writer.writeAttribute(NAME, current.getName());
-                NameRewriterDefinitions.PATTERN.marshallAsAttribute(nameRewriter, writer);
+                RegexAttributeDefinitions.PATTERN.marshallAsAttribute(nameRewriter, writer);
                 NameRewriterDefinitions.MATCH.marshallAsAttribute(nameRewriter, writer);
                 writer.writeEndElement();
             }

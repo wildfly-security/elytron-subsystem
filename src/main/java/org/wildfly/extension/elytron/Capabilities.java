@@ -25,6 +25,7 @@ import org.jboss.as.controller.capability.RuntimeCapability;
 import org.wildfly.security.auth.login.SecurityDomain;
 import org.wildfly.security.auth.spi.SecurityRealm;
 import org.wildfly.security.auth.util.NameRewriter;
+import org.wildfly.security.auth.util.RealmMapper;
 
 
 /**
@@ -57,6 +58,12 @@ class Capabilities {
     static final RuntimeCapability<Void> PROVIDERS_RUNTIME_CAPABILITY =  RuntimeCapability
         .Builder.of(PROVIDERS_CAPABILITY, true, Provider[].class)
         .build();
+
+    static final String REALM_MAPPER_CAPABILITY = CAPABILITY_BASE + "realm-mapper";
+
+    static final RuntimeCapability<Void> REALM_MAPPER_RUNTIME_CAPABILITY =  RuntimeCapability
+            .Builder.of(REALM_MAPPER_CAPABILITY, true, RealmMapper.class)
+            .build();
 
     static final String SECURITY_DOMAIN_CAPABILITY = CAPABILITY_BASE + "security-domain";
 

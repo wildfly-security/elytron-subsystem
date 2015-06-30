@@ -18,6 +18,7 @@
 
 package org.wildfly.extension.elytron;
 import static org.wildfly.extension.elytron.Capabilities.NAME_REWRITER_RUNTIME_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.REALM_MAPPER_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
 
@@ -40,6 +41,7 @@ import org.jboss.msc.service.ServiceRegistry;
 import org.jboss.msc.service.ServiceTarget;
 import org.wildfly.security.auth.spi.SecurityRealm;
 import org.wildfly.security.auth.util.NameRewriter;
+import org.wildfly.security.auth.util.RealmMapper;
 
 /**
  * Top level {@link ResourceDefinition} for the Elytron subsystem.
@@ -81,6 +83,11 @@ class ElytronDefinition extends SimpleResourceDefinition {
         resourceRegistration.registerSubModel(new CustomComponentDefinition<NameRewriter>(NameRewriter.class, NAME_REWRITER_RUNTIME_CAPABILITY, ElytronDescriptionConstants.CUSTOM_NAME_REWRITER));
         resourceRegistration.registerSubModel(NameRewriterDefinitions.getRegexNameRewriterDefinition());
         resourceRegistration.registerSubModel(NameRewriterDefinitions.getRegexNameValidatingRewriterDefinition());
+
+        // Realm Mappers
+        resourceRegistration.registerSubModel(new CustomComponentDefinition<RealmMapper>(RealmMapper.class, REALM_MAPPER_RUNTIME_CAPABILITY, ElytronDescriptionConstants.CUSTOM_REALM_MAPPER));
+        resourceRegistration.registerSubModel(RealmMapperDefinitions.getMappedRegexRealmMapper());
+        resourceRegistration.registerSubModel(RealmMapperDefinitions.getSimpleRegexRealmMapperDefinition());
 
         // TLS Building Blocks
         resourceRegistration.registerSubModel(new KeyStoreDefinition());

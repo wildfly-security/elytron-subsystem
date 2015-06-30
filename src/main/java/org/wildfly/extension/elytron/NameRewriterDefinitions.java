@@ -19,7 +19,7 @@ package org.wildfly.extension.elytron;
 
 import static org.wildfly.extension.elytron.Capabilities.NAME_REWRITER_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
-import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
+import static org.wildfly.extension.elytron.RegexAttributeDefinitions.PATTERN;
 
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
@@ -39,19 +39,14 @@ import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
 import org.jboss.as.controller.SimpleResourceDefinition;
 import org.jboss.as.controller.capability.RuntimeCapability;
-import org.jboss.as.controller.operations.validation.StringLengthValidator;
 import org.jboss.as.controller.registry.AttributeAccess;
 import org.jboss.as.controller.registry.ManagementResourceRegistration;
 import org.jboss.as.controller.registry.OperationEntry;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
-import org.jboss.msc.service.Service;
 import org.jboss.msc.service.ServiceController.Mode;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.ServiceTarget;
-import org.jboss.msc.service.StartContext;
-import org.jboss.msc.service.StartException;
-import org.jboss.msc.service.StopContext;
 import org.wildfly.security.auth.util.NameRewriter;
 import org.wildfly.security.auth.util.RegexNameRewriter;
 import org.wildfly.security.auth.util.RegexNameValidatingRewriter;
@@ -62,13 +57,6 @@ import org.wildfly.security.auth.util.RegexNameValidatingRewriter;
  * @author <a href="mailto:darran.lofthouse@jboss.com">Darran Lofthouse</a>
  */
 class NameRewriterDefinitions {
-
-    static final SimpleAttributeDefinition PATTERN = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PATTERN, ModelType.STRING, false)
-        .setAllowExpression(true)
-        .setValidator(new RexExValidator())
-        .setMinSize(1)
-        .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
-        .build();
 
     static final SimpleAttributeDefinition REPLACEMENT = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.REPLACEMENT, ModelType.STRING, false)
         .setAllowExpression(true)
@@ -180,27 +168,6 @@ class NameRewriterDefinitions {
 
     }
 
-    private static class RexExValidator extends StringLengthValidator {
-
-        private RexExValidator() {
-            super(1, false, false);
-        }
-
-        @Override
-        public void validateParameter(String parameterName, ModelNode value) throws OperationFailedException {
-            super.validateParameter(parameterName, value);
-
-            String pattern = value.asString();
-
-            try {
-                Pattern.compile(pattern);
-            } catch (IllegalArgumentException e) {
-                throw ROOT_LOGGER.invalidRegularExpression(pattern, e);
-            }
-        }
-
-    }
-
     private abstract static class NameRewriterAddHandler extends AbstractAddStepHandler {
 
         private NameRewriterAddHandler(final AttributeDefinition[] attributes) {
@@ -214,7 +181,7 @@ class NameRewriterDefinitions {
             RuntimeCapability<Void> runtimeCapability = RuntimeCapability.fromBaseCapability(NAME_REWRITER_RUNTIME_CAPABILITY, context.getCurrentAddressValue());
             ServiceName realmName = runtimeCapability.getCapabilityServiceName(NameRewriter.class);
 
-            NameRewriterService nameRewriterService = new NameRewriterService(getNameRewriterSupplier(context, operation, model));
+            TrivialService<NameRewriter> nameRewriterService = new TrivialService<NameRewriter>(getNameRewriterSupplier(context, operation, model));
 
             commonDependencies(serviceTarget.addService(realmName, nameRewriterService))
                 .setInitialMode(Mode.ACTIVE)
@@ -250,30 +217,4 @@ class NameRewriterDefinitions {
         }
     }
 
-    private static class NameRewriterService implements Service<NameRewriter> {
-
-        private final Supplier<NameRewriter> nameRewriterSupplier;
-
-        private volatile NameRewriter nameRewriter;
-
-        private NameRewriterService(final Supplier<NameRewriter> nameRewriterSupplier) {
-            this.nameRewriterSupplier = nameRewriterSupplier;
-        }
-
-        @Override
-        public void start(StartContext context) throws StartException {
-            nameRewriter = nameRewriterSupplier.get();
-        }
-
-        @Override
-        public void stop(StopContext context) {
-            nameRewriter = null;
-        }
-
-        @Override
-        public NameRewriter getValue() throws IllegalStateException, IllegalArgumentException {
-            return nameRewriter;
-        }
-
-    }
 }
