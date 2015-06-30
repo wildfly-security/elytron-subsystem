@@ -33,6 +33,7 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME_REW
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.POST_REALM_NAME_REWRITER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PRE_REALM_NAME_REWRITER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REALM;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REALM_MAPPER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REALMS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SECURITY_DOMAIN;
 import static org.wildfly.extension.elytron.ElytronSubsystemParser.verifyNamespace;
@@ -75,6 +76,9 @@ class DomainParser {
                         break;
                     case POST_REALM_NAME_REWRITER:
                         DomainDefinition.POST_REALM_NAME_REWRITER.parseAndSetParameter(value, addDomain, reader);
+                        break;
+                    case REALM_MAPPER:
+                        DomainDefinition.REALM_MAPPER.parseAndSetParameter(value, addDomain, reader);
                         break;
                     default:
                         throw unexpectedAttribute(reader, i);
@@ -152,6 +156,7 @@ class DomainParser {
         writer.writeAttribute(NAME, name);
         DomainDefinition.PRE_REALM_NAME_REWRITER.marshallAsAttribute(domain, writer);
         DomainDefinition.POST_REALM_NAME_REWRITER.marshallAsAttribute(domain, writer);
+        DomainDefinition.REALM_MAPPER.marshallAsAttribute(domain, writer);
 
         String defaultRealm = domain.require(DEFAULT_REALM).asString();
         List<ModelNode> realms = domain.get(REALMS).asList();

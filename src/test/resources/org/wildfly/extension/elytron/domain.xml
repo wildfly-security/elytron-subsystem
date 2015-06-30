@@ -1,6 +1,6 @@
 <subsystem xmlns="urn:wildfly:elytron:1.0">
     <security-domains>
-        <security-domain name="MyDomain" pre-realm-name-rewriter="RegexOne" post-realm-name-rewriter="RegexTwo">
+        <security-domain name="MyDomain" pre-realm-name-rewriter="RegexOne" post-realm-name-rewriter="RegexTwo" realm-mapper="RegexMapper">
             <realm name="RealmTwo" />
             <realm name="RealmOne" name-rewriter="RegexThree" />
             <realm name="RealmThree" />
@@ -15,5 +15,7 @@
         <regex-name-rewriter name="RegexOne" pattern="a" replacement="b" />
         <regex-name-rewriter name="RegexTwo" pattern="c" replacement="d" />
         <regex-name-rewriter name="RegexThree" pattern="e" replacement="f" />
+        
+        <simple-regex-realm-mapper name="RegexMapper" pattern="f" />
     </mappers>
 </subsystem>

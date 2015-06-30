@@ -102,6 +102,7 @@ interface ElytronDescriptionConstants {
     String PROVIDER_LOADERS = "provider-loaders";
     String PUBLIC_KEY = "public-key";
     String REALM_MAP = "realm-map";
+    String REALM_MAPPER = "realm-mapper";
     String REALM_MAPPING = "realm-mapping";
     String REALM = "realm";
     String REALMS = "realms";

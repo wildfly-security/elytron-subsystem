@@ -18,7 +18,7 @@
 
 package org.wildfly.extension.elytron;
 
-
+import static org.wildfly.extension.elytron.Capabilities.REALM_MAPPER_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.NAME_REWRITER_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SECURITY_DOMAIN_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SECURITY_DOMAIN_RUNTIME_CAPABILITY;
@@ -69,6 +69,7 @@ import org.wildfly.security.auth.login.ServerAuthenticationContext;
 import org.wildfly.security.auth.spi.CredentialSupport;
 import org.wildfly.security.auth.spi.SecurityRealm;
 import org.wildfly.security.auth.util.NameRewriter;
+import org.wildfly.security.auth.util.RealmMapper;
 import org.wildfly.security.password.Password;
 import org.wildfly.security.password.PasswordFactory;
 import org.wildfly.security.password.interfaces.ClearPassword;
@@ -104,6 +105,13 @@ class DomainDefinition extends SimpleResourceDefinition {
         .setCapabilityReference(NAME_REWRITER_CAPABILITY, SECURITY_DOMAIN_CAPABILITY, true)
         .build();
 
+    static final SimpleAttributeDefinition REALM_MAPPER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.REALM_MAPPER, ModelType.STRING, true)
+        .setAllowExpression(true)
+        .setMinSize(1)
+        .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+        .setCapabilityReference(REALM_MAPPER_CAPABILITY, SECURITY_DOMAIN_CAPABILITY, true)
+        .build();
+
     static final SimpleAttributeDefinition REALM_NAME = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.REALM, ModelType.STRING, false)
         .setXmlName(ElytronDescriptionConstants.NAME)
         .setAllowExpression(true)
@@ -125,7 +133,7 @@ class DomainDefinition extends SimpleResourceDefinition {
         .build();
 
 
-    private static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] { PRE_REALM_NAME_REWRITER, POST_REALM_NAME_REWRITER, DEFAULT_REALM, REALMS };
+    private static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] { PRE_REALM_NAME_REWRITER, POST_REALM_NAME_REWRITER, REALM_MAPPER, DEFAULT_REALM, REALMS };
 
     private static final DomainAddHandler ADD = new DomainAddHandler();
     private static final DomainRemoveHandler REMOVE = new DomainRemoveHandler(ADD);
@@ -167,6 +175,7 @@ class DomainDefinition extends SimpleResourceDefinition {
 
         String preRealmNameRewriter = asStringIfDefined(context, PRE_REALM_NAME_REWRITER, model);
         String postRealmNameRewriter = asStringIfDefined(context, POST_REALM_NAME_REWRITER, model);
+        String realmMapper = asStringIfDefined(context, REALM_MAPPER, model);
 
         DomainService domain = new DomainService(simpleName, defaultRealm, preRealmNameRewriter, postRealmNameRewriter);
 
@@ -175,6 +184,13 @@ class DomainDefinition extends SimpleResourceDefinition {
 
         injectNameRewriter(preRealmNameRewriter, context, domainBuilder, domain);
         injectNameRewriter(postRealmNameRewriter, context, domainBuilder, domain);
+
+        if (realmMapper != null) {
+            String runtimeCapability = RuntimeCapability.buildDynamicCapabilityName(REALM_MAPPER_CAPABILITY, realmMapper);
+            ServiceName realmMapperServiceName = context.getCapabilityServiceName(runtimeCapability, RealmMapper.class);
+
+            domainBuilder.addDependency(realmMapperServiceName, RealmMapper.class, domain.getRealmMapperInjector());
+        }
 
         for (ModelNode current : realms) {
             String realmName = REALM_NAME.resolveModelAttribute(context, current).asString();

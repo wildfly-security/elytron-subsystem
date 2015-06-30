@@ -35,6 +35,7 @@ import org.wildfly.security.auth.login.SecurityDomain;
 import org.wildfly.security.auth.login.SecurityDomain.RealmBuilder;
 import org.wildfly.security.auth.spi.SecurityRealm;
 import org.wildfly.security.auth.util.NameRewriter;
+import org.wildfly.security.auth.util.RealmMapper;
 
 
 /**
@@ -53,6 +54,7 @@ class DomainService implements Service<SecurityDomain> {
     private final Map<String, InjectedValue<NameRewriter>> nameRewriters = new HashMap<>();
     private final Map<String, InjectedValue<SecurityRealm>> realms = new HashMap<>();
     private final Map<String, String> realmRewriterMap = new HashMap<String, String>();
+    private final InjectedValue<RealmMapper> realmMapperInjector = new InjectedValue<RealmMapper>();
 
     DomainService(final String name, final String defaultRealm, final String preRealmNameRewriter, final String postRealmNameRewriter) {
         this.name = name;
@@ -85,6 +87,10 @@ class DomainService implements Service<SecurityDomain> {
         realmRewriterMap.put(realmName, nameRewriterName);
     }
 
+    Injector<RealmMapper> getRealmMapperInjector() {
+        return realmMapperInjector;
+    }
+
     @Override
     public void start(StartContext context) throws StartException {
         SecurityDomain.Builder builder = SecurityDomain.builder();
@@ -94,6 +100,11 @@ class DomainService implements Service<SecurityDomain> {
         }
         if (postRealmNameRewriter != null) {
             builder.setPostRealmRewriter(nameRewriters.get(postRealmNameRewriter).getValue());
+        }
+
+        RealmMapper realmMapper = realmMapperInjector.getOptionalValue();
+        if (realmMapper != null) {
+            builder.setRealmMapper(realmMapper);
         }
 
         builder.setDefaultRealmName(defaultRealm);

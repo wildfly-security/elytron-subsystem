@@ -235,6 +235,13 @@
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
+        <xs:attribute name="realm-mapper" type="xs:string">
+            <xs:annotation>
+                <xs:documentation>
+                    Reference to a RealmMapper to be used by this security domain.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
     </xs:complexType>
 
     <xs:complexType name="realmRefType">
