@@ -18,9 +18,6 @@
 
 package org.wildfly.extension.elytron;
 
-import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY;
-import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
-
 import org.jboss.as.controller.AbstractAddStepHandler;
 import org.jboss.as.controller.AttributeDefinition;
 import org.jboss.as.controller.OperationContext;
@@ -45,14 +42,14 @@ import org.wildfly.extension.elytron.LdapAttributeDefinitions.DirContextAttribut
 import org.wildfly.extension.elytron.LdapAttributeDefinitions.PrincipalMappingAttributes;
 import org.wildfly.security.auth.provider.ldap.DirContextFactory;
 import org.wildfly.security.auth.provider.ldap.LdapSecurityRealmBuilder;
+import org.wildfly.security.auth.provider.ldap.LdapSecurityRealmBuilder.PrincipalMappingBuilder;
 import org.wildfly.security.auth.provider.ldap.SimpleDirContextFactoryBuilder;
-import org.wildfly.security.auth.spi.CredentialSupport;
 import org.wildfly.security.auth.spi.SecurityRealm;
-import org.wildfly.security.password.interfaces.BSDUnixDESCryptPassword;
-import org.wildfly.security.password.interfaces.ClearPassword;
-import org.wildfly.security.password.interfaces.SaltedSimpleDigestPassword;
-import org.wildfly.security.password.interfaces.SimpleDigestPassword;
-import org.wildfly.security.password.interfaces.UnixDESCryptPassword;
+
+import java.util.Properties;
+
+import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY;
+import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
 
 /**
  * A {@link ResourceDefinition} for a {@link SecurityRealm} backed by LDAP.
@@ -86,6 +83,8 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
 
     private static class RealmAddHandler extends AbstractAddStepHandler {
 
+        public static final String CONNECTION_POOLING_PROPERTY = "com.sun.jndi.ldap.connect.pool";
+
         private RealmAddHandler() {
             super(SECURITY_REALM_RUNTIME_CAPABILITY, ATTRIBUTES);
         }
@@ -99,7 +98,6 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
 
             configurePrincipalMapping(context, model, builder);
             configureDirContext(context, model, builder);
-            configureCredentialSupport(builder);
 
             LdapRealmService ldapRealmService = new LdapRealmService(builder);
             ServiceBuilder<SecurityRealm> serviceBuilder = serviceTarget.addService(realmName, ldapRealmService);
@@ -110,11 +108,18 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
         private void configureDirContext(OperationContext context, ModelNode model, LdapSecurityRealmBuilder builder) throws OperationFailedException {
             ModelNode dirContextNode = DirContextAttributes.DIR_CONTEXT.resolveModelAttribute(context, model);
 
+            Properties connectionProperties = new Properties();
+
+            ModelNode enableConnectionPoolingNode = DirContextAttributes.ENABLE_CONNECTION_POOLING.resolveModelAttribute(context, dirContextNode);
+
+            connectionProperties.put(CONNECTION_POOLING_PROPERTY, enableConnectionPoolingNode.asBoolean());
+
             DirContextFactory dirContextFactory = SimpleDirContextFactoryBuilder.builder()
                     .setProviderUrl(DirContextAttributes.URL.resolveModelAttribute(context, dirContextNode).asString())
                     .setSecurityAuthentication(DirContextAttributes.AUTHENTICATION_LEVEL.resolveModelAttribute(context, dirContextNode).asString())
                     .setSecurityPrincipal(DirContextAttributes.PRINCIPAL.resolveModelAttribute(context, dirContextNode).asString())
                     .setSecurityCredential(DirContextAttributes.CREDENTIAL.resolveModelAttribute(context, dirContextNode).asString())
+                    .setConnectionProperties(connectionProperties)
                     .build();
 
             builder.setDirContextFactory(dirContextFactory);
@@ -123,25 +128,37 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
         private void configurePrincipalMapping(OperationContext context, ModelNode model, LdapSecurityRealmBuilder builder) throws OperationFailedException {
             ModelNode principalMappingNode = PrincipalMappingAttributes.PRINCIPAL_MAPPING.resolveModelAttribute(context, model);
 
-            builder.principalMapping()
-                .setNameAttribute(PrincipalMappingAttributes.NAME_ATTRIBUTE.resolveModelAttribute(context, principalMappingNode).asString())
-                .setNameIsDn(PrincipalMappingAttributes.USE_X500_NAME.resolveModelAttribute(context, principalMappingNode).asBoolean())
-                .setPrincipalUseDn(PrincipalMappingAttributes.USE_X500_PRINCIPAL.resolveModelAttribute(context, principalMappingNode).asBoolean())
-                .setRecursive(PrincipalMappingAttributes.USE_RECURSIVE_SEARCH.resolveModelAttribute(context, principalMappingNode).asBoolean())
-                .setReloadPrincipalName(PrincipalMappingAttributes.CACHE_PRINCIPAL.resolveModelAttribute(context, principalMappingNode).asBoolean())
-                .setSearchDn(PrincipalMappingAttributes.SEARCH_BASE_DN.resolveModelAttribute(context, principalMappingNode).asString())
-                .build();
-        }
+            PrincipalMappingBuilder principalMappingBuilder = PrincipalMappingBuilder.builder();
 
-        private void configureCredentialSupport(LdapSecurityRealmBuilder builder) {
-            // for now, we support all available credential types. In the future we may want to provide a specific configuration to enable/disable this.
-            builder.userPassword()
-                    .addCredentialSupport(ClearPassword.class, CredentialSupport.UNKNOWN)
-                    .addCredentialSupport(SimpleDigestPassword.class, CredentialSupport.UNKNOWN)
-                    .addCredentialSupport(SaltedSimpleDigestPassword.class, CredentialSupport.UNKNOWN)
-                    .addCredentialSupport(BSDUnixDESCryptPassword.class, CredentialSupport.UNKNOWN)
-                    .addCredentialSupport(UnixDESCryptPassword.class, CredentialSupport.UNKNOWN)
-                    .build();
+            ModelNode nameAttributeNode = PrincipalMappingAttributes.NAME_ATTRIBUTE.resolveModelAttribute(context, principalMappingNode);
+
+            principalMappingBuilder.setNameAttribute(nameAttributeNode.asString());
+
+            ModelNode usex500PrincipalNode = PrincipalMappingAttributes.USE_X500_PRINCIPAL.resolveModelAttribute(context, principalMappingNode);
+
+            if (usex500PrincipalNode.asBoolean()) {
+                principalMappingBuilder.useX500Principal();
+            }
+
+            ModelNode searchDnNode = PrincipalMappingAttributes.SEARCH_BASE_DN.resolveModelAttribute(context, principalMappingNode);
+
+            if (searchDnNode.isDefined()) {
+                principalMappingBuilder.setSearchDn(searchDnNode.asString());
+            }
+
+            ModelNode useRecursiveSearchNode = PrincipalMappingAttributes.USE_RECURSIVE_SEARCH.resolveModelAttribute(context, principalMappingNode);
+
+            if (useRecursiveSearchNode.asBoolean()) {
+                principalMappingBuilder.searchRecursive();
+            }
+
+            ModelNode cachePrincipalNode = PrincipalMappingAttributes.CACHE_PRINCIPAL.resolveModelAttribute(context, principalMappingNode);
+
+            if (cachePrincipalNode.asBoolean()) {
+                principalMappingBuilder.cachePrincipal();
+            }
+
+            builder.principalMapping(principalMappingBuilder.build());
         }
     }
 

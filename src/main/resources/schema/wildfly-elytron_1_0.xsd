@@ -267,7 +267,7 @@
             </xs:documentation>
         </xs:annotation>
         <xs:choice maxOccurs="unbounded">
-            <xs:element name="aggregate-realm" type="aggregatRealmType" minOccurs="0" maxOccurs="unbounded" /> 
+            <xs:element name="aggregate-realm" type="aggregatRealmType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="custom-realm" type="customRealmType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="jaas-realm" type="jaasRealmType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="keystore-realm" type="keyStoreRealmType" minOccurs="0" maxOccurs="unbounded" />
@@ -331,7 +331,7 @@
 		<xs:complexContent>
 		    <xs:extension base="realmType">
 		        <xs:sequence>
-		            <xs:element name="configuration" type="customComponentConfiguration" minOccurs="0"> 
+		            <xs:element name="configuration" type="customComponentConfiguration" minOccurs="0">
 		                <xs:annotation>
 		                    <xs:documentation>
 		                        The configuration to apply to the SecurityRealm implementation.
@@ -470,6 +470,13 @@
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
+        <xs:attribute name="enable-connection-pooling" type="xs:boolean" default="false" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    Indicates if connection pooling is enabled.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
     </xs:complexType>
 
     <xs:complexType name="principalMappingType">
@@ -478,13 +485,6 @@
                 The configuration options that define how principals are mapped to their corresponding entries in the underlying LDAP server.
             </xs:documentation>
         </xs:annotation>
-        <xs:attribute name="use-x500-name" type="xs:boolean" default="false" use="optional">
-            <xs:annotation>
-                <xs:documentation>
-                    Indicates if user names follow X.500 standard format.
-                </xs:documentation>
-            </xs:annotation>
-        </xs:attribute>
         <xs:attribute name="name-attribute" type="xs:string" use="optional">
             <xs:annotation>
                 <xs:documentation>
@@ -496,13 +496,6 @@
             <xs:annotation>
                 <xs:documentation>
                     Indicates if the realm must return a principal as a X500Principal instance.
-                </xs:documentation>
-            </xs:annotation>
-        </xs:attribute>
-        <xs:attribute name="cache-principal" type="xs:boolean" default="false" use="optional">
-            <xs:annotation>
-                <xs:documentation>
-                    Indicates if the principal obtained from a realm should be cached.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
@@ -520,9 +513,16 @@
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
+        <xs:attribute name="cache-principal" type="xs:boolean" default="false" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    Indicates if the principal obtained from a realm should be cached.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
     </xs:complexType>
-    
-    <!-- 
+
+    <!--
         General Mappers and Rewriters
      -->
 
@@ -645,7 +645,7 @@
             </xs:extension>
         </xs:complexContent>
     </xs:complexType>
-    
+
     <xs:complexType name="aggregateNameRewriterType">
         <xs:annotation>
             <xs:documentation>
@@ -726,7 +726,7 @@
                 <xs:attribute name="delegate-realm-mapper" type="xs:string">
                     <xs:annotation>
                         <xs:documentation>
-                            The RealmMapper to delegate to if the pattern does not match.  If no delegate is specified then the default realm on 
+                            The RealmMapper to delegate to if the pattern does not match.  If no delegate is specified then the default realm on
                             the domain will be used instead.
                         </xs:documentation>
                     </xs:annotation>
