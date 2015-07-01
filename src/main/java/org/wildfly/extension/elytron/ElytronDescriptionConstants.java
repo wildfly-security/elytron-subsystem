@@ -55,6 +55,7 @@ interface ElytronDescriptionConstants {
     String DEFAULT_REALM = "default_realm";
     String DELEGATE_REALM_MAPPER = "delegate-realm-mapper";
     String DIR_CONTEXT = "dir-context";
+    String ENABLE_CONNECTION_POOLING = "enable-connection-pooling";
     String ENCODED = "encoded";
     String EMPTY_ROLE_DECODER = "empty-role-decoder";
     String ENTRY_TYPE = "entry-type";
@@ -141,7 +142,6 @@ interface ElytronDescriptionConstants {
     String TO = "to";
     String TYPE = "type";
     String URL = "url";
-    String USE_X500_NAME = "use-x500-name";
     String USE_X500_PRINCIPAL = "use-x500-principal";
     String USE_RECURSIVE_SEARCH = "use-recursive-search";
     String USERS_PROPERTIES = "users-properties";

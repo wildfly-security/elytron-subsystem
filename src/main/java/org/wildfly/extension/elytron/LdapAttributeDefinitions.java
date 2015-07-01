@@ -33,15 +33,8 @@ class LdapAttributeDefinitions {
 
     static class PrincipalMappingAttributes {
 
-        static final SimpleAttributeDefinition USE_X500_NAME = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.USE_X500_NAME, ModelType.BOOLEAN, false)
-                .setDefaultValue(new ModelNode(false))
+        static final SimpleAttributeDefinition NAME_ATTRIBUTE = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.NAME_ATTRIBUTE, ModelType.STRING, false)
                 .setAllowExpression(true)
-                .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
-                .build();
-
-        static final SimpleAttributeDefinition NAME_ATTRIBUTE = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.NAME_ATTRIBUTE, ModelType.STRING, true)
-                .setAllowExpression(true)
-                .setAlternatives(ElytronDescriptionConstants.USE_X500_NAME)
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
 
@@ -51,15 +44,9 @@ class LdapAttributeDefinitions {
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
 
-        static final SimpleAttributeDefinition CACHE_PRINCIPAL = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.CACHE_PRINCIPAL, ModelType.BOOLEAN, false)
-                .setDefaultValue(new ModelNode(false))
-                .setAllowExpression(true)
-                .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
-                .build();
-
         static final SimpleAttributeDefinition USE_RECURSIVE_SEARCH = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.USE_RECURSIVE_SEARCH, ModelType.BOOLEAN, false)
                 .setRequires(ElytronDescriptionConstants.SEARCH_BASE_DN)
-                .setDefaultValue(new ModelNode(true))
+                .setDefaultValue(new ModelNode(false))
                 .setAllowExpression(true)
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
@@ -70,7 +57,13 @@ class LdapAttributeDefinitions {
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
 
-        static final SimpleAttributeDefinition[] ATTRIBUTES = new SimpleAttributeDefinition[] {USE_X500_NAME, NAME_ATTRIBUTE, USE_X500_PRINCIPAL, CACHE_PRINCIPAL, USE_RECURSIVE_SEARCH, SEARCH_BASE_DN};
+        static final SimpleAttributeDefinition CACHE_PRINCIPAL = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.CACHE_PRINCIPAL, ModelType.BOOLEAN, false)
+                .setDefaultValue(new ModelNode(false))
+                .setAllowExpression(true)
+                .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+                .build();
+
+        static final SimpleAttributeDefinition[] ATTRIBUTES = new SimpleAttributeDefinition[] {NAME_ATTRIBUTE, USE_X500_PRINCIPAL, USE_RECURSIVE_SEARCH, SEARCH_BASE_DN, CACHE_PRINCIPAL};
 
         static final ObjectTypeAttributeDefinition PRINCIPAL_MAPPING = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.PRINCIPAL_MAPPING, ATTRIBUTES)
                 .setAllowNull(false)
@@ -101,7 +94,13 @@ class LdapAttributeDefinitions {
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
 
-        static final SimpleAttributeDefinition[] ATTRIBUTES = new SimpleAttributeDefinition[] {URL, AUTHENTICATION_LEVEL, PRINCIPAL, CREDENTIAL};
+        static final SimpleAttributeDefinition ENABLE_CONNECTION_POOLING = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ENABLE_CONNECTION_POOLING, ModelType.BOOLEAN, false)
+                .setDefaultValue(new ModelNode(false))
+                .setAllowExpression(true)
+                .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+                .build();
+
+        static final SimpleAttributeDefinition[] ATTRIBUTES = new SimpleAttributeDefinition[] {URL, AUTHENTICATION_LEVEL, PRINCIPAL, CREDENTIAL, ENABLE_CONNECTION_POOLING};
 
         static final ObjectTypeAttributeDefinition DIR_CONTEXT = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.DIR_CONTEXT, ATTRIBUTES)
                 .setAllowNull(false)
