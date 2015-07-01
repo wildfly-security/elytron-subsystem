@@ -43,6 +43,7 @@
         <version.org.jboss.logging>3.1.4.GA</version.org.jboss.logging>
         <version.org.jboss.logging.tools>1.2.0.Final</version.org.jboss.logging.tools>
         <version.org.wildfly.checkstyle-config>1.0.2.Final</version.org.wildfly.checkstyle-config>
+        <version.org.wildfly.common>1.0.0.Alpha3</version.org.wildfly.common>
         <version.com.puppycrawl.tools.checkstyle>6.0</version.com.puppycrawl.tools.checkstyle>
         <version.junit>4.11</version.junit>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -267,6 +268,12 @@
             <type>pom</type>
             <scope>test</scope>
             <version>${version.wildfly.core}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.wildfly.common</groupId>
+            <artifactId>wildfly-common</artifactId>
+            <version>${version.org.wildfly.common}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
