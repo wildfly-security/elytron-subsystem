@@ -76,6 +76,12 @@ class NameRewriterDefinitions {
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
         .build();
 
+    static final SimpleAttributeDefinition CONSTANT = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.CONSTANT, ModelType.STRING, false)
+        .setAllowExpression(true)
+        .setMinSize(1)
+        .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+        .build();
+
     private static final AggregateComponentDefinition<NameRewriter> AGGREGATE_NAME_REWRITER = AggregateComponentDefinition.create(NameRewriter.class,
             ElytronDescriptionConstants.AGGREGATE_NAME_REWRITER, ElytronDescriptionConstants.NAME_REWRITERS, NAME_REWRITER_RUNTIME_CAPABILITY,
             (NameRewriter[] n) -> NameRewriter.aggregate(n));
@@ -90,6 +96,10 @@ class NameRewriterDefinitions {
 
     static ResourceDefinition getRegexNameValidatingRewriterDefinition() {
         return new RegexNameValidatingRewriterDefinition();
+    }
+
+    static ResourceDefinition getConstantNameRewriterDefinition() {
+        return new ConstantNameRewriterDefinition();
     }
 
     private static class RegexNameRewriterDefinition extends SimpleResourceDefinition {
@@ -164,6 +174,37 @@ class NameRewriterDefinitions {
             for (AttributeDefinition current : ATTRIBUTES) {
                 resourceRegistration.registerReadWriteAttribute(current, null, write);
             }
+        }
+
+    }
+
+    private static class ConstantNameRewriterDefinition extends SimpleResourceDefinition {
+
+        private static final AbstractAddStepHandler ADD = new NameRewriterAddHandler(new AttributeDefinition[] { CONSTANT }) {
+
+            @Override
+            protected Supplier<NameRewriter> getNameRewriterSupplier(OperationContext context, ModelNode operation,
+                    ModelNode model) throws OperationFailedException {
+                final String constant = CONSTANT.resolveModelAttribute(context, model).asString();
+                return () -> NameRewriter.constant(constant);
+            }
+
+        };
+
+        private static final AbstractRemoveStepHandler REMOVE = new NameRewriterRemoveHandler(ADD);
+
+        private ConstantNameRewriterDefinition() {
+            super(new Parameters(PathElement.pathElement(ElytronDescriptionConstants.CONSTANT_NAME_REWRITER),
+                    ElytronExtension.getResourceDescriptionResolver(ElytronDescriptionConstants.CONSTANT_NAME_REWRITER))
+                .setAddHandler(ADD)
+                .setRemoveHandler(REMOVE)
+                .setAddRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
+                .setRemoveRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES));
+        }
+
+        @Override
+        public void registerAttributes(ManagementResourceRegistration resourceRegistration) {
+                resourceRegistration.registerReadWriteAttribute(CONSTANT, null, new WriteAttributeHandler(ElytronDescriptionConstants.CONSTANT_NAME_REWRITER, CONSTANT) );
         }
 
     }

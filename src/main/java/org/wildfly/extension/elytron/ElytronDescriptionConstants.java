@@ -43,6 +43,8 @@ interface ElytronDescriptionConstants {
     String CONFIGURATION = "configuration";
     String CONFIGURATION_FILE = "configuration-file";
     String CONFIGURATION_PROPERTIES = "configuration-properties";
+    String CONSTANT = "constant";
+    String CONSTANT_NAME_REWRITER = "constant-name-rewriter";
     String CORE_SERVICE = "core-service";
     String CREATION_DATE = "creation-date";
     String CREDENTIAL = "credential";
