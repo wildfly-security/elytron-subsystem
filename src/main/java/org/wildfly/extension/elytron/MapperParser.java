@@ -449,7 +449,7 @@ class MapperParser {
 
         requireNoContent(reader);
 
-        addRoleDecoder.get(OP_ADDR).set(parentAddress).add(EMPTY_ROLE_DECODER, name);
+        addRoleDecoder.get(OP_ADDR).set(parentAddress).add(SIMPLE_ROLE_DECODER, name);
         operations.add(addRoleDecoder);
     }
 

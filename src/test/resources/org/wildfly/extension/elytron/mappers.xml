@@ -15,5 +15,9 @@
             <realm-mapping from="a" to="b" />
             <realm-mapping from="c" to="d" />
         </mapped-regex-realm-mapper>
+        
+        <custom-role-decoder name="CustomDecoderOne" class-name="org.wildfly.elytron.CustomRoleDecoder" module="f.g" slot="h" />
+        <empty-role-decoder name="EmptyRoleDecoder" />
+        <simple-role-decoder name="SimpleRoleDecoder" attribute="groups" />
     </mappers>
 </subsystem>

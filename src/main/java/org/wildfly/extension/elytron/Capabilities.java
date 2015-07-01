@@ -26,6 +26,7 @@ import org.wildfly.security.auth.login.SecurityDomain;
 import org.wildfly.security.auth.spi.SecurityRealm;
 import org.wildfly.security.auth.util.NameRewriter;
 import org.wildfly.security.auth.util.RealmMapper;
+import org.wildfly.security.authz.RoleDecoder;
 
 
 /**
@@ -68,7 +69,7 @@ class Capabilities {
     static final String ROLE_DECODER_CAPABILITY = CAPABILITY_BASE + "role-decoder";
 
     static final RuntimeCapability<Void> ROLE_DECODER_RUNTIME_CAPABILITY =  RuntimeCapability
-            .Builder.of(ROLE_DECODER_CAPABILITY, true, RealmMapper.class)
+            .Builder.of(ROLE_DECODER_CAPABILITY, true, RoleDecoder.class)
             .build();
 
     static final String SECURITY_DOMAIN_CAPABILITY = CAPABILITY_BASE + "security-domain";
