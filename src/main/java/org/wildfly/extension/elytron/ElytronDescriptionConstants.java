@@ -29,6 +29,7 @@ interface ElytronDescriptionConstants {
     String AGGREGATE_REALM = "aggregate-realm";
     String ALGORITHM = "algorithm";
     String ALIAS = "alias";
+    String ATTRIBUTE = "attribute";
     String AUTHENTICATION_LEVEL = "authentication-level";
     String AUTHENTICATION_REALM = "authentication-realm";
     String AUTHORIZATION_REALM = "authorization-realm";
@@ -48,10 +49,12 @@ interface ElytronDescriptionConstants {
     String CUSTOM_NAME_REWRITER = "custom-name-rewriter";
     String CUSTOM_REALM = "custom-realm";
     String CUSTOM_REALM_MAPPER = "custom-realm-mapper";
+    String CUSTOM_ROLE_DECODER = "custom-role-decoder";
     String DEFAULT_REALM = "default_realm";
     String DELEGATE_REALM_MAPPER = "delegate-realm-mapper";
     String DIR_CONTEXT = "dir-context";
     String ENCODED = "encoded";
+    String EMPTY_ROLE_DECODER = "empty-role-decoder";
     String ENTRY_TYPE = "entry-type";
     String FILE = "file";
     String FINGER_PRINT = "finger-print";
@@ -124,6 +127,7 @@ interface ElytronDescriptionConstants {
     String SIGNATURE = "signature";
     String SIGNATURE_ALGORITHM = "signature-algorithm";
     String SIMPLE_REGEX_REALM_MAPPER = "simple-regex-realm-mapper";
+    String SIMPLE_ROLE_DECODER = "simple-role-decoder";
     String SIZE = "size";
     String SLOT = "slot";
     String STATE = "state";

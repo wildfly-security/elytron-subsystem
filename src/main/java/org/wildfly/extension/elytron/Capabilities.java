@@ -65,6 +65,12 @@ class Capabilities {
             .Builder.of(REALM_MAPPER_CAPABILITY, true, RealmMapper.class)
             .build();
 
+    static final String ROLE_DECODER_CAPABILITY = CAPABILITY_BASE + "role-decoder";
+
+    static final RuntimeCapability<Void> ROLE_DECODER_RUNTIME_CAPABILITY =  RuntimeCapability
+            .Builder.of(ROLE_DECODER_CAPABILITY, true, RealmMapper.class)
+            .build();
+
     static final String SECURITY_DOMAIN_CAPABILITY = CAPABILITY_BASE + "security-domain";
 
     static final RuntimeCapability<Void> SECURITY_DOMAIN_RUNTIME_CAPABILITY = RuntimeCapability

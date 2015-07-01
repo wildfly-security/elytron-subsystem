@@ -17,6 +17,8 @@
  */
 
 package org.wildfly.extension.elytron;
+
+import static org.wildfly.extension.elytron.Capabilities.ROLE_DECODER_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.NAME_REWRITER_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.REALM_MAPPER_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY;
@@ -42,6 +44,7 @@ import org.jboss.msc.service.ServiceTarget;
 import org.wildfly.security.auth.spi.SecurityRealm;
 import org.wildfly.security.auth.util.NameRewriter;
 import org.wildfly.security.auth.util.RealmMapper;
+import org.wildfly.security.authz.RoleDecoder;
 
 /**
  * Top level {@link ResourceDefinition} for the Elytron subsystem.
@@ -88,6 +91,11 @@ class ElytronDefinition extends SimpleResourceDefinition {
         resourceRegistration.registerSubModel(new CustomComponentDefinition<RealmMapper>(RealmMapper.class, REALM_MAPPER_RUNTIME_CAPABILITY, ElytronDescriptionConstants.CUSTOM_REALM_MAPPER));
         resourceRegistration.registerSubModel(RealmMapperDefinitions.getMappedRegexRealmMapper());
         resourceRegistration.registerSubModel(RealmMapperDefinitions.getSimpleRegexRealmMapperDefinition());
+
+        // Role Decoders
+        resourceRegistration.registerSubModel(new CustomComponentDefinition<RoleDecoder>(RoleDecoder.class, ROLE_DECODER_RUNTIME_CAPABILITY, ElytronDescriptionConstants.CUSTOM_ROLE_DECODER));
+        resourceRegistration.registerSubModel(RoleDecoderDefinitions.getEmptyRoleDecoderDefinition());
+        resourceRegistration.registerSubModel(RoleDecoderDefinitions.getSimpleRoleDecoderDefinition());
 
         // TLS Building Blocks
         resourceRegistration.registerSubModel(new KeyStoreDefinition());

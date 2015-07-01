@@ -276,6 +276,4 @@ class RealmMapperDefinitions {
         }
     }
 
-
-
 }
