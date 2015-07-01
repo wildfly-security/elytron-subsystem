@@ -542,6 +542,7 @@
         </xs:annotation>
         <xs:choice maxOccurs="unbounded">
             <xs:element name="aggregate-name-rewriter" type="aggregateNameRewriterType" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="constant-name-rewriter" type="constantNameRewriter" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="custom-name-rewriter" type="customNameRewriterType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="regex-name-rewriter" type="regexNameRewriterType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="regex-name-validating-rewriter" type="regexNameValidatingRewriter" minOccurs="0" maxOccurs="unbounded" />
@@ -633,6 +634,25 @@
         </xs:complexContent>
     </xs:complexType>
 
+    <xs:complexType name="constantNameRewriter">
+        <xs:annotation>
+            <xs:documentation>
+                A NameWriter that always returns the same constant.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="nameRewriterType">
+                <xs:attribute name="constant" type="xs:string" use="required">
+                    <xs:annotation>
+                        <xs:documentation>
+                            The constant value that will always be returned by this NameRewriter.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    
     <xs:complexType name="customNameRewriterType">
         <xs:annotation>
             <xs:documentation>

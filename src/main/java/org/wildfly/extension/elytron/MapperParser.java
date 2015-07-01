@@ -30,9 +30,14 @@ import static org.jboss.as.controller.parsing.ParseUtils.requireSingleAttribute;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedAttribute;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedElement;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AGGREGATE_NAME_REWRITER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ATTRIBUTE;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CONSTANT;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CONSTANT_NAME_REWRITER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CUSTOM_NAME_REWRITER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CUSTOM_REALM_MAPPER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CUSTOM_ROLE_DECODER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.DELEGATE_REALM_MAPPER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.EMPTY_ROLE_DECODER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.FROM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MAPPED_REGEX_REALM_MAPPER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MAPPERS;
@@ -48,11 +53,8 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REGEX_NA
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REPLACEMENT;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REPLACE_ALL;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SIMPLE_REGEX_REALM_MAPPER;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.TO;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CUSTOM_ROLE_DECODER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SIMPLE_ROLE_DECODER;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.EMPTY_ROLE_DECODER;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ATTRIBUTE;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.TO;
 import static org.wildfly.extension.elytron.ElytronSubsystemParser.readCustomComponent;
 import static org.wildfly.extension.elytron.ElytronSubsystemParser.verifyNamespace;
 import static org.wildfly.extension.elytron.ElytronSubsystemParser.writeCustomComponent;
@@ -87,6 +89,9 @@ class MapperParser {
                 // Name Rewriters
                 case AGGREGATE_NAME_REWRITER:
                     readAggregateNameRewriterElement(parentAddress, reader, operations);
+                    break;
+                case CONSTANT_NAME_REWRITER:
+                    readConstantRewriterElement(parentAddress, reader, operations);
                     break;
                 case CUSTOM_NAME_REWRITER:
                     readCustomComponent(CUSTOM_NAME_REWRITER, parentAddress, reader, operations);
@@ -171,6 +176,47 @@ class MapperParser {
 
             requireNoContent(reader);
         }
+    }
+
+    private void readConstantRewriterElement(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations)
+            throws XMLStreamException {
+        ModelNode addNameRewriter = new ModelNode();
+        addNameRewriter.get(OP).set(ADD);
+
+        Set<String> requiredAttributes = new HashSet<String>(Arrays.asList(new String[] { NAME, CONSTANT }));
+
+        String name = null;
+
+        final int count = reader.getAttributeCount();
+        for (int i = 0; i < count; i++) {
+            final String value = reader.getAttributeValue(i);
+            if (!isNoNamespaceAttribute(reader, i)) {
+                throw unexpectedAttribute(reader, i);
+            } else {
+                String attribute = reader.getAttributeLocalName(i);
+                requiredAttributes.remove(attribute);
+                switch (attribute) {
+                    case NAME:
+                        name = value;
+                        break;
+                    case CONSTANT:
+                        NameRewriterDefinitions.CONSTANT.parseAndSetParameter(value, addNameRewriter, reader);
+                        break;
+                    default:
+                        throw unexpectedAttribute(reader, i);
+                }
+            }
+        }
+
+        if (requiredAttributes.isEmpty() == false) {
+            throw missingRequired(reader, requiredAttributes);
+        }
+
+        addNameRewriter.get(OP_ADDR).set(parentAddress).add(CONSTANT_NAME_REWRITER, name);
+
+        operations.add(addNameRewriter);
+
+        requireNoContent(reader);
     }
 
     private void readRegexNameRewriterElement(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations)
@@ -500,6 +546,24 @@ class MapperParser {
         return false;
     }
 
+    private boolean writeConstantNameRewriters(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
+        if (subsystem.hasDefined(CONSTANT_NAME_REWRITER)) {
+            startMappers(started, writer);
+            List<Property> nameRewriters = subsystem.require(CONSTANT_NAME_REWRITER).asPropertyList();
+            for (Property current : nameRewriters) {
+                ModelNode nameRewriter = current.getValue();
+                writer.writeStartElement(CONSTANT_NAME_REWRITER);
+                writer.writeAttribute(NAME, current.getName());
+                NameRewriterDefinitions.CONSTANT.marshallAsAttribute(nameRewriter, writer);
+                writer.writeEndElement();
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
     private boolean writeRegexNameRewriters(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (subsystem.hasDefined(REGEX_NAME_REWRITER)) {
             startMappers(started, writer);
@@ -648,6 +712,7 @@ class MapperParser {
         boolean mappersStarted = false;
 
         mappersStarted = mappersStarted | writeAggregateNameRewriters(mappersStarted, subsystem, writer);
+        mappersStarted = mappersStarted | writeConstantNameRewriters(mappersStarted, subsystem, writer);
         mappersStarted = mappersStarted | writeCustomNameRewriters(mappersStarted, subsystem, writer);
         mappersStarted = mappersStarted | writeRegexNameRewriters(mappersStarted, subsystem, writer);
         mappersStarted = mappersStarted | writeRegexNameValidatingRewriters(mappersStarted, subsystem, writer);
