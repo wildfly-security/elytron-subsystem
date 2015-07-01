@@ -538,6 +538,11 @@
             <xs:element name="custom-name-rewriter" type="customNameRewriterType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="regex-name-rewriter" type="regexNameRewriterType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="regex-name-validating-rewriter" type="regexNameValidatingRewriter" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="custom-realm-mapper" type="customRealmMapperType" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="simple-regex-realm-mapper" type="simpleRegexRealmMapperType" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="mapped-regex-realm-mapper" type="mappedRegedRealmMapperType" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="custom-role-decoder" type="customRoleDecoderType" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="empty-role-decoder" type="emptyRoleDecoderType" minOccurs="0" maxOccurs="unbounded" />
         </xs:choice>
     </xs:complexType>
 
@@ -775,6 +780,78 @@
                         <xs:documentation>
                             The RealmMapper to delegate to if the pattern does not match.  If no delegate is specified then the default realm on 
                             the domain will be used instead.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="roleDecoderType" abstract="true">
+        <xs:annotation>
+            <xs:documentation>
+                Base type for all RoleDecoder definitions.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="name" type="xs:string" use="required">
+            <xs:annotation>
+                <xs:documentation>
+                    The unique name for the RoleDecoder, note names used for RoleDecoders must be unique
+                    across the whole context.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:complexType>
+    
+    <xs:complexType name="customRoleDecoderType">
+        <xs:annotation>
+            <xs:documentation>
+                Generic definition for a custom RoleDecoder implementation.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="roleDecoderType">
+                <xs:sequence>
+                    <xs:element name="configuration"
+                        type="customComponentConfiguration" minOccurs="0">
+                        <xs:annotation>
+                            <xs:documentation>
+                                The configuration to apply to the RoleDecoder implementation.
+
+                                Note: If configuration is supplied the RoleDecoder MUST implement the Configurable interface.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+                <xs:attributeGroup ref="customComponentAttributes" />
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    
+    <xs:complexType name="emptyRoleDecoderType">
+        <xs:annotation>
+            <xs:documentation>
+                A RoleDecoder definition that returns no roles.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="roleDecoderType">
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="simpleRoleDecoderType">
+        <xs:annotation>
+            <xs:documentation>
+                A RoleDecoder definition that maps a single attribute to roles.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="roleDecoderType">
+                <xs:attribute name="attribute" type="xs:string" use="required">
+                    <xs:annotation>
+                        <xs:documentation>
+                            The attribute to take from the identity and map directly to roles.
                         </xs:documentation>
                     </xs:annotation>
                 </xs:attribute>
