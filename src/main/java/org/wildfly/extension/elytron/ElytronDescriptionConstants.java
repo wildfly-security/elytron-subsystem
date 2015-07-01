@@ -52,7 +52,7 @@ interface ElytronDescriptionConstants {
     String CUSTOM_REALM = "custom-realm";
     String CUSTOM_REALM_MAPPER = "custom-realm-mapper";
     String CUSTOM_ROLE_DECODER = "custom-role-decoder";
-    String DEFAULT_REALM = "default_realm";
+    String DEFAULT_REALM = "default-realm";
     String DELEGATE_REALM_MAPPER = "delegate-realm-mapper";
     String DIR_CONTEXT = "dir-context";
     String ENABLE_CONNECTION_POOLING = "enable-connection-pooling";

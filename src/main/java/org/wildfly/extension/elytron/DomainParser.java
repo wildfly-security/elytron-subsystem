@@ -39,7 +39,10 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ROLE_DEC
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SECURITY_DOMAIN;
 import static org.wildfly.extension.elytron.ElytronSubsystemParser.verifyNamespace;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.xml.stream.XMLStreamException;
 
@@ -59,6 +62,8 @@ class DomainParser {
         ModelNode addDomain = new ModelNode();
         addDomain.get(OP).set(ADD);
 
+        Set<String> requiredAttributes = new HashSet<String>(Arrays.asList(new String[] { NAME, DEFAULT_REALM }));
+
         String name = null;
 
         final int count = reader.getAttributeCount();
@@ -68,9 +73,13 @@ class DomainParser {
                 throw unexpectedAttribute(reader, i);
             } else {
                 String attribute = reader.getAttributeLocalName(i);
+                requiredAttributes.remove(attribute);
                 switch (attribute) {
                     case NAME:
                         name = value;
+                        break;
+                    case DEFAULT_REALM:
+                        DomainDefinition.DEFAULT_REALM.parseAndSetParameter(value, addDomain, reader);
                         break;
                     case PRE_REALM_NAME_REWRITER:
                         DomainDefinition.PRE_REALM_NAME_REWRITER.parseAndSetParameter(value, addDomain, reader);
@@ -87,14 +96,13 @@ class DomainParser {
             }
         }
 
-        if (name == null) {
-            throw missingRequired(reader, NAME);
+        if (requiredAttributes.isEmpty() == false) {
+            throw missingRequired(reader, requiredAttributes);
         }
 
         addDomain.get(OP_ADDR).set(parentAddress).add(SECURITY_DOMAIN, name);
 
-        String defaultRealm = null;
-
+        boolean realmFound = false;
         while (reader.hasNext() && reader.nextTag() != END_ELEMENT) {
             verifyNamespace(reader);
             String localName = reader.getLocalName();
@@ -102,16 +110,13 @@ class DomainParser {
                 throw unexpectedElement(reader);
             }
 
-            String realmName = parseRealmElement(addDomain, reader);
-            if (defaultRealm == null) {
-                defaultRealm = realmName;
-            }
+            parseRealmElement(addDomain, reader);
+            realmFound = true;
         }
 
-        if (defaultRealm == null) {
+        if (realmFound == false) {
             throw missingRequired(reader, REALM);
         }
-        DomainDefinition.DEFAULT_REALM.parseAndSetParameter(defaultRealm, addDomain, reader);
         operations.add(addDomain);
     }
 
@@ -159,25 +164,14 @@ class DomainParser {
         writer.writeStartElement(SECURITY_DOMAIN);
         writer.writeAttribute(NAME, name);
         DomainDefinition.PRE_REALM_NAME_REWRITER.marshallAsAttribute(domain, writer);
+        DomainDefinition.DEFAULT_REALM.marshallAsAttribute(domain, writer);
         DomainDefinition.POST_REALM_NAME_REWRITER.marshallAsAttribute(domain, writer);
         DomainDefinition.REALM_MAPPER.marshallAsAttribute(domain, writer);
 
-        String defaultRealm = domain.require(DEFAULT_REALM).asString();
         List<ModelNode> realms = domain.get(REALMS).asList();
 
-        // Yeah not right - but ready for a complex attribute debate.
-
         for (ModelNode current : realms) {
-            if (defaultRealm.equals(current.asString())) {
-                writeRealm(current, writer);
-                break;
-            }
-        }
-
-        for (ModelNode current : realms) {
-            if (defaultRealm.equals(current.asString()) == false) {
-                writeRealm(current, writer);
-            }
+            writeRealm(current, writer);
         }
 
         writer.writeEndElement();

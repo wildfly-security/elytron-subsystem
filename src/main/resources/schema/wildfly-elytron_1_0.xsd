@@ -213,14 +213,19 @@
         <xs:annotation>
             <xs:documentation>
                 Complex type for the definition of a single security domain.
-
-                A domain requires a minimum of one realm and the first realm in the list is used as the default realm.
             </xs:documentation>
         </xs:annotation>
         <xs:sequence>
-            <xs:element name="realm" type="realmRefType" maxOccurs="unbounded" />
+            <xs:element name="realm" type="realmRefType" minOccurs="1" maxOccurs="unbounded" />
         </xs:sequence>
         <xs:attribute name="name" type="xs:string" use="required" />
+        <xs:attribute name="default-realm" type="xs:string" use="required">
+            <xs:annotation>
+                <xs:documentation>
+                    Which of the listed realms should be the default?
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
         <xs:attribute name="pre-realm-name-rewriter" type="xs:string">
             <xs:annotation>
                 <xs:documentation>
