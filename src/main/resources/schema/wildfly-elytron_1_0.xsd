@@ -234,7 +234,7 @@
                     Reference to the NameRewrtier to be applied after the realm is selected.
                 </xs:documentation>
             </xs:annotation>
-        </xs:attribute>
+        </xs:attribute>        
         <xs:attribute name="realm-mapper" type="xs:string">
             <xs:annotation>
                 <xs:documentation>
@@ -255,6 +255,13 @@
             <xs:annotation>
                 <xs:documentation>
                     The NameRewriter to be asscociated with this realm.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="role-decoder" type="xs:string">
+            <xs:annotation>
+                <xs:documentation>
+                    The RoleDecoder to be associated with this realm.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>

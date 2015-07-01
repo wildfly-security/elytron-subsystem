@@ -3,7 +3,7 @@
         <security-domain name="MyDomain" pre-realm-name-rewriter="RegexOne" post-realm-name-rewriter="RegexTwo" realm-mapper="RegexMapper">
             <realm name="RealmTwo" />
             <realm name="RealmOne" name-rewriter="RegexThree" />
-            <realm name="RealmThree" />
+            <realm name="RealmThree" role-decoder="EmptyRoleDecoder" />
         </security-domain>
     </security-domains>
     <realms>
@@ -17,5 +17,7 @@
         <regex-name-rewriter name="RegexThree" pattern="e" replacement="f" />
         
         <simple-regex-realm-mapper name="RegexMapper" pattern="f" />
+        
+        <empty-role-decoder name="EmptyRoleDecoder" />
     </mappers>
 </subsystem>

@@ -33,6 +33,7 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME_REW
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.POST_REALM_NAME_REWRITER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PRE_REALM_NAME_REWRITER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REALM;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ROLE_DECODER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REALM_MAPPER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REALMS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SECURITY_DOMAIN;
@@ -135,6 +136,9 @@ class DomainParser {
                     case NAME_REWRITER:
                         DomainDefinition.REALM_NAME_REWRITER.parseAndSetParameter(attributeValue, realm, reader);
                         break;
+                    case ROLE_DECODER:
+                        DomainDefinition.REALM_ROLE_DECODER.parseAndSetParameter(attributeValue, realm, reader);
+                        break;
                     default:
                         throw unexpectedAttribute(reader, i);
                 }
@@ -183,6 +187,7 @@ class DomainParser {
         writer.writeStartElement(REALM);
         DomainDefinition.REALM_NAME.marshallAsAttribute(realm, writer);
         DomainDefinition.REALM_NAME_REWRITER.marshallAsAttribute(realm, writer);
+        DomainDefinition.REALM_ROLE_DECODER.marshallAsAttribute(realm, writer);
         writer.writeEndElement();
     }
 

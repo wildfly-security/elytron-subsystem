@@ -116,6 +116,7 @@ interface ElytronDescriptionConstants {
     String REPLACE_ALL = "replace-all";
     String REPLACEMENT = "replacement";
     String REQUIRED = "required";
+    String ROLE_DECODER = "role-decoder";
     String SEARCH_BASE_DN = "search-base-dn";
     String SECURITY_DOMAIN = "security-domain";
     String SECURITY_DOMAINS = "security-domains";

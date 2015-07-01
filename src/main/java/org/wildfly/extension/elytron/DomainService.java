@@ -36,6 +36,7 @@ import org.wildfly.security.auth.login.SecurityDomain.RealmBuilder;
 import org.wildfly.security.auth.spi.SecurityRealm;
 import org.wildfly.security.auth.util.NameRewriter;
 import org.wildfly.security.auth.util.RealmMapper;
+import org.wildfly.security.authz.RoleDecoder;
 
 
 /**
@@ -49,21 +50,30 @@ class DomainService implements Service<SecurityDomain> {
 
     private final String name;
     private final String defaultRealm;
-    private final String preRealmNameRewriter;
-    private final String postRealmNameRewriter;
+    private String preRealmNameRewriter;
+    private String postRealmNameRewriter;
+
+    private final Map<String, RealmDependency> realms = new HashMap<>();
     private final Map<String, InjectedValue<NameRewriter>> nameRewriters = new HashMap<>();
-    private final Map<String, InjectedValue<SecurityRealm>> realms = new HashMap<>();
-    private final Map<String, String> realmRewriterMap = new HashMap<String, String>();
+
     private final InjectedValue<RealmMapper> realmMapperInjector = new InjectedValue<RealmMapper>();
 
-    DomainService(final String name, final String defaultRealm, final String preRealmNameRewriter, final String postRealmNameRewriter) {
+    DomainService(final String name, final String defaultRealm) {
         this.name = name;
         this.defaultRealm = defaultRealm;
-        this.preRealmNameRewriter = preRealmNameRewriter;
-        this.postRealmNameRewriter = postRealmNameRewriter;
     }
 
-    Injector<NameRewriter> createNameRewriterInjector(final String nameRewriterName) {
+    RealmDependency createRealmDependency(final String realmName) throws OperationFailedException {
+        if (realms.containsKey(realmName)) {
+            throw ROOT_LOGGER.duplicateRealmInjection(name, realmName);
+        }
+
+        RealmDependency realmDependency = new RealmDependency();
+        realms.put(realmName, realmDependency);
+        return realmDependency;
+    }
+
+    private Injector<NameRewriter> createNameRewriterInjector(final String nameRewriterName) {
         if (nameRewriters.containsKey(nameRewriterName)) {
             return null; // i.e. should already be injected for this name.
         }
@@ -73,22 +83,20 @@ class DomainService implements Service<SecurityDomain> {
         return nameRewriterInjector;
     }
 
-    Injector<SecurityRealm> createRealmInjector(final String realmName) throws OperationFailedException {
-        if (realms.containsKey(realmName)) {
-            throw ROOT_LOGGER.duplicateRealmInjection(name, realmName);
-        }
-
-        InjectedValue<SecurityRealm> injector = new InjectedValue<SecurityRealm>();
-        realms.put(realmName, injector);
-        return injector;
-    }
-
-    void associateRealmWithNameRewriter(final String realmName, final String nameRewriterName) {
-        realmRewriterMap.put(realmName, nameRewriterName);
-    }
-
     Injector<RealmMapper> getRealmMapperInjector() {
         return realmMapperInjector;
+    }
+
+    Injector<NameRewriter> createPreRealmNameRewriterInjector(final String name) {
+        this.preRealmNameRewriter = name;
+
+        return createNameRewriterInjector(name);
+    }
+
+    Injector<NameRewriter> createPostRealmNameRewriterInjector(final String name) {
+        this.postRealmNameRewriter = name;
+
+        return createNameRewriterInjector(name);
     }
 
     @Override
@@ -108,11 +116,16 @@ class DomainService implements Service<SecurityDomain> {
         }
 
         builder.setDefaultRealmName(defaultRealm);
-        for (Entry<String, InjectedValue<SecurityRealm>> entry : realms.entrySet()) {
+        for (Entry<String, RealmDependency> entry : realms.entrySet()) {
             String realmName = entry.getKey();
-            RealmBuilder realmBuilder = builder.addRealm(realmName, entry.getValue().getValue());
-            if (realmRewriterMap.containsKey(realmName)) {
-                realmBuilder.setNameRewriter(nameRewriters.get(realmRewriterMap.get(realmName)).getValue());
+            RealmDependency realmDependency = entry.getValue();
+            RealmBuilder realmBuilder = builder.addRealm(realmName, realmDependency.securityRealmInjector.getValue());
+            if (realmDependency.nameRewriter != null) {
+                realmBuilder.setNameRewriter(nameRewriters.get(realmDependency.nameRewriter).getValue());
+            }
+            RoleDecoder roleDecoder = realmDependency.roleDecoderInjector.getOptionalValue();
+            if (roleDecoder != null) {
+                realmBuilder.setRoleDecoder(roleDecoder);
             }
         }
 
@@ -127,5 +140,28 @@ class DomainService implements Service<SecurityDomain> {
     @Override
     public SecurityDomain getValue() throws IllegalStateException, IllegalArgumentException {
         return securityDomain;
+    }
+
+    class RealmDependency {
+
+        private InjectedValue<SecurityRealm> securityRealmInjector = new InjectedValue<>();
+
+        private String nameRewriter;
+
+        private InjectedValue<RoleDecoder> roleDecoderInjector = new InjectedValue<>();
+
+        Injector<SecurityRealm> getSecurityRealmInjector() {
+            return securityRealmInjector;
+        }
+
+        Injector<NameRewriter> getNameRewriterInjector(final String name) {
+            this.nameRewriter = name;
+            return createNameRewriterInjector(name);
+        }
+
+        Injector<RoleDecoder> getRoleDecoderInjector() {
+            return roleDecoderInjector;
+        }
+
     }
 }
