@@ -92,6 +92,11 @@ interface ElytronDescriptionConstants {
     String CREDENTIAL = "credential";
     String CREDENTIAL_SECURITY_FACTORIES = "credential-security-factories";
     String CREDENTIAL_SECURITY_FACTORY = "credential-security-factory";
+    String CREDENTIAL_STORE = "credential-store";
+    String CREDENTIAL_STORES = "credential-stores";
+    String CREDENTIAL_STORE_NAME = "store.name";
+    String CREDENTIAL_STORE_FILE = "store.file";
+    String CREDENTIAL_STORE_BASE = "store.base";
     String CREDENTIALS = "credentials";
     String CUSTOM_CREDENTIAL_SECURITY_FACTORY = "custom-credential-security-factory";
     String CUSTOM_NAME_REWRITER = "custom-name-rewriter";
@@ -317,6 +322,7 @@ interface ElytronDescriptionConstants {
     String SECURITY_PROPERTIES = "security-properties";
     String SECURITY_PROPERTY = "security-property";
     String SECURITY_REALMS = "security-realms";
+    String SECRET_VALUE = "secret-value";
     String SELECTION_CRITERIA = "selection-criteria";
     String SEED_FROM = "seed-from";
     String SERVER_NAME = "server-name";
@@ -358,7 +364,9 @@ interface ElytronDescriptionConstants {
     String TRUSTED_SECURITY_DOMAINS = "trusted-security-domains";
     String TYPE = "type";
 
+    String RELOAD = "reload";
     String UNLESS = "unless";
+    String URI = "uri";
     String URL = "url";
     String USE_RECURSIVE_SEARCH = "use-recursive-search";
     String USE_CIPHER_SUITES_ORDER = "use-cipher-suites-order";

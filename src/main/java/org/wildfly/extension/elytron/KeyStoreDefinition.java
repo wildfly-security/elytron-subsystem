@@ -20,6 +20,9 @@ package org.wildfly.extension.elytron;
 
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP;
 import static org.wildfly.extension.elytron.Capabilities.KEY_STORE_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.CREDENTIAL_STORE_CLIENT_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.CREDENTIAL_STORE_CLIENT_RUNTIME_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.KEYSTORE_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.KEY_STORE_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.PROVIDERS_CAPABILITY;
 import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
@@ -37,6 +40,7 @@ import static org.wildfly.extension.elytron.ServiceStateDefinition.STATE;
 import static org.wildfly.extension.elytron.ServiceStateDefinition.populateResponse;
 import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
 
+import java.net.URISyntaxException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.Provider;
@@ -64,10 +68,13 @@ import org.jboss.as.controller.registry.AttributeAccess;
 import org.jboss.as.controller.registry.ManagementResourceRegistration;
 import org.jboss.as.controller.registry.OperationEntry;
 import org.jboss.as.controller.registry.Resource;
+import org.jboss.as.controller.security.CredentialStoreClient;
+import org.jboss.as.controller.security.CredentialStoreURIParser;
 import org.jboss.as.controller.services.path.PathManager;
 import org.jboss.as.controller.services.path.PathManagerService;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
+import org.jboss.msc.inject.Injector;
 import org.jboss.msc.service.ServiceBuilder;
 import org.jboss.msc.service.ServiceController;
 import org.jboss.msc.service.ServiceController.Mode;
@@ -75,6 +82,7 @@ import org.jboss.msc.service.ServiceController.State;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.ServiceTarget;
 import org.wildfly.extension.elytron.KeyStoreService.LoadKey;
+
 /**
  * A {@link ResourceDefinition} for a single {@link KeyStore}.
  *
@@ -83,6 +91,7 @@ import org.wildfly.extension.elytron.KeyStoreService.LoadKey;
 final class KeyStoreDefinition extends SimpleResourceDefinition {
 
     static final ServiceUtil<KeyStore> KEY_STORE_UTIL = ServiceUtil.newInstance(KEY_STORE_RUNTIME_CAPABILITY, ElytronDescriptionConstants.KEY_STORE, KeyStore.class);
+    static final ServiceUtil<CredentialStoreClient> CREDENTIAL_STORE_CLIENT_SERVICE_UTIL = ServiceUtil.newInstance(CREDENTIAL_STORE_CLIENT_RUNTIME_CAPABILITY, ElytronDescriptionConstants.CREDENTIAL_STORE, CredentialStoreClient.class);
 
     static final SimpleAttributeDefinition TYPE = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.TYPE, ModelType.STRING, false)
         .setAttributeGroup(ElytronDescriptionConstants.IMPLEMENTATION)
@@ -246,6 +255,32 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
             super(KEY_STORE_RUNTIME_CAPABILITY, CONFIG_ATTRIBUTES);
         }
 
+        private void injectCredentialStoreClient(ServiceBuilder<?> serviceBuilder, SimpleAttributeDefinition attribute, OperationContext context, ModelNode model, Injector<CredentialStoreClient> injector) throws OperationFailedException {
+            String password = asStringIfDefined(context, attribute, model);
+            if (password == null) {
+                throw ROOT_LOGGER.passwordCredentialIsNotDefined(attribute.getName());
+            }
+            if (password.startsWith(CredentialStoreURIParser.VAULT_SCHEME + ":")) {
+                CredentialStoreURIParser vaultURIParser = null;
+                String alias = null;
+                try {
+                    vaultURIParser = new CredentialStoreURIParser(password);
+                    alias = vaultURIParser.getAttribute();
+                    if (alias == null) {
+                        throw ROOT_LOGGER.credentialAliasNotSpecifiedInUriReference(password);
+                    }
+                } catch (URISyntaxException e) {
+                    throw new OperationFailedException(e);
+                }
+                String credentialStoreClientCapabilityName = RuntimeCapability.buildDynamicCapabilityName(CREDENTIAL_STORE_CLIENT_CAPABILITY, alias);
+                ServiceName credentialServiceClientServiceName = context.getCapabilityServiceName(credentialStoreClientCapabilityName, CredentialStoreClient.class);
+
+                CREDENTIAL_STORE_CLIENT_SERVICE_UTIL.addInjection(serviceBuilder, injector, credentialServiceClientServiceName);
+            } else {
+                injector.inject(CredentialStoreClient.createTrivial(password.toCharArray()));
+            }
+        }
+
         @Override
         protected void performRuntime(OperationContext context, ModelNode operation, Resource resource) throws OperationFailedException {
             ModelNode model = resource.getModel();
@@ -285,6 +320,8 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
                 ServiceName providerLoaderServiceName = context.getCapabilityServiceName(providersCapabilityName, Provider[].class);
                 PROVIDER_LOADER_SERVICE_UTIL.addInjection(serviceBuilder, keyStoreService.getProvidersInjector(), providerLoaderServiceName);
             }
+
+            injectCredentialStoreClient(serviceBuilder, PASSWORD, context, model, keyStoreService.getCredentialStoreClientInjector());
 
             commonDependencies(serviceBuilder);
             ServiceController<KeyStore> serviceController = serviceBuilder.install();

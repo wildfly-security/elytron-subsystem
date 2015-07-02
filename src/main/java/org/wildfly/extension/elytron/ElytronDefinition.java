@@ -167,6 +167,10 @@ class ElytronDefinition extends SimpleResourceDefinition {
         resourceRegistration.registerSubModel(SSLDefinitions.getServerSSLContextDefinition());
         resourceRegistration.registerSubModel(SSLDefinitions.getClientSSLContextDefinition());
 
+        // Credential Store Block
+        resourceRegistration.registerSubModel(new CredentialStoreResourceDefinition());
+
+
         // Dir-Context
         resourceRegistration.registerSubModel(new DirContextDefinition());
     }

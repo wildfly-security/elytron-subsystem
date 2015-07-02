@@ -37,6 +37,7 @@ import org.jboss.msc.service.StartException;
 import org.wildfly.extension.elytron.Configurable;
 import org.wildfly.security.auth.server.SecurityDomain;
 import org.wildfly.security.auth.server.SecurityRealm;
+import org.wildfly.security.credential.store.UnsupportedCredentialTypeException;
 
 /**
  * Messages for the Elytron subsystem.
@@ -127,8 +128,8 @@ public interface ElytronSubsystemMessages extends BasicLogger {
      * @param cause the underlying cause of the failure.
      * @return The {@link OperationFailedException} for the error.
      */
-    @Message(id = 9, value = "Unable to complete operation.")
-    OperationFailedException unableToCompleteOperation(@Cause Throwable cause);
+    @Message(id = 9, value = "Unable to complete operation. '%s'")
+    OperationFailedException unableToCompleteOperation(@Cause Throwable cause, String causeMessage);
 
     /**
      * An {@link OperationFailedException} where this an attempt to save a KeyStore without a File defined.
@@ -225,6 +226,22 @@ public interface ElytronSubsystemMessages extends BasicLogger {
      */
     @Message(id = 20, value = "Unable to reload the properties files required to by the properties file backed realm.")
     OperationFailedException unableToReLoadPropertiesFiles(@Cause Exception cause);
+
+    // CREDENTIAL_STORE section
+    @Message(id = 909, value = "Credential store '%s' does not support given credential store entry type '%s'")
+    IllegalArgumentException credentialStoreEntryTypeNotSupported(String credentialStoreName, String entryType);
+
+    @Message(id = 910, value = "Password credential is not defined in '%s'")
+    OperationFailedException passwordCredentialIsNotDefined(String attribute);
+
+    @Message(id = 911, value = "Unsupported credential type '%s'")
+    UnsupportedCredentialTypeException unsupportedCredentialType(String credentialType);
+
+    @Message(id = 912, value = "Credential store issue encountered")
+    OperationFailedException credentialStoreIssueEncountered(@Cause Exception cause);
+
+    @Message(id = 913, value = "Credential alias not specified in URI reference '%s'")
+    OperationFailedException credentialAliasNotSpecifiedInUriReference(String uriReference);
 
     /*
      * Identity Resource Messages - 1000
