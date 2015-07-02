@@ -562,7 +562,7 @@ class RealmParser {
             }
 
             for (PasswordMapperObjectDefinition mapperDefinition : AuthenticationQueryAttributes.SUPPORTED_PASSWORD_MAPPERS.values()) {
-                writePasswordMapper(mapperDefinition.getResourceDefinition(), authenticationQueryNode, writer);
+                writePasswordMapper(mapperDefinition.getObjectDefinition(), authenticationQueryNode, writer);
             }
 
             writer.writeEndElement();
