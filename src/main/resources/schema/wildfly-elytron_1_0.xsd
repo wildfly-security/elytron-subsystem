@@ -229,14 +229,14 @@
         <xs:attribute name="pre-realm-name-rewriter" type="xs:string">
             <xs:annotation>
                 <xs:documentation>
-                    Reference to the NameRewrtier to be applied before the realm is selected.
+                    Reference to the NameRewriter to be applied before the realm is selected.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
         <xs:attribute name="post-realm-rewriter" type="xs:string">
             <xs:annotation>
                 <xs:documentation>
-                    Reference to the NameRewrtier to be applied after the realm is selected.
+                    Reference to the NameRewriter to be applied after the realm is selected.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
@@ -266,7 +266,7 @@
         <xs:attribute name="name-rewriter" type="xs:string">
             <xs:annotation>
                 <xs:documentation>
-                    The NameRewriter to be asscociated with this realm.
+                    The NameRewriter to be associated with this realm.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
@@ -286,7 +286,7 @@
             </xs:documentation>
         </xs:annotation>
         <xs:choice maxOccurs="unbounded">
-            <xs:element name="aggregate-realm" type="aggregatRealmType" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="aggregate-realm" type="aggregateRealmType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="custom-realm" type="customRealmType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="jaas-realm" type="jaasRealmType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="keystore-realm" type="keyStoreRealmType" minOccurs="0" maxOccurs="unbounded" />
@@ -304,13 +304,13 @@
         <xs:attribute name="name" type="xs:string" use="required">
             <xs:annotation>
                 <xs:documentation>
-                    The unique name for the realm, not names used for realms must be unique across the whole context.
+                    The unique name for the realm, note names used for realms must be unique across the whole context.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
     </xs:complexType>
 
-    <xs:complexType name="aggregatRealmType">
+    <xs:complexType name="aggregateRealmType">
         <xs:annotation>
             <xs:documentation>
                 Realm definition for an aggregate realm where authenticaton and authorization are handled by
@@ -563,7 +563,7 @@
             <xs:element name="x500-common-name-principal-decoder" type="x500CommonNamePrincipalDecoderType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="custom-realm-mapper" type="customRealmMapperType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="simple-regex-realm-mapper" type="simpleRegexRealmMapperType" minOccurs="0" maxOccurs="unbounded" />
-            <xs:element name="mapped-regex-realm-mapper" type="mappedRegedRealmMapperType" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="mapped-regex-realm-mapper" type="mappedRegexRealmMapperType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="custom-role-decoder" type="customRoleDecoderType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="empty-role-decoder" type="emptyRoleDecoderType" minOccurs="0" maxOccurs="unbounded" />
         </xs:choice>
@@ -863,7 +863,7 @@
         </xs:complexContent>
     </xs:complexType>
 
-    <xs:complexType name="mappedRegedRealmMapperType">
+    <xs:complexType name="mappedRegexRealmMapperType">
         <xs:annotation>
             <xs:documentation>
               A RealmMapper implementaion that first uses a regular expression to extract the realm name, this is then converted using the configured mapping of realm names.
