@@ -60,25 +60,11 @@ class RoleDecoderDefinitions {
         .build();
 
     static ResourceDefinition getEmptyRoleDecoderDefinition() {
-        return new EmptyRoleDecoderDefinition();
+        return EmptyResourceDefinition.create(RoleDecoder.class, ElytronDescriptionConstants.EMPTY_ROLE_DECODER, ROLE_DECODER_RUNTIME_CAPABILITY, () -> RoleDecoder.EMPTY);
     }
 
     static ResourceDefinition getSimpleRoleDecoderDefinition() {
         return new SimpleRoleDecoderDefinition();
-    }
-
-    private static class EmptyRoleDecoderDefinition extends SimpleResourceDefinition {
-
-        private static final AbstractAddStepHandler ADD = new EmptyRoleDecoderAddHandler();
-        private static final OperationStepHandler REMOVE = new RoleDecoderRemoveHandler(ADD);
-
-        EmptyRoleDecoderDefinition() {
-            super(new Parameters(PathElement.pathElement(ElytronDescriptionConstants.EMPTY_ROLE_DECODER), ElytronExtension.getResourceDescriptionResolver(ElytronDescriptionConstants.EMPTY_ROLE_DECODER))
-                .setAddHandler(ADD)
-                .setRemoveHandler(REMOVE)
-                .setAddRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
-                .setRemoveRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES));
-        }
     }
 
     private static class SimpleRoleDecoderDefinition extends SimpleResourceDefinition {
@@ -97,30 +83,6 @@ class RoleDecoderDefinitions {
         @Override
         public void registerAttributes(ManagementResourceRegistration resourceRegistration) {
             resourceRegistration.registerReadWriteAttribute(ATTRIBUTE, null, new WriteAttributeHandler(ElytronDescriptionConstants.SIMPLE_ROLE_DECODER, ATTRIBUTE));
-        }
-
-    }
-
-    private static class EmptyRoleDecoderAddHandler extends AbstractAddStepHandler {
-
-        private EmptyRoleDecoderAddHandler() {
-            super(ROLE_DECODER_RUNTIME_CAPABILITY);
-        }
-
-        @Override
-        protected void performRuntime(OperationContext context, ModelNode operation, ModelNode model)
-                throws OperationFailedException {
-            ServiceTarget serviceTarget = context.getServiceTarget();
-            RuntimeCapability<Void> runtimeCapability = RuntimeCapability.fromBaseCapability(ROLE_DECODER_RUNTIME_CAPABILITY, context.getCurrentAddressValue());
-            ServiceName roleDecoderName = runtimeCapability.getCapabilityServiceName(RoleDecoder.class);
-
-            TrivialService<RoleDecoder> roleDecoderService = new TrivialService<RoleDecoder>(() -> RoleDecoder.EMPTY);
-
-            ServiceBuilder<RoleDecoder> roleDecoderBuilderBuilder = serviceTarget.addService(roleDecoderName, roleDecoderService);
-
-            commonDependencies(roleDecoderBuilderBuilder)
-                .setInitialMode(Mode.LAZY)
-                .install();
         }
 
     }

@@ -25,6 +25,7 @@ import org.jboss.as.controller.capability.RuntimeCapability;
 import org.wildfly.security.auth.login.SecurityDomain;
 import org.wildfly.security.auth.spi.SecurityRealm;
 import org.wildfly.security.auth.util.NameRewriter;
+import org.wildfly.security.auth.util.PrincipalDecoder;
 import org.wildfly.security.auth.util.RealmMapper;
 import org.wildfly.security.authz.RoleDecoder;
 
@@ -52,6 +53,12 @@ class Capabilities {
 
     static final RuntimeCapability<Void> NAME_REWRITER_RUNTIME_CAPABILITY =  RuntimeCapability
         .Builder.of(NAME_REWRITER_CAPABILITY, true, NameRewriter.class)
+        .build();
+
+    static final String PRINCIPAL_DECODER_CAPABILITY = CAPABILITY_BASE + "principal-decoder";
+
+    static final RuntimeCapability<Void> PRINCIPAL_DECODER_RUNTIME_CAPABILITY =  RuntimeCapability
+        .Builder.of(PRINCIPAL_DECODER_CAPABILITY, true, PrincipalDecoder.class)
         .build();
 
     static final String PROVIDERS_CAPABILITY = CAPABILITY_BASE + "providers";

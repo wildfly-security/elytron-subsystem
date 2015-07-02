@@ -19,9 +19,12 @@
 package org.wildfly.extension.elytron;
 
 import static org.wildfly.extension.elytron.Capabilities.NAME_REWRITER_RUNTIME_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.PRINCIPAL_DECODER_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.REALM_MAPPER_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.ROLE_DECODER_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AGGREGATE_PRINCIPAL_DECODER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PRINCIPAL_DECODERS;
 import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
 
 import org.jboss.as.controller.AbstractBoottimeAddStepHandler;
@@ -43,8 +46,10 @@ import org.jboss.msc.service.ServiceRegistry;
 import org.jboss.msc.service.ServiceTarget;
 import org.wildfly.security.auth.spi.SecurityRealm;
 import org.wildfly.security.auth.util.NameRewriter;
+import org.wildfly.security.auth.util.PrincipalDecoder;
 import org.wildfly.security.auth.util.RealmMapper;
 import org.wildfly.security.authz.RoleDecoder;
+import org.wildfly.security.x500.X500CommonNamePrincipalDecoder;
 
 /**
  * Top level {@link ResourceDefinition} for the Elytron subsystem.
@@ -87,6 +92,11 @@ class ElytronDefinition extends SimpleResourceDefinition {
         resourceRegistration.registerSubModel(new CustomComponentDefinition<NameRewriter>(NameRewriter.class, NAME_REWRITER_RUNTIME_CAPABILITY, ElytronDescriptionConstants.CUSTOM_NAME_REWRITER));
         resourceRegistration.registerSubModel(NameRewriterDefinitions.getRegexNameRewriterDefinition());
         resourceRegistration.registerSubModel(NameRewriterDefinitions.getRegexNameValidatingRewriterDefinition());
+
+        // Principal Decoders
+        resourceRegistration.registerSubModel(AggregateComponentDefinition.create(PrincipalDecoder.class, AGGREGATE_PRINCIPAL_DECODER, PRINCIPAL_DECODERS, PRINCIPAL_DECODER_RUNTIME_CAPABILITY, PrincipalDecoder::aggregate));
+        resourceRegistration.registerSubModel(new CustomComponentDefinition<PrincipalDecoder>(PrincipalDecoder.class, PRINCIPAL_DECODER_RUNTIME_CAPABILITY, ElytronDescriptionConstants.CUSTOM_PRINCIPAL_DECODER));
+        resourceRegistration.registerSubModel(EmptyResourceDefinition.create(PrincipalDecoder.class, ElytronDescriptionConstants.X500_COMMON_NAME_PRINCIPAL_DECODER , PRINCIPAL_DECODER_RUNTIME_CAPABILITY, X500CommonNamePrincipalDecoder::getInstance));
 
         // Realm Mappers
         resourceRegistration.registerSubModel(new CustomComponentDefinition<RealmMapper>(RealmMapper.class, REALM_MAPPER_RUNTIME_CAPABILITY, ElytronDescriptionConstants.CUSTOM_REALM_MAPPER));

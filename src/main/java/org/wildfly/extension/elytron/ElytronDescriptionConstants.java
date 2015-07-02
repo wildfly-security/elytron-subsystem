@@ -26,6 +26,7 @@ package org.wildfly.extension.elytron;
 interface ElytronDescriptionConstants {
 
     String AGGREGATE_NAME_REWRITER = "aggregate-name-rewriter";
+    String AGGREGATE_PRINCIPAL_DECODER = "aggregate-principal-decoder";
     String AGGREGATE_REALM = "aggregate-realm";
     String ALGORITHM = "algorithm";
     String ALIAS = "alias";
@@ -49,6 +50,7 @@ interface ElytronDescriptionConstants {
     String CREATION_DATE = "creation-date";
     String CREDENTIAL = "credential";
     String CUSTOM_NAME_REWRITER = "custom-name-rewriter";
+    String CUSTOM_PRINCIPAL_DECODER = "custom-principal-decoder";
     String CUSTOM_REALM = "custom-realm";
     String CUSTOM_REALM_MAPPER = "custom-realm-mapper";
     String CUSTOM_ROLE_DECODER = "custom-role-decoder";
@@ -98,6 +100,7 @@ interface ElytronDescriptionConstants {
     String POST_REALM_NAME_REWRITER = "post-realm-name-rewriter";
     String PRE_REALM_NAME_REWRITER = "pre-realm-name-rewriter";
     String PRINCIPAL = "principal";
+    String PRINCIPAL_DECODERS = "principal-decoders";
     String PRINCIPAL_MAPPING = "principal-mapping";
     String PROPERTIES_REALM = "properties-realm";
     String PROPERTY = "property";
@@ -148,5 +151,6 @@ interface ElytronDescriptionConstants {
     String VALUE = "value";
     String VERSION = "version";
     String WATCH = "watch";
+    String X500_COMMON_NAME_PRINCIPAL_DECODER = "x500-common-name-principal-decoder";
 
 }
