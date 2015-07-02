@@ -49,6 +49,7 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME_REW
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME_REWRITERS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PATTERN;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PRINCIPAL_DECODER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PRINCIPAL_DECODERS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REALM_MAP;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REALM_MAPPING;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REGEX_NAME_REWRITER;
@@ -687,7 +688,7 @@ class MapperParser {
                 writer.writeStartElement(AGGREGATE_PRINCIPAL_DECODER);
                 writer.writeAttribute(NAME, current.getName());
 
-                List<ModelNode> principalDecoderReferences = principalDecoder.get(PRINCIPAL_DECODER).asList();
+                List<ModelNode> principalDecoderReferences = principalDecoder.get(PRINCIPAL_DECODERS).asList();
                 for (ModelNode currentReference : principalDecoderReferences) {
                     writer.writeStartElement(PRINCIPAL_DECODER);
                     writer.writeAttribute(NAME, currentReference.asString());
@@ -867,3 +868,4 @@ class MapperParser {
         }
     }
 }
+
