@@ -18,6 +18,10 @@
 
 package org.wildfly.extension.elytron;
 
+import java.util.List;
+
+import javax.sql.DataSource;
+
 import org.jboss.msc.service.Service;
 import org.jboss.msc.service.StartContext;
 import org.jboss.msc.service.StartException;
@@ -26,9 +30,6 @@ import org.jboss.msc.value.InjectedValue;
 import org.wildfly.security.auth.provider.jdbc.JdbcSecurityRealm;
 import org.wildfly.security.auth.provider.jdbc.KeyMapper;
 import org.wildfly.security.auth.spi.SecurityRealm;
-
-import javax.sql.DataSource;
-import java.util.List;
 
 /**
  * A {@link Service} implementation responsible for supplying a {@link SecurityRealm} backed by a database.

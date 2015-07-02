@@ -17,9 +17,9 @@
  */
 package org.wildfly.extension.elytron;
 
-import org.jboss.as.subsystem.test.AdditionalInitialization;
-
 import static org.jboss.as.controller.capability.RuntimeCapability.buildDynamicCapabilityName;
+
+import org.jboss.as.subsystem.test.AdditionalInitialization;
 
 /**
  * @author <a href="mailto:psilva@redhat.com">Pedro Igor</a>
