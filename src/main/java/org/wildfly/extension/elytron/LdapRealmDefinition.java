@@ -25,6 +25,7 @@ import java.util.Properties;
 
 import org.jboss.as.controller.AbstractAddStepHandler;
 import org.jboss.as.controller.AttributeDefinition;
+import org.jboss.as.controller.ObjectTypeAttributeDefinition;
 import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
 import org.jboss.as.controller.OperationStepHandler;
@@ -34,17 +35,18 @@ import org.jboss.as.controller.ResourceDefinition;
 import org.jboss.as.controller.RestartParentWriteAttributeHandler;
 import org.jboss.as.controller.ServiceRemoveStepHandler;
 import org.jboss.as.controller.SimpleAttributeDefinition;
+import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
 import org.jboss.as.controller.SimpleResourceDefinition;
 import org.jboss.as.controller.capability.RuntimeCapability;
+import org.jboss.as.controller.registry.AttributeAccess;
 import org.jboss.as.controller.registry.ManagementResourceRegistration;
 import org.jboss.as.controller.registry.OperationEntry;
 import org.jboss.dmr.ModelNode;
+import org.jboss.dmr.ModelType;
 import org.jboss.msc.service.ServiceBuilder;
 import org.jboss.msc.service.ServiceController;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.ServiceTarget;
-import org.wildfly.extension.elytron.LdapAttributeDefinitions.DirContextAttributes;
-import org.wildfly.extension.elytron.LdapAttributeDefinitions.PrincipalMappingAttributes;
 import org.wildfly.security.auth.provider.ldap.DirContextFactory;
 import org.wildfly.security.auth.provider.ldap.LdapSecurityRealmBuilder;
 import org.wildfly.security.auth.provider.ldap.LdapSecurityRealmBuilder.PrincipalMappingBuilder;
@@ -60,7 +62,83 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
 
     static final ServiceUtil<SecurityRealm> REALM_SERVICE_UTIL = ServiceUtil.newInstance(SECURITY_REALM_RUNTIME_CAPABILITY, ElytronDescriptionConstants.LDAP_REALM, SecurityRealm.class);
 
-    private static final SimpleAttributeDefinition[] ATTRIBUTES = new SimpleAttributeDefinition[] {DirContextAttributes.DIR_CONTEXT, PrincipalMappingAttributes.PRINCIPAL_MAPPING};
+    static class PrincipalMappingObjectDefinition {
+
+        static final SimpleAttributeDefinition NAME_ATTRIBUTE = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.NAME_ATTRIBUTE, ModelType.STRING, false)
+                .setAllowExpression(true)
+                .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+                .build();
+
+        static final SimpleAttributeDefinition USE_X500_PRINCIPAL = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.USE_X500_PRINCIPAL, ModelType.BOOLEAN, false)
+                .setDefaultValue(new ModelNode(false))
+                .setAllowExpression(true)
+                .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+                .build();
+
+        static final SimpleAttributeDefinition USE_RECURSIVE_SEARCH = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.USE_RECURSIVE_SEARCH, ModelType.BOOLEAN, false)
+                .setRequires(ElytronDescriptionConstants.SEARCH_BASE_DN)
+                .setDefaultValue(new ModelNode(false))
+                .setAllowExpression(true)
+                .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+                .build();
+
+        static final SimpleAttributeDefinition SEARCH_BASE_DN = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.SEARCH_BASE_DN, ModelType.STRING, true)
+                .setRequires(ElytronDescriptionConstants.NAME_ATTRIBUTE)
+                .setAllowExpression(true)
+                .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+                .build();
+
+        static final SimpleAttributeDefinition CACHE_PRINCIPAL = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.CACHE_PRINCIPAL, ModelType.BOOLEAN, false)
+                .setDefaultValue(new ModelNode(false))
+                .setAllowExpression(true)
+                .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+                .build();
+
+        static final SimpleAttributeDefinition[] ATTRIBUTES = new SimpleAttributeDefinition[] {NAME_ATTRIBUTE, USE_X500_PRINCIPAL, USE_RECURSIVE_SEARCH, SEARCH_BASE_DN, CACHE_PRINCIPAL};
+
+        static final ObjectTypeAttributeDefinition OBJECT_DEFINITION = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.PRINCIPAL_MAPPING, ATTRIBUTES)
+                .setAllowNull(false)
+                .build();
+    }
+
+    static class DirContextObjectDefinition {
+
+        static final SimpleAttributeDefinition URL = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.URL, ModelType.STRING, false)
+                .setAllowExpression(true)
+                .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+                .build();
+
+        static final SimpleAttributeDefinition AUTHENTICATION_LEVEL = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.AUTHENTICATION_LEVEL, ModelType.STRING, false)
+                .setDefaultValue(new ModelNode("simple"))
+                .setAllowedValues("none", "simple", "strong")
+                .setAllowExpression(true)
+                .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+                .build();
+
+        static final SimpleAttributeDefinition PRINCIPAL = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PRINCIPAL, ModelType.STRING, false)
+                .setAllowExpression(true)
+                .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+                .build();
+
+        static final SimpleAttributeDefinition CREDENTIAL = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.CREDENTIAL, ModelType.STRING, false)
+                .setAllowExpression(true)
+                .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+                .build();
+
+        static final SimpleAttributeDefinition ENABLE_CONNECTION_POOLING = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ENABLE_CONNECTION_POOLING, ModelType.BOOLEAN, false)
+                .setDefaultValue(new ModelNode(false))
+                .setAllowExpression(true)
+                .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+                .build();
+
+        static final SimpleAttributeDefinition[] ATTRIBUTES = new SimpleAttributeDefinition[] {URL, AUTHENTICATION_LEVEL, PRINCIPAL, CREDENTIAL, ENABLE_CONNECTION_POOLING};
+
+        static final ObjectTypeAttributeDefinition OBJECT_DEFINITION = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.DIR_CONTEXT, ATTRIBUTES)
+                .setAllowNull(false)
+                .build();
+    }
+
+    private static final SimpleAttributeDefinition[] ATTRIBUTES = new SimpleAttributeDefinition[] {DirContextObjectDefinition.OBJECT_DEFINITION, PrincipalMappingObjectDefinition.OBJECT_DEFINITION};
 
     private static final AbstractAddStepHandler ADD = new RealmAddHandler();
     private static final OperationStepHandler REMOVE = new RealmRemoveHandler(ADD);
@@ -106,19 +184,19 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
         }
 
         private void configureDirContext(OperationContext context, ModelNode model, LdapSecurityRealmBuilder builder) throws OperationFailedException {
-            ModelNode dirContextNode = DirContextAttributes.DIR_CONTEXT.resolveModelAttribute(context, model);
+            ModelNode dirContextNode = DirContextObjectDefinition.OBJECT_DEFINITION.resolveModelAttribute(context, model);
 
             Properties connectionProperties = new Properties();
 
-            ModelNode enableConnectionPoolingNode = DirContextAttributes.ENABLE_CONNECTION_POOLING.resolveModelAttribute(context, dirContextNode);
+            ModelNode enableConnectionPoolingNode = DirContextObjectDefinition.ENABLE_CONNECTION_POOLING.resolveModelAttribute(context, dirContextNode);
 
             connectionProperties.put(CONNECTION_POOLING_PROPERTY, enableConnectionPoolingNode.asBoolean());
 
             DirContextFactory dirContextFactory = SimpleDirContextFactoryBuilder.builder()
-                    .setProviderUrl(DirContextAttributes.URL.resolveModelAttribute(context, dirContextNode).asString())
-                    .setSecurityAuthentication(DirContextAttributes.AUTHENTICATION_LEVEL.resolveModelAttribute(context, dirContextNode).asString())
-                    .setSecurityPrincipal(DirContextAttributes.PRINCIPAL.resolveModelAttribute(context, dirContextNode).asString())
-                    .setSecurityCredential(DirContextAttributes.CREDENTIAL.resolveModelAttribute(context, dirContextNode).asString())
+                    .setProviderUrl(DirContextObjectDefinition.URL.resolveModelAttribute(context, dirContextNode).asString())
+                    .setSecurityAuthentication(DirContextObjectDefinition.AUTHENTICATION_LEVEL.resolveModelAttribute(context, dirContextNode).asString())
+                    .setSecurityPrincipal(DirContextObjectDefinition.PRINCIPAL.resolveModelAttribute(context, dirContextNode).asString())
+                    .setSecurityCredential(DirContextObjectDefinition.CREDENTIAL.resolveModelAttribute(context, dirContextNode).asString())
                     .setConnectionProperties(connectionProperties)
                     .build();
 
@@ -126,33 +204,33 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
         }
 
         private void configurePrincipalMapping(OperationContext context, ModelNode model, LdapSecurityRealmBuilder builder) throws OperationFailedException {
-            ModelNode principalMappingNode = PrincipalMappingAttributes.PRINCIPAL_MAPPING.resolveModelAttribute(context, model);
+            ModelNode principalMappingNode = PrincipalMappingObjectDefinition.OBJECT_DEFINITION.resolveModelAttribute(context, model);
 
             PrincipalMappingBuilder principalMappingBuilder = PrincipalMappingBuilder.builder();
 
-            ModelNode nameAttributeNode = PrincipalMappingAttributes.NAME_ATTRIBUTE.resolveModelAttribute(context, principalMappingNode);
+            ModelNode nameAttributeNode = PrincipalMappingObjectDefinition.NAME_ATTRIBUTE.resolveModelAttribute(context, principalMappingNode);
 
             principalMappingBuilder.setNameAttribute(nameAttributeNode.asString());
 
-            ModelNode usex500PrincipalNode = PrincipalMappingAttributes.USE_X500_PRINCIPAL.resolveModelAttribute(context, principalMappingNode);
+            ModelNode usex500PrincipalNode = PrincipalMappingObjectDefinition.USE_X500_PRINCIPAL.resolveModelAttribute(context, principalMappingNode);
 
             if (usex500PrincipalNode.asBoolean()) {
                 principalMappingBuilder.useX500Principal();
             }
 
-            ModelNode searchDnNode = PrincipalMappingAttributes.SEARCH_BASE_DN.resolveModelAttribute(context, principalMappingNode);
+            ModelNode searchDnNode = PrincipalMappingObjectDefinition.SEARCH_BASE_DN.resolveModelAttribute(context, principalMappingNode);
 
             if (searchDnNode.isDefined()) {
                 principalMappingBuilder.setSearchDn(searchDnNode.asString());
             }
 
-            ModelNode useRecursiveSearchNode = PrincipalMappingAttributes.USE_RECURSIVE_SEARCH.resolveModelAttribute(context, principalMappingNode);
+            ModelNode useRecursiveSearchNode = PrincipalMappingObjectDefinition.USE_RECURSIVE_SEARCH.resolveModelAttribute(context, principalMappingNode);
 
             if (useRecursiveSearchNode.asBoolean()) {
                 principalMappingBuilder.searchRecursive();
             }
 
-            ModelNode cachePrincipalNode = PrincipalMappingAttributes.CACHE_PRINCIPAL.resolveModelAttribute(context, principalMappingNode);
+            ModelNode cachePrincipalNode = PrincipalMappingObjectDefinition.CACHE_PRINCIPAL.resolveModelAttribute(context, principalMappingNode);
 
             if (cachePrincipalNode.asBoolean()) {
                 principalMappingBuilder.cachePrincipal();
