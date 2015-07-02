@@ -239,7 +239,14 @@
                     Reference to the NameRewrtier to be applied after the realm is selected.
                 </xs:documentation>
             </xs:annotation>
-        </xs:attribute>        
+        </xs:attribute>
+        <xs:attribute name="principal-decoder" type="xs:string">
+            <xs:annotation>
+                <xs:documentation>
+                    Reference to the PrincipalDecoder to be used by this domain.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
         <xs:attribute name="realm-mapper" type="xs:string">
             <xs:annotation>
                 <xs:documentation>

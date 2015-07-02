@@ -35,6 +35,7 @@ import org.wildfly.security.auth.login.SecurityDomain;
 import org.wildfly.security.auth.login.SecurityDomain.RealmBuilder;
 import org.wildfly.security.auth.spi.SecurityRealm;
 import org.wildfly.security.auth.util.NameRewriter;
+import org.wildfly.security.auth.util.PrincipalDecoder;
 import org.wildfly.security.auth.util.RealmMapper;
 import org.wildfly.security.authz.RoleDecoder;
 
@@ -55,8 +56,8 @@ class DomainService implements Service<SecurityDomain> {
 
     private final Map<String, RealmDependency> realms = new HashMap<>();
     private final Map<String, InjectedValue<NameRewriter>> nameRewriters = new HashMap<>();
-
-    private final InjectedValue<RealmMapper> realmMapperInjector = new InjectedValue<RealmMapper>();
+    private final InjectedValue<PrincipalDecoder> principalDecoderInjector = new InjectedValue<>();
+    private final InjectedValue<RealmMapper> realmMapperInjector = new InjectedValue<>();
 
     DomainService(final String name, final String defaultRealm) {
         this.name = name;
@@ -81,6 +82,10 @@ class DomainService implements Service<SecurityDomain> {
         InjectedValue<NameRewriter> nameRewriterInjector = new InjectedValue<>();
         nameRewriters.put(nameRewriterName, nameRewriterInjector);
         return nameRewriterInjector;
+    }
+
+    Injector<PrincipalDecoder> getPrincipalDecoderInjector() {
+        return principalDecoderInjector;
     }
 
     Injector<RealmMapper> getRealmMapperInjector() {
@@ -109,7 +114,10 @@ class DomainService implements Service<SecurityDomain> {
         if (postRealmNameRewriter != null) {
             builder.setPostRealmRewriter(nameRewriters.get(postRealmNameRewriter).getValue());
         }
-
+        PrincipalDecoder principalDecoder = principalDecoderInjector.getOptionalValue();
+        if (principalDecoder != null) {
+            builder.setPrincipalDecoder(principalDecoder);
+        }
         RealmMapper realmMapper = realmMapperInjector.getOptionalValue();
         if (realmMapper != null) {
             builder.setRealmMapper(realmMapper);

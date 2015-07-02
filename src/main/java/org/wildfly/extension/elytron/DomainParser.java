@@ -35,6 +35,7 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PRE_REAL
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REALMS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REALM_MAPPER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PRINCIPAL_DECODER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ROLE_DECODER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SECURITY_DOMAIN;
 import static org.wildfly.extension.elytron.ElytronSubsystemParser.verifyNamespace;
@@ -86,6 +87,9 @@ class DomainParser {
                         break;
                     case POST_REALM_NAME_REWRITER:
                         DomainDefinition.POST_REALM_NAME_REWRITER.parseAndSetParameter(value, addDomain, reader);
+                        break;
+                    case PRINCIPAL_DECODER:
+                        DomainDefinition.PRINCIPAL_DECODER.parseAndSetParameter(value, addDomain, reader);
                         break;
                     case REALM_MAPPER:
                         DomainDefinition.REALM_MAPPER.parseAndSetParameter(value, addDomain, reader);
@@ -166,6 +170,7 @@ class DomainParser {
         DomainDefinition.PRE_REALM_NAME_REWRITER.marshallAsAttribute(domain, writer);
         DomainDefinition.DEFAULT_REALM.marshallAsAttribute(domain, writer);
         DomainDefinition.POST_REALM_NAME_REWRITER.marshallAsAttribute(domain, writer);
+        DomainDefinition.PRINCIPAL_DECODER.marshallAsAttribute(domain, writer);
         DomainDefinition.REALM_MAPPER.marshallAsAttribute(domain, writer);
 
         List<ModelNode> realms = domain.get(REALMS).asList();

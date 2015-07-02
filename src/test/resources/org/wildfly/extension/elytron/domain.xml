@@ -1,6 +1,6 @@
 <subsystem xmlns="urn:wildfly:elytron:1.0">
     <security-domains>
-        <security-domain name="MyDomain" default-realm="RealmTwo" pre-realm-name-rewriter="RegexOne" post-realm-name-rewriter="RegexTwo" realm-mapper="RegexMapper">
+        <security-domain name="MyDomain" default-realm="RealmTwo" pre-realm-name-rewriter="RegexOne" post-realm-name-rewriter="RegexTwo" principal-decoder="X500Decoder" realm-mapper="RegexMapper">
             <realm name="RealmTwo" />
             <realm name="RealmOne" name-rewriter="RegexThree" />
             <realm name="RealmThree" role-decoder="EmptyRoleDecoder" />
@@ -16,6 +16,7 @@
         <regex-name-rewriter name="RegexTwo" pattern="c" replacement="d" />
         <regex-name-rewriter name="RegexThree" pattern="e" replacement="f" />
         
+        <x500-common-name-principal-decoder name="X500Decoder" />
         <simple-regex-realm-mapper name="RegexMapper" pattern="f" />
         
         <empty-role-decoder name="EmptyRoleDecoder" />
