@@ -25,18 +25,17 @@ import org.jboss.msc.service.StartException;
 import org.jboss.msc.service.StopContext;
 
 /**
- * A very trivial {@link Service} implementation where creation of the value type can easily be
- * wrapped using a {@link Supplier}
+ * A very trivial {@link Service} implementation where creation of the value type can easily be wrapped using a {@link Supplier}
  *
  * @author <a href="mailto:darran.lofthouse@jboss.com">Darran Lofthouse</a>
  */
 class TrivialService<T> implements Service<T> {
 
-    private final Supplier<T> valueSupplier;
+    private final ValueSupplier<T> valueSupplier;
 
     private volatile T value;
 
-    TrivialService(Supplier<T> valueSupplier) {
+    TrivialService(ValueSupplier<T> valueSupplier) {
         this.valueSupplier = valueSupplier;
     }
 
@@ -53,5 +52,16 @@ class TrivialService<T> implements Service<T> {
     @Override
     public T getValue() throws IllegalStateException, IllegalArgumentException {
         return value;
+    }
+
+    /**
+     * A supplier for the value returned by this service, the {@link #get()} methods allows for a {@link StartException} to be
+     * thrown so can be used with failed mandatory service injection.
+     */
+    @FunctionalInterface
+    interface ValueSupplier<T> {
+
+        T get() throws StartException;
+
     }
 }

@@ -21,7 +21,6 @@ import static org.wildfly.extension.elytron.Capabilities.NAME_REWRITER_RUNTIME_C
 import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
 import static org.wildfly.extension.elytron.RegexAttributeDefinitions.PATTERN;
 
-import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
 import org.jboss.as.controller.AbstractAddStepHandler;
@@ -47,6 +46,7 @@ import org.jboss.dmr.ModelType;
 import org.jboss.msc.service.ServiceController.Mode;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.ServiceTarget;
+import org.wildfly.extension.elytron.TrivialService.ValueSupplier;
 import org.wildfly.security.auth.util.NameRewriter;
 import org.wildfly.security.auth.util.RegexNameRewriter;
 import org.wildfly.security.auth.util.RegexNameValidatingRewriter;
@@ -109,7 +109,7 @@ class NameRewriterDefinitions {
         private static final AbstractAddStepHandler ADD = new NameRewriterAddHandler(ATTRIBUTES) {
 
             @Override
-            protected Supplier<NameRewriter> getNameRewriterSupplier(OperationContext context, ModelNode operation,
+            protected ValueSupplier<NameRewriter> getNameRewriterSupplier(OperationContext context, ModelNode operation,
                     ModelNode model) throws OperationFailedException {
                 final Pattern pattern = Pattern.compile(PATTERN.resolveModelAttribute(context, model).asString());
                 final String replacement = REPLACEMENT.resolveModelAttribute(context, model).asString();
@@ -147,7 +147,7 @@ class NameRewriterDefinitions {
         private static final AbstractAddStepHandler ADD = new NameRewriterAddHandler(ATTRIBUTES) {
 
             @Override
-            protected Supplier<NameRewriter> getNameRewriterSupplier(OperationContext context, ModelNode operation,
+            protected ValueSupplier<NameRewriter> getNameRewriterSupplier(OperationContext context, ModelNode operation,
                     ModelNode model) throws OperationFailedException {
                 final Pattern pattern = Pattern.compile(PATTERN.resolveModelAttribute(context, model).asString());
                 final boolean match = MATCH.resolveModelAttribute(context, model).asBoolean();
@@ -183,7 +183,7 @@ class NameRewriterDefinitions {
         private static final AbstractAddStepHandler ADD = new NameRewriterAddHandler(new AttributeDefinition[] { CONSTANT }) {
 
             @Override
-            protected Supplier<NameRewriter> getNameRewriterSupplier(OperationContext context, ModelNode operation,
+            protected ValueSupplier<NameRewriter> getNameRewriterSupplier(OperationContext context, ModelNode operation,
                     ModelNode model) throws OperationFailedException {
                 final String constant = CONSTANT.resolveModelAttribute(context, model).asString();
                 return () -> NameRewriter.constant(constant);
@@ -229,7 +229,7 @@ class NameRewriterDefinitions {
                 .install();
         }
 
-        protected abstract Supplier<NameRewriter> getNameRewriterSupplier(OperationContext context, ModelNode operation, ModelNode model) throws OperationFailedException;
+        protected abstract ValueSupplier<NameRewriter> getNameRewriterSupplier(OperationContext context, ModelNode operation, ModelNode model) throws OperationFailedException;
 
     }
 
