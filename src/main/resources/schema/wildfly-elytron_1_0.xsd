@@ -292,6 +292,7 @@
             <xs:element name="keystore-realm" type="keyStoreRealmType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="properties-realm" type="propertiesRealmType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="ldap-realm" type="ldapRealmType" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="filesystem-realm" type="fileSystemRealmType" minOccurs="0" maxOccurs="unbounded" />
         </xs:choice>
     </xs:complexType>
 
@@ -451,6 +452,36 @@
                     <xs:element name="dir-context" type="dirContextType" minOccurs="1" maxOccurs="1" nillable="false"/>
                     <xs:element name="principal-mapping" type="principalMappingType" minOccurs="1" maxOccurs="1" nillable="false"/>
                 </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <!-- FileSystem Security Realm -->
+    <xs:complexType name="fileSystemRealmType">
+        <xs:annotation>
+            <xs:documentation>
+                A simple security realm definition backed by the filesystem.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="realmType">
+                <xs:sequence>
+                    <xs:element name="file" type="basicFileType" minOccurs="1" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>
+                                The location of the file to use to handle the security realm.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="name-rewriter" type="nameRewriterRefType" minOccurs="0" maxOccurs="1"/>
+                </xs:sequence>
+                <xs:attribute name="levels" type="xs:int" default="2">
+                    <xs:annotation>
+                        <xs:documentation>
+                            The number of levels of directory hashing to apply
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
             </xs:extension>
         </xs:complexContent>
     </xs:complexType>

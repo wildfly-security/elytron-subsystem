@@ -35,12 +35,16 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AUTHORIZ
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CONFIGURATION;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CUSTOM_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.DIR_CONTEXT;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.FILE;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.FILESYSTEM_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.GROUPS_PROPERTIES;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.JAAS_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEYSTORE;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEYSTORE_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.LDAP_REALM;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.LEVELS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME_REWRITER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PATH;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PLAIN_TEXT;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PRINCIPAL_MAPPING;
@@ -99,6 +103,9 @@ class RealmParser {
                     break;
                 case LDAP_REALM:
                     readLdapRealm(parentAddress, reader, operations);
+                    break;
+                case FILESYSTEM_REALM:
+                    readFileSystemRealm(parentAddress, reader, operations);
                     break;
                 default:
                     throw unexpectedElement(reader);
@@ -285,6 +292,89 @@ class RealmParser {
 
         operations.add(addRealm);
     }
+
+    private void readFileSystemRealm(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations) throws XMLStreamException {
+        ModelNode addRealm = new ModelNode();
+        addRealm.get(OP).set(ADD);
+
+
+        String name = null;
+        final int count = reader.getAttributeCount();
+        for (int i = 0; i < count; i++) {
+            final String value = reader.getAttributeValue(i);
+            if (!isNoNamespaceAttribute(reader, i)) {
+                throw unexpectedAttribute(reader, i);
+            } else {
+                String attribute = reader.getAttributeLocalName(i);
+                switch (attribute) {
+                    case NAME:
+                        name = value;
+                        break;
+                    case LEVELS:
+                        FileSystemRealmDefinition.LEVELS.parseAndSetParameter(value, addRealm, reader);
+                        break;
+                    default:
+                        throw unexpectedAttribute(reader, i);
+                }
+            }
+        }
+
+        if (name == null) {
+            throw missingRequired(reader, Collections.singleton(NAME));
+        }
+
+        addRealm.get(OP_ADDR).set(parentAddress).add(FILESYSTEM_REALM, name);
+
+        operations.add(addRealm);
+
+        boolean hasFile = false;
+        while (reader.hasNext() && reader.nextTag() != END_ELEMENT) {
+            verifyNamespace(reader);
+            String localName = reader.getLocalName();
+            switch (localName) {
+                case FILE:
+                    readFileAttributes(addRealm, reader);
+                    hasFile = true;
+                    break;
+                case NAME_REWRITER:
+                    readNameRewriterReference(addRealm, reader);
+                    break;
+                default:
+                    throw unexpectedElement(reader);
+            }
+        }
+        if (!hasFile) {
+            throw missingRequiredElement(reader, Collections.singleton(FILE));
+        }
+    }
+
+    private void readNameRewriterReference(ModelNode addRealm, XMLExtendedStreamReader reader) throws XMLStreamException {
+        boolean found = false;
+        final int count = reader.getAttributeCount();
+        for (int i = 0; i < count; i++) {
+            final String value = reader.getAttributeValue(i);
+            if (!isNoNamespaceAttribute(reader, i)) {
+                throw unexpectedAttribute(reader, i);
+            } else {
+                String attribute = reader.getAttributeLocalName(i);
+                switch (attribute) {
+                    case NAME:
+                        FileSystemRealmDefinition.NAME_REWRITER.parseAndSetParameter(value, addRealm, reader);
+                        found = true;
+                        break;
+                    default:
+                        throw unexpectedAttribute(reader, i);
+                }
+            }
+        }
+
+        if (!found) {
+            throw missingRequired(reader, NAME);
+        }
+
+        requireNoContent(reader);
+    }
+
 
     private void readFileAttributes(ModelNode file, XMLExtendedStreamReader reader) throws XMLStreamException {
         boolean pathFound = false;
@@ -521,6 +611,37 @@ class RealmParser {
         return false;
     }
 
+    private boolean writeFileSystemRealms(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
+        if (subsystem.hasDefined(FILESYSTEM_REALM)) {
+            startRealms(started, writer);
+
+            List<Property> realms = subsystem.require(FILESYSTEM_REALM).asPropertyList();
+
+            for (Property current : realms) {
+                final ModelNode model = current.getValue();
+                writer.writeStartElement(FILESYSTEM_REALM);
+                writer.writeAttribute(NAME, current.getName());
+                FileSystemRealmDefinition.LEVELS.marshallAsAttribute(model, writer);
+
+                writer.writeStartElement(FILE);
+                FileSystemRealmDefinition.PATH.marshallAsAttribute(model, writer);
+                FileSystemRealmDefinition.RELATIVE_TO.marshallAsAttribute(model, writer);
+                writer.writeEndElement();
+
+                if (model.hasDefined(NAME_REWRITER)) {
+                    writer.writeStartElement(NAME_REWRITER);
+                    FileSystemRealmDefinition.NAME_REWRITER.marshallAsAttribute(model, writer);
+                    writer.writeEndElement();
+                }
+
+                writer.writeEndElement();
+            }
+
+            return true;
+        }
+        return false;
+    }
+
     private void writeLdapObjectTypeAttribute(String name, SimpleAttributeDefinition[] attributes, ModelNode ldapRealmNode, XMLExtendedStreamWriter writer)
             throws XMLStreamException {
         ModelNode attributeNode = ldapRealmNode.get(name);
@@ -542,6 +663,7 @@ class RealmParser {
         realmsStarted = realmsStarted | writeKeyStoreRealms(realmsStarted, subsystem, writer);
         realmsStarted = realmsStarted | writePropertiesRealms(realmsStarted, subsystem, writer);
         realmsStarted = realmsStarted | writeLdapRealms(realmsStarted, subsystem, writer);
+        realmsStarted = realmsStarted | writeFileSystemRealms(realmsStarted, subsystem, writer);
 
         if (realmsStarted) {
             writer.writeEndElement();

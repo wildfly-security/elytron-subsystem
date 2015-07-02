@@ -83,6 +83,7 @@ class ElytronDefinition extends SimpleResourceDefinition {
         resourceRegistration.registerSubModel(new KeyStoreRealmDefinition());
         resourceRegistration.registerSubModel(new PropertiesRealmDefinition());
         resourceRegistration.registerSubModel(new LdapRealmDefinition());
+        resourceRegistration.registerSubModel(new FileSystemRealmDefinition());
 
         // Name Rewriters
         resourceRegistration.registerSubModel(NameRewriterDefinitions.getAggregateNameRewriterDefinition());

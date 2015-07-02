@@ -62,6 +62,7 @@ interface ElytronDescriptionConstants {
     String EMPTY_ROLE_DECODER = "empty-role-decoder";
     String ENTRY_TYPE = "entry-type";
     String FILE = "file";
+    String FILESYSTEM_REALM = "filesystem-realm";
     String FINGER_PRINT = "finger-print";
     String FINGER_PRINTS = "finger-prints";
     String FORMAT = "format";
@@ -77,6 +78,7 @@ interface ElytronDescriptionConstants {
     String KEYSTORE_REALM = "keystore-realm";
     String KEYSTORES = "keystores";
     String LDAP_REALM = "ldap-realm";
+    String LEVELS = "levels";
     String LOAD = "load";
     String LOADED_PROVIDER = "loaded-provider";
     String LOADED_PROVIDERS = "loaded-providers";
@@ -153,5 +155,4 @@ interface ElytronDescriptionConstants {
     String VERSION = "version";
     String WATCH = "watch";
     String X500_COMMON_NAME_PRINCIPAL_DECODER = "x500-common-name-principal-decoder";
-
 }
