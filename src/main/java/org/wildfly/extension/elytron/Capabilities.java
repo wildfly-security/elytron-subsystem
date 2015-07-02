@@ -91,4 +91,12 @@ class Capabilities {
         .Builder.of(SECURITY_REALM_CAPABILITY, true, SecurityRealm.class)
         .build();
 
+    /**
+     * Requirements, capabilities from other subsystems.
+     */
+
+    /**
+     * Required by the {@link JdbcRealmDefinition}.
+     */
+    static final String DATA_SOURCE_CAPABILITY_NAME = "org.wildfly.data-source";
 }

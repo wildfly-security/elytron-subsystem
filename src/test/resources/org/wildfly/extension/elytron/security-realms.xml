@@ -29,6 +29,15 @@
             <users-properties path="my.properties" relative-to="my.path" />
             <groups-properties path="mygroup.properties" relative-to="mygroup.path" />
         </properties-realm>
+        <jdbc-realm name="RealmSeven">
+            <authentication-query sql="SELECT password FROM user_clear_password WHERE name = ?" data-source="TestDS">
+                <clear-password-mapper password-index="1"/>
+                <bcrypt-mapper password-index="1" salt-index="2" iteration-count-index="3"/>
+                <simple-digest-mapper password-index="1"/>
+                <salted-simple-digest-mapper password-index="1" salt-index="2"/>
+                <scram-mapper password-index="1" salt-index="2" iteration-count-index="3"/>
+            </authentication-query>
+        </jdbc-realm>
         <ldap-realm name="RealmEight">
             <dir-context url="ldap://localhost:11390" principal="uid=server,dc=elytron,dc=wildfly,dc=org" credential="serverPassword" enable-connection-pooling="true" />
             <principal-mapping name-attribute="uid" use-x500-principal="true" use-recursive-search="true" search-base-dn="dc=elytron,dc=wildfly,dc=org" cache-principal="false"/>

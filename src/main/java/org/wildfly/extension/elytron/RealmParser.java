@@ -32,11 +32,13 @@ import static org.jboss.as.controller.parsing.ParseUtils.unexpectedElement;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AGGREGATE_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AUTHENTICATION_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AUTHORIZATION_REALM;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AUTHENTICATION_QUERY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CONFIGURATION;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CUSTOM_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.DIR_CONTEXT;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.GROUPS_PROPERTIES;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.JAAS_REALM;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.JDBC_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEYSTORE;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEYSTORE_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.LDAP_REALM;
@@ -60,11 +62,14 @@ import java.util.Set;
 
 import javax.xml.stream.XMLStreamException;
 
+import org.jboss.as.controller.ObjectTypeAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.Property;
 import org.jboss.staxmapper.XMLExtendedStreamReader;
 import org.jboss.staxmapper.XMLExtendedStreamWriter;
+import org.wildfly.extension.elytron.JdbcRealmDefinition.AuthenticationQueryAttributes;
+import org.wildfly.extension.elytron.JdbcRealmDefinition.PasswordMapperObjectDefinition;
 import org.wildfly.extension.elytron.LdapAttributeDefinitions.DirContextAttributes;
 import org.wildfly.extension.elytron.LdapAttributeDefinitions.PrincipalMappingAttributes;
 
@@ -90,6 +95,9 @@ class RealmParser {
                     break;
                 case JAAS_REALM:
                     readJaasRealm(parentAddress, reader, operations);
+                    break;
+                case JDBC_REALM:
+                    readJdbcRealm(parentAddress, reader, operations);
                     break;
                 case KEYSTORE_REALM:
                     readKeyStoreRealm(parentAddress, reader, operations);
@@ -185,6 +193,74 @@ class RealmParser {
         operations.add(addRealm);
 
         requireNoContent(reader);
+    }
+
+    private void readJdbcRealm(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations) throws XMLStreamException {
+        ModelNode addRealm = new ModelNode();
+        addRealm.get(OP).set(ADD);
+
+        String name = null;
+
+        final int count = reader.getAttributeCount();
+        for (int i = 0; i < count; i++) {
+            final String value = reader.getAttributeValue(i);
+            if (!isNoNamespaceAttribute(reader, i)) {
+                throw unexpectedAttribute(reader, i);
+            } else {
+                String attribute = reader.getAttributeLocalName(i);
+                switch (attribute) {
+                    case NAME:
+                        name = value;
+                        break;
+                    default:
+                        throw unexpectedAttribute(reader, i);
+                }
+            }
+        }
+
+        if (name == null) {
+            throw missingRequired(reader, NAME);
+        }
+
+        addRealm.get(OP_ADDR).set(parentAddress).add(JDBC_REALM, name);
+
+        while (reader.hasNext() && reader.nextTag() != END_ELEMENT) {
+            verifyNamespace(reader);
+            String localName = reader.getLocalName();
+            switch (localName) {
+                case AUTHENTICATION_QUERY:
+                    ModelNode authenticationQueryNode = readAttributes(AuthenticationQueryAttributes.ATTRIBUTES, reader);
+
+                    while (reader.hasNext() && reader.nextTag() != END_ELEMENT) {
+                        verifyNamespace(reader);
+
+                        String passwordMapperName = reader.getLocalName();
+
+                        if (!AuthenticationQueryAttributes.SUPPORTED_PASSWORD_MAPPERS.containsKey(passwordMapperName)) {
+                            unexpectedElement(reader);
+                        }
+
+                        PasswordMapperObjectDefinition passwordMapperObjectDefinition = AuthenticationQueryAttributes.SUPPORTED_PASSWORD_MAPPERS.get(passwordMapperName);
+
+                        ModelNode passwordMapperNode = readAttributes(passwordMapperObjectDefinition.getAttributes(), reader);
+
+                        authenticationQueryNode.get(passwordMapperName).set(passwordMapperNode);
+
+                        requireNoContent(reader);
+                    }
+
+                    addRealm.get(AUTHENTICATION_QUERY).set(authenticationQueryNode);
+                    break;
+                default:
+                    throw unexpectedElement(reader);
+            }
+        }
+
+        if (!addRealm.hasDefined(AUTHENTICATION_QUERY)) {
+            throw missingRequiredElement(reader, Collections.singleton(AUTHENTICATION_QUERY));
+        }
+
+        operations.add(addRealm);
     }
 
     private void readKeyStoreRealm(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations)
@@ -350,11 +426,13 @@ class RealmParser {
             String localName = reader.getLocalName();
             switch (localName) {
                 case DIR_CONTEXT:
-                    ModelNode dirContextNode = readLdapObjectTypeAttribute(DirContextAttributes.ATTRIBUTES, reader);
+                    ModelNode dirContextNode = readAttributes(DirContextAttributes.ATTRIBUTES, reader);
+                    requireNoContent(reader);
                     addRealm.get(DIR_CONTEXT).set(dirContextNode);
                     break;
                 case PRINCIPAL_MAPPING:
-                    ModelNode principalMappingNode = readLdapObjectTypeAttribute(PrincipalMappingAttributes.ATTRIBUTES, reader);
+                    ModelNode principalMappingNode = readAttributes(PrincipalMappingAttributes.ATTRIBUTES, reader);
+                    requireNoContent(reader);
                     addRealm.get(PRINCIPAL_MAPPING).set(principalMappingNode);
                     break;
                 default:
@@ -365,7 +443,7 @@ class RealmParser {
         operations.add(addRealm);
     }
 
-    private ModelNode readLdapObjectTypeAttribute(SimpleAttributeDefinition[] attributes, XMLExtendedStreamReader reader) throws XMLStreamException {
+    private ModelNode readAttributes(SimpleAttributeDefinition[] attributes, XMLExtendedStreamReader reader) throws XMLStreamException {
         ModelNode newPrincipalMappingModelNode = new ModelNode();
 
         final int count = reader.getAttributeCount();
@@ -391,8 +469,6 @@ class RealmParser {
                 attributeDefinition.parseAndSetParameter(value, newPrincipalMappingModelNode, reader);
             }
         }
-
-        requireNoContent(reader);
 
         return newPrincipalMappingModelNode;
     }
@@ -452,6 +528,61 @@ class RealmParser {
             return true;
         }
         return false;
+    }
+
+    private boolean writeJdbcRealms(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
+        if (subsystem.hasDefined(JDBC_REALM)) {
+            startRealms(started, writer);
+
+            List<Property> realms = subsystem.require(JDBC_REALM).asPropertyList();
+            for (Property current : realms) {
+                writer.writeStartElement(JDBC_REALM);
+
+                writer.writeAttribute(NAME, current.getName());
+
+                ModelNode jdbcRealmNode = current.getValue();
+
+                writeAuthenticationQuery(jdbcRealmNode.get(AUTHENTICATION_QUERY), writer);
+
+                writer.writeEndElement();
+            }
+
+            return true;
+        }
+        return false;
+    }
+
+    private void writeAuthenticationQuery(ModelNode authenticationQueryNode, XMLExtendedStreamWriter writer)
+            throws XMLStreamException {
+        if (authenticationQueryNode.isDefined()) {
+            writer.writeStartElement(AUTHENTICATION_QUERY);
+
+            for (SimpleAttributeDefinition attributeDefinition : AuthenticationQueryAttributes.ATTRIBUTES) {
+                attributeDefinition.marshallAsAttribute(authenticationQueryNode, writer);
+            }
+
+            for (PasswordMapperObjectDefinition mapperDefinition : AuthenticationQueryAttributes.SUPPORTED_PASSWORD_MAPPERS.values()) {
+                writePasswordMapper(mapperDefinition.getResourceDefinition(), authenticationQueryNode, writer);
+            }
+
+            writer.writeEndElement();
+        }
+    }
+
+    private void writePasswordMapper(ObjectTypeAttributeDefinition attributeDefinition, ModelNode authenticationQueryNode, XMLExtendedStreamWriter writer)
+            throws XMLStreamException {
+        String name = attributeDefinition.getName();
+        ModelNode modelNode = authenticationQueryNode.get(name);
+
+        if (modelNode.isDefined()) {
+            writer.writeStartElement(name);
+
+            for (Property current : modelNode.asPropertyList()) {
+                writer.writeAttribute(current.getName(), current.getValue().asString());
+            }
+
+            writer.writeEndElement();
+        }
     }
 
     private boolean writeKeyStoreRealms(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
@@ -539,6 +670,7 @@ class RealmParser {
         realmsStarted = realmsStarted | writeAggregateRealms(realmsStarted, subsystem, writer);
         realmsStarted = realmsStarted | writeCustomRealms(realmsStarted, subsystem, writer);
         realmsStarted = realmsStarted | writeJaasRealms(realmsStarted, subsystem, writer);
+        realmsStarted = realmsStarted | writeJdbcRealms(realmsStarted, subsystem, writer);
         realmsStarted = realmsStarted | writeKeyStoreRealms(realmsStarted, subsystem, writer);
         realmsStarted = realmsStarted | writePropertiesRealms(realmsStarted, subsystem, writer);
         realmsStarted = realmsStarted | writeLdapRealms(realmsStarted, subsystem, writer);

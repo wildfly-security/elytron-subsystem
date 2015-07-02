@@ -23,6 +23,7 @@ import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.ADD
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP;
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP_ADDR;
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.SUBSYSTEM;
+import static org.wildfly.extension.elytron.ElytronSubsystemUtil.CAPABILITIES_INITIALIZATION;
 
 import java.util.List;
 
@@ -30,6 +31,7 @@ import org.jboss.as.controller.PathAddress;
 import org.jboss.as.controller.PathElement;
 import org.jboss.as.subsystem.test.AbstractSubsystemTest;
 import org.jboss.as.subsystem.test.KernelServices;
+import org.jboss.as.subsystem.test.KernelServicesBuilder;
 import org.jboss.dmr.ModelNode;
 import org.junit.Assert;
 import org.junit.Test;
@@ -118,7 +120,8 @@ public class SubsystemParsingTestCase extends AbstractSubsystemTest {
      */
     private void testParseAndMarshalModel(final String fileName) throws Exception {
         //Parse the subsystem xml and install into the first controller
-        KernelServices servicesA = super.createKernelServicesBuilder(null).setSubsystemXmlResource(fileName).build();
+        KernelServices servicesA = createKernelServicesBuilder().setSubsystemXmlResource(fileName).build();
+
         //Get the model and the persisted xml from the first controller
         ModelNode modelA = servicesA.readWholeModel();
         System.out.println(modelA.toString());
@@ -126,11 +129,15 @@ public class SubsystemParsingTestCase extends AbstractSubsystemTest {
         System.out.println(marshalled);
 
         //Install the persisted xml from the first controller into a second controller
-        KernelServices servicesB = super.createKernelServicesBuilder(null).setSubsystemXml(marshalled).build();
+        KernelServices servicesB = createKernelServicesBuilder().setSubsystemXml(marshalled).build();
         ModelNode modelB = servicesB.readWholeModel();
 
         //Make sure the models from the two controllers are identical
         super.compare(modelA, modelB);
+    }
+
+    private KernelServicesBuilder createKernelServicesBuilder() {
+        return super.createKernelServicesBuilder(CAPABILITIES_INITIALIZATION);
     }
 
     @Test

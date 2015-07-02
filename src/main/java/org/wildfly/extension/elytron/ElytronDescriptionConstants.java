@@ -35,12 +35,15 @@ interface ElytronDescriptionConstants {
     String AUTHENTICATION_REALM = "authentication-realm";
     String AUTHORIZATION_REALM = "authorization-realm";
     String CACHE_PRINCIPAL = "cache-principal";
+    String AUTHENTICATION_QUERY = "authentication-query";
+    String BCRYPT_MAPPER = "bcrypt-mapper";
     String CERTIFICATE = "certificate";
     String CERTIFICATES = "certificates";
     String CERTIFICATE_CHAIN = "certificate-chain";
     String CLASS_LOADING = "class-loading";
     String CLASS_NAME = "class-name";
     String CLASS_NAMES = "class-names";
+    String CLEAR_PASSWORD_MAPPER = "clear-password-mapper";
     String CONFIGURATION = "configuration";
     String CONFIGURATION_FILE = "configuration-file";
     String CONFIGURATION_PROPERTIES = "configuration-properties";
@@ -54,6 +57,7 @@ interface ElytronDescriptionConstants {
     String CUSTOM_REALM = "custom-realm";
     String CUSTOM_REALM_MAPPER = "custom-realm-mapper";
     String CUSTOM_ROLE_DECODER = "custom-role-decoder";
+    String DATA_SOURCE = "data-source";
     String DEFAULT_REALM = "default-realm";
     String DELEGATE_REALM_MAPPER = "delegate-realm-mapper";
     String DIR_CONTEXT = "dir-context";
@@ -71,7 +75,9 @@ interface ElytronDescriptionConstants {
     String INDEX = "index";
     String INFO = "info";
     String ISSUER = "issuer";
+    String ITERATION_COUNT_INDEX = "iteration-count-index";
     String JAAS_REALM = "jaas-realm";
+    String JDBC_REALM = "jdbc-realm";
     String KEY = "key";
     String KEYSTORE = "keystore";
     String KEYSTORE_REALM = "keystore-realm";
@@ -96,6 +102,7 @@ interface ElytronDescriptionConstants {
     String PATH = "path";
     String PATTERN = "pattern";
     String PASSWORD = "password";
+    String PASSWORD_INDEX = "password-index";
     String PLAIN_TEXT = "plain-text";
     String POST_REALM_NAME_REWRITER = "post-realm-name-rewriter";
     String PRE_REALM_NAME_REWRITER = "pre-realm-name-rewriter";
@@ -127,6 +134,9 @@ interface ElytronDescriptionConstants {
     String SEARCH_BASE_DN = "search-base-dn";
     String SECURITY_DOMAIN = "security-domain";
     String SECURITY_DOMAINS = "security-domains";
+    String SALT_INDEX = "salt-index";
+    String SALTED_SIMPLE_DIGEST_MAPPER = "salted-simple-digest-mapper";
+    String SCRAM_MAPPER = "scram-mapper";
     String SECURITY_PROPERTIES = "security-properties";
     String SECURITY_PROPERTY = "security-property";
     String SERIAL_NUMBER = "serial-number";
@@ -134,10 +144,12 @@ interface ElytronDescriptionConstants {
     String SERVICES = "services";
     String SIGNATURE = "signature";
     String SIGNATURE_ALGORITHM = "signature-algorithm";
+    String SIMPLE_DIGEST_MAPPER = "simple-digest-mapper";
     String SIMPLE_REGEX_REALM_MAPPER = "simple-regex-realm-mapper";
     String SIMPLE_ROLE_DECODER = "simple-role-decoder";
     String SIZE = "size";
     String SLOT = "slot";
+    String SQL = "sql";
     String STATE = "state";
     String STORE = "store";
     String SUBJECT = "subject";
