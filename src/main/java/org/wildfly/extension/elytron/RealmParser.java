@@ -70,8 +70,8 @@ import org.jboss.staxmapper.XMLExtendedStreamReader;
 import org.jboss.staxmapper.XMLExtendedStreamWriter;
 import org.wildfly.extension.elytron.JdbcRealmDefinition.AuthenticationQueryAttributes;
 import org.wildfly.extension.elytron.JdbcRealmDefinition.PasswordMapperObjectDefinition;
-import org.wildfly.extension.elytron.LdapAttributeDefinitions.DirContextAttributes;
-import org.wildfly.extension.elytron.LdapAttributeDefinitions.PrincipalMappingAttributes;
+import org.wildfly.extension.elytron.LdapRealmDefinition.DirContextObjectDefinition;
+import org.wildfly.extension.elytron.LdapRealmDefinition.PrincipalMappingObjectDefinition;
 
 /**
  * A parser for the security realm definition.
@@ -426,12 +426,12 @@ class RealmParser {
             String localName = reader.getLocalName();
             switch (localName) {
                 case DIR_CONTEXT:
-                    ModelNode dirContextNode = readAttributes(DirContextAttributes.ATTRIBUTES, reader);
+                    ModelNode dirContextNode = readAttributes(DirContextObjectDefinition.ATTRIBUTES, reader);
                     requireNoContent(reader);
                     addRealm.get(DIR_CONTEXT).set(dirContextNode);
                     break;
                 case PRINCIPAL_MAPPING:
-                    ModelNode principalMappingNode = readAttributes(PrincipalMappingAttributes.ATTRIBUTES, reader);
+                    ModelNode principalMappingNode = readAttributes(PrincipalMappingObjectDefinition.ATTRIBUTES, reader);
                     requireNoContent(reader);
                     addRealm.get(PRINCIPAL_MAPPING).set(principalMappingNode);
                     break;
@@ -641,8 +641,8 @@ class RealmParser {
                 writer.writeStartElement(LDAP_REALM);
                 writer.writeAttribute(NAME, current.getName());
 
-                writeLdapObjectTypeAttribute(DIR_CONTEXT, DirContextAttributes.ATTRIBUTES, current.getValue(), writer);
-                writeLdapObjectTypeAttribute(PRINCIPAL_MAPPING, PrincipalMappingAttributes.ATTRIBUTES, current.getValue(), writer);
+                writeLdapObjectTypeAttribute(DIR_CONTEXT, DirContextObjectDefinition.ATTRIBUTES, current.getValue(), writer);
+                writeLdapObjectTypeAttribute(PRINCIPAL_MAPPING, PrincipalMappingObjectDefinition.ATTRIBUTES, current.getValue(), writer);
 
                 writer.writeEndElement();
             }
