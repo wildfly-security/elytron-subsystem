@@ -551,6 +551,9 @@
             <xs:element name="custom-name-rewriter" type="customNameRewriterType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="regex-name-rewriter" type="regexNameRewriterType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="regex-name-validating-rewriter" type="regexNameValidatingRewriter" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="aggregate-principal-decoder" type="aggregatePrincipalDecoderType" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="custom-principal-decoder" type="customPrincipalDecoderType" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="x500-common-name-principal-decoder" type="x500CommonNamePrincipalDecoderType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="custom-realm-mapper" type="customRealmMapperType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="simple-regex-realm-mapper" type="simpleRegexRealmMapperType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="mapped-regex-realm-mapper" type="mappedRegedRealmMapperType" minOccurs="0" maxOccurs="unbounded" />
@@ -689,9 +692,13 @@
                 A NameRewriter definition that is actually an aggregation of other NameRewriters.
             </xs:documentation>
         </xs:annotation>
-        <xs:sequence>
-            <xs:element name="name-rewriter" type="nameRewriterRefType" maxOccurs="unbounded" />
-        </xs:sequence>
+        <xs:complexContent>
+            <xs:extension base="nameRewriterType">
+                <xs:sequence>
+                    <xs:element name="name-rewriter" type="nameRewriterRefType" maxOccurs="unbounded" />
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
     </xs:complexType>
 
     <xs:complexType name="nameRewriterRefType">
@@ -701,6 +708,83 @@
             </xs:documentation>
         </xs:annotation>
         <xs:attribute name="name" type="xs:string" use="required" />
+    </xs:complexType>
+    
+    <xs:complexType name="principalDecoderType" abstract="true">
+        <xs:annotation>
+            <xs:documentation>
+                Base type for all PrincipalDecoder definitions.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="name" type="xs:string" use="required">
+            <xs:annotation>
+                <xs:documentation>
+                    The unique name for the PrincipalDecoder, note names used for PrincipalDecoders must be unique
+                    across the whole context.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:complexType>
+    
+    <xs:complexType name="customPrincipalDecoderType">
+        <xs:annotation>
+            <xs:documentation>
+                Generic definition for a custom PrincipalDecoder implementation.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="principalDecoderType">
+                <xs:sequence>
+                    <xs:element name="configuration"
+                        type="customComponentConfiguration" minOccurs="0">
+                        <xs:annotation>
+                            <xs:documentation>
+                                The configuration to apply to the PrincipalDecoder implementation.
+
+                                Note: If configuration is supplied the PrincipalDecoder MUST implement the Configurable interface.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+                <xs:attributeGroup ref="customComponentAttributes" />
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    
+    <xs:complexType name="aggregatePrincipalDecoderType">
+        <xs:annotation>
+            <xs:documentation>
+                A PrincipalDecoder definition that is actually an aggregation of other PrincipalDecoders.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="principalDecoderType">
+                <xs:sequence>
+                    <xs:element name="principal-decoder" type="principalDecoderRefType" maxOccurs="unbounded" />
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="principalDecoderRefType">
+        <xs:annotation>
+            <xs:documentation>
+                A reference to a PrincipalDecoder
+            </xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="name" type="xs:string" use="required" />
+    </xs:complexType>    
+
+    <xs:complexType name="x500CommonNamePrincipalDecoderType">
+        <xs:annotation>
+            <xs:documentation>
+                A PrincipalDecoder definition that extracts the first 'cn' from a X.500 name.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="principalDecoderType">
+            </xs:extension>
+        </xs:complexContent>
     </xs:complexType>
 
     <xs:complexType name="realmMapperType" abstract="true">

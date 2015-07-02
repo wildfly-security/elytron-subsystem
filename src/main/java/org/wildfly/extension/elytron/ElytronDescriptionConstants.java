@@ -100,6 +100,7 @@ interface ElytronDescriptionConstants {
     String POST_REALM_NAME_REWRITER = "post-realm-name-rewriter";
     String PRE_REALM_NAME_REWRITER = "pre-realm-name-rewriter";
     String PRINCIPAL = "principal";
+    String PRINCIPAL_DECODER = "principal-decoder";
     String PRINCIPAL_DECODERS = "principal-decoders";
     String PRINCIPAL_MAPPING = "principal-mapping";
     String PROPERTIES_REALM = "properties-realm";
