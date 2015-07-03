@@ -417,14 +417,14 @@
             <xs:element name="salted-simple-digest-mapper" type="saltedSimpleDigestMapperType" minOccurs="1" maxOccurs="1"/>
             <xs:element name="scram-mapper" type="scramMapperType" minOccurs="1" maxOccurs="1"/>
         </xs:sequence>
-        <xs:attribute name="sql" type="xs:string" default="false" use="required">
+        <xs:attribute name="sql" type="xs:string" use="required">
             <xs:annotation>
                 <xs:documentation>
                     The SQL statement used to obtain the keys(as table columns) for a specific user and map them accordingly with their type.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
-        <xs:attribute name="data-source" type="xs:string" default="false" use="required">
+        <xs:attribute name="data-source" type="xs:string" use="required">
             <xs:annotation>
                 <xs:documentation>
                     The name of the datasource used to connecto to the database.
@@ -439,7 +439,7 @@
                 A key mapper that maps a column returned from a SQL query to a Clear Password key type.
             </xs:documentation>
         </xs:annotation>
-        <xs:attribute name="password-index" type="xs:int" default="false" use="required">
+        <xs:attribute name="password-index" type="xs:int" use="required">
             <xs:annotation>
                 <xs:documentation>
                     The column index from an authentication query that represents the user's password.
@@ -454,21 +454,21 @@
                 A key mapper that maps a column returned from a SQL query to a Bcrypt key type.
             </xs:documentation>
         </xs:annotation>
-        <xs:attribute name="password-index" type="xs:int" default="false" use="required">
+        <xs:attribute name="password-index" type="xs:int" use="required">
             <xs:annotation>
                 <xs:documentation>
                     The column index from an authentication query that represents the user's password.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
-        <xs:attribute name="salt-index" type="xs:int" default="false" use="required">
+        <xs:attribute name="salt-index" type="xs:int" use="required">
             <xs:annotation>
                 <xs:documentation>
                     The column index from an authentication query that represents the password's salt, if supported.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
-        <xs:attribute name="iteration-count-index" type="xs:int" default="false" use="required">
+        <xs:attribute name="iteration-count-index" type="xs:int" use="required">
             <xs:annotation>
                 <xs:documentation>
                     The column index from an authentication query that represents the password's iteration count, if supported.
@@ -483,14 +483,14 @@
                 A key mapper that maps a column returned from a SQL query to a Salted Simple Digest key type.
             </xs:documentation>
         </xs:annotation>
-        <xs:attribute name="password-index" type="xs:int" default="false" use="required">
+        <xs:attribute name="password-index" type="xs:int" use="required">
             <xs:annotation>
                 <xs:documentation>
                     The column index from an authentication query that represents the user's password.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
-        <xs:attribute name="salt-index" type="xs:int" default="false" use="required">
+        <xs:attribute name="salt-index" type="xs:int" use="required">
             <xs:annotation>
                 <xs:documentation>
                     The column index from an authentication query that represents the password's salt, if supported.
@@ -505,7 +505,7 @@
                 A key mapper that maps a column returned from a SQL query to a Simple Digest key type.
             </xs:documentation>
         </xs:annotation>
-        <xs:attribute name="password-index" type="xs:int" default="false" use="required">
+        <xs:attribute name="password-index" type="xs:int" use="required">
             <xs:annotation>
                 <xs:documentation>
                     The column index from an authentication query that represents the user's password.
@@ -520,21 +520,21 @@
                 A key mapper that maps a column returned from a SQL query to a Scram key type.
             </xs:documentation>
         </xs:annotation>
-        <xs:attribute name="password-index" type="xs:int" default="false" use="required">
+        <xs:attribute name="password-index" type="xs:int" use="required">
             <xs:annotation>
                 <xs:documentation>
                     The column index from an authentication query that represents the user's password.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
-        <xs:attribute name="salt-index" type="xs:int" default="false" use="required">
+        <xs:attribute name="salt-index" type="xs:int" use="required">
             <xs:annotation>
                 <xs:documentation>
                     The column index from an authentication query that represents the password's salt, if supported.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
-        <xs:attribute name="iteration-count-index" type="xs:int" default="false" use="required">
+        <xs:attribute name="iteration-count-index" type="xs:int" use="required">
             <xs:annotation>
                 <xs:documentation>
                     The column index from an authentication query that represents the password's iteration count, if supported.
@@ -689,7 +689,7 @@
                 The configuration options that define how principals are mapped to their corresponding entries in the underlying LDAP server.
             </xs:documentation>
         </xs:annotation>
-        <xs:attribute name="name-attribute" type="xs:string" use="optional">
+        <xs:attribute name="name-attribute" type="xs:string" use="required">
             <xs:annotation>
                 <xs:documentation>
                     The name of the attribute to be used to obtain the user name from an LDAP entry.
