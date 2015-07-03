@@ -183,6 +183,6 @@ public class SubsystemParsingTestCase extends AbstractSubsystemTest {
         //Checks that the subsystem was removed from the model
         super.assertRemoveSubsystemResources(services);
 
-        //TODO Chek that any services that were installed were removed here
+        //TODO Check that any services that were installed were removed here
     }
 }
