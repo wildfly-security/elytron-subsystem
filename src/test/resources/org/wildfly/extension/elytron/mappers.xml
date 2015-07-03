@@ -27,5 +27,15 @@
         <custom-role-decoder name="CustomDecoderOne" class-name="org.wildfly.elytron.CustomRoleDecoder" module="f.g" slot="h" />
         <empty-role-decoder name="EmptyRoleDecoder" />
         <simple-role-decoder name="SimpleRoleDecoder" attribute="groups" />
+        
+        <add-prefix-role-mapper name="AddPrefix" prefix="p" />
+        <add-suffix-role-mapper name="AddSuffix" suffix="s" />
+        <aggregate-role-mapper name="AggregateRoleMapper">
+            <role-mapper name="AddPrefix" />
+            <role-mapper name="AddSuffix" />
+        </aggregate-role-mapper>
+        <constant-role-mapper name="ConstantRoles" roles="a b c" />
+        <custom-role-mapper name="CustomRoleOne" class-name="org.wildfly.elytron.CustomRoleMapper" module="i.j" slot="k" />
+        <logical-role-mapper name="AdditionalRoles" logical-operation="and" left="ConstantRoles" right="CustomRoleOne" />
     </mappers>
 </subsystem>

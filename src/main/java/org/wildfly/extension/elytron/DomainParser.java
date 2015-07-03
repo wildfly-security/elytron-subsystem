@@ -36,6 +36,7 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PRINCIPA
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REALMS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REALM_MAPPER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ROLE_MAPPER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ROLE_DECODER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SECURITY_DOMAIN;
 import static org.wildfly.extension.elytron.ElytronSubsystemParser.verifyNamespace;
@@ -94,6 +95,9 @@ class DomainParser {
                     case REALM_MAPPER:
                         DomainDefinition.REALM_MAPPER.parseAndSetParameter(value, addDomain, reader);
                         break;
+                    case ROLE_MAPPER:
+                        DomainDefinition.ROLE_MAPPER.parseAndSetParameter(value, addDomain, reader);
+                        break;
                     default:
                         throw unexpectedAttribute(reader, i);
                 }
@@ -148,6 +152,9 @@ class DomainParser {
                     case ROLE_DECODER:
                         DomainDefinition.REALM_ROLE_DECODER.parseAndSetParameter(attributeValue, realm, reader);
                         break;
+                    case ROLE_MAPPER:
+                        DomainDefinition.ROLE_MAPPER.parseAndSetParameter(attributeValue, realm, reader);
+                        break;
                     default:
                         throw unexpectedAttribute(reader, i);
                 }
@@ -172,6 +179,7 @@ class DomainParser {
         DomainDefinition.POST_REALM_NAME_REWRITER.marshallAsAttribute(domain, writer);
         DomainDefinition.PRINCIPAL_DECODER.marshallAsAttribute(domain, writer);
         DomainDefinition.REALM_MAPPER.marshallAsAttribute(domain, writer);
+        DomainDefinition.ROLE_MAPPER.marshallAsAttribute(domain, writer);
 
         List<ModelNode> realms = domain.get(REALMS).asList();
 
@@ -187,6 +195,7 @@ class DomainParser {
         DomainDefinition.REALM_NAME.marshallAsAttribute(realm, writer);
         DomainDefinition.REALM_NAME_REWRITER.marshallAsAttribute(realm, writer);
         DomainDefinition.REALM_ROLE_DECODER.marshallAsAttribute(realm, writer);
+        DomainDefinition.ROLE_MAPPER.marshallAsAttribute(realm, writer);
         writer.writeEndElement();
     }
 
