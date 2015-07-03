@@ -132,8 +132,8 @@ class RoleDecoderDefinitions {
         }
 
         @Override
-        protected ServiceName getParentServiceName(PathAddress arg0) {
-            return null;
+        protected ServiceName getParentServiceName(PathAddress pathAddress) {
+            return RuntimeCapability.fromBaseCapability(ROLE_DECODER_RUNTIME_CAPABILITY, pathAddress.getLastElement().getValue()).getCapabilityServiceName(RoleDecoder.class);
         }
     }
 }

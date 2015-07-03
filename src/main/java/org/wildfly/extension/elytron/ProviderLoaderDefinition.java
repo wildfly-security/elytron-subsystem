@@ -126,8 +126,8 @@ class ProviderLoaderDefinition extends SimpleResourceDefinition {
         }
 
         @Override
-        protected ServiceName getParentServiceName(PathAddress arg0) {
-            return null;
+        protected ServiceName getParentServiceName(PathAddress pathAddress) {
+            return RuntimeCapability.fromBaseCapability(PROVIDERS_RUNTIME_CAPABILITY, pathAddress.getLastElement().getValue()).getCapabilityServiceName(Provider[].class);
         }
 
     }

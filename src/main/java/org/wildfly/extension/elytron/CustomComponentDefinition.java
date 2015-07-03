@@ -85,6 +85,8 @@ class CustomComponentDefinition<T> extends SimpleResourceDefinition {
             })
         .build();
 
+    private final Class<T> serviceType;
+    private final RuntimeCapability<Void> runtimeCapability;
     private final String pathKey;
 
     private static final AttributeDefinition[] ATTRIBUTES = {MODULE, SLOT, CLASS_NAME, CONFIGURATION};
@@ -94,6 +96,8 @@ class CustomComponentDefinition<T> extends SimpleResourceDefinition {
             .setAddRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
             .setRemoveRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES), runtimeCapability, serviceType));
 
+        this.serviceType = serviceType;
+        this.runtimeCapability = runtimeCapability;
         this.pathKey = pathKey;
     }
 
@@ -109,7 +113,7 @@ class CustomComponentDefinition<T> extends SimpleResourceDefinition {
 
     @Override
     public void registerAttributes(ManagementResourceRegistration resourceRegistration) {
-        WriteAttributeHandler writeHandler = new WriteAttributeHandler(pathKey);
+        WriteAttributeHandler writeHandler = new WriteAttributeHandler(serviceType, runtimeCapability, pathKey);
         for (AttributeDefinition current : ATTRIBUTES) {
             resourceRegistration.registerReadWriteAttribute(current, null, writeHandler);
         }
@@ -174,15 +178,20 @@ class CustomComponentDefinition<T> extends SimpleResourceDefinition {
         }
     }
 
-    private static class WriteAttributeHandler extends RestartParentWriteAttributeHandler {
+    private static class WriteAttributeHandler<T> extends RestartParentWriteAttributeHandler {
 
-        WriteAttributeHandler(String pathKey) {
+        private final RuntimeCapability<?> runtimeCapability;
+        private final Class<T> serviceType;
+
+        WriteAttributeHandler(Class<T> serviceType, RuntimeCapability<?> runtimeCapability, String pathKey) {
             super(pathKey, ATTRIBUTES);
+            this.serviceType = serviceType;
+            this.runtimeCapability = runtimeCapability;
         }
 
         @Override
-        protected ServiceName getParentServiceName(PathAddress parentAddress) {
-            return null;
+        protected ServiceName getParentServiceName(PathAddress pathAddress) {
+            return RuntimeCapability.fromBaseCapability(runtimeCapability, pathAddress.getLastElement().getValue()).getCapabilityServiceName(serviceType);
         }
 
     }

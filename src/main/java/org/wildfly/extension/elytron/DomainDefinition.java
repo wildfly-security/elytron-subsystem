@@ -349,9 +349,8 @@ class DomainDefinition extends SimpleResourceDefinition {
         }
 
         @Override
-        protected ServiceName getParentServiceName(PathAddress parentAddress) {
-            // TODO - This does not look correct.
-            return DOMAIN_SERVICE_UTIL.serviceName(parentAddress.toModelNode());
+        protected ServiceName getParentServiceName(PathAddress pathAddress) {
+            return RuntimeCapability.fromBaseCapability(SECURITY_DOMAIN_RUNTIME_CAPABILITY, pathAddress.getLastElement().getValue()).getCapabilityServiceName(SecurityDomain.class);
         }
 
 

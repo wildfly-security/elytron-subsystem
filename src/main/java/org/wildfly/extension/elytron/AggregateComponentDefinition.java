@@ -88,7 +88,7 @@ class AggregateComponentDefinition<T> extends SimpleResourceDefinition {
 
         AbstractAddStepHandler add = new AggregateComponentAddHandler<T>(aggregationType, aggregator, aggregateReferences, runtimeCapability);
         OperationStepHandler remove = new AggregateComponentRemoveHandler<T>(add, runtimeCapability, aggregationType);
-        OperationStepHandler write = new WriteAttributeHandler(componentName, aggregateReferences);
+        OperationStepHandler write = new WriteAttributeHandler<T>(aggregationType, runtimeCapability, componentName, aggregateReferences);
 
         return new AggregateComponentDefinition<T>(aggregationType, componentName, add, remove, aggregateReferences, write);
     }
@@ -155,16 +155,21 @@ class AggregateComponentDefinition<T> extends SimpleResourceDefinition {
         }
     }
 
-    private static class WriteAttributeHandler extends RestartParentWriteAttributeHandler {
+    private static class WriteAttributeHandler<T> extends RestartParentWriteAttributeHandler {
+
+        private final Class<T> serviceType;
+        private final RuntimeCapability<?> runtimeCapability;
 
 
-        WriteAttributeHandler(String pathKey, AttributeDefinition attribute) {
+        WriteAttributeHandler(Class<T> serviceType, RuntimeCapability<?> runtimeCapability, String pathKey, AttributeDefinition attribute) {
             super(pathKey, attribute);
+            this.serviceType = serviceType;
+            this.runtimeCapability = runtimeCapability;
         }
 
         @Override
-        protected ServiceName getParentServiceName(PathAddress parentAddress) {
-            return null;
+        protected ServiceName getParentServiceName(PathAddress pathAddress) {
+            return RuntimeCapability.fromBaseCapability(runtimeCapability, pathAddress.getLastElement().getValue()).getCapabilityServiceName(serviceType);
         }
 
     }

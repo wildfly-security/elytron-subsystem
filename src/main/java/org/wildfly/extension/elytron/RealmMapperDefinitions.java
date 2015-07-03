@@ -271,8 +271,8 @@ class RealmMapperDefinitions {
         }
 
         @Override
-        protected ServiceName getParentServiceName(PathAddress arg0) {
-            return null;
+        protected ServiceName getParentServiceName(PathAddress pathAddress) {
+            return RuntimeCapability.fromBaseCapability(REALM_MAPPER_RUNTIME_CAPABILITY, pathAddress.getLastElement().getValue()).getCapabilityServiceName(RealmMapper.class);
         }
     }
 

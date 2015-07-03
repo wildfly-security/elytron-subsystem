@@ -36,8 +36,8 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PRINCIPA
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REALMS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REALM_MAPPER;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ROLE_MAPPER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ROLE_DECODER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ROLE_MAPPER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SECURITY_DOMAIN;
 import static org.wildfly.extension.elytron.ElytronSubsystemParser.verifyNamespace;
 

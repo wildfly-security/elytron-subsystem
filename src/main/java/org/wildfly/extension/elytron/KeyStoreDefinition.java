@@ -314,9 +314,8 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
         }
 
         @Override
-        protected ServiceName getParentServiceName(PathAddress arg0) {
-
-            return null;
+        protected ServiceName getParentServiceName(PathAddress pathAddress) {
+            return RuntimeCapability.fromBaseCapability(KEY_STORE_RUNTIME_CAPABILITY, pathAddress.getLastElement().getValue()).getCapabilityServiceName(KeyStore.class);
         }
     }
 
