@@ -22,6 +22,7 @@ import static org.wildfly.extension.elytron.Capabilities.NAME_REWRITER_RUNTIME_C
 import static org.wildfly.extension.elytron.Capabilities.PRINCIPAL_DECODER_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.REALM_MAPPER_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.ROLE_DECODER_RUNTIME_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.ROLE_MAPPER_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
 
@@ -47,6 +48,7 @@ import org.wildfly.security.auth.util.NameRewriter;
 import org.wildfly.security.auth.util.PrincipalDecoder;
 import org.wildfly.security.auth.util.RealmMapper;
 import org.wildfly.security.authz.RoleDecoder;
+import org.wildfly.security.authz.RoleMapper;
 import org.wildfly.security.x500.X500CommonNamePrincipalDecoder;
 
 /**
@@ -107,6 +109,14 @@ class ElytronDefinition extends SimpleResourceDefinition {
         resourceRegistration.registerSubModel(new CustomComponentDefinition<RoleDecoder>(RoleDecoder.class, ROLE_DECODER_RUNTIME_CAPABILITY, ElytronDescriptionConstants.CUSTOM_ROLE_DECODER));
         resourceRegistration.registerSubModel(RoleDecoderDefinitions.getEmptyRoleDecoderDefinition());
         resourceRegistration.registerSubModel(RoleDecoderDefinitions.getSimpleRoleDecoderDefinition());
+
+        // Role Mappers
+        resourceRegistration.registerSubModel(RoleMapperDefinitions.getAddSuffixRoleMapperDefinition());
+        resourceRegistration.registerSubModel(RoleMapperDefinitions.getAddPrefixRoleMapperDefinition());
+        resourceRegistration.registerSubModel(RoleMapperDefinitions.getAggregateRoleMapperDefinition());
+        resourceRegistration.registerSubModel(new CustomComponentDefinition<RoleMapper>(RoleMapper.class, ROLE_MAPPER_RUNTIME_CAPABILITY, ElytronDescriptionConstants.CUSTOM_ROLE_MAPPER));
+        resourceRegistration.registerSubModel(RoleMapperDefinitions.getLogicalRoleMapperDefinition());
+
 
         // TLS Building Blocks
         resourceRegistration.registerSubModel(new KeyStoreDefinition());

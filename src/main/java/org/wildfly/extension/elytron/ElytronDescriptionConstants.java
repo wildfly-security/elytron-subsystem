@@ -25,12 +25,16 @@ package org.wildfly.extension.elytron;
  */
 interface ElytronDescriptionConstants {
 
+    String ADD_PREFIX_ROLE_MAPPER = "add-prefix-role-mapper";
+    String ADD_SUFFIX_ROLE_MAPPER = "add-suffix-role-mapper";
     String AGGREGATE_NAME_REWRITER = "aggregate-name-rewriter";
     String AGGREGATE_PRINCIPAL_DECODER = "aggregate-principal-decoder";
     String AGGREGATE_REALM = "aggregate-realm";
+    String AGGREGATE_ROLE_MAPPER = "aggregate-role-mapper";
     String ALGORITHM = "algorithm";
     String ALIAS = "alias";
     String ATTRIBUTE = "attribute";
+    String AND = "and";
     String AUTHENTICATION_LEVEL = "authentication-level";
     String AUTHENTICATION_REALM = "authentication-realm";
     String AUTHORIZATION_REALM = "authorization-realm";
@@ -49,6 +53,7 @@ interface ElytronDescriptionConstants {
     String CONFIGURATION_PROPERTIES = "configuration-properties";
     String CONSTANT = "constant";
     String CONSTANT_NAME_REWRITER = "constant-name-rewriter";
+    String CONSTANT_ROLE_MAPPER = "constant-role-mapper";
     String CORE_SERVICE = "core-service";
     String CREATION_DATE = "creation-date";
     String CREDENTIAL = "credential";
@@ -57,6 +62,7 @@ interface ElytronDescriptionConstants {
     String CUSTOM_REALM = "custom-realm";
     String CUSTOM_REALM_MAPPER = "custom-realm-mapper";
     String CUSTOM_ROLE_DECODER = "custom-role-decoder";
+    String CUSTOM_ROLE_MAPPER = "custom-role-mapper";
     String DATA_SOURCE = "data-source";
     String DEFAULT_REALM = "default-realm";
     String DELEGATE_REALM_MAPPER = "delegate-realm-mapper";
@@ -84,14 +90,17 @@ interface ElytronDescriptionConstants {
     String KEYSTORE_REALM = "keystore-realm";
     String KEYSTORES = "keystores";
     String LDAP_REALM = "ldap-realm";
+    String LEFT = "left";
     String LEVELS = "levels";
     String LOAD = "load";
     String LOADED_PROVIDER = "loaded-provider";
     String LOADED_PROVIDERS = "loaded-providers";
     String LOAD_SERVICES = "load-services";
+    String LOGICAL_ROLE_MAPPER = "logical-role-mapper";
     String MAPPED_REGEX_REALM_MAPPER = "mapped-regex-realm-mapper";
     String MATCH = "match";
     String MAPPERS = "mappers";
+    String MINUS = "minus";
     String MODIFIED = "modified";
     String MODULE = "module";
     String MODULE_REFERENCE = "module-reference";
@@ -101,6 +110,8 @@ interface ElytronDescriptionConstants {
     String NAME_REWRITERS = "name-rewriters";
     String NOT_AFTER = "not-after";
     String NOT_BEFORE = "not-before";
+    String OPERATION = "operation";
+    String OR = "or";
     String PATH = "path";
     String PATTERN = "pattern";
     String PASSWORD = "password";
@@ -108,6 +119,7 @@ interface ElytronDescriptionConstants {
     String PLAIN_TEXT = "plain-text";
     String POST_REALM_NAME_REWRITER = "post-realm-name-rewriter";
     String PRE_REALM_NAME_REWRITER = "pre-realm-name-rewriter";
+    String PREFIX = "prefix";
     String PRINCIPAL = "principal";
     String PRINCIPAL_DECODER = "principal-decoder";
     String PRINCIPAL_DECODERS = "principal-decoders";
@@ -132,7 +144,10 @@ interface ElytronDescriptionConstants {
     String REPLACE_ALL = "replace-all";
     String REPLACEMENT = "replacement";
     String REQUIRED = "required";
+    String RIGHT = "right";
     String ROLE_DECODER = "role-decoder";
+    String ROLE_MAPPERS = "role-mappers";
+    String ROLES = "roles";
     String SEARCH_BASE_DN = "search-base-dn";
     String SECURITY_DOMAIN = "security-domain";
     String SECURITY_DOMAINS = "security-domains";
@@ -155,6 +170,7 @@ interface ElytronDescriptionConstants {
     String STATE = "state";
     String STORE = "store";
     String SUBJECT = "subject";
+    String SUFFIX = "suffix";
     String SYNCHRONIZED = "synchronized";
     String TLS = "tls";
     String TO = "to";
@@ -167,4 +183,6 @@ interface ElytronDescriptionConstants {
     String VERSION = "version";
     String WATCH = "watch";
     String X500_COMMON_NAME_PRINCIPAL_DECODER = "x500-common-name-principal-decoder";
+    String XOR = "xor";
 }
+
