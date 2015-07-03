@@ -58,6 +58,7 @@ interface ElytronDescriptionConstants {
     String CREATION_DATE = "creation-date";
     String CREDENTIAL = "credential";
     String CUSTOM_NAME_REWRITER = "custom-name-rewriter";
+    String CUSTOM_PERMISSION_MAPPER = "custom-permission-mapper";
     String CUSTOM_PRINCIPAL_DECODER = "custom-principal-decoder";
     String CUSTOM_REALM = "custom-realm";
     String CUSTOM_REALM_MAPPER = "custom-realm-mapper";
@@ -116,6 +117,7 @@ interface ElytronDescriptionConstants {
     String PATTERN = "pattern";
     String PASSWORD = "password";
     String PASSWORD_INDEX = "password-index";
+    String PERMISSION_MAPPER = "permission-mapper";
     String PLAIN_TEXT = "plain-text";
     String POST_REALM_NAME_REWRITER = "post-realm-name-rewriter";
     String PRE_REALM_NAME_REWRITER = "pre-realm-name-rewriter";

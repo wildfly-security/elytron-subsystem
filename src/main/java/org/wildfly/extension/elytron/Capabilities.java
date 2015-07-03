@@ -27,6 +27,7 @@ import org.wildfly.security.auth.spi.SecurityRealm;
 import org.wildfly.security.auth.util.NameRewriter;
 import org.wildfly.security.auth.util.PrincipalDecoder;
 import org.wildfly.security.auth.util.RealmMapper;
+import org.wildfly.security.authz.PermissionMapper;
 import org.wildfly.security.authz.RoleDecoder;
 import org.wildfly.security.authz.RoleMapper;
 
@@ -55,6 +56,12 @@ class Capabilities {
     static final RuntimeCapability<Void> NAME_REWRITER_RUNTIME_CAPABILITY =  RuntimeCapability
         .Builder.of(NAME_REWRITER_CAPABILITY, true, NameRewriter.class)
         .build();
+
+    static final String PERMISSION_MAPPER_CAPABILITY = CAPABILITY_BASE + "permission-mapper";
+
+    static final RuntimeCapability<Void> PERMISSION_MAPPER_RUNTIME_CAPABILITY =  RuntimeCapability
+            .Builder.of(PERMISSION_MAPPER_CAPABILITY, true, PermissionMapper.class)
+            .build();
 
     static final String PRINCIPAL_DECODER_CAPABILITY = CAPABILITY_BASE + "principal-decoder";
 

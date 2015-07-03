@@ -39,6 +39,7 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CONSTANT
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CONSTANT_NAME_REWRITER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CONSTANT_ROLE_MAPPER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CUSTOM_NAME_REWRITER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CUSTOM_PERMISSION_MAPPER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CUSTOM_PRINCIPAL_DECODER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CUSTOM_REALM_MAPPER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CUSTOM_ROLE_DECODER;
@@ -120,6 +121,10 @@ class MapperParser {
                     break;
                 case REGEX_NAME_VALIDATING_REWRITER:
                     readRegexNameValidatingRewriterElement(parentAddress, reader, operations);
+                    break;
+                // Permission Mapper
+                case CUSTOM_PERMISSION_MAPPER:
+                    readCustomComponent(CUSTOM_PERMISSION_MAPPER, parentAddress, reader, operations);
                     break;
                 // Principal Decoders
                 case AGGREGATE_PRINCIPAL_DECODER:
@@ -926,6 +931,22 @@ class MapperParser {
         return false;
     }
 
+    private boolean writeCustomPermissionMappers(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
+        if (subsystem.hasDefined(CUSTOM_PERMISSION_MAPPER)) {
+            startMappers(started, writer);
+            List<Property> principalDecoders = subsystem.require(CUSTOM_PERMISSION_MAPPER).asPropertyList();
+            for (Property current : principalDecoders) {
+                ModelNode principalDecoder = current.getValue();
+
+                writeCustomComponent(CUSTOM_PERMISSION_MAPPER, current.getName(), principalDecoder, writer);
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
     private boolean writeAggregatePrincipalDecoders(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (subsystem.hasDefined(AGGREGATE_PRINCIPAL_DECODER)) {
             startMappers(started, writer);
@@ -1211,6 +1232,8 @@ class MapperParser {
         mappersStarted = mappersStarted | writeCustomNameRewriters(mappersStarted, subsystem, writer);
         mappersStarted = mappersStarted | writeRegexNameRewriters(mappersStarted, subsystem, writer);
         mappersStarted = mappersStarted | writeRegexNameValidatingRewriters(mappersStarted, subsystem, writer);
+
+        mappersStarted = mappersStarted | writeCustomPermissionMappers(mappersStarted, subsystem, writer);
 
         mappersStarted = mappersStarted | writeAggregatePrincipalDecoders(mappersStarted, subsystem, writer);
         mappersStarted = mappersStarted | writeCustomPrincipalDecoders(mappersStarted, subsystem, writer);

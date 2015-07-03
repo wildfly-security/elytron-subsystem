@@ -37,6 +37,7 @@ import org.wildfly.security.auth.spi.SecurityRealm;
 import org.wildfly.security.auth.util.NameRewriter;
 import org.wildfly.security.auth.util.PrincipalDecoder;
 import org.wildfly.security.auth.util.RealmMapper;
+import org.wildfly.security.authz.PermissionMapper;
 import org.wildfly.security.authz.RoleDecoder;
 import org.wildfly.security.authz.RoleMapper;
 
@@ -61,6 +62,7 @@ class DomainService implements Service<SecurityDomain> {
     private final Map<String, InjectedValue<RoleMapper>> roleMappers = new HashMap<>();
     private final InjectedValue<PrincipalDecoder> principalDecoderInjector = new InjectedValue<>();
     private final InjectedValue<RealmMapper> realmMapperInjector = new InjectedValue<>();
+    private final InjectedValue<PermissionMapper> permissionMapperInjector = new InjectedValue<>();
 
     DomainService(final String name, final String defaultRealm) {
         this.name = name;
@@ -105,6 +107,10 @@ class DomainService implements Service<SecurityDomain> {
         return realmMapperInjector;
     }
 
+    Injector<PermissionMapper> getPermissionMapperInjector() {
+        return permissionMapperInjector;
+    }
+
     Injector<NameRewriter> createPreRealmNameRewriterInjector(final String name) {
         this.preRealmNameRewriter = name;
 
@@ -140,6 +146,10 @@ class DomainService implements Service<SecurityDomain> {
         RealmMapper realmMapper = realmMapperInjector.getOptionalValue();
         if (realmMapper != null) {
             builder.setRealmMapper(realmMapper);
+        }
+        PermissionMapper permissionMapper = permissionMapperInjector.getOptionalValue();
+        if (permissionMapper != null) {
+            builder.setPermissionMapper(permissionMapper);
         }
         if (roleMapper != null) {
             builder.setRoleMapper(roleMappers.get(roleMapper).getValue());

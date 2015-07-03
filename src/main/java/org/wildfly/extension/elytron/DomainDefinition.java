@@ -18,6 +18,7 @@
 
 package org.wildfly.extension.elytron;
 
+import static org.wildfly.extension.elytron.Capabilities.PERMISSION_MAPPER_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.NAME_REWRITER_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.PRINCIPAL_DECODER_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.REALM_MAPPER_CAPABILITY;
@@ -75,6 +76,7 @@ import org.wildfly.security.auth.spi.SecurityRealm;
 import org.wildfly.security.auth.util.NameRewriter;
 import org.wildfly.security.auth.util.PrincipalDecoder;
 import org.wildfly.security.auth.util.RealmMapper;
+import org.wildfly.security.authz.PermissionMapper;
 import org.wildfly.security.authz.RoleMapper;
 import org.wildfly.security.password.Password;
 import org.wildfly.security.password.PasswordFactory;
@@ -118,6 +120,13 @@ class DomainDefinition extends SimpleResourceDefinition {
         .setCapabilityReference(PRINCIPAL_DECODER_CAPABILITY, SECURITY_DOMAIN_CAPABILITY, true)
         .build();
 
+    static final SimpleAttributeDefinition PERMISSION_MAPPER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PERMISSION_MAPPER, ModelType.STRING, true)
+        .setAllowExpression(true)
+        .setMinSize(1)
+        .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+        .setCapabilityReference(PERMISSION_MAPPER_CAPABILITY, SECURITY_DOMAIN_CAPABILITY, true)
+        .build();
+
     static final SimpleAttributeDefinition REALM_MAPPER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.REALM_MAPPER, ModelType.STRING, true)
         .setAllowExpression(true)
         .setMinSize(1)
@@ -158,8 +167,8 @@ class DomainDefinition extends SimpleResourceDefinition {
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
         .build();
 
-
-    private static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] { PRE_REALM_NAME_REWRITER, POST_REALM_NAME_REWRITER, PRINCIPAL_DECODER, REALM_MAPPER, ROLE_MAPPER, DEFAULT_REALM, REALMS };
+    private static final AttributeDefinition[] ATTRIBUTES =
+            new AttributeDefinition[] { PRE_REALM_NAME_REWRITER, POST_REALM_NAME_REWRITER, PRINCIPAL_DECODER, REALM_MAPPER, ROLE_MAPPER, PERMISSION_MAPPER, DEFAULT_REALM, REALMS };
 
     private static final DomainAddHandler ADD = new DomainAddHandler();
     private static final DomainRemoveHandler REMOVE = new DomainRemoveHandler(ADD);
@@ -202,6 +211,7 @@ class DomainDefinition extends SimpleResourceDefinition {
         String preRealmNameRewriter = asStringIfDefined(context, PRE_REALM_NAME_REWRITER, model);
         String postRealmNameRewriter = asStringIfDefined(context, POST_REALM_NAME_REWRITER, model);
         String principalDecoder = asStringIfDefined(context, PRINCIPAL_DECODER, model);
+        String permissionMapper = asStringIfDefined(context, PERMISSION_MAPPER, model);
         String realmMapper = asStringIfDefined(context, REALM_MAPPER, model);
         String roleMapper = asStringIfDefined(context, ROLE_MAPPER, model);
 
@@ -221,6 +231,12 @@ class DomainDefinition extends SimpleResourceDefinition {
             ServiceName principalDecoderServiceName = context.getCapabilityServiceName(runtimeCapability, PrincipalDecoder.class);
 
             domainBuilder.addDependency(principalDecoderServiceName, PrincipalDecoder.class, domain.getPrincipalDecoderInjector());
+        }
+        if (permissionMapper != null) {
+            String runtimeCapability = RuntimeCapability.buildDynamicCapabilityName(PERMISSION_MAPPER_CAPABILITY, permissionMapper);
+            ServiceName permissionMapperServiceName = context.getCapabilityServiceName(runtimeCapability, PermissionMapper.class);
+
+            domainBuilder.addDependency(permissionMapperServiceName, PermissionMapper.class, domain.getPermissionMapperInjector());
         }
         if (realmMapper != null) {
             String runtimeCapability = RuntimeCapability.buildDynamicCapabilityName(REALM_MAPPER_CAPABILITY, realmMapper);
