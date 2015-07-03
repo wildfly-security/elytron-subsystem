@@ -96,6 +96,7 @@ interface ElytronDescriptionConstants {
     String LOADED_PROVIDER = "loaded-provider";
     String LOADED_PROVIDERS = "loaded-providers";
     String LOAD_SERVICES = "load-services";
+    String LOGICAL_OPERATION = "logical-operation";
     String LOGICAL_ROLE_MAPPER = "logical-role-mapper";
     String MAPPED_REGEX_REALM_MAPPER = "mapped-regex-realm-mapper";
     String MATCH = "match";
@@ -110,7 +111,6 @@ interface ElytronDescriptionConstants {
     String NAME_REWRITERS = "name-rewriters";
     String NOT_AFTER = "not-after";
     String NOT_BEFORE = "not-before";
-    String OPERATION = "operation";
     String OR = "or";
     String PATH = "path";
     String PATTERN = "pattern";

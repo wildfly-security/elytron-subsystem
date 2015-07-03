@@ -90,7 +90,7 @@ class RoleMapperDefinitions {
         .setCapabilityReference(ROLE_MAPPER_CAPABILITY, ROLE_MAPPER_CAPABILITY, true)
         .build();
 
-    static final SimpleAttributeDefinition OPERATION = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.OPERATION, ModelType.STRING, false)
+    static final SimpleAttributeDefinition LOGICAL_OPERATION = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.LOGICAL_OPERATION, ModelType.STRING, false)
         .setAllowExpression(true)
         .setAllowedValues(ElytronDescriptionConstants.AND, ElytronDescriptionConstants.MINUS, ElytronDescriptionConstants.OR, ElytronDescriptionConstants.XOR)
         .setValidator(EnumValidator.create(LogicalOperation.class, false, true))
@@ -127,7 +127,7 @@ class RoleMapperDefinitions {
     }
 
     static ResourceDefinition getAddPrefixRoleMapperDefinition() {
-        AbstractAddStepHandler add = new RoleMapperAddHander(SUFFIX) {
+        AbstractAddStepHandler add = new RoleMapperAddHander(PREFIX) {
 
             @Override
             protected ValueSupplier<RoleMapper> getValueSupplier(OperationContext context, ModelNode model) throws OperationFailedException {
@@ -141,7 +141,7 @@ class RoleMapperDefinitions {
     }
 
     static ResourceDefinition getLogicalRoleMapperDefinition() {
-        AttributeDefinition[] attributes = new AttributeDefinition[] { OPERATION, LEFT, RIGHT };
+        AttributeDefinition[] attributes = new AttributeDefinition[] { LOGICAL_OPERATION, LEFT, RIGHT };
         AbstractAddStepHandler add = new RoleMapperAddHander(attributes) {
 
             /* (non-Javadoc)
@@ -153,7 +153,7 @@ class RoleMapperDefinitions {
                 final InjectedValue<RoleMapper> leftRoleMapperInjector = new InjectedValue<RoleMapper>();
                 final InjectedValue<RoleMapper> rightRoleMapperInjector = new InjectedValue<RoleMapper>();
 
-                LogicalOperation operation = LogicalOperation.valueOf(LogicalOperation.class, OPERATION.resolveModelAttribute(context, model).asString().toUpperCase(Locale.ENGLISH));
+                LogicalOperation operation = LogicalOperation.valueOf(LogicalOperation.class, LOGICAL_OPERATION.resolveModelAttribute(context, model).asString().toUpperCase(Locale.ENGLISH));
 
                 TrivialService<RoleMapper> roleMapperService = new TrivialService<RoleMapper>(() -> operation.create(leftRoleMapperInjector.getValue(), rightRoleMapperInjector.getValue()));
 

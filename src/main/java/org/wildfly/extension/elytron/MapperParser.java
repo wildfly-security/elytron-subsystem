@@ -47,6 +47,7 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.DELEGATE
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.EMPTY_ROLE_DECODER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.FROM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.LEFT;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.LOGICAL_OPERATION;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.LOGICAL_ROLE_MAPPER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MAPPED_REGEX_REALM_MAPPER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MAPPERS;
@@ -54,7 +55,6 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MATCH;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME_REWRITER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME_REWRITERS;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.OPERATION;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PATTERN;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PREFIX;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PRINCIPAL_DECODER;
@@ -682,7 +682,7 @@ class MapperParser {
 
         requireNoContent(reader);
 
-        addRoleMapper.get(OP_ADDR).set(parentAddress).add(ADD_PREFIX_ROLE_MAPPER, name);
+        addRoleMapper.get(OP_ADDR).set(parentAddress).add(ADD_SUFFIX_ROLE_MAPPER, name);
         operations.add(addRoleMapper);
     }
 
@@ -781,7 +781,7 @@ class MapperParser {
         ModelNode addRoleMapper = new ModelNode();
         addRoleMapper.get(OP).set(ADD);
 
-        Set<String> requiredAttributes = new HashSet<String>(Arrays.asList(new String[] { NAME, OPERATION, LEFT, RIGHT }));
+        Set<String> requiredAttributes = new HashSet<String>(Arrays.asList(new String[] { NAME, LOGICAL_OPERATION, LEFT, RIGHT }));
 
         String name = null;
 
@@ -797,8 +797,8 @@ class MapperParser {
                     case NAME:
                         name = value;
                         break;
-                    case OPERATION:
-                        RoleMapperDefinitions.OPERATION.parseAndSetParameter(value, addRoleMapper, reader);
+                    case LOGICAL_OPERATION:
+                        RoleMapperDefinitions.LOGICAL_OPERATION.parseAndSetParameter(value, addRoleMapper, reader);
                         break;
                     case LEFT:
                         RoleMapperDefinitions.LEFT.parseAndSetParameter(value, addRoleMapper, reader);
@@ -1191,7 +1191,7 @@ class MapperParser {
                 ModelNode roleMapper = current.getValue();
                 writer.writeStartElement(LOGICAL_ROLE_MAPPER);
                 writer.writeAttribute(NAME, current.getName());
-                RoleMapperDefinitions.OPERATION.marshallAsAttribute(roleMapper, writer);
+                RoleMapperDefinitions.LOGICAL_OPERATION.marshallAsAttribute(roleMapper, writer);
                 RoleMapperDefinitions.LEFT.marshallAsAttribute(roleMapper, writer);
                 RoleMapperDefinitions.RIGHT.marshallAsAttribute(roleMapper, writer);
                 writer.writeEndElement();

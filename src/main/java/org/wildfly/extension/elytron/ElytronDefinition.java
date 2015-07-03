@@ -114,9 +114,9 @@ class ElytronDefinition extends SimpleResourceDefinition {
         resourceRegistration.registerSubModel(RoleMapperDefinitions.getAddSuffixRoleMapperDefinition());
         resourceRegistration.registerSubModel(RoleMapperDefinitions.getAddPrefixRoleMapperDefinition());
         resourceRegistration.registerSubModel(RoleMapperDefinitions.getAggregateRoleMapperDefinition());
+        resourceRegistration.registerSubModel(RoleMapperDefinitions.getConstantRoleMapperDefinition());
         resourceRegistration.registerSubModel(new CustomComponentDefinition<RoleMapper>(RoleMapper.class, ROLE_MAPPER_RUNTIME_CAPABILITY, ElytronDescriptionConstants.CUSTOM_ROLE_MAPPER));
         resourceRegistration.registerSubModel(RoleMapperDefinitions.getLogicalRoleMapperDefinition());
-
 
         // TLS Building Blocks
         resourceRegistration.registerSubModel(new KeyStoreDefinition());
