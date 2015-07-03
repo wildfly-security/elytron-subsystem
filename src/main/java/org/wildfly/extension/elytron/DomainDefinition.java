@@ -22,6 +22,7 @@ import static org.wildfly.extension.elytron.Capabilities.NAME_REWRITER_CAPABILIT
 import static org.wildfly.extension.elytron.Capabilities.PRINCIPAL_DECODER_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.REALM_MAPPER_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.ROLE_DECODER_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.ROLE_MAPPER_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SECURITY_DOMAIN_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SECURITY_DOMAIN_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_CAPABILITY;
@@ -74,6 +75,7 @@ import org.wildfly.security.auth.spi.SecurityRealm;
 import org.wildfly.security.auth.util.NameRewriter;
 import org.wildfly.security.auth.util.PrincipalDecoder;
 import org.wildfly.security.auth.util.RealmMapper;
+import org.wildfly.security.authz.RoleMapper;
 import org.wildfly.security.password.Password;
 import org.wildfly.security.password.PasswordFactory;
 import org.wildfly.security.password.interfaces.ClearPassword;
@@ -123,6 +125,13 @@ class DomainDefinition extends SimpleResourceDefinition {
         .setCapabilityReference(REALM_MAPPER_CAPABILITY, SECURITY_DOMAIN_CAPABILITY, true)
         .build();
 
+    static final SimpleAttributeDefinition ROLE_MAPPER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ROLE_MAPPER, ModelType.STRING, true)
+        .setAllowExpression(true)
+        .setMinSize(1)
+        .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+        .setCapabilityReference(ROLE_MAPPER_CAPABILITY, SECURITY_DOMAIN_CAPABILITY, true)
+        .build();
+
     static final SimpleAttributeDefinition REALM_NAME = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.REALM, ModelType.STRING, false)
         .setXmlName(ElytronDescriptionConstants.NAME)
         .setAllowExpression(true)
@@ -142,7 +151,7 @@ class DomainDefinition extends SimpleResourceDefinition {
         .setCapabilityReference(ROLE_DECODER_CAPABILITY, SECURITY_DOMAIN_CAPABILITY, true)
         .build();
 
-    static final ObjectTypeAttributeDefinition REALM = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.REALM, REALM_NAME, REALM_NAME_REWRITER, REALM_ROLE_DECODER)
+    static final ObjectTypeAttributeDefinition REALM = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.REALM, REALM_NAME, REALM_NAME_REWRITER, REALM_ROLE_DECODER, ROLE_MAPPER)
         .build();
 
     static final ObjectListAttributeDefinition REALMS = new ObjectListAttributeDefinition.Builder(ElytronDescriptionConstants.REALMS, REALM)
@@ -150,7 +159,7 @@ class DomainDefinition extends SimpleResourceDefinition {
         .build();
 
 
-    private static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] { PRE_REALM_NAME_REWRITER, POST_REALM_NAME_REWRITER, PRINCIPAL_DECODER, REALM_MAPPER, DEFAULT_REALM, REALMS };
+    private static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] { PRE_REALM_NAME_REWRITER, POST_REALM_NAME_REWRITER, PRINCIPAL_DECODER, REALM_MAPPER, ROLE_MAPPER, DEFAULT_REALM, REALMS };
 
     private static final DomainAddHandler ADD = new DomainAddHandler();
     private static final DomainRemoveHandler REMOVE = new DomainRemoveHandler(ADD);
@@ -194,6 +203,7 @@ class DomainDefinition extends SimpleResourceDefinition {
         String postRealmNameRewriter = asStringIfDefined(context, POST_REALM_NAME_REWRITER, model);
         String principalDecoder = asStringIfDefined(context, PRINCIPAL_DECODER, model);
         String realmMapper = asStringIfDefined(context, REALM_MAPPER, model);
+        String roleMapper = asStringIfDefined(context, ROLE_MAPPER, model);
 
         DomainService domain = new DomainService(simpleName, defaultRealm);
 
@@ -218,6 +228,9 @@ class DomainDefinition extends SimpleResourceDefinition {
 
             domainBuilder.addDependency(realmMapperServiceName, RealmMapper.class, domain.getRealmMapperInjector());
         }
+        if (roleMapper != null) {
+            injectRoleMapper(roleMapper, context, domainBuilder, domain.createDomainRoleMapperInjector(roleMapper));
+        }
 
         for (ModelNode current : realms) {
             String realmName = REALM_NAME.resolveModelAttribute(context, current).asString();
@@ -232,7 +245,10 @@ class DomainDefinition extends SimpleResourceDefinition {
                 Injector<NameRewriter> nameRewriterInjector = realmDependency.getNameRewriterInjector(nameRewriter);
 
                 injectNameRewriter(nameRewriter, context, domainBuilder, nameRewriterInjector);
-
+            }
+            String realmRoleMapper = asStringIfDefined(context, ROLE_MAPPER, current);
+            if (realmRoleMapper != null) {
+                injectRoleMapper(realmRoleMapper, context, domainBuilder, realmDependency.getRoleMapperInjector(realmRoleMapper));
             }
         }
 
@@ -254,6 +270,22 @@ class DomainDefinition extends SimpleResourceDefinition {
         ServiceName nameRewriterServiceName = context.getCapabilityServiceName(runtimeCapability, NameRewriter.class);
 
         domainBuilder.addDependency(nameRewriterServiceName, NameRewriter.class, injector);
+    }
+
+    private static void injectRoleMapper(String roleMapper, OperationContext context, ServiceBuilder<SecurityDomain> domainBuilder, Injector<RoleMapper> injector) {
+        if (roleMapper == null) {
+            return;
+        }
+
+        if (injector == null) {
+            // Service did not supply one as one is already present for this name.
+            return;
+        }
+
+        String runtimeCapability = RuntimeCapability.buildDynamicCapabilityName(ROLE_MAPPER_CAPABILITY, roleMapper);
+        ServiceName roleMapperServiceName = context.getCapabilityServiceName(runtimeCapability, RoleMapper.class);
+
+        domainBuilder.addDependency(roleMapperServiceName, RoleMapper.class, injector);
     }
 
     private static class DomainAddHandler extends AbstractAddStepHandler {
@@ -434,3 +466,4 @@ class DomainDefinition extends SimpleResourceDefinition {
         }
     }
 }
+

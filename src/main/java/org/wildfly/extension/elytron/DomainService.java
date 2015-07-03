@@ -38,6 +38,7 @@ import org.wildfly.security.auth.util.NameRewriter;
 import org.wildfly.security.auth.util.PrincipalDecoder;
 import org.wildfly.security.auth.util.RealmMapper;
 import org.wildfly.security.authz.RoleDecoder;
+import org.wildfly.security.authz.RoleMapper;
 
 
 /**
@@ -53,9 +54,11 @@ class DomainService implements Service<SecurityDomain> {
     private final String defaultRealm;
     private String preRealmNameRewriter;
     private String postRealmNameRewriter;
+    private String roleMapper;
 
     private final Map<String, RealmDependency> realms = new HashMap<>();
     private final Map<String, InjectedValue<NameRewriter>> nameRewriters = new HashMap<>();
+    private final Map<String, InjectedValue<RoleMapper>> roleMappers = new HashMap<>();
     private final InjectedValue<PrincipalDecoder> principalDecoderInjector = new InjectedValue<>();
     private final InjectedValue<RealmMapper> realmMapperInjector = new InjectedValue<>();
 
@@ -84,6 +87,16 @@ class DomainService implements Service<SecurityDomain> {
         return nameRewriterInjector;
     }
 
+    private Injector<RoleMapper> createRoleMapperInjector(final String roleMapperName) {
+        if (roleMappers.containsKey(roleMapperName)) {
+            return null; // i.e. should already be injected for this name.
+        }
+
+        InjectedValue<RoleMapper> roleMapperInjector = new InjectedValue<>();
+        roleMappers.put(roleMapperName, roleMapperInjector);
+        return roleMapperInjector;
+    }
+
     Injector<PrincipalDecoder> getPrincipalDecoderInjector() {
         return principalDecoderInjector;
     }
@@ -104,6 +117,12 @@ class DomainService implements Service<SecurityDomain> {
         return createNameRewriterInjector(name);
     }
 
+    Injector<RoleMapper> createDomainRoleMapperInjector(final String name) {
+        this.roleMapper = name;
+
+        return createRoleMapperInjector(name);
+    }
+
     @Override
     public void start(StartContext context) throws StartException {
         SecurityDomain.Builder builder = SecurityDomain.builder();
@@ -122,6 +141,9 @@ class DomainService implements Service<SecurityDomain> {
         if (realmMapper != null) {
             builder.setRealmMapper(realmMapper);
         }
+        if (roleMapper != null) {
+            builder.setRoleMapper(roleMappers.get(roleMapper).getValue());
+        }
 
         builder.setDefaultRealmName(defaultRealm);
         for (Entry<String, RealmDependency> entry : realms.entrySet()) {
@@ -134,6 +156,9 @@ class DomainService implements Service<SecurityDomain> {
             RoleDecoder roleDecoder = realmDependency.roleDecoderInjector.getOptionalValue();
             if (roleDecoder != null) {
                 realmBuilder.setRoleDecoder(roleDecoder);
+            }
+            if (realmDependency.roleMapper != null) {
+                realmBuilder.setRoleMapper(roleMappers.get(realmDependency.roleMapper).getValue());
             }
         }
 
@@ -158,6 +183,8 @@ class DomainService implements Service<SecurityDomain> {
 
         private InjectedValue<RoleDecoder> roleDecoderInjector = new InjectedValue<>();
 
+        private String roleMapper;
+
         Injector<SecurityRealm> getSecurityRealmInjector() {
             return securityRealmInjector;
         }
@@ -169,6 +196,11 @@ class DomainService implements Service<SecurityDomain> {
 
         Injector<RoleDecoder> getRoleDecoderInjector() {
             return roleDecoderInjector;
+        }
+
+        Injector<RoleMapper> getRoleMapperInjector(final String name) {
+            this.roleMapper = name;
+            return createRoleMapperInjector(name);
         }
 
     }

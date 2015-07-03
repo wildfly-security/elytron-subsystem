@@ -254,6 +254,13 @@
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
+        <xs:attribute name="role-mapper" type="xs:string">
+            <xs:annotation>
+                <xs:documentation>
+                    Reference to a RoleMapper to be used by the domain.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
     </xs:complexType>
 
     <xs:complexType name="realmRefType">
@@ -274,6 +281,13 @@
             <xs:annotation>
                 <xs:documentation>
                     The RoleDecoder to be associated with this realm.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="role-mapper" type="xs:string">
+            <xs:annotation>
+                <xs:documentation>
+                    The RoleMapper to be associated with this realm.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
