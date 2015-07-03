@@ -146,6 +146,7 @@ interface ElytronDescriptionConstants {
     String REQUIRED = "required";
     String RIGHT = "right";
     String ROLE_DECODER = "role-decoder";
+    String ROLE_MAPPER = "role-mapper";
     String ROLE_MAPPERS = "role-mappers";
     String ROLES = "roles";
     String SEARCH_BASE_DN = "search-base-dn";

@@ -29,25 +29,34 @@ import static org.jboss.as.controller.parsing.ParseUtils.requireNoContent;
 import static org.jboss.as.controller.parsing.ParseUtils.requireSingleAttribute;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedAttribute;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedElement;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ADD_PREFIX_ROLE_MAPPER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ADD_SUFFIX_ROLE_MAPPER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AGGREGATE_NAME_REWRITER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AGGREGATE_PRINCIPAL_DECODER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AGGREGATE_ROLE_MAPPER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ATTRIBUTE;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CONSTANT;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CONSTANT_NAME_REWRITER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CONSTANT_ROLE_MAPPER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CUSTOM_NAME_REWRITER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CUSTOM_PRINCIPAL_DECODER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CUSTOM_REALM_MAPPER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CUSTOM_ROLE_DECODER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CUSTOM_ROLE_MAPPER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.DELEGATE_REALM_MAPPER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.EMPTY_ROLE_DECODER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.FROM;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.LEFT;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.LOGICAL_ROLE_MAPPER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MAPPED_REGEX_REALM_MAPPER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MAPPERS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MATCH;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME_REWRITER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME_REWRITERS;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.OPERATION;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PATTERN;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PREFIX;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PRINCIPAL_DECODER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PRINCIPAL_DECODERS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REALM_MAP;
@@ -56,8 +65,13 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REGEX_NA
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REGEX_NAME_VALIDATING_REWRITER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REPLACEMENT;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REPLACE_ALL;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.RIGHT;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ROLES;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ROLE_MAPPER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ROLE_MAPPERS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SIMPLE_REGEX_REALM_MAPPER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SIMPLE_ROLE_DECODER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SUFFIX;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.TO;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.X500_COMMON_NAME_PRINCIPAL_DECODER;
 import static org.wildfly.extension.elytron.ElytronSubsystemParser.readCustomComponent;
@@ -136,6 +150,25 @@ class MapperParser {
                     break;
                 case SIMPLE_ROLE_DECODER:
                     readSimpleRoleDecoder(parentAddress, reader, operations);
+                    break;
+                // Role Mappers
+                case ADD_PREFIX_ROLE_MAPPER:
+                    readAddPrefixRoleMapper(parentAddress, reader, operations);
+                    break;
+                case ADD_SUFFIX_ROLE_MAPPER:
+                    readAddSuffixRoleMapper(parentAddress, reader, operations);
+                    break;
+                case AGGREGATE_ROLE_MAPPER:
+                    readAggregateRoleMapperElement(parentAddress, reader, operations);
+                    break;
+                case CONSTANT_ROLE_MAPPER:
+                    readConstantRoleMapper(parentAddress, reader, operations);
+                    break;
+                case CUSTOM_ROLE_MAPPER:
+                    readCustomComponent(CUSTOM_ROLE_MAPPER, parentAddress, reader, operations);
+                    break;
+                case LOGICAL_ROLE_MAPPER:
+                    readLogicalRoleMapper(parentAddress, reader, operations);
                     break;
                 default:
                     throw unexpectedElement(reader);
@@ -575,6 +608,220 @@ class MapperParser {
         operations.add(addRoleDecoder);
     }
 
+    private void readAddPrefixRoleMapper(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations) throws XMLStreamException {
+        ModelNode addRoleMapper = new ModelNode();
+        addRoleMapper.get(OP).set(ADD);
+
+        Set<String> requiredAttributes = new HashSet<String>(Arrays.asList(new String[] { NAME, PREFIX }));
+
+        String name = null;
+
+        final int count = reader.getAttributeCount();
+        for (int i = 0; i < count; i++) {
+            final String value = reader.getAttributeValue(i);
+            if (!isNoNamespaceAttribute(reader, i)) {
+                throw unexpectedAttribute(reader, i);
+            } else {
+                String attribute = reader.getAttributeLocalName(i);
+                requiredAttributes.remove(attribute);
+                switch (attribute) {
+                    case NAME:
+                        name = value;
+                        break;
+                    case PREFIX:
+                        RoleMapperDefinitions.PREFIX.parseAndSetParameter(value, addRoleMapper, reader);
+                        break;
+                    default:
+                        throw unexpectedAttribute(reader, i);
+                }
+            }
+        }
+
+        if (requiredAttributes.isEmpty() == false) {
+            throw missingRequired(reader, requiredAttributes);
+        }
+
+        requireNoContent(reader);
+
+        addRoleMapper.get(OP_ADDR).set(parentAddress).add(ADD_PREFIX_ROLE_MAPPER, name);
+        operations.add(addRoleMapper);
+    }
+
+    private void readAddSuffixRoleMapper(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations) throws XMLStreamException {
+        ModelNode addRoleMapper = new ModelNode();
+        addRoleMapper.get(OP).set(ADD);
+
+        Set<String> requiredAttributes = new HashSet<String>(Arrays.asList(new String[] { NAME, SUFFIX }));
+
+        String name = null;
+
+        final int count = reader.getAttributeCount();
+        for (int i = 0; i < count; i++) {
+            final String value = reader.getAttributeValue(i);
+            if (!isNoNamespaceAttribute(reader, i)) {
+                throw unexpectedAttribute(reader, i);
+            } else {
+                String attribute = reader.getAttributeLocalName(i);
+                requiredAttributes.remove(attribute);
+                switch (attribute) {
+                    case NAME:
+                        name = value;
+                        break;
+                    case SUFFIX:
+                        RoleMapperDefinitions.SUFFIX.parseAndSetParameter(value, addRoleMapper, reader);
+                        break;
+                    default:
+                        throw unexpectedAttribute(reader, i);
+                }
+            }
+        }
+
+        if (requiredAttributes.isEmpty() == false) {
+            throw missingRequired(reader, requiredAttributes);
+        }
+
+        requireNoContent(reader);
+
+        addRoleMapper.get(OP_ADDR).set(parentAddress).add(ADD_PREFIX_ROLE_MAPPER, name);
+        operations.add(addRoleMapper);
+    }
+
+    private void readAggregateRoleMapperElement(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations)
+            throws XMLStreamException {
+        ModelNode addRoleMapper = new ModelNode();
+        addRoleMapper.get(OP).set(ADD);
+
+        String name = null;
+
+        final int count = reader.getAttributeCount();
+        for (int i = 0; i < count; i++) {
+            final String value = reader.getAttributeValue(i);
+            if (!isNoNamespaceAttribute(reader, i)) {
+                throw unexpectedAttribute(reader, i);
+            } else {
+                String attribute = reader.getAttributeLocalName(i);
+                switch (attribute) {
+                    case NAME:
+                        name = value;
+                        break;
+                    default:
+                        throw unexpectedAttribute(reader, i);
+                }
+            }
+        }
+
+        if (name == null) {
+            throw missingRequired(reader, NAME);
+        }
+
+        addRoleMapper.get(OP_ADDR).set(parentAddress).add(AGGREGATE_ROLE_MAPPER, name);
+
+        operations.add(addRoleMapper);
+
+        ListAttributeDefinition roleMappers = RoleMapperDefinitions.getAggregateRoleMapperDefinition().getReferencesAttribute();
+        while (reader.hasNext() && reader.nextTag() != END_ELEMENT) {
+            verifyNamespace(reader);
+            String localName = reader.getLocalName();
+            if (ROLE_MAPPER.equals(localName) == false) {
+                throw unexpectedElement(reader);
+            }
+
+            requireSingleAttribute(reader, NAME);
+            String roleMapperName = reader.getAttributeValue(0);
+
+
+            roleMappers.parseAndAddParameterElement(roleMapperName, addRoleMapper, reader);
+
+            requireNoContent(reader);
+        }
+    }
+
+    private void readConstantRoleMapper(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations) throws XMLStreamException {
+        ModelNode addRoleMapper = new ModelNode();
+        addRoleMapper.get(OP).set(ADD);
+
+        Set<String> requiredAttributes = new HashSet<String>(Arrays.asList(new String[] { NAME, ROLES }));
+
+        String name = null;
+
+        final int count = reader.getAttributeCount();
+        for (int i = 0; i < count; i++) {
+            final String value = reader.getAttributeValue(i);
+            if (!isNoNamespaceAttribute(reader, i)) {
+                throw unexpectedAttribute(reader, i);
+            } else {
+                String attribute = reader.getAttributeLocalName(i);
+                requiredAttributes.remove(attribute);
+                switch (attribute) {
+                    case NAME:
+                        name = value;
+                        break;
+                    case ROLES:
+                        for (String role : reader.getListAttributeValue(i)) {
+                            RoleMapperDefinitions.ROLES.parseAndAddParameterElement(role, addRoleMapper, reader);
+                        }
+                        break;
+                    default:
+                        throw unexpectedAttribute(reader, i);
+                }
+            }
+        }
+
+        if (requiredAttributes.isEmpty() == false) {
+            throw missingRequired(reader, requiredAttributes);
+        }
+
+        requireNoContent(reader);
+
+        addRoleMapper.get(OP_ADDR).set(parentAddress).add(CONSTANT_ROLE_MAPPER, name);
+        operations.add(addRoleMapper);
+    }
+
+    private void readLogicalRoleMapper(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations) throws XMLStreamException {
+        ModelNode addRoleMapper = new ModelNode();
+        addRoleMapper.get(OP).set(ADD);
+
+        Set<String> requiredAttributes = new HashSet<String>(Arrays.asList(new String[] { NAME, OPERATION, LEFT, RIGHT }));
+
+        String name = null;
+
+        final int count = reader.getAttributeCount();
+        for (int i = 0; i < count; i++) {
+            final String value = reader.getAttributeValue(i);
+            if (!isNoNamespaceAttribute(reader, i)) {
+                throw unexpectedAttribute(reader, i);
+            } else {
+                String attribute = reader.getAttributeLocalName(i);
+                requiredAttributes.remove(attribute);
+                switch (attribute) {
+                    case NAME:
+                        name = value;
+                        break;
+                    case OPERATION:
+                        RoleMapperDefinitions.OPERATION.parseAndSetParameter(value, addRoleMapper, reader);
+                        break;
+                    case LEFT:
+                        RoleMapperDefinitions.LEFT.parseAndSetParameter(value, addRoleMapper, reader);
+                        break;
+                    case RIGHT:
+                        RoleMapperDefinitions.RIGHT.parseAndSetParameter(value, addRoleMapper, reader);
+                        break;
+                    default:
+                        throw unexpectedAttribute(reader, i);
+                }
+            }
+        }
+
+        if (requiredAttributes.isEmpty() == false) {
+            throw missingRequired(reader, requiredAttributes);
+        }
+
+        requireNoContent(reader);
+
+        addRoleMapper.get(OP_ADDR).set(parentAddress).add(LOGICAL_ROLE_MAPPER, name);
+        operations.add(addRoleMapper);
+    }
+
     private void startMappers(boolean started, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (started == false) {
             writer.writeStartElement(MAPPERS);
@@ -841,6 +1088,121 @@ class MapperParser {
         return false;
     }
 
+    private boolean writeAddPrefixRoleMappers(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
+        if (subsystem.hasDefined(ADD_PREFIX_ROLE_MAPPER)) {
+            startMappers(started, writer);
+            List<Property> roleMappers = subsystem.require(ADD_PREFIX_ROLE_MAPPER).asPropertyList();
+            for (Property current : roleMappers) {
+                ModelNode roleMapper = current.getValue();
+                writer.writeStartElement(ADD_PREFIX_ROLE_MAPPER);
+                writer.writeAttribute(NAME, current.getName());
+                RoleMapperDefinitions.PREFIX.marshallAsAttribute(roleMapper, writer);
+                writer.writeEndElement();
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean writeAddSuffixRoleMappers(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
+        if (subsystem.hasDefined(ADD_SUFFIX_ROLE_MAPPER)) {
+            startMappers(started, writer);
+            List<Property> roleMappers = subsystem.require(ADD_SUFFIX_ROLE_MAPPER).asPropertyList();
+            for (Property current : roleMappers) {
+                ModelNode roleMapper = current.getValue();
+                writer.writeStartElement(ADD_SUFFIX_ROLE_MAPPER);
+                writer.writeAttribute(NAME, current.getName());
+                RoleMapperDefinitions.SUFFIX.marshallAsAttribute(roleMapper, writer);
+                writer.writeEndElement();
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean writeAggregateRoleMappers(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
+        if (subsystem.hasDefined(AGGREGATE_ROLE_MAPPER)) {
+            startMappers(started, writer);
+            List<Property> roleMappers = subsystem.require(AGGREGATE_ROLE_MAPPER).asPropertyList();
+            for (Property current : roleMappers) {
+                ModelNode roleMapper = current.getValue();
+                writer.writeStartElement(AGGREGATE_ROLE_MAPPER);
+                writer.writeAttribute(NAME, current.getName());
+
+                List<ModelNode> roleMapperReferences = roleMapper.get(ROLE_MAPPERS).asList();
+                for (ModelNode currentReference : roleMapperReferences) {
+                    writer.writeStartElement(ROLE_MAPPER);
+                    writer.writeAttribute(NAME, currentReference.asString());
+                    writer.writeEndElement();
+                }
+
+                writer.writeEndElement();
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean writeConstantRoleMappers(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
+        if (subsystem.hasDefined(CONSTANT_ROLE_MAPPER)) {
+            startMappers(started, writer);
+            List<Property> roleMappers = subsystem.require(CONSTANT_ROLE_MAPPER).asPropertyList();
+            for (Property current : roleMappers) {
+                ModelNode roleMapper = current.getValue();
+                writer.writeStartElement(CONSTANT_ROLE_MAPPER);
+                writer.writeAttribute(NAME, current.getName());
+                RoleMapperDefinitions.ROLES.getAttributeMarshaller().marshallAsAttribute(RoleMapperDefinitions.ROLES, roleMapper, false, writer);
+                writer.writeEndElement();
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean writeCustomRoleMappers(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
+        if (subsystem.hasDefined(CUSTOM_ROLE_MAPPER)) {
+            startMappers(started, writer);
+            List<Property> roleMappers = subsystem.require(CUSTOM_ROLE_MAPPER).asPropertyList();
+            for (Property current : roleMappers) {
+                ModelNode roleMapper = current.getValue();
+
+                writeCustomComponent(CUSTOM_ROLE_MAPPER, current.getName(), roleMapper, writer);
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean writeLogicalRoleMappers(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
+        if (subsystem.hasDefined(LOGICAL_ROLE_MAPPER)) {
+            startMappers(started, writer);
+            List<Property> roleMappers = subsystem.require(LOGICAL_ROLE_MAPPER).asPropertyList();
+            for (Property current : roleMappers) {
+                ModelNode roleMapper = current.getValue();
+                writer.writeStartElement(LOGICAL_ROLE_MAPPER);
+                writer.writeAttribute(NAME, current.getName());
+                RoleMapperDefinitions.OPERATION.marshallAsAttribute(roleMapper, writer);
+                RoleMapperDefinitions.LEFT.marshallAsAttribute(roleMapper, writer);
+                RoleMapperDefinitions.RIGHT.marshallAsAttribute(roleMapper, writer);
+                writer.writeEndElement();
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
     void writeMappers(ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         boolean mappersStarted = false;
 
@@ -862,10 +1224,16 @@ class MapperParser {
         mappersStarted = mappersStarted | writeEmptyRoleDecoders(mappersStarted, subsystem, writer);
         mappersStarted = mappersStarted | writeSimpleRoleDecoders(mappersStarted, subsystem, writer);
 
+        mappersStarted = mappersStarted | writeAddPrefixRoleMappers(mappersStarted, subsystem, writer);
+        mappersStarted = mappersStarted | writeAddSuffixRoleMappers(mappersStarted, subsystem, writer);
+        mappersStarted = mappersStarted | writeAggregateRoleMappers(mappersStarted, subsystem, writer);
+        mappersStarted = mappersStarted | writeConstantRoleMappers(mappersStarted, subsystem, writer);
+        mappersStarted = mappersStarted | writeCustomRoleMappers(mappersStarted, subsystem, writer);
+        mappersStarted = mappersStarted | writeLogicalRoleMappers(mappersStarted, subsystem, writer);
+
 
         if (mappersStarted) {
             writer.writeEndElement();
         }
     }
 }
-
