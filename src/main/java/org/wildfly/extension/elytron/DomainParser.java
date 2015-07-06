@@ -30,6 +30,7 @@ import static org.jboss.as.controller.parsing.ParseUtils.unexpectedElement;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.DEFAULT_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME_REWRITER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PERMISSION_MAPPER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.POST_REALM_NAME_REWRITER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PRE_REALM_NAME_REWRITER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PRINCIPAL_DECODER;
@@ -38,7 +39,6 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REALMS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REALM_MAPPER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ROLE_DECODER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ROLE_MAPPER;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PERMISSION_MAPPER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SECURITY_DOMAIN;
 import static org.wildfly.extension.elytron.ElytronSubsystemParser.verifyNamespace;
 

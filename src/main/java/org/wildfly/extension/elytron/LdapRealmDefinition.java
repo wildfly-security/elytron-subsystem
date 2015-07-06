@@ -18,6 +18,11 @@
 
 package org.wildfly.extension.elytron;
 
+import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY;
+import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
+
+import java.util.Properties;
+
 import org.jboss.as.controller.AbstractAddStepHandler;
 import org.jboss.as.controller.AttributeDefinition;
 import org.jboss.as.controller.ObjectTypeAttributeDefinition;
@@ -47,11 +52,6 @@ import org.wildfly.security.auth.provider.ldap.LdapSecurityRealmBuilder;
 import org.wildfly.security.auth.provider.ldap.LdapSecurityRealmBuilder.PrincipalMappingBuilder;
 import org.wildfly.security.auth.provider.ldap.SimpleDirContextFactoryBuilder;
 import org.wildfly.security.auth.spi.SecurityRealm;
-
-import java.util.Properties;
-
-import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY;
-import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
 
 /**
  * A {@link ResourceDefinition} for a {@link SecurityRealm} backed by LDAP.

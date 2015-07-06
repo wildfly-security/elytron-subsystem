@@ -18,8 +18,8 @@
 
 package org.wildfly.extension.elytron;
 
-import static org.wildfly.extension.elytron.Capabilities.PERMISSION_MAPPER_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.NAME_REWRITER_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.PERMISSION_MAPPER_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.PRINCIPAL_DECODER_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.REALM_MAPPER_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.ROLE_DECODER_CAPABILITY;
