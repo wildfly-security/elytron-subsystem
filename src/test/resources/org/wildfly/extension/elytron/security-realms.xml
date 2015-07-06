@@ -40,7 +40,7 @@
         </jdbc-realm>
         <ldap-realm name="RealmEight">
             <dir-context url="ldap://localhost:11390" principal="uid=server,dc=elytron,dc=wildfly,dc=org" credential="serverPassword" enable-connection-pooling="true" />
-            <principal-mapping name-attribute="uid" use-x500-principal="true" use-recursive-search="true" search-base-dn="dc=elytron,dc=wildfly,dc=org" cache-principal="false"/>
+            <principal-mapping name-attribute="uid" use-recursive-search="true" search-base-dn="dc=elytron,dc=wildfly,dc=org" />
         </ldap-realm>
         <filesystem-realm name="RealmSeven" levels="3">
             <file relative-to="jboss.server.config.dir" path="test"/>

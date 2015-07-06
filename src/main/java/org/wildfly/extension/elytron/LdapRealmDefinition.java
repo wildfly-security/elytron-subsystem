@@ -18,11 +18,6 @@
 
 package org.wildfly.extension.elytron;
 
-import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY;
-import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
-
-import java.util.Properties;
-
 import org.jboss.as.controller.AbstractAddStepHandler;
 import org.jboss.as.controller.AttributeDefinition;
 import org.jboss.as.controller.ObjectTypeAttributeDefinition;
@@ -53,6 +48,11 @@ import org.wildfly.security.auth.provider.ldap.LdapSecurityRealmBuilder.Principa
 import org.wildfly.security.auth.provider.ldap.SimpleDirContextFactoryBuilder;
 import org.wildfly.security.auth.spi.SecurityRealm;
 
+import java.util.Properties;
+
+import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY;
+import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
+
 /**
  * A {@link ResourceDefinition} for a {@link SecurityRealm} backed by LDAP.
  *
@@ -65,12 +65,6 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
     static class PrincipalMappingObjectDefinition {
 
         static final SimpleAttributeDefinition NAME_ATTRIBUTE = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.NAME_ATTRIBUTE, ModelType.STRING, false)
-                .setAllowExpression(true)
-                .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
-                .build();
-
-        static final SimpleAttributeDefinition USE_X500_PRINCIPAL = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.USE_X500_PRINCIPAL, ModelType.BOOLEAN, false)
-                .setDefaultValue(new ModelNode(false))
                 .setAllowExpression(true)
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
@@ -88,13 +82,7 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
 
-        static final SimpleAttributeDefinition CACHE_PRINCIPAL = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.CACHE_PRINCIPAL, ModelType.BOOLEAN, false)
-                .setDefaultValue(new ModelNode(false))
-                .setAllowExpression(true)
-                .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
-                .build();
-
-        static final SimpleAttributeDefinition[] ATTRIBUTES = new SimpleAttributeDefinition[] {NAME_ATTRIBUTE, USE_X500_PRINCIPAL, USE_RECURSIVE_SEARCH, SEARCH_BASE_DN, CACHE_PRINCIPAL};
+        static final SimpleAttributeDefinition[] ATTRIBUTES = new SimpleAttributeDefinition[] {NAME_ATTRIBUTE, USE_RECURSIVE_SEARCH, SEARCH_BASE_DN};
 
         static final ObjectTypeAttributeDefinition OBJECT_DEFINITION = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.PRINCIPAL_MAPPING, ATTRIBUTES)
                 .setAllowNull(false)
@@ -212,15 +200,6 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
 
             principalMappingBuilder.setNameAttribute(nameAttributeNode.asString());
 
-            ModelNode usex500PrincipalNode = PrincipalMappingObjectDefinition.USE_X500_PRINCIPAL.resolveModelAttribute(context, principalMappingNode);
-
-            /*
-             * TODO https://github.com/wildfly-security/elytron-subsystem/issues/79
-             * if (usex500PrincipalNode.asBoolean()) {
-             *    principalMappingBuilder.useX500Principal();
-             * }
-             */
-
             ModelNode searchDnNode = PrincipalMappingObjectDefinition.SEARCH_BASE_DN.resolveModelAttribute(context, principalMappingNode);
 
             if (searchDnNode.isDefined()) {
@@ -232,15 +211,6 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
             if (useRecursiveSearchNode.asBoolean()) {
                 principalMappingBuilder.searchRecursive();
             }
-
-            ModelNode cachePrincipalNode = PrincipalMappingObjectDefinition.CACHE_PRINCIPAL.resolveModelAttribute(context, principalMappingNode);
-
-            /*
-             * TODO https://github.com/wildfly-security/elytron-subsystem/issues/79
-             * if (cachePrincipalNode.asBoolean()) {
-             *    principalMappingBuilder.cachePrincipal();
-             * }
-             */
 
             builder.principalMapping(principalMappingBuilder.build());
         }

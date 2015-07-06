@@ -415,7 +415,7 @@ class DomainDefinition extends SimpleResourceDefinition {
 
                     Principal authenticationPrincipal = authenticationContext.getAuthenticationPrincipal();
 
-                    if (authenticationPrincipal == null) {
+                    if (!authenticationContext.exists()) {
                         addFailureDescription("Invalid username [" + username + "].", context);
                         return;
                     }

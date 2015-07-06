@@ -38,7 +38,6 @@ interface ElytronDescriptionConstants {
     String AUTHENTICATION_LEVEL = "authentication-level";
     String AUTHENTICATION_REALM = "authentication-realm";
     String AUTHORIZATION_REALM = "authorization-realm";
-    String CACHE_PRINCIPAL = "cache-principal";
     String AUTHENTICATION_QUERY = "authentication-query";
     String BCRYPT_MAPPER = "bcrypt-mapper";
     String CERTIFICATE = "certificate";
@@ -179,7 +178,6 @@ interface ElytronDescriptionConstants {
     String TO = "to";
     String TYPE = "type";
     String URL = "url";
-    String USE_X500_PRINCIPAL = "use-x500-principal";
     String USE_RECURSIVE_SEARCH = "use-recursive-search";
     String USERS_PROPERTIES = "users-properties";
     String VALUE = "value";
