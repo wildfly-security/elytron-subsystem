@@ -214,9 +214,12 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
 
             ModelNode usex500PrincipalNode = PrincipalMappingObjectDefinition.USE_X500_PRINCIPAL.resolveModelAttribute(context, principalMappingNode);
 
-            if (usex500PrincipalNode.asBoolean()) {
-                principalMappingBuilder.useX500Principal();
-            }
+            /*
+             * TODO https://github.com/wildfly-security/elytron-subsystem/issues/79
+             * if (usex500PrincipalNode.asBoolean()) {
+             *    principalMappingBuilder.useX500Principal();
+             * }
+             */
 
             ModelNode searchDnNode = PrincipalMappingObjectDefinition.SEARCH_BASE_DN.resolveModelAttribute(context, principalMappingNode);
 
@@ -232,9 +235,12 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
 
             ModelNode cachePrincipalNode = PrincipalMappingObjectDefinition.CACHE_PRINCIPAL.resolveModelAttribute(context, principalMappingNode);
 
-            if (cachePrincipalNode.asBoolean()) {
-                principalMappingBuilder.cachePrincipal();
-            }
+            /*
+             * TODO https://github.com/wildfly-security/elytron-subsystem/issues/79
+             * if (cachePrincipalNode.asBoolean()) {
+             *    principalMappingBuilder.cachePrincipal();
+             * }
+             */
 
             builder.principalMapping(principalMappingBuilder.build());
         }
