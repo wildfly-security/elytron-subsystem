@@ -127,7 +127,7 @@ class ProviderLoaderDefinition extends SimpleResourceDefinition {
 
         @Override
         protected ServiceName getParentServiceName(PathAddress pathAddress) {
-            return RuntimeCapability.fromBaseCapability(PROVIDERS_RUNTIME_CAPABILITY, pathAddress.getLastElement().getValue()).getCapabilityServiceName(Provider[].class);
+            return PROVIDERS_RUNTIME_CAPABILITY.fromBaseCapability(pathAddress.getLastElement().getValue()).getCapabilityServiceName(Provider[].class);
         }
 
     }
@@ -177,7 +177,7 @@ class ProviderLoaderDefinition extends SimpleResourceDefinition {
             }
 
             ProviderLoaderService providerLoaderService = builder.build();
-            RuntimeCapability<Void> runtimeCapability = RuntimeCapability.fromBaseCapability(PROVIDERS_RUNTIME_CAPABILITY, context.getCurrentAddressValue());
+            RuntimeCapability<Void> runtimeCapability = PROVIDERS_RUNTIME_CAPABILITY.fromBaseCapability(context.getCurrentAddressValue());
             ServiceName serviceName = runtimeCapability.getCapabilityServiceName(Provider[].class);
             ServiceTarget serviceTarget = context.getServiceTarget();
             ServiceBuilder<Provider[]> serviceBuilder = serviceTarget.addService(serviceName, providerLoaderService)

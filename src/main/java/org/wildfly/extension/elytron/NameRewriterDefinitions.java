@@ -219,7 +219,7 @@ class NameRewriterDefinitions {
         protected void performRuntime(OperationContext context, ModelNode operation, ModelNode model)
                 throws OperationFailedException {
             ServiceTarget serviceTarget = context.getServiceTarget();
-            RuntimeCapability<Void> runtimeCapability = RuntimeCapability.fromBaseCapability(NAME_REWRITER_RUNTIME_CAPABILITY, context.getCurrentAddressValue());
+            RuntimeCapability<Void> runtimeCapability = NAME_REWRITER_RUNTIME_CAPABILITY.fromBaseCapability(context.getCurrentAddressValue());
             ServiceName realmName = runtimeCapability.getCapabilityServiceName(NameRewriter.class);
 
             TrivialService<NameRewriter> nameRewriterService = new TrivialService<NameRewriter>(getNameRewriterSupplier(context, operation, model));
@@ -241,7 +241,7 @@ class NameRewriterDefinitions {
 
         @Override
         protected ServiceName serviceName(String name) {
-            return RuntimeCapability.fromBaseCapability(NAME_REWRITER_RUNTIME_CAPABILITY, name).getCapabilityServiceName(NameRewriter.class);
+            return NAME_REWRITER_RUNTIME_CAPABILITY.fromBaseCapability(name).getCapabilityServiceName(NameRewriter.class);
         }
 
     }
@@ -254,7 +254,7 @@ class NameRewriterDefinitions {
 
         @Override
         protected ServiceName getParentServiceName(PathAddress pathAddress) {
-            return RuntimeCapability.fromBaseCapability(NAME_REWRITER_RUNTIME_CAPABILITY, pathAddress.getLastElement().getValue()).getCapabilityServiceName(NameRewriter.class);
+            return NAME_REWRITER_RUNTIME_CAPABILITY.fromBaseCapability(pathAddress.getLastElement().getValue()).getCapabilityServiceName(NameRewriter.class);
         }
     }
 

@@ -266,7 +266,7 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
             }
 
             ServiceTarget serviceTarget = context.getServiceTarget();
-            RuntimeCapability<Void> runtimeCapability = RuntimeCapability.fromBaseCapability(KEY_STORE_RUNTIME_CAPABILITY, context.getCurrentAddressValue());
+            RuntimeCapability<Void> runtimeCapability = KEY_STORE_RUNTIME_CAPABILITY.fromBaseCapability(context.getCurrentAddressValue());
             ServiceName serviceName = runtimeCapability.getCapabilityServiceName(KeyStore.class);
             ServiceBuilder<KeyStore> serviceBuilder = serviceTarget.addService(serviceName, keyStoreService)
                     .setInitialMode(Mode.ACTIVE);
@@ -315,7 +315,7 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
 
         @Override
         protected ServiceName getParentServiceName(PathAddress pathAddress) {
-            return RuntimeCapability.fromBaseCapability(KEY_STORE_RUNTIME_CAPABILITY, pathAddress.getLastElement().getValue()).getCapabilityServiceName(KeyStore.class);
+            return KEY_STORE_RUNTIME_CAPABILITY.fromBaseCapability(pathAddress.getLastElement().getValue()).getCapabilityServiceName(KeyStore.class);
         }
     }
 

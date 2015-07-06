@@ -97,7 +97,7 @@ class RoleDecoderDefinitions {
         protected void performRuntime(OperationContext context, ModelNode operation, ModelNode model)
                 throws OperationFailedException {
             ServiceTarget serviceTarget = context.getServiceTarget();
-            RuntimeCapability<Void> runtimeCapability = RuntimeCapability.fromBaseCapability(ROLE_DECODER_RUNTIME_CAPABILITY, context.getCurrentAddressValue());
+            RuntimeCapability<Void> runtimeCapability = ROLE_DECODER_RUNTIME_CAPABILITY.fromBaseCapability(context.getCurrentAddressValue());
             ServiceName roleDecoderName = runtimeCapability.getCapabilityServiceName(RoleDecoder.class);
 
             final String attribute = ATTRIBUTE.resolveModelAttribute(context, model).asString();
@@ -120,7 +120,7 @@ class RoleDecoderDefinitions {
 
         @Override
         protected ServiceName serviceName(String name) {
-            return RuntimeCapability.fromBaseCapability(ROLE_DECODER_RUNTIME_CAPABILITY, name).getCapabilityServiceName(RealmMapper.class);
+            return ROLE_DECODER_RUNTIME_CAPABILITY.fromBaseCapability(name).getCapabilityServiceName(RealmMapper.class);
         }
 
     }
@@ -133,7 +133,7 @@ class RoleDecoderDefinitions {
 
         @Override
         protected ServiceName getParentServiceName(PathAddress pathAddress) {
-            return RuntimeCapability.fromBaseCapability(ROLE_DECODER_RUNTIME_CAPABILITY, pathAddress.getLastElement().getValue()).getCapabilityServiceName(RoleDecoder.class);
+            return ROLE_DECODER_RUNTIME_CAPABILITY.fromBaseCapability(pathAddress.getLastElement().getValue()).getCapabilityServiceName(RoleDecoder.class);
         }
     }
 }

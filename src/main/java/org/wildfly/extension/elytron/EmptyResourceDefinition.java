@@ -75,7 +75,7 @@ class EmptyResourceDefinition extends SimpleResourceDefinition {
                 throws OperationFailedException {
 
         ServiceTarget serviceTarget = context.getServiceTarget();
-        RuntimeCapability<?> runtimeCapability = RuntimeCapability.fromBaseCapability(this.runtimeCapability, context.getCurrentAddressValue());
+        RuntimeCapability<?> runtimeCapability = this.runtimeCapability.fromBaseCapability(context.getCurrentAddressValue());
         ServiceName componentName = runtimeCapability.getCapabilityServiceName(valueType);
 
         TrivialService<T> componentService = new TrivialService<T>(valueSupplier);
@@ -101,7 +101,7 @@ class EmptyResourceDefinition extends SimpleResourceDefinition {
 
         @Override
         protected ServiceName serviceName(String name) {
-            return RuntimeCapability.fromBaseCapability(runtimeCapability, name).getCapabilityServiceName(valueType);
+            return runtimeCapability.fromBaseCapability(name).getCapabilityServiceName(valueType);
         }
     }
 }

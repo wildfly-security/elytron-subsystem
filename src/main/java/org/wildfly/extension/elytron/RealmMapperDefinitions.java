@@ -143,7 +143,7 @@ class RealmMapperDefinitions {
         protected void performRuntime(OperationContext context, ModelNode operation, ModelNode model)
                 throws OperationFailedException {
             ServiceTarget serviceTarget = context.getServiceTarget();
-            RuntimeCapability<Void> runtimeCapability = RuntimeCapability.fromBaseCapability(REALM_MAPPER_RUNTIME_CAPABILITY, context.getCurrentAddressValue());
+            RuntimeCapability<Void> runtimeCapability = REALM_MAPPER_RUNTIME_CAPABILITY.fromBaseCapability(context.getCurrentAddressValue());
             ServiceName realmMapperName = runtimeCapability.getCapabilityServiceName(RealmMapper.class);
 
             final String pattern = PATTERN.resolveModelAttribute(context, model).asString();
@@ -212,7 +212,7 @@ class RealmMapperDefinitions {
         protected void performRuntime(OperationContext context, ModelNode operation, ModelNode model)
                 throws OperationFailedException {
             ServiceTarget serviceTarget = context.getServiceTarget();
-            RuntimeCapability<Void> runtimeCapability = RuntimeCapability.fromBaseCapability(REALM_MAPPER_RUNTIME_CAPABILITY, context.getCurrentAddressValue());
+            RuntimeCapability<Void> runtimeCapability = REALM_MAPPER_RUNTIME_CAPABILITY.fromBaseCapability(context.getCurrentAddressValue());
             ServiceName realmMapperName = runtimeCapability.getCapabilityServiceName(RealmMapper.class);
 
             final String pattern = PATTERN.resolveModelAttribute(context, model).asString();
@@ -259,7 +259,7 @@ class RealmMapperDefinitions {
 
         @Override
         protected ServiceName serviceName(String name) {
-            return RuntimeCapability.fromBaseCapability(REALM_MAPPER_RUNTIME_CAPABILITY, name).getCapabilityServiceName(RealmMapper.class);
+            return REALM_MAPPER_RUNTIME_CAPABILITY.fromBaseCapability(name).getCapabilityServiceName(RealmMapper.class);
         }
 
     }
@@ -272,7 +272,7 @@ class RealmMapperDefinitions {
 
         @Override
         protected ServiceName getParentServiceName(PathAddress pathAddress) {
-            return RuntimeCapability.fromBaseCapability(REALM_MAPPER_RUNTIME_CAPABILITY, pathAddress.getLastElement().getValue()).getCapabilityServiceName(RealmMapper.class);
+            return REALM_MAPPER_RUNTIME_CAPABILITY.fromBaseCapability(pathAddress.getLastElement().getValue()).getCapabilityServiceName(RealmMapper.class);
         }
     }
 

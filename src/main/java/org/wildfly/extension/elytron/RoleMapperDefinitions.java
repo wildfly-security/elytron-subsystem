@@ -228,7 +228,7 @@ class RoleMapperDefinitions {
         @Override
         protected void performRuntime(OperationContext context, ModelNode operation, ModelNode model)
                 throws OperationFailedException {
-            RuntimeCapability<Void> runtimeCapability = RuntimeCapability.fromBaseCapability(ROLE_MAPPER_RUNTIME_CAPABILITY, context.getCurrentAddressValue());
+            RuntimeCapability<Void> runtimeCapability = ROLE_MAPPER_RUNTIME_CAPABILITY.fromBaseCapability(context.getCurrentAddressValue());
             ServiceName roleMapperName = runtimeCapability.getCapabilityServiceName(RoleMapper.class);
 
             commonDependencies(installService(context, roleMapperName, model))
@@ -257,7 +257,7 @@ class RoleMapperDefinitions {
 
         @Override
         protected ServiceName getParentServiceName(PathAddress pathAddress) {
-            return RuntimeCapability.fromBaseCapability(ROLE_MAPPER_RUNTIME_CAPABILITY, pathAddress.getLastElement().getValue()).getCapabilityServiceName(RoleMapper.class);
+            return ROLE_MAPPER_RUNTIME_CAPABILITY.fromBaseCapability(pathAddress.getLastElement().getValue()).getCapabilityServiceName(RoleMapper.class);
         }
     }
 
@@ -269,7 +269,7 @@ class RoleMapperDefinitions {
 
         @Override
         protected ServiceName serviceName(String name) {
-            return RuntimeCapability.fromBaseCapability(ROLE_MAPPER_RUNTIME_CAPABILITY, name).getCapabilityServiceName(RoleMapper.class);
+            return ROLE_MAPPER_RUNTIME_CAPABILITY.fromBaseCapability(name).getCapabilityServiceName(RoleMapper.class);
         }
 
     }

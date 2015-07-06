@@ -434,11 +434,11 @@ class JdbcRealmDefinition extends SimpleResourceDefinition {
     private static final OperationStepHandler WRITE = new WriteAttributeHandler();
 
     JdbcRealmDefinition() {
-        super(PathElement.pathElement(ElytronDescriptionConstants.JDBC_REALM),
-                ElytronExtension.getResourceDescriptionResolver(ElytronDescriptionConstants.JDBC_REALM),
-                ADD, REMOVE,
-                OperationEntry.Flag.RESTART_RESOURCE_SERVICES,
-                OperationEntry.Flag.RESTART_RESOURCE_SERVICES);
+        super(new Parameters(PathElement.pathElement(ElytronDescriptionConstants.JDBC_REALM), ElytronExtension.getResourceDescriptionResolver(ElytronDescriptionConstants.JDBC_REALM))
+                .setAddHandler(ADD)
+                .setRemoveHandler(REMOVE)
+                .setAddRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
+                .setRemoveRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES));
     }
 
     @Override
@@ -458,7 +458,7 @@ class JdbcRealmDefinition extends SimpleResourceDefinition {
         protected void performRuntime(OperationContext context, ModelNode operation, ModelNode model)
                 throws OperationFailedException {
             ServiceTarget serviceTarget = context.getServiceTarget();
-            RuntimeCapability<Void> runtimeCapability = RuntimeCapability.fromBaseCapability(SECURITY_REALM_RUNTIME_CAPABILITY, context.getCurrentAddressValue());
+            RuntimeCapability<Void> runtimeCapability = SECURITY_REALM_RUNTIME_CAPABILITY.fromBaseCapability(context.getCurrentAddressValue());
             ServiceName realmName = runtimeCapability.getCapabilityServiceName(SecurityRealm.class);
             ModelNode authenticationQueryNode = AuthenticationQueryAttributes.AUTHENTICATION_QUERY.resolveModelAttribute(context, operation);
             String authenticationQuerySql = asStringIfDefined(context, AuthenticationQueryAttributes.SQL, authenticationQueryNode);
@@ -524,7 +524,7 @@ class JdbcRealmDefinition extends SimpleResourceDefinition {
 
         @Override
         protected ServiceName getParentServiceName(PathAddress pathAddress) {
-            return RuntimeCapability.fromBaseCapability(SECURITY_REALM_RUNTIME_CAPABILITY, pathAddress.getLastElement().getValue()).getCapabilityServiceName(SecurityRealm.class);
+            return SECURITY_REALM_RUNTIME_CAPABILITY.fromBaseCapability(pathAddress.getLastElement().getValue()).getCapabilityServiceName(SecurityRealm.class);
         }
     }
 }

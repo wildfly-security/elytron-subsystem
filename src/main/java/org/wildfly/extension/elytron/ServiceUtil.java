@@ -38,11 +38,11 @@ import org.jboss.msc.service.ServiceName;
  */
 final class ServiceUtil<T> {
 
-    private final RuntimeCapability runtimeCapability;
+    private final RuntimeCapability<?> runtimeCapability;
     private final String key;
     private final Class<T> clazz;
 
-    private ServiceUtil(RuntimeCapability runtimeCapability, String key, Class<T> injectionClass) {
+    private ServiceUtil(RuntimeCapability<?> runtimeCapability, String key, Class<T> injectionClass) {
         this.runtimeCapability = runtimeCapability;
         this.key = key;
         clazz = injectionClass;
@@ -55,7 +55,7 @@ final class ServiceUtil<T> {
      * @return The fully qualified {@link ServiceName} of the service.
      */
     ServiceName serviceName(final String name) {
-        RuntimeCapability dynamicCapability = RuntimeCapability.fromBaseCapability(runtimeCapability, name);
+        RuntimeCapability<?> dynamicCapability = runtimeCapability.fromBaseCapability(name);
         return dynamicCapability.getCapabilityServiceName(clazz);
     }
 
@@ -102,7 +102,7 @@ final class ServiceUtil<T> {
         return sb;
     }
 
-    public static <T> ServiceUtil<T> newInstance(RuntimeCapability runtimeCapability, String key, Class<T> injectionClass) {
+    public static <T> ServiceUtil<T> newInstance(RuntimeCapability<?> runtimeCapability, String key, Class<T> injectionClass) {
         return new ServiceUtil<T>(runtimeCapability, key, injectionClass);
     }
 

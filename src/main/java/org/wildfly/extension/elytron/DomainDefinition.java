@@ -336,7 +336,7 @@ class DomainDefinition extends SimpleResourceDefinition {
         @Override
         protected void performRuntime(OperationContext context, ModelNode operation, ModelNode model)
                 throws OperationFailedException {
-            RuntimeCapability<Void> runtimeCapability = RuntimeCapability.fromBaseCapability(SECURITY_DOMAIN_RUNTIME_CAPABILITY, context.getCurrentAddressValue());
+            RuntimeCapability<Void> runtimeCapability = SECURITY_DOMAIN_RUNTIME_CAPABILITY.fromBaseCapability(context.getCurrentAddressValue());
             ServiceName domainName = runtimeCapability.getCapabilityServiceName(SecurityDomain.class);
 
             installService(context, domainName, model);
@@ -366,7 +366,7 @@ class DomainDefinition extends SimpleResourceDefinition {
 
         @Override
         protected ServiceName getParentServiceName(PathAddress pathAddress) {
-            return RuntimeCapability.fromBaseCapability(SECURITY_DOMAIN_RUNTIME_CAPABILITY, pathAddress.getLastElement().getValue()).getCapabilityServiceName(SecurityDomain.class);
+            return SECURITY_DOMAIN_RUNTIME_CAPABILITY.fromBaseCapability(pathAddress.getLastElement().getValue()).getCapabilityServiceName(SecurityDomain.class);
         }
 
 

@@ -113,7 +113,7 @@ class CustomComponentDefinition<T> extends SimpleResourceDefinition {
 
     @Override
     public void registerAttributes(ManagementResourceRegistration resourceRegistration) {
-        WriteAttributeHandler writeHandler = new WriteAttributeHandler(serviceType, runtimeCapability, pathKey);
+        WriteAttributeHandler<T> writeHandler = new WriteAttributeHandler<T>(serviceType, runtimeCapability, pathKey);
         for (AttributeDefinition current : ATTRIBUTES) {
             resourceRegistration.registerReadWriteAttribute(current, null, writeHandler);
         }
@@ -134,7 +134,7 @@ class CustomComponentDefinition<T> extends SimpleResourceDefinition {
         protected void performRuntime(OperationContext context, ModelNode operation, ModelNode model)
                 throws OperationFailedException {
             ServiceTarget serviceTarget = context.getServiceTarget();
-            RuntimeCapability<Void> runtimeCapability = RuntimeCapability.fromBaseCapability(this.runtimeCapability, context.getCurrentAddressValue());
+            RuntimeCapability<Void> runtimeCapability = this.runtimeCapability.fromBaseCapability(context.getCurrentAddressValue());
             ServiceName componentName = runtimeCapability.getCapabilityServiceName(serviceType);
 
             String module = asStringIfDefined(context, MODULE, model);
@@ -173,7 +173,7 @@ class CustomComponentDefinition<T> extends SimpleResourceDefinition {
 
         @Override
         protected ServiceName serviceName(String name) {
-            RuntimeCapability dynamicCapability = RuntimeCapability.fromBaseCapability(runtimeCapability, name);
+            RuntimeCapability<?> dynamicCapability = runtimeCapability.fromBaseCapability(name);
             return dynamicCapability.getCapabilityServiceName(serviceType);
         }
     }
@@ -191,7 +191,7 @@ class CustomComponentDefinition<T> extends SimpleResourceDefinition {
 
         @Override
         protected ServiceName getParentServiceName(PathAddress pathAddress) {
-            return RuntimeCapability.fromBaseCapability(runtimeCapability, pathAddress.getLastElement().getValue()).getCapabilityServiceName(serviceType);
+            return runtimeCapability.fromBaseCapability(pathAddress.getLastElement().getValue()).getCapabilityServiceName(serviceType);
         }
 
     }
