@@ -17,9 +17,67 @@
   ~ limitations under the License.
   -->
 
-<config>
+<config default-supplement="standalone" >
     <extension-module>org.wildfly.extension.elytron</extension-module>
     <subsystem xmlns="urn:wildfly:elytron:1.0">
+        <security-domains>
+            <?DOMAIN_DEFINITIONS?>
+        </security-domains>
+
+        <realms>
+            <?REALM_DEFINITIONS?>
+        </realms>
     </subsystem>
+    
+    <supplement name="domain">
+        <replacement placeholder="DOMAIN_DEFINITIONS">
+            <security-domain name="ApplicationDomain" default-realm="ApplicationRealm">
+                <realm name="ApplicationRealm" />
+            </security-domain>
+        </replacement>
+        <replacement placeholder="REALM_DEFINITIONS">
+             <properties-realm name="ApplicationRealm">
+                <users-properties path="application-users.properties" relative-to="jboss.domain.config.dir" />
+                <groups-properties path="application-roles.properties" relative-to="jboss.domain.config.dir" />
+            </properties-realm>
+        </replacement>
+    </supplement>
+    
+    <supplement name="host">
+        <replacement placeholder="DOMAIN_DEFINITIONS">
+            <security-domain name="ManagementDomain" default-realm="ManagementRealm">
+                <realm name="ManagementRealm" />
+            </security-domain>
+        </replacement>
+        <replacement placeholder="REALM_DEFINITIONS">
+            <properties-realm name="ManagementRealm">
+                <users-properties path="mgmt-users.properties" relative-to="jboss.domain.config.dir" />
+                <groups-properties path="mgmt-groups.properties" relative-to="jboss.domain.config.dir" />
+            </properties-realm>
+        </replacement>
+    </supplement>
+    
+    <supplement name="standalone">
+        <replacement placeholder="DOMAIN_DEFINITIONS">
+            <security-domain name="ApplicationDomain" default-realm="ApplicationRealm">
+                <realm name="ApplicationRealm" />
+            </security-domain>
+
+            <security-domain name="ManagementDomain" default-realm="ManagementRealm">
+                <realm name="ManagementRealm" />
+            </security-domain>
+        </replacement>
+        <replacement placeholder="REALM_DEFINITIONS">
+             <properties-realm name="ApplicationRealm">
+                <users-properties path="application-users.properties" relative-to="jboss.server.config.dir" />
+                <groups-properties path="application-roles.properties" relative-to="jboss.server.config.dir" />
+            </properties-realm>
+        
+            <properties-realm name="ManagementRealm">
+                <users-properties path="mgmt-users.properties" relative-to="jboss.server.config.dir" />
+                <groups-properties path="mgmt-groups.properties" relative-to="jboss.server.config.dir" />
+            </properties-realm>
+        </replacement>
+    </supplement>
 </config>
 
