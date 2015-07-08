@@ -102,6 +102,7 @@ class ElytronDefinition extends SimpleResourceDefinition {
         // Principal Decoders
         resourceRegistration.registerSubModel(PrincipalDecoderDefinitions.getAggregatePrincipalDecoderDefinition());
         resourceRegistration.registerSubModel(new CustomComponentDefinition<PrincipalDecoder>(PrincipalDecoder.class, PRINCIPAL_DECODER_RUNTIME_CAPABILITY, ElytronDescriptionConstants.CUSTOM_PRINCIPAL_DECODER));
+        resourceRegistration.registerSubModel(PrincipalDecoderDefinitions.getX500AttributePrincipalDecoder());
 
         // Realm Mappers
         resourceRegistration.registerSubModel(new CustomComponentDefinition<RealmMapper>(RealmMapper.class, REALM_MAPPER_RUNTIME_CAPABILITY, ElytronDescriptionConstants.CUSTOM_REALM_MAPPER));

@@ -85,6 +85,7 @@ interface ElytronDescriptionConstants {
     String ITERATION_COUNT_INDEX = "iteration-count-index";
     String JAAS_REALM = "jaas-realm";
     String JDBC_REALM = "jdbc-realm";
+    String JOINER = "joiner";
     String KEY = "key";
     String KEYSTORE = "keystore";
     String KEYSTORE_REALM = "keystore-realm";
@@ -99,6 +100,7 @@ interface ElytronDescriptionConstants {
     String LOGICAL_OPERATION = "logical-operation";
     String LOGICAL_ROLE_MAPPER = "logical-role-mapper";
     String MAPPED_REGEX_REALM_MAPPER = "mapped-regex-realm-mapper";
+    String MAXIMUM_SEGMENTS = "maximum-segments";
     String MATCH = "match";
     String MAPPERS = "mappers";
     String MINUS = "minus";
@@ -111,6 +113,7 @@ interface ElytronDescriptionConstants {
     String NAME_REWRITERS = "name-rewriters";
     String NOT_AFTER = "not-after";
     String NOT_BEFORE = "not-before";
+    String OID = "oid";
     String OR = "or";
     String PATH = "path";
     String PATTERN = "pattern";
@@ -183,6 +186,7 @@ interface ElytronDescriptionConstants {
     String VALUE = "value";
     String VERSION = "version";
     String WATCH = "watch";
+    String X500_ATTRIBUTE_PRINCIPAL_DECODER = "x500-attribute-principal-decoder";
     String XOR = "xor";
 }
 
