@@ -183,7 +183,6 @@ interface ElytronDescriptionConstants {
     String VALUE = "value";
     String VERSION = "version";
     String WATCH = "watch";
-    String X500_COMMON_NAME_PRINCIPAL_DECODER = "x500-common-name-principal-decoder";
     String XOR = "xor";
 }
 

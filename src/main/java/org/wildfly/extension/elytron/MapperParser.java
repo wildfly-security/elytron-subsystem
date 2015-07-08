@@ -74,7 +74,6 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SIMPLE_R
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SIMPLE_ROLE_DECODER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SUFFIX;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.TO;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.X500_COMMON_NAME_PRINCIPAL_DECODER;
 import static org.wildfly.extension.elytron.ElytronSubsystemParser.readCustomComponent;
 import static org.wildfly.extension.elytron.ElytronSubsystemParser.verifyNamespace;
 import static org.wildfly.extension.elytron.ElytronSubsystemParser.writeCustomComponent;
@@ -132,9 +131,6 @@ class MapperParser {
                     break;
                 case CUSTOM_PRINCIPAL_DECODER:
                     readCustomComponent(CUSTOM_PRINCIPAL_DECODER, parentAddress, reader, operations);
-                    break;
-                case X500_COMMON_NAME_PRINCIPAL_DECODER:
-                    readX500CommonNamePrincipalDecoder(parentAddress, reader, operations);
                     break;
                 // Realm Mappers
                 case CUSTOM_REALM_MAPPER:
@@ -411,18 +407,6 @@ class MapperParser {
 
             requireNoContent(reader);
         }
-    }
-
-    private void readX500CommonNamePrincipalDecoder(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations) throws XMLStreamException {
-        requireSingleAttribute(reader, NAME);
-        String name = reader.getAttributeValue(0);
-
-        requireNoContent(reader);
-
-        ModelNode addRoleDecoder = new ModelNode();
-        addRoleDecoder.get(OP).set(ADD);
-        addRoleDecoder.get(OP_ADDR).set(parentAddress).add(X500_COMMON_NAME_PRINCIPAL_DECODER, name);
-        operations.add(addRoleDecoder);
     }
 
     private void readSimpleRegexRealmMapperElement(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations)
@@ -988,22 +972,6 @@ class MapperParser {
         return false;
     }
 
-    private boolean writeX500CommonNamePrincipalDecoderElement(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
-        if (subsystem.hasDefined(X500_COMMON_NAME_PRINCIPAL_DECODER)) {
-            startMappers(started, writer);
-            List<Property> roleDecoders = subsystem.require(X500_COMMON_NAME_PRINCIPAL_DECODER).asPropertyList();
-            for (Property current : roleDecoders) {
-                writer.writeStartElement(X500_COMMON_NAME_PRINCIPAL_DECODER);
-                writer.writeAttribute(NAME, current.getName());
-                writer.writeEndElement();
-            }
-
-            return true;
-        }
-
-        return false;
-    }
-
     private boolean writeCustomRealmMappers(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (subsystem.hasDefined(CUSTOM_REALM_MAPPER)) {
             startMappers(started, writer);
@@ -1237,7 +1205,6 @@ class MapperParser {
 
         mappersStarted = mappersStarted | writeAggregatePrincipalDecoders(mappersStarted, subsystem, writer);
         mappersStarted = mappersStarted | writeCustomPrincipalDecoders(mappersStarted, subsystem, writer);
-        mappersStarted = mappersStarted | writeX500CommonNamePrincipalDecoderElement(mappersStarted, subsystem, writer);
 
         mappersStarted = mappersStarted | writeCustomRealmMappers(mappersStarted, subsystem, writer);
         mappersStarted = mappersStarted | writeSimpleRegexRealmMappers(mappersStarted, subsystem, writer);

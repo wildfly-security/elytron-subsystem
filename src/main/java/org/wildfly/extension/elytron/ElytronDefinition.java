@@ -51,7 +51,6 @@ import org.wildfly.security.auth.util.RealmMapper;
 import org.wildfly.security.authz.PermissionMapper;
 import org.wildfly.security.authz.RoleDecoder;
 import org.wildfly.security.authz.RoleMapper;
-import org.wildfly.security.x500.X500CommonNamePrincipalDecoder;
 
 /**
  * Top level {@link ResourceDefinition} for the Elytron subsystem.
@@ -103,7 +102,6 @@ class ElytronDefinition extends SimpleResourceDefinition {
         // Principal Decoders
         resourceRegistration.registerSubModel(PrincipalDecoderDefinitions.getAggregatePrincipalDecoderDefinition());
         resourceRegistration.registerSubModel(new CustomComponentDefinition<PrincipalDecoder>(PrincipalDecoder.class, PRINCIPAL_DECODER_RUNTIME_CAPABILITY, ElytronDescriptionConstants.CUSTOM_PRINCIPAL_DECODER));
-        resourceRegistration.registerSubModel(EmptyResourceDefinition.create(PrincipalDecoder.class, ElytronDescriptionConstants.X500_COMMON_NAME_PRINCIPAL_DECODER , PRINCIPAL_DECODER_RUNTIME_CAPABILITY, X500CommonNamePrincipalDecoder::getInstance));
 
         // Realm Mappers
         resourceRegistration.registerSubModel(new CustomComponentDefinition<RealmMapper>(RealmMapper.class, REALM_MAPPER_RUNTIME_CAPABILITY, ElytronDescriptionConstants.CUSTOM_REALM_MAPPER));
