@@ -40,7 +40,7 @@ import org.jboss.msc.service.StartException;
 import org.jboss.msc.service.StopContext;
 import org.jboss.msc.value.InjectedValue;
 import org.wildfly.security.auth.provider.LegacyPropertiesSecurityRealm;
-import org.wildfly.security.auth.spi.SecurityRealm;
+import org.wildfly.security.auth.server.SecurityRealm;
 
 /**
  * A {@link Service} implementation responsible for supplying a {@link SecurityRealm} backed by a properties file.

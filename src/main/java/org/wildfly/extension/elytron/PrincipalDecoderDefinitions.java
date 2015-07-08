@@ -20,7 +20,7 @@ package org.wildfly.extension.elytron;
 import static org.wildfly.extension.elytron.Capabilities.PRINCIPAL_DECODER_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PRINCIPAL_DECODERS;
 
-import org.wildfly.security.auth.util.PrincipalDecoder;
+import org.wildfly.security.auth.server.PrincipalDecoder;
 
 /**
  *

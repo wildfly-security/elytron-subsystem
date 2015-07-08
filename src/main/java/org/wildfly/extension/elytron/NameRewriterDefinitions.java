@@ -47,7 +47,7 @@ import org.jboss.msc.service.ServiceController.Mode;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.ServiceTarget;
 import org.wildfly.extension.elytron.TrivialService.ValueSupplier;
-import org.wildfly.security.auth.util.NameRewriter;
+import org.wildfly.security.auth.server.NameRewriter;
 import org.wildfly.security.auth.util.RegexNameRewriter;
 import org.wildfly.security.auth.util.RegexNameValidatingRewriter;
 
