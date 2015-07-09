@@ -51,8 +51,8 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PATH;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PLAIN_TEXT;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PRINCIPAL_MAPPING;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROPERTIES_REALM;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REALMS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.RELATIVE_TO;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SECURITY_REALMS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.USERS_PROPERTIES;
 import static org.wildfly.extension.elytron.ElytronSubsystemParser.readCustomComponent;
 import static org.wildfly.extension.elytron.ElytronSubsystemParser.verifyNamespace;
@@ -565,7 +565,7 @@ class RealmParser {
 
     private void startRealms(boolean started, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (started == false) {
-            writer.writeStartElement(REALMS);
+            writer.writeStartElement(SECURITY_REALMS);
         }
     }
 

@@ -9,7 +9,7 @@
             </keystore>
         </keystores>
     </tls>
-    <realms>
+    <security-realms>
         <aggregate-realm name="AggregateOne" authentication-realm="RealmOne" authorization-realm="RealmTwo" />
         <custom-realm name="CustomOne" class-name="org.wildfly.security.ElytronRealm" />
         <custom-realm name="CustomTwo" module="a.b.c" slot="d" class-name="org.wildfly.security.ElytronRealm">
@@ -49,7 +49,7 @@
         <filesystem-realm name="RealmEight">
             <file relative-to="jboss.server.config.dir" path="test"/>
         </filesystem-realm>
-    </realms>
+    </security-realms>
     <!-- Needed by the filesystem-realms -->
     <mappers>
         <constant-name-rewriter name="TestRewriter" constant="constant" />

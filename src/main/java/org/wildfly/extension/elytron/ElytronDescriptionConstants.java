@@ -156,6 +156,7 @@ interface ElytronDescriptionConstants {
     String SEARCH_BASE_DN = "search-base-dn";
     String SECURITY_DOMAIN = "security-domain";
     String SECURITY_DOMAINS = "security-domains";
+    String SECURITY_REALMS = "security-realms";
     String SALT_INDEX = "salt-index";
     String SALTED_SIMPLE_DIGEST_MAPPER = "salted-simple-digest-mapper";
     String SCRAM_MAPPER = "scram-mapper";

@@ -39,11 +39,11 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROPERTY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDER_LOADER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDER_LOADERS;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REALMS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SECURITY_DOMAIN;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SECURITY_DOMAINS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SECURITY_PROPERTIES;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SECURITY_PROPERTY;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SECURITY_REALMS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SLOT;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.TLS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.VALUE;
@@ -106,7 +106,7 @@ class ElytronSubsystemParser implements XMLElementReader<List<ModelNode>>, XMLEl
                 case SECURITY_DOMAINS:
                     readDomains(parentAddress, reader, operations);
                     break;
-                case REALMS:
+                case SECURITY_REALMS:
                     realmParser.readRealms(parentAddress, reader, operations);
                     break;
                 case MAPPERS:

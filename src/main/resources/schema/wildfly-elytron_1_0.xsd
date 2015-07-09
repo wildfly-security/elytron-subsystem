@@ -33,7 +33,7 @@
             <xs:element name="security-properties" type="securityPropertiesType" minOccurs="0" />
             <xs:element name="provider-loaders" type="providerLoadersType" minOccurs="0" />
             <xs:element name="security-domains" type="securityDomainsType" minOccurs="0" />
-            <xs:element name="realms" type="realmsType" minOccurs="0" />
+            <xs:element name="security-realms" type="realmsType" minOccurs="0" />
             <xs:element name="mappers" type="mappersType" minOccurs="0" />
             <xs:element name="tls" type="tlsType" minOccurs="0" />
         </xs:sequence>

@@ -7,11 +7,11 @@
             <realm name="RealmThree" role-decoder="EmptyRoleDecoder" />
         </security-domain>
     </security-domains>
-    <realms>
+    <security-realms>
         <jaas-realm name="RealmOne" />
         <jaas-realm name="RealmTwo" configuration="custom-domain" />
         <jaas-realm name="RealmThree" configuration="custom-domain" />
-    </realms>
+    </security-realms>
     <mappers>
         <regex-name-rewriter name="RegexOne" pattern="a" replacement="b" />
         <regex-name-rewriter name="RegexTwo" pattern="c" replacement="d" />
