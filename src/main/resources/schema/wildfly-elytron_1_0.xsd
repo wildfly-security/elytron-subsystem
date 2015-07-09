@@ -752,6 +752,7 @@
             <xs:element name="regex-name-validating-rewriter" type="regexNameValidatingRewriter" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="aggregate-principal-decoder" type="aggregatePrincipalDecoderType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="custom-principal-decoder" type="customPrincipalDecoderType" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="x500-attribute-principal-decoder" type="x500AttributePrincipalDecoderType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="custom-permission-mapper" type="customPermissionMapperType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="custom-realm-mapper" type="customRealmMapperType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="simple-regex-realm-mapper" type="simpleRegexRealmMapperType" minOccurs="0" maxOccurs="unbounded" />
@@ -1008,6 +1009,39 @@
             </xs:documentation>
         </xs:annotation>
         <xs:attribute name="name" type="xs:string" use="required" />
+    </xs:complexType>
+
+    <xs:complexType name="x500AttributePrincipalDecoderType">
+        <xs:annotation>
+            <xs:documentation>
+                A PrincipalDecoder definition based on a X500 attribute.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="principalDecoderType">
+                <xs:attribute name="oid" type="xs:string" use="required">
+                    <xs:annotation>
+                        <xs:documentation>
+                            The oid of the attribute to map.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+                <xs:attribute name="joiner" type="xs:string" default=".">
+                    <xs:annotation>
+                        <xs:documentation>
+                            The joining string.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+                <xs:attribute name="maximum-segments" type="xs:int" default=" 2147483647">
+                    <xs:annotation>
+                        <xs:documentation>
+                            The maximum number of occurences of the attribute to map.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+            </xs:extension>
+        </xs:complexContent>
     </xs:complexType>
 
     <xs:complexType name="realmMapperType" abstract="true">

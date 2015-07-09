@@ -47,15 +47,18 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CUSTOM_R
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.DELEGATE_REALM_MAPPER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.EMPTY_ROLE_DECODER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.FROM;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.JOINER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.LEFT;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.LOGICAL_OPERATION;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.LOGICAL_ROLE_MAPPER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MAPPED_REGEX_REALM_MAPPER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MAPPERS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MATCH;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MAXIMUM_SEGMENTS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME_REWRITER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME_REWRITERS;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.OID;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PATTERN;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PREFIX;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PRINCIPAL_DECODER;
@@ -74,6 +77,7 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SIMPLE_R
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SIMPLE_ROLE_DECODER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SUFFIX;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.TO;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.X500_ATTRIBUTE_PRINCIPAL_DECODER;
 import static org.wildfly.extension.elytron.ElytronSubsystemParser.readCustomComponent;
 import static org.wildfly.extension.elytron.ElytronSubsystemParser.verifyNamespace;
 import static org.wildfly.extension.elytron.ElytronSubsystemParser.writeCustomComponent;
@@ -131,6 +135,9 @@ class MapperParser {
                     break;
                 case CUSTOM_PRINCIPAL_DECODER:
                     readCustomComponent(CUSTOM_PRINCIPAL_DECODER, parentAddress, reader, operations);
+                    break;
+                case X500_ATTRIBUTE_PRINCIPAL_DECODER:
+                    readX500AttributePrincipalDecoderElement(parentAddress, reader, operations);
                     break;
                 // Realm Mappers
                 case CUSTOM_REALM_MAPPER:
@@ -407,6 +414,53 @@ class MapperParser {
 
             requireNoContent(reader);
         }
+    }
+
+    private void readX500AttributePrincipalDecoderElement(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations)
+            throws XMLStreamException {
+        ModelNode addPrincipalDecoder = new ModelNode();
+        addPrincipalDecoder.get(OP).set(ADD);
+
+        Set<String> requiredAttributes = new HashSet<String>(Arrays.asList(new String[] { NAME, OID }));
+
+        String name = null;
+
+        final int count = reader.getAttributeCount();
+        for (int i = 0; i < count; i++) {
+            final String value = reader.getAttributeValue(i);
+            if (!isNoNamespaceAttribute(reader, i)) {
+                throw unexpectedAttribute(reader, i);
+            } else {
+                String attribute = reader.getAttributeLocalName(i);
+                requiredAttributes.remove(attribute);
+                switch (attribute) {
+                    case NAME:
+                        name = value;
+                        break;
+                    case OID:
+                        PrincipalDecoderDefinitions.OID.parseAndSetParameter(value, addPrincipalDecoder, reader);
+                        break;
+                    case JOINER:
+                        PrincipalDecoderDefinitions.JOINER.parseAndSetParameter(value, addPrincipalDecoder, reader);
+                        break;
+                    case MAXIMUM_SEGMENTS:
+                        PrincipalDecoderDefinitions.MAXIMUM_SEGMENTS.parseAndSetParameter(value, addPrincipalDecoder, reader);
+                        break;
+                    default:
+                        throw unexpectedAttribute(reader, i);
+                }
+            }
+        }
+
+        if (requiredAttributes.isEmpty() == false) {
+            throw missingRequired(reader, requiredAttributes);
+        }
+
+        addPrincipalDecoder.get(OP_ADDR).set(parentAddress).add(X500_ATTRIBUTE_PRINCIPAL_DECODER, name);
+
+        operations.add(addPrincipalDecoder);
+
+        requireNoContent(reader);
     }
 
     private void readSimpleRegexRealmMapperElement(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations)
@@ -972,6 +1026,26 @@ class MapperParser {
         return false;
     }
 
+    private boolean writeX500AttributePrincipalDecoders(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
+        if (subsystem.hasDefined(X500_ATTRIBUTE_PRINCIPAL_DECODER)) {
+            startMappers(started, writer);
+            List<Property> principalDecoders = subsystem.require(X500_ATTRIBUTE_PRINCIPAL_DECODER).asPropertyList();
+            for (Property current : principalDecoders) {
+                ModelNode principalDecoder = current.getValue();
+                writer.writeStartElement(X500_ATTRIBUTE_PRINCIPAL_DECODER);
+                writer.writeAttribute(NAME, current.getName());
+                PrincipalDecoderDefinitions.OID.marshallAsElement(principalDecoder, writer);
+                PrincipalDecoderDefinitions.JOINER.marshallAsElement(principalDecoder, writer);
+                PrincipalDecoderDefinitions.MAXIMUM_SEGMENTS.marshallAsElement(principalDecoder, writer);
+                writer.writeEndElement();
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
     private boolean writeCustomRealmMappers(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (subsystem.hasDefined(CUSTOM_REALM_MAPPER)) {
             startMappers(started, writer);
@@ -1205,6 +1279,7 @@ class MapperParser {
 
         mappersStarted = mappersStarted | writeAggregatePrincipalDecoders(mappersStarted, subsystem, writer);
         mappersStarted = mappersStarted | writeCustomPrincipalDecoders(mappersStarted, subsystem, writer);
+        mappersStarted = mappersStarted | writeX500AttributePrincipalDecoders(mappersStarted, subsystem, writer);
 
         mappersStarted = mappersStarted | writeCustomRealmMappers(mappersStarted, subsystem, writer);
         mappersStarted = mappersStarted | writeSimpleRegexRealmMappers(mappersStarted, subsystem, writer);
