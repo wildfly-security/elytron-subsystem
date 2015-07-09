@@ -83,8 +83,8 @@ class NameRewriterDefinitions {
         .build();
 
     private static final AggregateComponentDefinition<NameRewriter> AGGREGATE_NAME_REWRITER = AggregateComponentDefinition.create(NameRewriter.class,
-            ElytronDescriptionConstants.AGGREGATE_NAME_REWRITER, ElytronDescriptionConstants.NAME_REWRITERS, NAME_REWRITER_RUNTIME_CAPABILITY,
-            (NameRewriter[] n) -> NameRewriter.aggregate(n));
+        ElytronDescriptionConstants.AGGREGATE_NAME_REWRITER, ElytronDescriptionConstants.NAME_REWRITERS, NAME_REWRITER_RUNTIME_CAPABILITY,
+        (NameRewriter[] n) -> NameRewriter.chain(n));
 
     static AggregateComponentDefinition<NameRewriter> getAggregateNameRewriterDefinition() {
         return AGGREGATE_NAME_REWRITER;
@@ -110,14 +110,13 @@ class NameRewriterDefinitions {
 
             @Override
             protected ValueSupplier<NameRewriter> getNameRewriterSupplier(OperationContext context, ModelNode operation,
-                    ModelNode model) throws OperationFailedException {
-                final Pattern pattern = Pattern.compile(PATTERN.resolveModelAttribute(context, model).asString());
-                final String replacement = REPLACEMENT.resolveModelAttribute(context, model).asString();
-                final boolean replaceAll = REPLACE_ALL.resolveModelAttribute(context, model).asBoolean();
+                ModelNode model) throws OperationFailedException {
+                final Pattern pattern     = Pattern.compile(PATTERN.resolveModelAttribute(context, model).asString());
+                final String  replacement = REPLACEMENT.resolveModelAttribute(context, model).asString();
+                final boolean replaceAll  = REPLACE_ALL.resolveModelAttribute(context, model).asBoolean();
 
                 return () -> new RegexNameRewriter(pattern, replacement, replaceAll);
             }
-
         };
 
         private static final AbstractRemoveStepHandler REMOVE = new NameRewriterRemoveHandler(ADD);
@@ -137,7 +136,6 @@ class NameRewriterDefinitions {
                 resourceRegistration.registerReadWriteAttribute(current, null, write);
             }
         }
-
     }
 
     private static class RegexNameValidatingRewriterDefinition extends SimpleResourceDefinition {
