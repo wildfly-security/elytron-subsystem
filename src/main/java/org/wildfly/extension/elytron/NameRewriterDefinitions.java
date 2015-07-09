@@ -84,10 +84,18 @@ class NameRewriterDefinitions {
 
     private static final AggregateComponentDefinition<NameRewriter> AGGREGATE_NAME_REWRITER = AggregateComponentDefinition.create(NameRewriter.class,
         ElytronDescriptionConstants.AGGREGATE_NAME_REWRITER, ElytronDescriptionConstants.NAME_REWRITERS, NAME_REWRITER_RUNTIME_CAPABILITY,
-        (NameRewriter[] n) -> NameRewriter.chain(n));
+        (NameRewriter[] n) -> NameRewriter.aggregate(n));
+
+    private static final AggregateComponentDefinition<NameRewriter> CHAINED_NAME_REWRITER = AggregateComponentDefinition.create(NameRewriter.class,
+            ElytronDescriptionConstants.CHAINED_NAME_REWRITER, ElytronDescriptionConstants.NAME_REWRITERS, NAME_REWRITER_RUNTIME_CAPABILITY,
+            (NameRewriter[] n) -> NameRewriter.chain(n));
 
     static AggregateComponentDefinition<NameRewriter> getAggregateNameRewriterDefinition() {
         return AGGREGATE_NAME_REWRITER;
+    }
+
+    static AggregateComponentDefinition<NameRewriter> getChainedNameRewriterDefinition() {
+        return CHAINED_NAME_REWRITER;
     }
 
     static ResourceDefinition getRegexNameRewriterDefinition() {

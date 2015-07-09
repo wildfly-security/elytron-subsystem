@@ -43,6 +43,7 @@ interface ElytronDescriptionConstants {
     String CERTIFICATE = "certificate";
     String CERTIFICATES = "certificates";
     String CERTIFICATE_CHAIN = "certificate-chain";
+    String CHAINED_NAME_REWRITER = "chained-name-rewriter";
     String CLASS_LOADING = "class-loading";
     String CLASS_NAME = "class-name";
     String CLASS_NAMES = "class-names";

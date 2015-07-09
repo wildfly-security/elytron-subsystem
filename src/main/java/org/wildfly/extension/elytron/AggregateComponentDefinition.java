@@ -81,6 +81,7 @@ class AggregateComponentDefinition<T> extends SimpleResourceDefinition {
     static <T> AggregateComponentDefinition<T> create(Class<T> aggregationType, String componentName, String referencesName, RuntimeCapability<?> runtimeCapability, Function<T[], T> aggregator) {
         String capabilityName = runtimeCapability.getName();
         StringListAttributeDefinition aggregateReferences = new StringListAttributeDefinition.Builder(referencesName)
+            .setMinSize(2)
             .setAllowExpression(true)
             .setAllowNull(false)
             .setCapabilityReference(capabilityName, capabilityName, true)

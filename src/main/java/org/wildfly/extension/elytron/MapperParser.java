@@ -32,6 +32,7 @@ import static org.jboss.as.controller.parsing.ParseUtils.unexpectedElement;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ADD_PREFIX_ROLE_MAPPER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ADD_SUFFIX_ROLE_MAPPER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AGGREGATE_NAME_REWRITER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CHAINED_NAME_REWRITER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AGGREGATE_PRINCIPAL_DECODER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AGGREGATE_ROLE_MAPPER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ATTRIBUTE;
@@ -112,6 +113,9 @@ class MapperParser {
                 // Name Rewriters
                 case AGGREGATE_NAME_REWRITER:
                     readAggregateNameRewriterElement(parentAddress, reader, operations);
+                    break;
+                case CHAINED_NAME_REWRITER:
+                    readChainedNameRewriterElement(parentAddress, reader, operations);
                     break;
                 case CONSTANT_NAME_REWRITER:
                     readConstantRewriterElement(parentAddress, reader, operations);
@@ -213,6 +217,56 @@ class MapperParser {
         }
 
         addNameRewriter.get(OP_ADDR).set(parentAddress).add(AGGREGATE_NAME_REWRITER, name);
+
+        operations.add(addNameRewriter);
+
+        ListAttributeDefinition nameRewriters = NameRewriterDefinitions.getAggregateNameRewriterDefinition().getReferencesAttribute();
+        while (reader.hasNext() && reader.nextTag() != END_ELEMENT) {
+            verifyNamespace(reader);
+            String localName = reader.getLocalName();
+            if (NAME_REWRITER.equals(localName) == false) {
+                throw unexpectedElement(reader);
+            }
+
+            requireSingleAttribute(reader, NAME);
+            String nameRewriterName = reader.getAttributeValue(0);
+
+
+            nameRewriters.parseAndAddParameterElement(nameRewriterName, addNameRewriter, reader);
+
+            requireNoContent(reader);
+        }
+    }
+
+    private void readChainedNameRewriterElement(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations)
+            throws XMLStreamException {
+        ModelNode addNameRewriter = new ModelNode();
+        addNameRewriter.get(OP).set(ADD);
+
+        String name = null;
+
+        final int count = reader.getAttributeCount();
+        for (int i = 0; i < count; i++) {
+            final String value = reader.getAttributeValue(i);
+            if (!isNoNamespaceAttribute(reader, i)) {
+                throw unexpectedAttribute(reader, i);
+            } else {
+                String attribute = reader.getAttributeLocalName(i);
+                switch (attribute) {
+                    case NAME:
+                        name = value;
+                        break;
+                    default:
+                        throw unexpectedAttribute(reader, i);
+                }
+            }
+        }
+
+        if (name == null) {
+            throw missingRequired(reader, NAME);
+        }
+
+        addNameRewriter.get(OP_ADDR).set(parentAddress).add(CHAINED_NAME_REWRITER, name);
 
         operations.add(addNameRewriter);
 
@@ -896,6 +950,31 @@ class MapperParser {
         return false;
     }
 
+    private boolean writeChainedNameRewriters(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
+        if (subsystem.hasDefined(CHAINED_NAME_REWRITER)) {
+            startMappers(started, writer);
+            List<Property> nameRewriters = subsystem.require(CHAINED_NAME_REWRITER).asPropertyList();
+            for (Property current : nameRewriters) {
+                ModelNode nameRewriter = current.getValue();
+                writer.writeStartElement(CHAINED_NAME_REWRITER);
+                writer.writeAttribute(NAME, current.getName());
+
+                List<ModelNode> nameRewriterReferences = nameRewriter.get(NAME_REWRITERS).asList();
+                for (ModelNode currentReference : nameRewriterReferences) {
+                    writer.writeStartElement(NAME_REWRITER);
+                    writer.writeAttribute(NAME, currentReference.asString());
+                    writer.writeEndElement();
+                }
+
+                writer.writeEndElement();
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
     private boolean writeCustomNameRewriters(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (subsystem.hasDefined(CUSTOM_NAME_REWRITER)) {
             startMappers(started, writer);
@@ -1270,6 +1349,7 @@ class MapperParser {
         boolean mappersStarted = false;
 
         mappersStarted = mappersStarted | writeAggregateNameRewriters(mappersStarted, subsystem, writer);
+        mappersStarted = mappersStarted | writeChainedNameRewriters(mappersStarted, subsystem, writer);
         mappersStarted = mappersStarted | writeConstantNameRewriters(mappersStarted, subsystem, writer);
         mappersStarted = mappersStarted | writeCustomNameRewriters(mappersStarted, subsystem, writer);
         mappersStarted = mappersStarted | writeRegexNameRewriters(mappersStarted, subsystem, writer);

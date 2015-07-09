@@ -746,6 +746,7 @@
         </xs:annotation>
         <xs:choice maxOccurs="unbounded">
             <xs:element name="aggregate-name-rewriter" type="aggregateNameRewriterType" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="chained-name-rewriter" type="chainedNameRewriterType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="constant-name-rewriter" type="constantNameRewriter" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="custom-name-rewriter" type="customNameRewriterType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="regex-name-rewriter" type="regexNameRewriterType" minOccurs="0" maxOccurs="unbounded" />
@@ -901,7 +902,22 @@
         <xs:complexContent>
             <xs:extension base="nameRewriterType">
                 <xs:sequence>
-                    <xs:element name="name-rewriter" type="nameRewriterRefType" maxOccurs="unbounded" />
+                    <xs:element name="name-rewriter" type="nameRewriterRefType" minOccurs="2" maxOccurs="unbounded" />
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="chainedNameRewriterType">
+        <xs:annotation>
+            <xs:documentation>
+                A NameRewriter definition that is actually a chain of other NameRewriters.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="nameRewriterType">
+                <xs:sequence>
+                    <xs:element name="name-rewriter" type="nameRewriterRefType" minOccurs="2" maxOccurs="unbounded" />
                 </xs:sequence>
             </xs:extension>
         </xs:complexContent>
@@ -996,7 +1012,7 @@
         <xs:complexContent>
             <xs:extension base="principalDecoderType">
                 <xs:sequence>
-                    <xs:element name="principal-decoder" type="principalDecoderRefType" maxOccurs="unbounded" />
+                    <xs:element name="principal-decoder" type="principalDecoderRefType" minOccurs="2" maxOccurs="unbounded" />
                 </xs:sequence>
             </xs:extension>
         </xs:complexContent>
@@ -1295,7 +1311,7 @@
         <xs:complexContent>
             <xs:extension base="roleMapperType">
                 <xs:sequence>
-                    <xs:element name="role-mapper" type="roleMapperRefType" maxOccurs="unbounded" />
+                    <xs:element name="role-mapper" type="roleMapperRefType" minOccurs="2" maxOccurs="unbounded" />
                 </xs:sequence>
             </xs:extension>
         </xs:complexContent>

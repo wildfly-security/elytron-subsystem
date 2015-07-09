@@ -91,6 +91,7 @@ class ElytronDefinition extends SimpleResourceDefinition {
 
         // Name Rewriters
         resourceRegistration.registerSubModel(NameRewriterDefinitions.getAggregateNameRewriterDefinition());
+        resourceRegistration.registerSubModel(NameRewriterDefinitions.getChainedNameRewriterDefinition());
         resourceRegistration.registerSubModel(NameRewriterDefinitions.getConstantNameRewriterDefinition());
         resourceRegistration.registerSubModel(new CustomComponentDefinition<NameRewriter>(NameRewriter.class, NAME_REWRITER_RUNTIME_CAPABILITY, ElytronDescriptionConstants.CUSTOM_NAME_REWRITER));
         resourceRegistration.registerSubModel(NameRewriterDefinitions.getRegexNameRewriterDefinition());

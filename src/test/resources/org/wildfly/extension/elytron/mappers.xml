@@ -5,6 +5,10 @@
             <name-rewriter name="RegexOne" />
             <name-rewriter name="RegexTwo" />
         </aggregate-name-rewriter>
+        <chained-name-rewriter name="ChainedNameRewriter">
+            <name-rewriter name="CustomOne" />
+            <name-rewriter name="AggregateOne" />
+        </chained-name-rewriter>
         <constant-name-rewriter name="ConstantOne" constant="constant" />
         <custom-name-rewriter name="CustomOne" class-name="org.wildfly.elytron.CustomRewriter" module="a.b" slot="c" />
         <regex-name-rewriter name="RegexOne" pattern=".?" replacement="X" replace-all="true" />
