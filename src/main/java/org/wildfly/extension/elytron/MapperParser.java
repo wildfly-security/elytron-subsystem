@@ -1034,9 +1034,9 @@ class MapperParser {
                 ModelNode principalDecoder = current.getValue();
                 writer.writeStartElement(X500_ATTRIBUTE_PRINCIPAL_DECODER);
                 writer.writeAttribute(NAME, current.getName());
-                PrincipalDecoderDefinitions.OID.marshallAsElement(principalDecoder, writer);
-                PrincipalDecoderDefinitions.JOINER.marshallAsElement(principalDecoder, writer);
-                PrincipalDecoderDefinitions.MAXIMUM_SEGMENTS.marshallAsElement(principalDecoder, writer);
+                PrincipalDecoderDefinitions.OID.marshallAsAttribute(principalDecoder, writer);
+                PrincipalDecoderDefinitions.JOINER.marshallAsAttribute(principalDecoder, writer);
+                PrincipalDecoderDefinitions.MAXIMUM_SEGMENTS.marshallAsAttribute(principalDecoder, writer);
                 writer.writeEndElement();
             }
 
