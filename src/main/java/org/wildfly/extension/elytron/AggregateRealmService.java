@@ -24,7 +24,7 @@ import org.jboss.msc.service.StartException;
 import org.jboss.msc.service.StopContext;
 import org.jboss.msc.value.InjectedValue;
 import org.wildfly.security.auth.provider.AggregateSecurityRealm;
-import org.wildfly.security.auth.spi.SecurityRealm;
+import org.wildfly.security.auth.server.SecurityRealm;
 
 /**
  * The {@link Service} to construct and return the {@link AggregateSecurityRealm} instance based on the two injected

@@ -29,7 +29,7 @@ import org.jboss.msc.service.StopContext;
 import org.jboss.msc.value.InjectedValue;
 import org.wildfly.security.auth.provider.jdbc.JdbcSecurityRealm;
 import org.wildfly.security.auth.provider.jdbc.KeyMapper;
-import org.wildfly.security.auth.spi.SecurityRealm;
+import org.wildfly.security.auth.server.SecurityRealm;
 
 /**
  * A {@link Service} implementation responsible for supplying a {@link SecurityRealm} backed by a database.

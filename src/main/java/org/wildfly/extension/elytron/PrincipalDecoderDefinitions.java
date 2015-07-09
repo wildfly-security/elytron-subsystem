@@ -44,9 +44,10 @@ import org.jboss.msc.service.ServiceController.Mode;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.ServiceTarget;
 import org.wildfly.extension.elytron.TrivialService.ValueSupplier;
-import org.wildfly.security.auth.util.PrincipalDecoder;
+import org.wildfly.security.auth.server.PrincipalDecoder;
 import org.wildfly.security.authz.RoleMapper;
 import org.wildfly.security.x500.X500AttributePrincipalDecoder;
+
 
 /**
  * Holder for {@link ResourceDefinition} instances for services that return {@link PrincipalDecoder}

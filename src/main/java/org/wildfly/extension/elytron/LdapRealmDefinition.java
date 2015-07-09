@@ -51,7 +51,7 @@ import org.wildfly.security.auth.provider.ldap.DirContextFactory;
 import org.wildfly.security.auth.provider.ldap.LdapSecurityRealmBuilder;
 import org.wildfly.security.auth.provider.ldap.LdapSecurityRealmBuilder.PrincipalMappingBuilder;
 import org.wildfly.security.auth.provider.ldap.SimpleDirContextFactoryBuilder;
-import org.wildfly.security.auth.spi.SecurityRealm;
+import org.wildfly.security.auth.server.SecurityRealm;
 
 /**
  * A {@link ResourceDefinition} for a {@link SecurityRealm} backed by LDAP.

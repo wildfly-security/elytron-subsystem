@@ -66,7 +66,7 @@ import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.ServiceTarget;
 import org.wildfly.security.auth.provider.jdbc.KeyMapper;
 import org.wildfly.security.auth.provider.jdbc.mapper.PasswordKeyMapper;
-import org.wildfly.security.auth.spi.SecurityRealm;
+import org.wildfly.security.auth.server.SecurityRealm;
 import org.wildfly.security.password.interfaces.BCryptPassword;
 import org.wildfly.security.password.interfaces.ClearPassword;
 import org.wildfly.security.password.interfaces.SaltedSimpleDigestPassword;

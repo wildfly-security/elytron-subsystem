@@ -62,7 +62,7 @@ import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.ServiceTarget;
 import org.jboss.msc.value.InjectedValue;
 import org.wildfly.security.auth.util.MappedRegexRealmMapper;
-import org.wildfly.security.auth.util.RealmMapper;
+import org.wildfly.security.auth.server.RealmMapper;
 import org.wildfly.security.auth.util.SimpleRegexRealmMapper;
 
 

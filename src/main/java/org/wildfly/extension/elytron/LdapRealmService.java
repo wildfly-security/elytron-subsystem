@@ -23,7 +23,7 @@ import org.jboss.msc.service.StartContext;
 import org.jboss.msc.service.StartException;
 import org.jboss.msc.service.StopContext;
 import org.wildfly.security.auth.provider.ldap.LdapSecurityRealmBuilder;
-import org.wildfly.security.auth.spi.SecurityRealm;
+import org.wildfly.security.auth.server.SecurityRealm;
 
 /**
  * A {@link Service} implementation responsible for supplying a {@link SecurityRealm} backed by LDAP.
