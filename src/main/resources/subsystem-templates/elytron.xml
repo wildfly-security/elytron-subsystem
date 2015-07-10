@@ -24,11 +24,11 @@
             <?DOMAIN_DEFINITIONS?>
         </security-domains>
 
-        <realms>
+        <security-realms>
             <?REALM_DEFINITIONS?>
-        </realms>
+        </security-realms>
     </subsystem>
-    
+
     <supplement name="domain">
         <replacement placeholder="DOMAIN_DEFINITIONS">
             <security-domain name="ApplicationDomain" default-realm="ApplicationRealm">
@@ -42,7 +42,7 @@
             </properties-realm>
         </replacement>
     </supplement>
-    
+
     <supplement name="host">
         <replacement placeholder="DOMAIN_DEFINITIONS">
             <security-domain name="ManagementDomain" default-realm="ManagementRealm">
@@ -56,7 +56,7 @@
             </properties-realm>
         </replacement>
     </supplement>
-    
+
     <supplement name="standalone">
         <replacement placeholder="DOMAIN_DEFINITIONS">
             <security-domain name="ApplicationDomain" default-realm="ApplicationRealm">
@@ -72,7 +72,7 @@
                 <users-properties path="application-users.properties" relative-to="jboss.server.config.dir" />
                 <groups-properties path="application-roles.properties" relative-to="jboss.server.config.dir" />
             </properties-realm>
-        
+
             <properties-realm name="ManagementRealm">
                 <users-properties path="mgmt-users.properties" relative-to="jboss.server.config.dir" />
                 <groups-properties path="mgmt-groups.properties" relative-to="jboss.server.config.dir" />
