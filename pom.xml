@@ -264,24 +264,28 @@
             <groupId>org.jboss</groupId>
             <artifactId>jboss-dmr</artifactId>
             <version>${version.org.jboss.jboss-dmr}</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>org.jboss.modules</groupId>
             <artifactId>jboss-modules</artifactId>
             <version>${version.org.jboss.modules.jboss-modules}</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>org.jboss.msc</groupId>
             <artifactId>jboss-msc</artifactId>
             <version>${version.org.jboss.msc.jboss-msc}</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>org.jboss.logging</groupId>
             <artifactId>jboss-logging</artifactId>
             <version>${version.org.jboss.logging.jboss-logging}</version>
+            <scope>provided</scope>
             <exclusions>
                 <exclusion>
                     <artifactId>*</artifactId>
@@ -316,6 +320,7 @@
             <groupId>org.jboss</groupId>
             <artifactId>staxmapper</artifactId>
             <version>${version.org.jboss.staxmapper}</version>
+            <scope>provided</scope>
         </dependency>
 
         <!-- TEST Dependencies -->
