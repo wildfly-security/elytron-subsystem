@@ -32,7 +32,6 @@ import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies
 import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
 import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
 
-import java.security.Principal;
 import java.util.List;
 
 import org.jboss.as.controller.AbstractAddStepHandler;
@@ -404,19 +403,17 @@ class DomainDefinition extends SimpleResourceDefinition {
         @Override
         public void execute(OperationContext context, ModelNode operation) throws OperationFailedException {
             context.addStep((contextStep, operationStep) -> {
-                String username = USER_NAME.resolveModelAttribute(context, operation).asString();
+                String principalName = USER_NAME.resolveModelAttribute(context, operation).asString();
                 String password = PASSWORD.resolveModelAttribute(context, operation).asString();
                 SecurityDomain securityDomain = getSecurityDomain(context, operation);
 
                 try {
                     ServerAuthenticationContext authenticationContext = securityDomain.createNewAuthenticationContext();
 
-                    authenticationContext.setAuthenticationName(username);
-
-                    Principal authenticationPrincipal = authenticationContext.getAuthenticationPrincipal();
+                    authenticationContext.setAuthenticationName(principalName);
 
                     if (!authenticationContext.exists()) {
-                        addFailureDescription("Invalid username [" + username + "].", context);
+                        addFailureDescription("Principal [" + principalName + "] does not exist.", context);
                         return;
                     }
 
@@ -438,14 +435,16 @@ class DomainDefinition extends SimpleResourceDefinition {
                         SecurityIdentity authorizedIdentity = authenticationContext.getAuthorizedIdentity();
 
                         if (authorizedIdentity == null) {
-                            addFailureDescription("User [" + username + "] authenticated but no authorized identity could be obtained.", context);
+                            addFailureDescription("Principal [" + principalName + "] authenticated but no identity could be obtained.", context);
                             return;
                         }
 
-                        context.getResult().add("User [" + username + "] successfully authenticated. Roles are " + authorizedIdentity.getRoles() + ". Permissions are [" + authorizedIdentity.getPermissions() + "].");
+                        context.getResult().add("Principal [" + principalName + "] successfully authenticated.");
+                        context.getResult().add("Roles are " + authorizedIdentity.getRoles() + ".");
+                        context.getResult().add("Permissions are [" + authorizedIdentity.getPermissions() + "].");
                     } else {
                         authenticationContext.fail();
-                        addFailureDescription("Invalid credentials for username [" + username + "].", context);
+                        addFailureDescription("Invalid credentials for Principal [" + principalName + "].", context);
                     }
                 } catch (Exception cause) {
                     addFailureDescription(cause.getMessage(), context);
