@@ -32,7 +32,7 @@ import static org.jboss.as.controller.parsing.ParseUtils.unexpectedElement;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AGGREGATE_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ATTRIBUTE;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ATTRIBUTE_MAPPING;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AUTHENTICATION_QUERY;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PRINCIPAL_QUERY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AUTHENTICATION_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AUTHORIZATION_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CONFIGURATION;
@@ -75,7 +75,7 @@ import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.Property;
 import org.jboss.staxmapper.XMLExtendedStreamReader;
 import org.jboss.staxmapper.XMLExtendedStreamWriter;
-import org.wildfly.extension.elytron.JdbcRealmDefinition.AuthenticationQueryAttributes;
+import org.wildfly.extension.elytron.JdbcRealmDefinition.PrincipalQueryAttributes;
 import org.wildfly.extension.elytron.JdbcRealmDefinition.PasswordMapperObjectDefinition;
 import org.wildfly.extension.elytron.LdapRealmDefinition.DirContextObjectDefinition;
 import org.wildfly.extension.elytron.LdapRealmDefinition.PrincipalMappingObjectDefinition;
@@ -238,36 +238,40 @@ class RealmParser {
             verifyNamespace(reader);
             String localName = reader.getLocalName();
             switch (localName) {
-                case AUTHENTICATION_QUERY:
-                    ModelNode authenticationQueryNode = readModelNode(AuthenticationQueryAttributes.ATTRIBUTES, reader, (parentNode, reader1) -> {
-                        while (reader1.hasNext() && reader1.nextTag() != END_ELEMENT) {
-                            verifyNamespace(reader1);
-
-                            String passwordMapperName = reader1.getLocalName();
-
-                            if (!AuthenticationQueryAttributes.SUPPORTED_PASSWORD_MAPPERS.containsKey(passwordMapperName)) {
-                                unexpectedElement(reader1);
-                            }
-
-                            PasswordMapperObjectDefinition passwordMapperObjectDefinition = AuthenticationQueryAttributes.SUPPORTED_PASSWORD_MAPPERS.get(passwordMapperName);
+                case PRINCIPAL_QUERY:
+                    ModelNode principalQueryNode = readModelNode(PrincipalQueryAttributes.ATTRIBUTES, reader, (parentNode, reader1) -> {
+                        if (reader1.getLocalName().equals(ATTRIBUTE_MAPPING)) {
+                            ModelNode attributeMappingNode = readModelNode(null, reader, (parentNode1, reader2) -> {
+                                if (reader2.getLocalName().equals(ATTRIBUTE)) {
+                                    parentNode1.add(readModelNode(JdbcRealmDefinition.AttributeMappingObjectDefinition.ATTRIBUTES, reader2, null));
+                                    requireNoContent(reader2);
+                                } else {
+                                    throw unexpectedElement(reader2);
+                                }
+                            });
+                            parentNode.get(ATTRIBUTE_MAPPING).set(attributeMappingNode);
+                        } else if (PrincipalQueryAttributes.SUPPORTED_PASSWORD_MAPPERS.containsKey(reader1.getLocalName())) {
+                            PasswordMapperObjectDefinition passwordMapperObjectDefinition = PrincipalQueryAttributes.SUPPORTED_PASSWORD_MAPPERS.get(reader1.getLocalName());
 
                             ModelNode passwordMapperNode = readModelNode(passwordMapperObjectDefinition.getAttributes(), reader1, null);
 
-                            parentNode.get(passwordMapperName).set(passwordMapperNode);
+                            parentNode.get(reader1.getLocalName()).set(passwordMapperNode);
 
                             requireNoContent(reader1);
+                        } else {
+                            throw unexpectedElement(reader1);
                         }
                     });
 
-                    addRealm.get(AUTHENTICATION_QUERY).set(authenticationQueryNode);
+                    addRealm.get(PRINCIPAL_QUERY).add(principalQueryNode);
                     break;
                 default:
                     throw unexpectedElement(reader);
             }
         }
 
-        if (!addRealm.hasDefined(AUTHENTICATION_QUERY)) {
-            throw missingRequiredElement(reader, Collections.singleton(AUTHENTICATION_QUERY));
+        if (!addRealm.hasDefined(PRINCIPAL_QUERY)) {
+            throw missingRequiredElement(reader, Collections.singleton(PRINCIPAL_QUERY));
         }
 
         operations.add(addRealm);
@@ -654,14 +658,36 @@ class RealmParser {
             startRealms(started, writer);
 
             List<Property> realms = subsystem.require(JDBC_REALM).asPropertyList();
+
             for (Property current : realms) {
                 writer.writeStartElement(JDBC_REALM);
-
                 writer.writeAttribute(NAME, current.getName());
-
                 ModelNode jdbcRealmNode = current.getValue();
 
-                writeAuthenticationQuery(jdbcRealmNode.get(AUTHENTICATION_QUERY), writer);
+                for (ModelNode principalQueryNode : jdbcRealmNode.get(PRINCIPAL_QUERY).asList()) {
+                    writeObjectTypeAttribute(PRINCIPAL_QUERY, PrincipalQueryAttributes.ATTRIBUTES, principalQueryNode, writer, new ChildModelNodeWriter() {
+                        @Override
+                        public void write(ModelNode modelNode, XMLExtendedStreamWriter writer) throws XMLStreamException {
+                            for (PasswordMapperObjectDefinition mapperDefinition : PrincipalQueryAttributes.SUPPORTED_PASSWORD_MAPPERS.values()) {
+                                ObjectTypeAttributeDefinition objectDefinition = mapperDefinition.getObjectDefinition();
+
+                                writeObjectTypeAttribute(objectDefinition.getName(), mapperDefinition.getAttributes(), modelNode.get(objectDefinition.getName()), writer, null);
+                            }
+
+                            ModelNode attributeMappingNode = modelNode.get(ATTRIBUTE_MAPPING);
+
+                            if (attributeMappingNode.isDefined()) {
+                                writer.writeStartElement(ATTRIBUTE_MAPPING);
+
+                                for (ModelNode elementNode : attributeMappingNode.asList()) {
+                                    writeObjectTypeAttribute(ATTRIBUTE, JdbcRealmDefinition.AttributeMappingObjectDefinition.ATTRIBUTES, elementNode, writer, null);
+                                }
+
+                                writer.writeEndElement();
+                            }
+                        }
+                    });
+                }
 
                 writer.writeEndElement();
             }
@@ -669,39 +695,6 @@ class RealmParser {
             return true;
         }
         return false;
-    }
-
-    private void writeAuthenticationQuery(ModelNode authenticationQueryNode, XMLExtendedStreamWriter writer)
-            throws XMLStreamException {
-        if (authenticationQueryNode.isDefined()) {
-            writer.writeStartElement(AUTHENTICATION_QUERY);
-
-            for (SimpleAttributeDefinition attributeDefinition : AuthenticationQueryAttributes.ATTRIBUTES) {
-                attributeDefinition.marshallAsAttribute(authenticationQueryNode, writer);
-            }
-
-            for (PasswordMapperObjectDefinition mapperDefinition : AuthenticationQueryAttributes.SUPPORTED_PASSWORD_MAPPERS.values()) {
-                writePasswordMapper(mapperDefinition.getObjectDefinition(), authenticationQueryNode, writer);
-            }
-
-            writer.writeEndElement();
-        }
-    }
-
-    private void writePasswordMapper(ObjectTypeAttributeDefinition attributeDefinition, ModelNode authenticationQueryNode, XMLExtendedStreamWriter writer)
-            throws XMLStreamException {
-        String name = attributeDefinition.getName();
-        ModelNode modelNode = authenticationQueryNode.get(name);
-
-        if (modelNode.isDefined()) {
-            writer.writeStartElement(name);
-
-            for (Property current : modelNode.asPropertyList()) {
-                writer.writeAttribute(current.getName(), current.getValue().asString());
-            }
-
-            writer.writeEndElement();
-        }
     }
 
     private boolean writeKeyStoreRealms(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
@@ -761,15 +754,15 @@ class RealmParser {
                 writer.writeAttribute(NAME, current.getName());
                 ModelNode ldapRealmNode = current.getValue();
 
-                writeLdapObjectTypeAttribute(DIR_CONTEXT, DirContextObjectDefinition.ATTRIBUTES, ldapRealmNode.get(DIR_CONTEXT), writer, null);
-                writeLdapObjectTypeAttribute(PRINCIPAL_MAPPING, PrincipalMappingObjectDefinition.ATTRIBUTES, ldapRealmNode.get(PRINCIPAL_MAPPING), writer, (modelNode, writer1) -> {
+                writeObjectTypeAttribute(DIR_CONTEXT, DirContextObjectDefinition.ATTRIBUTES, ldapRealmNode.get(DIR_CONTEXT), writer, null);
+                writeObjectTypeAttribute(PRINCIPAL_MAPPING, PrincipalMappingObjectDefinition.ATTRIBUTES, ldapRealmNode.get(PRINCIPAL_MAPPING), writer, (modelNode, writer1) -> {
                     ModelNode attributeMappingNode = modelNode.get(ATTRIBUTE_MAPPING);
 
                     if (attributeMappingNode.isDefined()) {
                         writer1.writeStartElement(ATTRIBUTE_MAPPING);
 
                         for (ModelNode elementNode : attributeMappingNode.asList()) {
-                            writeLdapObjectTypeAttribute(ATTRIBUTE, LdapRealmDefinition.AttributeMappingObjectDefinition.ATTRIBUTES, elementNode, writer1, null);
+                            writeObjectTypeAttribute(ATTRIBUTE, LdapRealmDefinition.AttributeMappingObjectDefinition.ATTRIBUTES, elementNode, writer1, null);
                         }
 
                         writer1.writeEndElement();
@@ -815,21 +808,23 @@ class RealmParser {
         return false;
     }
 
-    private void writeLdapObjectTypeAttribute(String name, AttributeDefinition[] attributes, ModelNode attributeNode, XMLExtendedStreamWriter writer, ChildModelNodeWriter childModelNodeWriter)
+    private void writeObjectTypeAttribute(String name, AttributeDefinition[] attributes, ModelNode attributeNode, XMLExtendedStreamWriter writer, ChildModelNodeWriter childModelNodeWriter)
             throws XMLStreamException {
-        writer.writeStartElement(name);
+        if (attributeNode.isDefined()) {
+            writer.writeStartElement(name);
 
-        for (AttributeDefinition attributeDefinition : attributes) {
-            if (SimpleAttributeDefinition.class.isInstance(attributeDefinition)) {
-                ((SimpleAttributeDefinition) attributeDefinition).marshallAsAttribute(attributeNode, writer);
+            for (AttributeDefinition attributeDefinition : attributes) {
+                if (SimpleAttributeDefinition.class.isInstance(attributeDefinition)) {
+                    ((SimpleAttributeDefinition) attributeDefinition).marshallAsAttribute(attributeNode, writer);
+                }
             }
-        }
 
-        if (childModelNodeWriter != null) {
-            childModelNodeWriter.write(attributeNode, writer);
-        }
+            if (childModelNodeWriter != null) {
+                childModelNodeWriter.write(attributeNode, writer);
+            }
 
-        writer.writeEndElement();
+            writer.writeEndElement();
+        }
     }
 
     void writeRealms(ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {

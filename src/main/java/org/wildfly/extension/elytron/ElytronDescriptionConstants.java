@@ -40,7 +40,6 @@ interface ElytronDescriptionConstants {
     String AUTHENTICATION_LEVEL = "authentication-level";
     String AUTHENTICATION_REALM = "authentication-realm";
     String AUTHORIZATION_REALM = "authorization-realm";
-    String AUTHENTICATION_QUERY = "authentication-query";
     String BCRYPT_MAPPER = "bcrypt-mapper";
     String CERTIFICATE = "certificate";
     String CERTIFICATES = "certificates";
@@ -132,6 +131,7 @@ interface ElytronDescriptionConstants {
     String PRINCIPAL_DECODER = "principal-decoder";
     String PRINCIPAL_DECODERS = "principal-decoders";
     String PRINCIPAL_MAPPING = "principal-mapping";
+    String PRINCIPAL_QUERY = "principal-query";
     String PROPERTIES_REALM = "properties-realm";
     String PROPERTY = "property";
     String PROPERTY_LIST = "property-list";

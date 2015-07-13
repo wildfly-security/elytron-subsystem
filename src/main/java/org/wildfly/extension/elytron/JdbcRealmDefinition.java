@@ -18,26 +18,9 @@
 
 package org.wildfly.extension.elytron;
 
-import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY;
-import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.BCRYPT_MAPPER;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CLEAR_PASSWORD_MAPPER;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SALTED_SIMPLE_DIGEST_MAPPER;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SCRAM_MAPPER;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SIMPLE_DIGEST_MAPPER;
-import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
-
-import java.security.InvalidKeyException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.sql.DataSource;
-
 import org.jboss.as.controller.AbstractAddStepHandler;
 import org.jboss.as.controller.AttributeDefinition;
+import org.jboss.as.controller.ObjectListAttributeDefinition;
 import org.jboss.as.controller.ObjectTypeAttributeDefinition;
 import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
@@ -60,11 +43,17 @@ import org.jboss.as.controller.registry.OperationEntry;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
 import org.jboss.dmr.Property;
+import org.jboss.msc.inject.InjectionException;
+import org.jboss.msc.inject.Injector;
 import org.jboss.msc.service.ServiceBuilder;
 import org.jboss.msc.service.ServiceController;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.ServiceTarget;
+import org.wildfly.security.auth.provider.jdbc.JdbcSecurityRealm;
+import org.wildfly.security.auth.provider.jdbc.JdbcSecurityRealmBuilder;
 import org.wildfly.security.auth.provider.jdbc.KeyMapper;
+import org.wildfly.security.auth.provider.jdbc.QueryBuilder;
+import org.wildfly.security.auth.provider.jdbc.mapper.AttributeMapper;
 import org.wildfly.security.auth.provider.jdbc.mapper.PasswordKeyMapper;
 import org.wildfly.security.auth.server.SecurityRealm;
 import org.wildfly.security.password.interfaces.BCryptPassword;
@@ -72,6 +61,23 @@ import org.wildfly.security.password.interfaces.ClearPassword;
 import org.wildfly.security.password.interfaces.SaltedSimpleDigestPassword;
 import org.wildfly.security.password.interfaces.ScramDigestPassword;
 import org.wildfly.security.password.interfaces.SimpleDigestPassword;
+
+import javax.sql.DataSource;
+import java.security.InvalidKeyException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY;
+import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.BCRYPT_MAPPER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CLEAR_PASSWORD_MAPPER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SALTED_SIMPLE_DIGEST_MAPPER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SCRAM_MAPPER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SIMPLE_DIGEST_MAPPER;
+import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
 
 /**
  * A {@link ResourceDefinition} for a {@link SecurityRealm} backed by a database using JDBC.
@@ -348,10 +354,28 @@ class JdbcRealmDefinition extends SimpleResourceDefinition {
         PasswordKeyMapper toPasswordKeyMapper(OperationContext context, ModelNode propertyNode) throws OperationFailedException, InvalidKeyException;
     }
 
+    static class AttributeMappingObjectDefinition {
+        static final SimpleAttributeDefinition INDEX = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.INDEX, ModelType.INT, false)
+                .setAllowExpression(true)
+                .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+                .build();
+
+        static final SimpleAttributeDefinition TO = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.TO, ModelType.STRING, false)
+                .setAllowExpression(true)
+                .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+                .build();
+
+        static final SimpleAttributeDefinition[] ATTRIBUTES = new SimpleAttributeDefinition[] {TO, INDEX};
+
+        static final ObjectTypeAttributeDefinition OBJECT_DEFINITION = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.ATTRIBUTE, ATTRIBUTES)
+                .setAllowNull(true)
+                .build();
+    }
+
     /**
-     * {@link ElytronDescriptionConstants#AUTHENTICATION_QUERY} complex attribute.
+     * {@link ElytronDescriptionConstants#PRINCIPAL_QUERY} complex attribute.
      */
-    static class AuthenticationQueryAttributes {
+    static class PrincipalQueryAttributes {
         static final SimpleAttributeDefinition SQL = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.SQL, ModelType.STRING, false)
                 .setAllowExpression(false)
                 .setMinSize(1)
@@ -365,7 +389,13 @@ class JdbcRealmDefinition extends SimpleResourceDefinition {
                 .setCapabilityReference(Capabilities.DATA_SOURCE_CAPABILITY_NAME, Capabilities.SECURITY_REALM_CAPABILITY, true)
                 .build();
 
-        static final SimpleAttributeDefinition[] ATTRIBUTES = new SimpleAttributeDefinition[] {SQL, DATA_SOURCE};
+        static final ObjectListAttributeDefinition ATTRIBUTE_MAPPINGS = new ObjectListAttributeDefinition.Builder(ElytronDescriptionConstants.ATTRIBUTE_MAPPING, AttributeMappingObjectDefinition.OBJECT_DEFINITION)
+                .setAllowNull(true)
+                .setAttributeGroup(ElytronDescriptionConstants.ATTRIBUTE)
+                .setAllowDuplicates(true)
+                .build();
+
+        static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] {SQL, DATA_SOURCE};
 
         static Map<String, PasswordMapperObjectDefinition> SUPPORTED_PASSWORD_MAPPERS;
 
@@ -381,10 +411,11 @@ class JdbcRealmDefinition extends SimpleResourceDefinition {
             SUPPORTED_PASSWORD_MAPPERS = Collections.unmodifiableMap(supportedMappers);
         }
 
-        static final ObjectTypeAttributeDefinition AUTHENTICATION_QUERY = new ObjectTypeAttributeDefinition.Builder(
-                ElytronDescriptionConstants.AUTHENTICATION_QUERY,
+        static final ObjectTypeAttributeDefinition PRINCIPAL_QUERY = new ObjectTypeAttributeDefinition.Builder(
+                ElytronDescriptionConstants.PRINCIPAL_QUERY,
                 SQL,
                 DATA_SOURCE,
+                ATTRIBUTE_MAPPINGS,
                 ClearPasswordObjectDefinition.OBJECT_DEFINITION,
                 BcryptPasswordObjectDefinition.OBJECT_DEFINITION,
                 SaltedSimpleDigestObjectDefinition.OBJECT_DEFINITION,
@@ -392,6 +423,12 @@ class JdbcRealmDefinition extends SimpleResourceDefinition {
                 ScramMapperObjectDefinition.OBJECT_DEFINITION)
                 .setAllowNull(false)
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+                .build();
+
+        static final ObjectListAttributeDefinition PRINCIPAL_QUERIES = new ObjectListAttributeDefinition.Builder(ElytronDescriptionConstants.PRINCIPAL_QUERY, PRINCIPAL_QUERY)
+                .setAllowNull(true)
+                .setAttributeGroup(ElytronDescriptionConstants.ATTRIBUTE)
+                .setAllowDuplicates(true)
                 .build();
     }
 
@@ -427,7 +464,7 @@ class JdbcRealmDefinition extends SimpleResourceDefinition {
         }
     }
 
-    private static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] {AuthenticationQueryAttributes.AUTHENTICATION_QUERY};
+    private static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] {PrincipalQueryAttributes.PRINCIPAL_QUERIES};
 
     private static final AbstractAddStepHandler ADD = new RealmAddHandler();
     private static final OperationStepHandler REMOVE = new RealmRemoveHandler(ADD);
@@ -460,33 +497,47 @@ class JdbcRealmDefinition extends SimpleResourceDefinition {
             ServiceTarget serviceTarget = context.getServiceTarget();
             RuntimeCapability<Void> runtimeCapability = SECURITY_REALM_RUNTIME_CAPABILITY.fromBaseCapability(context.getCurrentAddressValue());
             ServiceName realmName = runtimeCapability.getCapabilityServiceName(SecurityRealm.class);
-            ModelNode authenticationQueryNode = AuthenticationQueryAttributes.AUTHENTICATION_QUERY.resolveModelAttribute(context, operation);
-            String authenticationQuerySql = asStringIfDefined(context, AuthenticationQueryAttributes.SQL, authenticationQueryNode);
-            List<KeyMapper> keyMappers = resolveKeyMappers(context, authenticationQueryNode);
-            JdbcRealmService service = new JdbcRealmService(authenticationQuerySql, keyMappers);
+            ModelNode principalQueries = PrincipalQueryAttributes.PRINCIPAL_QUERIES.resolveModelAttribute(context, operation);
+            JdbcSecurityRealmBuilder builder = JdbcSecurityRealm.builder();
+            JdbcRealmService service = new JdbcRealmService(builder);
             ServiceBuilder<SecurityRealm> serviceBuilder = serviceTarget.addService(realmName, service);
 
-            configureDependencies(context, authenticationQueryNode, service, serviceBuilder)
+            for (ModelNode query : principalQueries.asList()) {
+                String authenticationQuerySql = asStringIfDefined(context, PrincipalQueryAttributes.SQL, query);
+                QueryBuilder queryBuilder = builder.principalQuery(authenticationQuerySql)
+                        .withMapper(resolveAttributeMappers(context, query))
+                        .withMapper(resolveKeyMappers(context, query));
+
+                String dataSourceName = asStringIfDefined(context, PrincipalQueryAttributes.DATA_SOURCE, query);
+                String capabilityName = Capabilities.DATA_SOURCE_CAPABILITY_NAME + "." + dataSourceName;
+                ServiceName dataSourceServiceName = context.getCapabilityServiceName(capabilityName, DataSource.class);
+
+                serviceBuilder.addDependency(dataSourceServiceName, DataSource.class, new Injector<DataSource>() {
+
+                    @Override
+                    public void inject(DataSource value) throws InjectionException {
+                        queryBuilder.from(value);
+                    }
+
+                    @Override
+                    public void uninject() {
+                        // no-op
+                    }
+                });
+            }
+
+            commonDependencies(serviceBuilder)
                     .setInitialMode(ServiceController.Mode.ACTIVE)
                     .install();
         }
 
-        private ServiceBuilder<?> configureDependencies(OperationContext context, ModelNode authenticationQueryNode, JdbcRealmService service, ServiceBuilder<SecurityRealm> serviceBuilder) throws OperationFailedException {
-            String dataSource = asStringIfDefined(context, AuthenticationQueryAttributes.DATA_SOURCE, authenticationQueryNode);
-            String capabilityName = Capabilities.DATA_SOURCE_CAPABILITY_NAME + "." + dataSource;
-            ServiceName dataSourceServiceName = context.getCapabilityServiceName(capabilityName, DataSource.class);
-
-            return commonDependencies(serviceBuilder)
-                    .addDependency(dataSourceServiceName, DataSource.class, service.getDataSourceInjectedValue());
-        }
-
-        private List<KeyMapper> resolveKeyMappers(OperationContext context, ModelNode authenticationQueryNode) throws OperationFailedException {
+        private KeyMapper[] resolveKeyMappers(OperationContext context, ModelNode authenticationQueryNode) throws OperationFailedException {
             List<KeyMapper> keyMappers = new ArrayList<>();
 
             for (Property property : authenticationQueryNode.asPropertyList()) {
                 String name = property.getName();
                 ModelNode propertyNode = property.getValue();
-                PasswordMapperObjectDefinition mapperResource = AuthenticationQueryAttributes.SUPPORTED_PASSWORD_MAPPERS.get(name);
+                PasswordMapperObjectDefinition mapperResource = PrincipalQueryAttributes.SUPPORTED_PASSWORD_MAPPERS.get(name);
 
                 if (mapperResource == null) {
                     continue;
@@ -499,7 +550,24 @@ class JdbcRealmDefinition extends SimpleResourceDefinition {
                 }
             }
 
-            return keyMappers;
+            return keyMappers.toArray(new KeyMapper[keyMappers.size()]);
+        }
+
+        private AttributeMapper[] resolveAttributeMappers(OperationContext context, ModelNode principalQueryNode) throws OperationFailedException {
+            List<AttributeMapper> attributeMappers = new ArrayList<>();
+
+            ModelNode attributeMappingNode = PrincipalQueryAttributes.ATTRIBUTE_MAPPINGS.resolveModelAttribute(context, principalQueryNode);
+
+            if (attributeMappingNode.isDefined()) {
+                for (ModelNode attributeNode : attributeMappingNode.asList()) {
+                    ModelNode indexNode = AttributeMappingObjectDefinition.INDEX.resolveModelAttribute(context, attributeNode);
+                    ModelNode nameNode = AttributeMappingObjectDefinition.TO.resolveModelAttribute(context, attributeNode);
+
+                    attributeMappers.add(new AttributeMapper(indexNode.asInt(), nameNode.asString()));
+                }
+            }
+
+            return attributeMappers.toArray(new AttributeMapper[attributeMappers.size()]);
         }
     }
 
