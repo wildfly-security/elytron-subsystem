@@ -34,7 +34,9 @@ interface ElytronDescriptionConstants {
     String ALGORITHM = "algorithm";
     String ALIAS = "alias";
     String ATTRIBUTE = "attribute";
+    String ATTRIBUTE_MAPPING = "attribute-mapping";
     String AND = "and";
+    String AS_RDN = "as-rdn";
     String AUTHENTICATION_LEVEL = "authentication-level";
     String AUTHENTICATION_REALM = "authentication-realm";
     String AUTHORIZATION_REALM = "authorization-realm";
@@ -74,6 +76,8 @@ interface ElytronDescriptionConstants {
     String ENTRY_TYPE = "entry-type";
     String FILE = "file";
     String FILESYSTEM_REALM = "filesystem-realm";
+    String FILTER = "filter";
+    String FILTER_BASE_DN = "filter-base-dn";
     String FINGER_PRINT = "finger-print";
     String FINGER_PRINTS = "finger-prints";
     String FORMAT = "format";
@@ -109,7 +113,6 @@ interface ElytronDescriptionConstants {
     String MODULE = "module";
     String MODULE_REFERENCE = "module-reference";
     String NAME = "name";
-    String NAME_ATTRIBUTE = "name-attribute";
     String NAME_REWRITER = "name-rewriter";
     String NAME_REWRITERS = "name-rewriters";
     String NOT_AFTER = "not-after";
@@ -137,6 +140,7 @@ interface ElytronDescriptionConstants {
     String PROVIDER_LOADER = "provider-loader";
     String PROVIDER_LOADERS = "provider-loaders";
     String PUBLIC_KEY = "public-key";
+    String RDN_IDENTIFIER = "rdn-identifier";
     String REALM_MAP = "realm-map";
     String REALM_MAPPER = "realm-mapper";
     String REALM_MAPPING = "realm-mapping";

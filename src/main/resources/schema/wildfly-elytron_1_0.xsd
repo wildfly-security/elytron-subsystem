@@ -710,10 +710,19 @@
                 The configuration options that define how principals are mapped to their corresponding entries in the underlying LDAP server.
             </xs:documentation>
         </xs:annotation>
-        <xs:attribute name="name-attribute" type="xs:string" use="required">
+        <xs:sequence>
+            <xs:element name="attribute-mapping" type="ldapAttributeMappingType" minOccurs="0" maxOccurs="unbounded">
+                <xs:annotation>
+                    <xs:documentation>
+                        The attribute mappings defined for this resource.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+        <xs:attribute name="rdn-identifier" type="xs:string" use="required">
             <xs:annotation>
                 <xs:documentation>
-                    The name of the attribute to be used to obtain the user name from an LDAP entry.
+                    The RDN part of the principal's DN to be used to obtain the principal's name from an LDAP entry.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
@@ -728,6 +737,56 @@
             <xs:annotation>
                 <xs:documentation>
                     Indicates if queries are recursive.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="ldapAttributeMappingType">
+        <xs:sequence>
+            <xs:element name="attribute" type="ldapAttributeType" minOccurs="0" />
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="ldapAttributeType">
+        <xs:annotation>
+            <xs:documentation>
+                The configuration used to map a specific LDAP attribute as an identity attribute.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="from" type="xs:string" use="required">
+            <xs:annotation>
+                <xs:documentation>
+                    The name of the LDAP attribute to map to an identity attribute.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="to" type="xs:string" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    The name of the identity attribute mapped from a specific LDAP attribute. If not provided, the name of the attribute
+                    is the same as define in 'from'.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="filter" type="xs:string" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    The filter to use to obtain the values for a specific attribute.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="filter-base-dn" type="xs:string" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    The name of the context where the filter should be performed.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="as-rdn" type="xs:string" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    The RDN key to use as the value for an attribute, in case the value in its raw form is in X.500 format.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>

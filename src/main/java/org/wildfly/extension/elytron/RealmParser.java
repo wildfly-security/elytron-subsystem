@@ -30,6 +30,8 @@ import static org.jboss.as.controller.parsing.ParseUtils.requireNoContent;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedAttribute;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedElement;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AGGREGATE_REALM;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ATTRIBUTE;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ATTRIBUTE_MAPPING;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AUTHENTICATION_QUERY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AUTHENTICATION_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AUTHORIZATION_REALM;
@@ -66,6 +68,7 @@ import java.util.Set;
 
 import javax.xml.stream.XMLStreamException;
 
+import org.jboss.as.controller.AttributeDefinition;
 import org.jboss.as.controller.ObjectTypeAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.dmr.ModelNode;
@@ -236,25 +239,25 @@ class RealmParser {
             String localName = reader.getLocalName();
             switch (localName) {
                 case AUTHENTICATION_QUERY:
-                    ModelNode authenticationQueryNode = readAttributes(AuthenticationQueryAttributes.ATTRIBUTES, reader);
+                    ModelNode authenticationQueryNode = readModelNode(AuthenticationQueryAttributes.ATTRIBUTES, reader, (parentNode, reader1) -> {
+                        while (reader1.hasNext() && reader1.nextTag() != END_ELEMENT) {
+                            verifyNamespace(reader1);
 
-                    while (reader.hasNext() && reader.nextTag() != END_ELEMENT) {
-                        verifyNamespace(reader);
+                            String passwordMapperName = reader1.getLocalName();
 
-                        String passwordMapperName = reader.getLocalName();
+                            if (!AuthenticationQueryAttributes.SUPPORTED_PASSWORD_MAPPERS.containsKey(passwordMapperName)) {
+                                unexpectedElement(reader1);
+                            }
 
-                        if (!AuthenticationQueryAttributes.SUPPORTED_PASSWORD_MAPPERS.containsKey(passwordMapperName)) {
-                            unexpectedElement(reader);
+                            PasswordMapperObjectDefinition passwordMapperObjectDefinition = AuthenticationQueryAttributes.SUPPORTED_PASSWORD_MAPPERS.get(passwordMapperName);
+
+                            ModelNode passwordMapperNode = readModelNode(passwordMapperObjectDefinition.getAttributes(), reader1, null);
+
+                            parentNode.get(passwordMapperName).set(passwordMapperNode);
+
+                            requireNoContent(reader1);
                         }
-
-                        PasswordMapperObjectDefinition passwordMapperObjectDefinition = AuthenticationQueryAttributes.SUPPORTED_PASSWORD_MAPPERS.get(passwordMapperName);
-
-                        ModelNode passwordMapperNode = readAttributes(passwordMapperObjectDefinition.getAttributes(), reader);
-
-                        authenticationQueryNode.get(passwordMapperName).set(passwordMapperNode);
-
-                        requireNoContent(reader);
-                    }
+                    });
 
                     addRealm.get(AUTHENTICATION_QUERY).set(authenticationQueryNode);
                     break;
@@ -514,15 +517,31 @@ class RealmParser {
         while (reader.hasNext() && reader.nextTag() != END_ELEMENT) {
             verifyNamespace(reader);
             String localName = reader.getLocalName();
+
             switch (localName) {
                 case DIR_CONTEXT:
-                    ModelNode dirContextNode = readAttributes(DirContextObjectDefinition.ATTRIBUTES, reader);
+                    ModelNode dirContextNode = readModelNode(DirContextObjectDefinition.ATTRIBUTES, reader, null);
                     requireNoContent(reader);
                     addRealm.get(DIR_CONTEXT).set(dirContextNode);
                     break;
                 case PRINCIPAL_MAPPING:
-                    ModelNode principalMappingNode = readAttributes(PrincipalMappingObjectDefinition.ATTRIBUTES, reader);
-                    requireNoContent(reader);
+                    ModelNode principalMappingNode = readModelNode(PrincipalMappingObjectDefinition.ATTRIBUTES, reader, (parentNode, reader1) -> {
+                        if (reader1.getLocalName().equals(ATTRIBUTE_MAPPING)) {
+                            ModelNode attributeMappingNode = readModelNode(null, reader, (parentNode1, reader2) -> {
+                                if (reader1.getLocalName().equals(ATTRIBUTE)) {
+                                    parentNode1.add(readModelNode(LdapRealmDefinition.AttributeMappingObjectDefinition.ATTRIBUTES, reader1, null));
+                                    requireNoContent(reader1);
+                                } else {
+                                    throw unexpectedElement(reader1);
+                                }
+                            });
+
+                            parentNode.get(ATTRIBUTE_MAPPING).set(attributeMappingNode);
+                        } else {
+                            throw unexpectedElement(reader1);
+                        }
+                    });
+
                     addRealm.get(PRINCIPAL_MAPPING).set(principalMappingNode);
                     break;
                 default:
@@ -533,19 +552,19 @@ class RealmParser {
         operations.add(addRealm);
     }
 
-    private ModelNode readAttributes(SimpleAttributeDefinition[] attributes, XMLExtendedStreamReader reader) throws XMLStreamException {
-        ModelNode newPrincipalMappingModelNode = new ModelNode();
-
+    private ModelNode readModelNode(AttributeDefinition[] attributes, XMLExtendedStreamReader reader, ChildModelNodeReader childReader) throws XMLStreamException {
+        ModelNode newModelNode = new ModelNode();
         final int count = reader.getAttributeCount();
+
         for (int i = 0; i < count; i++) {
             final String value = reader.getAttributeValue(i);
             if (!isNoNamespaceAttribute(reader, i)) {
                 throw unexpectedAttribute(reader, i);
             } else {
                 String attribute = reader.getAttributeLocalName(i);
-                SimpleAttributeDefinition attributeDefinition = null;
+                AttributeDefinition attributeDefinition = null;
 
-                for (SimpleAttributeDefinition current : attributes) {
+                for (AttributeDefinition current : attributes) {
                     if (attribute.equals(current.getName())) {
                         attributeDefinition = current;
                         break;
@@ -556,11 +575,21 @@ class RealmParser {
                     throw unexpectedAttribute(reader, i);
                 }
 
-                attributeDefinition.parseAndSetParameter(value, newPrincipalMappingModelNode, reader);
+                if (SimpleAttributeDefinition.class.isInstance(attributeDefinition)) {
+                    SimpleAttributeDefinition simpleAttributeDefinition = (SimpleAttributeDefinition) attributeDefinition;
+                    simpleAttributeDefinition.parseAndSetParameter(value, newModelNode, reader);
+                }
             }
         }
 
-        return newPrincipalMappingModelNode;
+        if (childReader != null) {
+            while (reader.hasNext() && reader.nextTag() != END_ELEMENT) {
+                verifyNamespace(reader);
+                childReader.read(newModelNode, reader);
+            }
+        }
+
+        return newModelNode;
     }
 
     private void startRealms(boolean started, XMLExtendedStreamWriter writer) throws XMLStreamException {
@@ -730,9 +759,22 @@ class RealmParser {
             for (Property current : realms) {
                 writer.writeStartElement(LDAP_REALM);
                 writer.writeAttribute(NAME, current.getName());
+                ModelNode ldapRealmNode = current.getValue();
 
-                writeLdapObjectTypeAttribute(DIR_CONTEXT, DirContextObjectDefinition.ATTRIBUTES, current.getValue(), writer);
-                writeLdapObjectTypeAttribute(PRINCIPAL_MAPPING, PrincipalMappingObjectDefinition.ATTRIBUTES, current.getValue(), writer);
+                writeLdapObjectTypeAttribute(DIR_CONTEXT, DirContextObjectDefinition.ATTRIBUTES, ldapRealmNode.get(DIR_CONTEXT), writer, null);
+                writeLdapObjectTypeAttribute(PRINCIPAL_MAPPING, PrincipalMappingObjectDefinition.ATTRIBUTES, ldapRealmNode.get(PRINCIPAL_MAPPING), writer, (modelNode, writer1) -> {
+                    ModelNode attributeMappingNode = modelNode.get(ATTRIBUTE_MAPPING);
+
+                    if (attributeMappingNode.isDefined()) {
+                        writer1.writeStartElement(ATTRIBUTE_MAPPING);
+
+                        for (ModelNode elementNode : attributeMappingNode.asList()) {
+                            writeLdapObjectTypeAttribute(ATTRIBUTE, LdapRealmDefinition.AttributeMappingObjectDefinition.ATTRIBUTES, elementNode, writer1, null);
+                        }
+
+                        writer1.writeEndElement();
+                    }
+                });
 
                 writer.writeEndElement();
             }
@@ -773,13 +815,18 @@ class RealmParser {
         return false;
     }
 
-    private void writeLdapObjectTypeAttribute(String name, SimpleAttributeDefinition[] attributes, ModelNode ldapRealmNode, XMLExtendedStreamWriter writer)
+    private void writeLdapObjectTypeAttribute(String name, AttributeDefinition[] attributes, ModelNode attributeNode, XMLExtendedStreamWriter writer, ChildModelNodeWriter childModelNodeWriter)
             throws XMLStreamException {
-        ModelNode attributeNode = ldapRealmNode.get(name);
         writer.writeStartElement(name);
 
-        for (SimpleAttributeDefinition attributeDefinition : attributes) {
-            attributeDefinition.marshallAsAttribute(attributeNode, writer);
+        for (AttributeDefinition attributeDefinition : attributes) {
+            if (SimpleAttributeDefinition.class.isInstance(attributeDefinition)) {
+                ((SimpleAttributeDefinition) attributeDefinition).marshallAsAttribute(attributeNode, writer);
+            }
+        }
+
+        if (childModelNodeWriter != null) {
+            childModelNodeWriter.write(attributeNode, writer);
         }
 
         writer.writeEndElement();
@@ -802,4 +849,11 @@ class RealmParser {
         }
     }
 
+    private interface ChildModelNodeReader {
+        void read(ModelNode parentNode, XMLExtendedStreamReader reader) throws XMLStreamException;
+    }
+
+    private interface ChildModelNodeWriter {
+        void write(ModelNode modelNode, XMLExtendedStreamWriter writer) throws XMLStreamException;
+    }
 }

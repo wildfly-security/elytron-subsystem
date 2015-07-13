@@ -38,9 +38,24 @@
                 <scram-mapper password-index="1" salt-index="2" iteration-count-index="3"/>
             </authentication-query>
         </jdbc-realm>
-        <ldap-realm name="RealmEight">
+        <ldap-realm name="LdapRealmWithAttributeMapping">
             <dir-context url="ldap://localhost:11390" principal="uid=server,dc=elytron,dc=wildfly,dc=org" credential="serverPassword" enable-connection-pooling="true" />
-            <principal-mapping name-attribute="uid" use-recursive-search="true" search-base-dn="dc=elytron,dc=wildfly,dc=org" />
+            <principal-mapping rdn-identifier="uid" use-recursive-search="true" search-base-dn="dc=elytron,dc=wildfly,dc=org">
+                <attribute-mapping>
+                    <attribute from="CN" to="firstName"/>
+                    <attribute from="SN" to="lastName"/>
+                    <attribute from="CN"/>
+                    <attribute from="CN" to="fullName"/>
+                    <attribute from="SN" to="fullName"/>
+                    <attribute filter="(&amp;(objectClass=groupOfNames)(member={0}))" from="CN" to="role"/>
+                    <attribute filter-base-dn="ou=Finance,dc=elytron,dc=wildfly,dc=org" filter="(&amp;(objectClass=groupOfNames)(member={0}))" from="CN" as-rdn="OU" to="businessUnit"/>
+                    <attribute filter-base-dn="ou=Sales,dc=elytron,dc=wildfly,dc=org" filter="(&amp;(objectClass=groupOfNames)(member={0}))" from="CN" as-rdn="OU" to="businessUnit"/>
+                </attribute-mapping>
+            </principal-mapping>
+        </ldap-realm>
+        <ldap-realm name="LdapRealmWithoutAttributeMapping">
+            <dir-context url="ldap://localhost:11390" principal="uid=server,dc=elytron,dc=wildfly,dc=org" credential="serverPassword" enable-connection-pooling="true" />
+            <principal-mapping rdn-identifier="uid" use-recursive-search="true" search-base-dn="dc=elytron,dc=wildfly,dc=org"/>
         </ldap-realm>
         <filesystem-realm name="RealmSeven" levels="3">
             <file relative-to="jboss.server.config.dir" path="test"/>

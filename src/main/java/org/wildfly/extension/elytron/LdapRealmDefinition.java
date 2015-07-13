@@ -25,6 +25,7 @@ import java.util.Properties;
 
 import org.jboss.as.controller.AbstractAddStepHandler;
 import org.jboss.as.controller.AttributeDefinition;
+import org.jboss.as.controller.ObjectListAttributeDefinition;
 import org.jboss.as.controller.ObjectTypeAttributeDefinition;
 import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
@@ -62,9 +63,47 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
 
     static final ServiceUtil<SecurityRealm> REALM_SERVICE_UTIL = ServiceUtil.newInstance(SECURITY_REALM_RUNTIME_CAPABILITY, ElytronDescriptionConstants.LDAP_REALM, SecurityRealm.class);
 
+    static class AttributeMappingObjectDefinition {
+        static final SimpleAttributeDefinition FROM = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.FROM, ModelType.STRING, false)
+                .setAlternatives(ElytronDescriptionConstants.FILTER)
+                .setAllowExpression(true)
+                .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+                .build();
+
+        static final SimpleAttributeDefinition TO = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.TO, ModelType.STRING, true)
+                .setRequires(ElytronDescriptionConstants.FROM)
+                .setAllowExpression(true)
+                .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+                .build();
+
+        static final SimpleAttributeDefinition FILTER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.FILTER, ModelType.STRING, true)
+                .setRequires(ElytronDescriptionConstants.TO)
+                .setAlternatives(ElytronDescriptionConstants.FROM)
+                .setAllowExpression(true)
+                .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+                .build();
+
+        static final SimpleAttributeDefinition FILTER_BASE_DN = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.FILTER_BASE_DN, ModelType.STRING, true)
+                .setRequires(ElytronDescriptionConstants.FILTER)
+                .setAllowExpression(true)
+                .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+                .build();
+
+        static final SimpleAttributeDefinition AS_RDN = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.AS_RDN, ModelType.STRING, true)
+                .setAllowExpression(true)
+                .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+                .build();
+
+        static final SimpleAttributeDefinition[] ATTRIBUTES = new SimpleAttributeDefinition[] {FROM, TO, FILTER, FILTER_BASE_DN, AS_RDN};
+
+        static final ObjectTypeAttributeDefinition OBJECT_DEFINITION = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.ATTRIBUTE, ATTRIBUTES)
+                .setAllowNull(true)
+                .build();
+    }
+
     static class PrincipalMappingObjectDefinition {
 
-        static final SimpleAttributeDefinition NAME_ATTRIBUTE = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.NAME_ATTRIBUTE, ModelType.STRING, false)
+        static final SimpleAttributeDefinition RDN_IDENTIFIER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.RDN_IDENTIFIER, ModelType.STRING, false)
                 .setAllowExpression(true)
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
@@ -77,12 +116,18 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
                 .build();
 
         static final SimpleAttributeDefinition SEARCH_BASE_DN = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.SEARCH_BASE_DN, ModelType.STRING, true)
-                .setRequires(ElytronDescriptionConstants.NAME_ATTRIBUTE)
+                .setRequires(ElytronDescriptionConstants.RDN_IDENTIFIER)
                 .setAllowExpression(true)
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
 
-        static final SimpleAttributeDefinition[] ATTRIBUTES = new SimpleAttributeDefinition[] {NAME_ATTRIBUTE, USE_RECURSIVE_SEARCH, SEARCH_BASE_DN};
+        static final ObjectListAttributeDefinition ATTRIBUTE_MAPPINGS = new ObjectListAttributeDefinition.Builder(ElytronDescriptionConstants.ATTRIBUTE_MAPPING, AttributeMappingObjectDefinition.OBJECT_DEFINITION)
+                .setAllowNull(true)
+                .setAttributeGroup(ElytronDescriptionConstants.ATTRIBUTE)
+                .setAllowDuplicates(true)
+                .build();
+
+        static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] {RDN_IDENTIFIER, USE_RECURSIVE_SEARCH, SEARCH_BASE_DN, ATTRIBUTE_MAPPINGS};
 
         static final ObjectTypeAttributeDefinition OBJECT_DEFINITION = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.PRINCIPAL_MAPPING, ATTRIBUTES)
                 .setAllowNull(false)
@@ -196,9 +241,9 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
 
             PrincipalMappingBuilder principalMappingBuilder = PrincipalMappingBuilder.builder();
 
-            ModelNode nameAttributeNode = PrincipalMappingObjectDefinition.NAME_ATTRIBUTE.resolveModelAttribute(context, principalMappingNode);
+            ModelNode nameAttributeNode = PrincipalMappingObjectDefinition.RDN_IDENTIFIER.resolveModelAttribute(context, principalMappingNode);
 
-            principalMappingBuilder.setNameAttribute(nameAttributeNode.asString());
+            principalMappingBuilder.setRdnIdentifier(nameAttributeNode.asString());
 
             ModelNode searchDnNode = PrincipalMappingObjectDefinition.SEARCH_BASE_DN.resolveModelAttribute(context, principalMappingNode);
 
@@ -212,7 +257,40 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
                 principalMappingBuilder.searchRecursive();
             }
 
-            builder.principalMapping(principalMappingBuilder.build());
+            ModelNode attributeMappingNode = PrincipalMappingObjectDefinition.ATTRIBUTE_MAPPINGS.resolveModelAttribute(context, principalMappingNode);
+
+            if (attributeMappingNode.isDefined()) {
+                for (ModelNode attributeNode : attributeMappingNode.asList()) {
+                    ModelNode fromNode = AttributeMappingObjectDefinition.FROM.resolveModelAttribute(context, attributeNode);
+                    ModelNode filterNode = AttributeMappingObjectDefinition.FILTER.resolveModelAttribute(context, attributeNode);
+                    ModelNode filterBaseDnNode = AttributeMappingObjectDefinition.FILTER_BASE_DN.resolveModelAttribute(context, attributeNode);
+                    PrincipalMappingBuilder.Attribute attribute;
+
+                    if (filterBaseDnNode.isDefined()) {
+                        attribute = PrincipalMappingBuilder.Attribute.fromFilter(filterBaseDnNode.asString(), filterNode.asString(), fromNode.asString());
+                    } else if (filterNode.isDefined()) {
+                        attribute = PrincipalMappingBuilder.Attribute.fromFilter(filterNode.asString(), fromNode.asString());
+                    } else {
+                        attribute = PrincipalMappingBuilder.Attribute.from(fromNode.asString());
+                    }
+
+                    ModelNode toNode = AttributeMappingObjectDefinition.TO.resolveModelAttribute(context, attributeNode);
+
+                    if (toNode.isDefined()) {
+                        attribute.to(toNode.asString());
+                    }
+
+                    ModelNode asRdnNode = AttributeMappingObjectDefinition.AS_RDN.resolveModelAttribute(context, attributeNode);
+
+                    if (asRdnNode.isDefined()) {
+                        attribute.asRdn(asRdnNode.asString());
+                    }
+
+                    principalMappingBuilder.map(attribute);
+                }
+            }
+
+            builder.setPrincipalMapping(principalMappingBuilder.build());
         }
     }
 
