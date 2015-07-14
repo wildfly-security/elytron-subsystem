@@ -76,6 +76,7 @@ import org.wildfly.security.auth.server.NameRewriter;
 import org.wildfly.security.auth.server.PrincipalDecoder;
 import org.wildfly.security.auth.server.RealmMapper;
 import org.wildfly.security.authz.PermissionMapper;
+import org.wildfly.security.authz.RoleDecoder;
 import org.wildfly.security.authz.RoleMapper;
 import org.wildfly.security.password.Password;
 import org.wildfly.security.password.PasswordFactory;
@@ -258,12 +259,15 @@ class DomainDefinition extends SimpleResourceDefinition {
             String nameRewriter = asStringIfDefined(context, REALM_NAME_REWRITER, current);
             if (nameRewriter != null) {
                 Injector<NameRewriter> nameRewriterInjector = realmDependency.getNameRewriterInjector(nameRewriter);
-
                 injectNameRewriter(nameRewriter, context, domainBuilder, nameRewriterInjector);
             }
             String realmRoleMapper = asStringIfDefined(context, ROLE_MAPPER, current);
             if (realmRoleMapper != null) {
                 injectRoleMapper(realmRoleMapper, context, domainBuilder, realmDependency.getRoleMapperInjector(realmRoleMapper));
+            }
+            String realmRoleDecoder = asStringIfDefined(context, REALM_ROLE_DECODER, current);
+            if (realmRoleDecoder != null) {
+                injectRoleDecoder(realmRoleDecoder, context, domainBuilder, realmDependency.getRoleDecoderInjector(realmRoleDecoder));
             }
         }
 
@@ -301,6 +305,18 @@ class DomainDefinition extends SimpleResourceDefinition {
         ServiceName roleMapperServiceName = context.getCapabilityServiceName(runtimeCapability, RoleMapper.class);
 
         domainBuilder.addDependency(roleMapperServiceName, RoleMapper.class, injector);
+    }
+
+    private static void injectRoleDecoder(String roleDecoder, OperationContext context, ServiceBuilder<SecurityDomain> domainBuilder, Injector<RoleDecoder> injector) {
+        if (roleDecoder == null) {
+            return;
+        }
+        if (injector == null) {
+            return;
+        }
+        String runtimeCapability = RuntimeCapability.buildDynamicCapabilityName(ROLE_DECODER_CAPABILITY, roleDecoder);
+        ServiceName roleDecoderServiceName = context.getCapabilityServiceName(runtimeCapability, RoleDecoder.class);
+        domainBuilder.addDependency(roleDecoderServiceName, RoleDecoder.class, injector);
     }
 
     private static class DomainAddHandler extends AbstractAddStepHandler {
