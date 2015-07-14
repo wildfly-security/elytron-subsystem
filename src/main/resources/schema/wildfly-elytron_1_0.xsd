@@ -818,6 +818,7 @@
             <xs:element name="simple-regex-realm-mapper" type="simpleRegexRealmMapperType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="mapped-regex-realm-mapper" type="mappedRegexRealmMapperType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="custom-role-decoder" type="customRoleDecoderType" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="simple-role-decoder" type="simpleRoleDecoderType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="empty-role-decoder" type="emptyRoleDecoderType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="add-prefix-role-mapper" type="addPrefixRoleMapperType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="add-suffix-role-mapper" type="addSuffixRoleMapperType" minOccurs="0" maxOccurs="unbounded" />
