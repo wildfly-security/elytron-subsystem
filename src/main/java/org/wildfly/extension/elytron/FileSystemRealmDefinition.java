@@ -137,6 +137,7 @@ class FileSystemRealmDefinition extends SimpleResourceDefinition {
                 ServiceName nameRewriterServiceName = context.getCapabilityServiceName(nameRewriteCapability, NameRewriter.class);
                 serviceBuilder.addDependency(nameRewriterServiceName, NameRewriter.class, fileSystemRealmService.getNameRewriterInjector());
             }
+            serviceBuilder.install();
         }
 
     }

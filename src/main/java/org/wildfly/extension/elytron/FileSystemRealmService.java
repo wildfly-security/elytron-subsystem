@@ -56,7 +56,7 @@ public class FileSystemRealmService implements Service<SecurityRealm> {
     public void start(StartContext context) throws StartException {
         Path path = null;
         securityRealm = nameRewriterInjector != null ?
-                new FileSystemSecurityRealm(path, nameRewriterInjector.getValue(), levels) :
+                new FileSystemSecurityRealm(path, nameRewriterInjector.getOptionalValue(), levels) :
                 new FileSystemSecurityRealm(path, levels);
     }
 
