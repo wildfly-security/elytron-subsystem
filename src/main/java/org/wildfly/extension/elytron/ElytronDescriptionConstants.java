@@ -158,8 +158,10 @@ interface ElytronDescriptionConstants {
     String ROLE_MAPPER = "role-mapper";
     String ROLE_MAPPERS = "role-mappers";
     String ROLES = "roles";
+    String SASL_SERVER_FACTORY = "sasl-server-factory";
     String SEARCH_BASE_DN = "search-base-dn";
     String SECURITY_DOMAIN = "security-domain";
+    String SECURITY_DOMAIN_SASL_CONFIGURATION = "security-domain-sasl-configuration";
     String SECURITY_DOMAINS = "security-domains";
     String SECURITY_REALMS = "security-realms";
     String SALT_INDEX = "salt-index";

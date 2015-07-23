@@ -74,8 +74,12 @@ class ElytronDefinition extends SimpleResourceDefinition {
     public void registerChildren(ManagementResourceRegistration resourceRegistration) {
         // Security Properties
         resourceRegistration.registerSubModel(new SecurityPropertyResourceDefinition());
+
         // Provider Loader
         resourceRegistration.registerSubModel(new ProviderLoaderDefinition());
+
+        // Security Domain SASL / HTTP Configurations
+        resourceRegistration.registerSubModel(new SecurityDomainSaslConfigurationDefinition());
 
         // Domain
         resourceRegistration.registerSubModel(new DomainDefinition());
@@ -122,6 +126,8 @@ class ElytronDefinition extends SimpleResourceDefinition {
         resourceRegistration.registerSubModel(RoleMapperDefinitions.getConstantRoleMapperDefinition());
         resourceRegistration.registerSubModel(new CustomComponentDefinition<RoleMapper>(RoleMapper.class, ROLE_MAPPER_RUNTIME_CAPABILITY, ElytronDescriptionConstants.CUSTOM_ROLE_MAPPER));
         resourceRegistration.registerSubModel(RoleMapperDefinitions.getLogicalRoleMapperDefinition());
+
+        // SASL Mechanisms
 
         // TLS Building Blocks
         resourceRegistration.registerSubModel(new KeyStoreDefinition());

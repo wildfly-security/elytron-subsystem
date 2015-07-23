@@ -110,7 +110,7 @@ class Capabilities {
 
     static final String SECURITY_DOMAIN_SASL_CONFIGURATION_CAPABILITY = CAPABILITY_BASE + "security-domain-sasl-configuration";
 
-    static final RuntimeCapability<Void> SECURITY_DOMAIN_SASL_CONFIGURATION__RUNTIME_CAPABILITY = RuntimeCapability
+    static final RuntimeCapability<Void> SECURITY_DOMAIN_SASL_CONFIGURATION_RUNTIME_CAPABILITY = RuntimeCapability
             .Builder.of(SECURITY_DOMAIN_SASL_CONFIGURATION_CAPABILITY, true, SecurityDomainSaslConfiguration.class)
             .build();
 

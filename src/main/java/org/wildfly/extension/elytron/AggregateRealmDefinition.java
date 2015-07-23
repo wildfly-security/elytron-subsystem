@@ -109,7 +109,6 @@ class AggregateRealmDefinition extends SimpleResourceDefinition {
 
             ServiceBuilder<SecurityRealm> serviceBuilder = serviceTarget.addService(realmName, aggregateRealmService);
 
-
             addRealmDependency(context, serviceBuilder, authenticationRealm, aggregateRealmService.getAuthenticationRealmInjector());
             addRealmDependency(context, serviceBuilder, authorizationRealm, aggregateRealmService.getAuthorizationRealmInjector());
 
