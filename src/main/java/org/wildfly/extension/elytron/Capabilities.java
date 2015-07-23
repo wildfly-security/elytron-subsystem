@@ -21,11 +21,14 @@ package org.wildfly.extension.elytron;
 import java.security.KeyStore;
 import java.security.Provider;
 
+import javax.security.sasl.SaslServerFactory;
+
 import org.jboss.as.controller.capability.RuntimeCapability;
 import org.wildfly.security.auth.server.NameRewriter;
 import org.wildfly.security.auth.server.PrincipalDecoder;
 import org.wildfly.security.auth.server.RealmMapper;
 import org.wildfly.security.auth.server.SecurityDomain;
+import org.wildfly.security.auth.server.SecurityDomainSaslConfiguration;
 import org.wildfly.security.auth.server.SecurityRealm;
 import org.wildfly.security.authz.PermissionMapper;
 import org.wildfly.security.authz.RoleDecoder;
@@ -93,11 +96,23 @@ class Capabilities {
             .Builder.of(ROLE_MAPPER_CAPABILITY, true, RoleMapper.class)
             .build();
 
+    static final String SASL_SERVER_FACTORY_CAPABILITY = CAPABILITY_BASE + "sasl-server-factory";
+
+    static final RuntimeCapability<Void> SASL_SERVER_FACTORY_RUNTIME_CAPABILITY = RuntimeCapability
+            .Builder.of(SASL_SERVER_FACTORY_CAPABILITY, true, SaslServerFactory.class)
+            .build();
+
     static final String SECURITY_DOMAIN_CAPABILITY = CAPABILITY_BASE + "security-domain";
 
     static final RuntimeCapability<Void> SECURITY_DOMAIN_RUNTIME_CAPABILITY = RuntimeCapability
         .Builder.of(SECURITY_DOMAIN_CAPABILITY, true, SecurityDomain.class)
         .build();
+
+    static final String SECURITY_DOMAIN_SASL_CONFIGURATION_CAPABILITY = CAPABILITY_BASE + "security-domain-sasl-configuration";
+
+    static final RuntimeCapability<Void> SECURITY_DOMAIN_SASL_CONFIGURATION__RUNTIME_CAPABILITY = RuntimeCapability
+            .Builder.of(SECURITY_DOMAIN_SASL_CONFIGURATION_CAPABILITY, true, SecurityDomainSaslConfiguration.class)
+            .build();
 
     static final String SECURITY_REALM_CAPABILITY = CAPABILITY_BASE + "security-realm";
 
