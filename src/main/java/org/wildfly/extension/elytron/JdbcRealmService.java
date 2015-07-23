@@ -18,17 +18,11 @@
 
 package org.wildfly.extension.elytron;
 
-import java.util.List;
-
-import javax.sql.DataSource;
-
 import org.jboss.msc.service.Service;
 import org.jboss.msc.service.StartContext;
 import org.jboss.msc.service.StartException;
 import org.jboss.msc.service.StopContext;
-import org.jboss.msc.value.InjectedValue;
-import org.wildfly.security.auth.provider.jdbc.JdbcSecurityRealm;
-import org.wildfly.security.auth.provider.jdbc.KeyMapper;
+import org.wildfly.security.auth.provider.jdbc.JdbcSecurityRealmBuilder;
 import org.wildfly.security.auth.server.SecurityRealm;
 
 /**
@@ -38,26 +32,17 @@ import org.wildfly.security.auth.server.SecurityRealm;
  */
 class JdbcRealmService implements Service<SecurityRealm> {
 
-    private final String authenticationQuery;
-    private final List<KeyMapper> keyMappers;
-
-    private final InjectedValue<DataSource> dataSourceInjectedValue = new InjectedValue<DataSource>();
+    private final JdbcSecurityRealmBuilder builder;
 
     private volatile SecurityRealm securityRealm;
 
-    JdbcRealmService(String authenticationQuery, List<KeyMapper> keyMappers) {
-        this.authenticationQuery = authenticationQuery;
-        this.keyMappers = keyMappers;
+    public JdbcRealmService(JdbcSecurityRealmBuilder builder) {
+        this.builder = builder;
     }
 
     @Override
     public void start(StartContext startContext) throws StartException {
-        DataSource dataSource = getDataSourceInjectedValue().getValue();
-
-        securityRealm = JdbcSecurityRealm.builder()
-                .authenticationQuery(this.authenticationQuery)
-                    .from(dataSource)
-                    .withMapper(this.keyMappers.toArray(new KeyMapper[this.keyMappers.size()])).build();
+        this.securityRealm = this.builder.build();
     }
 
     @Override
@@ -68,9 +53,5 @@ class JdbcRealmService implements Service<SecurityRealm> {
     @Override
     public SecurityRealm getValue() throws IllegalStateException, IllegalArgumentException {
         return securityRealm;
-    }
-
-    public InjectedValue<DataSource> getDataSourceInjectedValue() {
-        return this.dataSourceInjectedValue;
     }
 }

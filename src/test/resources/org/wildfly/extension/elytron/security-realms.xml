@@ -29,14 +29,36 @@
             <users-properties path="my.properties" relative-to="my.path" />
             <groups-properties path="mygroup.properties" relative-to="mygroup.path" />
         </properties-realm>
-        <jdbc-realm name="RealmSeven">
-            <authentication-query sql="SELECT password FROM user_clear_password WHERE name = ?" data-source="TestDS">
+        <jdbc-realm name="JdbcRealmWithMultipleQueries">
+            <principal-query sql="SELECT password FROM USER_CLEAR_PASSWORD WHERE name = ?" data-source="TestDS">
+                <clear-password-mapper password-index="1"/>
+            </principal-query>
+            <principal-query sql="SELECT first_name, last_name, email FROM USER_CLEAR_PASSWORD WHERE name = ?" data-source="TestDS">
+                <attribute-mapping>
+                    <attribute index="1" to="firstName"/>
+                    <attribute index="2" to="lastName"/>
+                    <attribute index="3" to="email"/>
+                </attribute-mapping>
+            </principal-query>
+        </jdbc-realm>
+        <jdbc-realm name="JdbcRealmWithSingleQueryNoAttributes">
+            <principal-query sql="SELECT password FROM USER_CLEAR_PASSWORD WHERE name = ?" data-source="TestDS">
                 <clear-password-mapper password-index="1"/>
                 <bcrypt-mapper password-index="1" salt-index="2" iteration-count-index="3"/>
                 <simple-digest-mapper password-index="1"/>
                 <salted-simple-digest-mapper password-index="1" salt-index="2"/>
                 <scram-mapper password-index="1" salt-index="2" iteration-count-index="3"/>
-            </authentication-query>
+            </principal-query>
+        </jdbc-realm>
+        <jdbc-realm name="JdbcRealmWithSingleQueryWithAttributes">
+            <principal-query sql="SELECT password, first_name, last_name, email FROM USER_CLEAR_PASSWORD WHERE name = ?" data-source="TestDS">
+                <clear-password-mapper password-index="1"/>
+                <attribute-mapping>
+                    <attribute index="2" to="firstName"/>
+                    <attribute index="3" to="lastName"/>
+                    <attribute index="4" to="email"/>
+                </attribute-mapping>
+            </principal-query>
         </jdbc-realm>
         <ldap-realm name="LdapRealmWithAttributeMapping">
             <dir-context url="ldap://localhost:11390" principal="uid=server,dc=elytron,dc=wildfly,dc=org" credential="serverPassword" enable-connection-pooling="true" />
