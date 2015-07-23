@@ -32,7 +32,6 @@ import static org.jboss.as.controller.parsing.ParseUtils.unexpectedElement;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AGGREGATE_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ATTRIBUTE;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ATTRIBUTE_MAPPING;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PRINCIPAL_QUERY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AUTHENTICATION_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AUTHORIZATION_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CONFIGURATION;
@@ -52,6 +51,7 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME_REW
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PATH;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PLAIN_TEXT;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PRINCIPAL_MAPPING;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PRINCIPAL_QUERY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROPERTIES_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.RELATIVE_TO;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SECURITY_REALMS;
@@ -75,8 +75,8 @@ import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.Property;
 import org.jboss.staxmapper.XMLExtendedStreamReader;
 import org.jboss.staxmapper.XMLExtendedStreamWriter;
-import org.wildfly.extension.elytron.JdbcRealmDefinition.PrincipalQueryAttributes;
 import org.wildfly.extension.elytron.JdbcRealmDefinition.PasswordMapperObjectDefinition;
+import org.wildfly.extension.elytron.JdbcRealmDefinition.PrincipalQueryAttributes;
 import org.wildfly.extension.elytron.LdapRealmDefinition.DirContextObjectDefinition;
 import org.wildfly.extension.elytron.LdapRealmDefinition.PrincipalMappingObjectDefinition;
 
