@@ -128,6 +128,10 @@ class ElytronDefinition extends SimpleResourceDefinition {
         resourceRegistration.registerSubModel(RoleMapperDefinitions.getLogicalRoleMapperDefinition());
 
         // SASL Mechanisms
+        resourceRegistration.registerSubModel(SaslServerDefinitions.getAggregateSaslServerFactoryDefinition());
+        resourceRegistration.registerSubModel(SaslServerDefinitions.getConfiguredSaslServerFactoryDefinition());
+        resourceRegistration.registerSubModel(SaslServerDefinitions.getProviderSaslServerFactoryDefintion());
+        resourceRegistration.registerSubModel(SaslServerDefinitions.getServiceLoaderSaslServerFactoryDefinition());
 
         // TLS Building Blocks
         resourceRegistration.registerSubModel(new KeyStoreDefinition());

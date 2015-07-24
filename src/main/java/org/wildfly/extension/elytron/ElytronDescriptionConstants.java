@@ -31,6 +31,7 @@ interface ElytronDescriptionConstants {
     String AGGREGATE_PRINCIPAL_DECODER = "aggregate-principal-decoder";
     String AGGREGATE_REALM = "aggregate-realm";
     String AGGREGATE_ROLE_MAPPER = "aggregate-role-mapper";
+    String AGGREGATE_SASL_SERVER_FACTORY = "aggregate-sasl-server-factory";
     String ALGORITHM = "algorithm";
     String ALIAS = "alias";
     String ATTRIBUTE = "attribute";
@@ -49,6 +50,7 @@ interface ElytronDescriptionConstants {
     String CLASS_NAME = "class-name";
     String CLASS_NAMES = "class-names";
     String CLEAR_PASSWORD_MAPPER = "clear-password-mapper";
+    String CONFIGURABLE_SASL_SERVER_FACTORY = "configurable-sasl-server-factory";
     String CONFIGURATION = "configuration";
     String CONFIGURATION_FILE = "configuration-file";
     String CONFIGURATION_PROPERTIES = "configuration-properties";
@@ -135,10 +137,12 @@ interface ElytronDescriptionConstants {
     String PROPERTIES_REALM = "properties-realm";
     String PROPERTY = "property";
     String PROPERTY_LIST = "property-list";
+    String PROTOCOL = "protocol";
     String PROVIDER = "provider";
     String PROVIDERS = "providers";
     String PROVIDER_LOADER = "provider-loader";
     String PROVIDER_LOADERS = "provider-loaders";
+    String PROVIDER_SASL_SERVER_FACTORY = "provider-sasl-server-factory";
     String PUBLIC_KEY = "public-key";
     String RDN_IDENTIFIER = "rdn-identifier";
     String REALM_MAP = "realm-map";
@@ -164,13 +168,16 @@ interface ElytronDescriptionConstants {
     String SECURITY_DOMAIN_SASL_CONFIGURATION = "security-domain-sasl-configuration";
     String SECURITY_DOMAINS = "security-domains";
     String SECURITY_REALMS = "security-realms";
+    String SERVER_NAME = "server-name";
     String SALT_INDEX = "salt-index";
     String SALTED_SIMPLE_DIGEST_MAPPER = "salted-simple-digest-mapper";
+    String SASL_SERVER_FACTORIES = "sasl-server-factories";
     String SCRAM_MAPPER = "scram-mapper";
     String SECURITY_PROPERTIES = "security-properties";
     String SECURITY_PROPERTY = "security-property";
     String SERIAL_NUMBER = "serial-number";
     String SERVICE = "service";
+    String SERVICE_LOADER_SASL_SERVER_FACTORY = "service-loader-sasl-server-factory";
     String SERVICES = "services";
     String SIGNATURE = "signature";
     String SIGNATURE_ALGORITHM = "signature-algorithm";
