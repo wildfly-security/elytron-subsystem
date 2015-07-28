@@ -24,18 +24,26 @@ import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.MOD
 import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.SLOT;
 import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.resolveClassLoader;
 import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEY;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROPERTY;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.VALUE;
 import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
 import static org.wildfly.extension.elytron.SecurityActions.doPrivileged;
 
 import java.security.PrivilegedExceptionAction;
 import java.security.Provider;
 import java.security.Security;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Supplier;
 
 import javax.security.sasl.SaslServerFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 
 import org.jboss.as.controller.AbstractAddStepHandler;
 import org.jboss.as.controller.AttributeDefinition;
+import org.jboss.as.controller.AttributeMarshaller;
 import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
 import org.jboss.as.controller.PathAddress;
@@ -45,6 +53,7 @@ import org.jboss.as.controller.RestartParentWriteAttributeHandler;
 import org.jboss.as.controller.ServiceRemoveStepHandler;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
+import org.jboss.as.controller.SimpleMapAttributeDefinition;
 import org.jboss.as.controller.SimpleResourceDefinition;
 import org.jboss.as.controller.capability.RuntimeCapability;
 import org.jboss.as.controller.registry.AttributeAccess;
@@ -52,6 +61,7 @@ import org.jboss.as.controller.registry.ManagementResourceRegistration;
 import org.jboss.as.controller.registry.OperationEntry;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
+import org.jboss.dmr.Property;
 import org.jboss.msc.service.ServiceBuilder;
 import org.jboss.msc.service.ServiceController.Mode;
 import org.jboss.msc.service.ServiceName;
@@ -60,6 +70,7 @@ import org.jboss.msc.service.StartException;
 import org.jboss.msc.value.InjectedValue;
 import org.wildfly.extension.elytron.TrivialService.ValueSupplier;
 import org.wildfly.security.sasl.util.AggregateSaslServerFactory;
+import org.wildfly.security.sasl.util.PropertiesSaslServerFactory;
 import org.wildfly.security.sasl.util.ProtocolSaslServerFactory;
 import org.wildfly.security.sasl.util.SecurityProviderSaslServerFactory;
 import org.wildfly.security.sasl.util.ServerNameSaslServerFactory;
@@ -95,6 +106,26 @@ class SaslServerDefinitions {
         .setCapabilityReference(PROVIDERS_CAPABILITY, SASL_SERVER_FACTORY_CAPABILITY, true)
         .build();
 
+    static final SimpleMapAttributeDefinition PROPERTIES = new SimpleMapAttributeDefinition.Builder(ElytronDescriptionConstants.PROPERTIES, ModelType.STRING, true)
+        .setAttributeMarshaller(new AttributeMarshaller() {
+
+            @Override
+            public void marshallAsElement(AttributeDefinition attribute, ModelNode resourceModel, boolean marshallDefault,
+                    XMLStreamWriter writer) throws XMLStreamException {
+                resourceModel = resourceModel.get(attribute.getName());
+                if (resourceModel.isDefined()) {
+                    writer.writeStartElement(attribute.getName());
+                    for (ModelNode property : resourceModel.asList()) {
+                        writer.writeEmptyElement(PROPERTY);
+                        writer.writeAttribute(KEY, property.asProperty().getName());
+                        writer.writeAttribute(VALUE, property.asProperty().getValue().asString());
+                    }
+                    writer.writeEndElement();
+                }
+            }
+
+        }).build();
+
     private static final AggregateComponentDefinition<SaslServerFactory> AGGREGATE_SASL_SERVER_FACTORY = AggregateComponentDefinition.create(SaslServerFactory.class,
             ElytronDescriptionConstants.AGGREGATE_SASL_SERVER_FACTORY, ElytronDescriptionConstants.SASL_SERVER_FACTORIES, SASL_SERVER_FACTORY_RUNTIME_CAPABILITY,
             (SaslServerFactory[] n) -> new AggregateSaslServerFactory(n));
@@ -104,7 +135,8 @@ class SaslServerDefinitions {
     }
 
     static ResourceDefinition getConfiguredSaslServerFactoryDefinition() {
-        AbstractAddStepHandler add = new SaslServerAddHander(SASL_SERVER_FACTORY, SERVER_NAME, PROTOCOL) {
+        AttributeDefinition[] attributes = new AttributeDefinition[] { SASL_SERVER_FACTORY, SERVER_NAME, PROTOCOL, PROPERTIES };
+        AbstractAddStepHandler add = new SaslServerAddHander(attributes) {
 
             @Override
             protected ServiceBuilder<SaslServerFactory> installService(OperationContext context,
@@ -114,12 +146,22 @@ class SaslServerDefinitions {
                 final String protocol = asStringIfDefined(context, PROTOCOL, model);
                 final String serverName = asStringIfDefined(context, SERVER_NAME, model);
 
+                final Map<String, String> propertiesMap;
+                ModelNode properties = PROPERTIES.resolveModelAttribute(context, model);
+                if (properties.isDefined()) {
+                    propertiesMap = new HashMap<String, String>();
+                    properties.asPropertyList().forEach((Property p) -> propertiesMap.put(p.getName(), p.getValue().asString()));
+                } else {
+                    propertiesMap = null;
+                }
+
                 final InjectedValue<SaslServerFactory> saslServerFactoryInjector = new InjectedValue<SaslServerFactory>();
 
                 TrivialService<SaslServerFactory> saslServiceFactoryService = new TrivialService<SaslServerFactory>(() -> {
                     SaslServerFactory theFactory = saslServerFactoryInjector.getValue();
                     theFactory = protocol != null ? new ProtocolSaslServerFactory(theFactory, protocol) : theFactory;
                     theFactory = serverName != null ? new ServerNameSaslServerFactory(theFactory, serverName) : theFactory;
+                    theFactory = propertiesMap != null ? new PropertiesSaslServerFactory(theFactory, propertiesMap) : theFactory;
                     return theFactory;
                 });
 
@@ -136,8 +178,7 @@ class SaslServerDefinitions {
 
         };
 
-
-        return new SaslServerResourceDefinition(ElytronDescriptionConstants.CONFIGURABLE_SASL_SERVER_FACTORY, add, SASL_SERVER_FACTORY, SERVER_NAME, PROTOCOL);
+        return new SaslServerResourceDefinition(ElytronDescriptionConstants.CONFIGURABLE_SASL_SERVER_FACTORY, add, attributes);
     }
 
     static ResourceDefinition getProviderSaslServerFactoryDefintion() {

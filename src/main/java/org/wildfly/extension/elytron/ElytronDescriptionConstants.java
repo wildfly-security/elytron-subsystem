@@ -134,6 +134,7 @@ interface ElytronDescriptionConstants {
     String PRINCIPAL_DECODERS = "principal-decoders";
     String PRINCIPAL_MAPPING = "principal-mapping";
     String PRINCIPAL_QUERY = "principal-query";
+    String PROPERTIES = "properties";
     String PROPERTIES_REALM = "properties-realm";
     String PROPERTY = "property";
     String PROPERTY_LIST = "property-list";
