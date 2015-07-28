@@ -435,7 +435,7 @@ class DomainDefinition extends SimpleResourceDefinition {
 
                     // for now, only clear passwords. we can provide an enum with different types later. if necessary.
                     Class<ClearPassword> credentialType = ClearPassword.class;
-                    CredentialSupport credentialSupport = authenticationContext.getCredentialSupport(credentialType);
+                    CredentialSupport credentialSupport = authenticationContext.getCredentialSupport(credentialType, null);
 
                     if (!credentialSupport.mayBeVerifiable()) {
                         addFailureDescription("Credential type [" + credentialType + "] not verifiable.", context);
