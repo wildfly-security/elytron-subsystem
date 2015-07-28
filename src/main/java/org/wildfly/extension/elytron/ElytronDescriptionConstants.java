@@ -128,12 +128,14 @@ interface ElytronDescriptionConstants {
     String OR = "or";
     String PATH = "path";
     String PATTERN = "pattern";
+    String PATTERN_FILTER = "pattern-filter";
     String PASSWORD = "password";
     String PASSWORD_INDEX = "password-index";
     String PERMISSION_MAPPER = "permission-mapper";
     String PLAIN_TEXT = "plain-text";
     String POST_REALM_NAME_REWRITER = "post-realm-name-rewriter";
     String PRE_REALM_NAME_REWRITER = "pre-realm-name-rewriter";
+    String PREDEFINED_FILTER = "predefined-filter";
     String PREFIX = "prefix";
     String PRINCIPAL = "principal";
     String PRINCIPAL_DECODER = "principal-decoder";

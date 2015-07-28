@@ -40,6 +40,7 @@ import java.util.Map;
 import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.regex.Pattern;
 
 import javax.security.sasl.SaslServerFactory;
 import javax.xml.stream.XMLStreamException;
@@ -77,9 +78,11 @@ import org.jboss.msc.service.StartException;
 import org.jboss.msc.value.InjectedValue;
 import org.wildfly.extension.elytron.TrivialService.ValueSupplier;
 import org.wildfly.security.sasl.util.AggregateSaslServerFactory;
+import org.wildfly.security.sasl.util.FilterMechanismSaslServerFactory;
 import org.wildfly.security.sasl.util.MechanismProviderFilteringSaslServerFactory;
 import org.wildfly.security.sasl.util.PropertiesSaslServerFactory;
 import org.wildfly.security.sasl.util.ProtocolSaslServerFactory;
+import org.wildfly.security.sasl.util.SaslMechanismInformation;
 import org.wildfly.security.sasl.util.SecurityProviderSaslServerFactory;
 import org.wildfly.security.sasl.util.ServerNameSaslServerFactory;
 import org.wildfly.security.sasl.util.ServiceLoaderSaslServerFactory;
@@ -141,11 +144,11 @@ class SaslServerDefinitions {
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
         .build();
 
-    static final ObjectTypeAttributeDefinition FILTER = new ObjectTypeAttributeDefinition.Builder("", MECHANISM_NAME, PROVIDER_NAME, PROVIDER_VERSION, VERSION_COMPARISON)
+    static final ObjectTypeAttributeDefinition MECH_PROVIDER_FILTER = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.FILTER, MECHANISM_NAME, PROVIDER_NAME, PROVIDER_VERSION, VERSION_COMPARISON)
         .build();
 
 
-    static final ObjectListAttributeDefinition FILTERS = new ObjectListAttributeDefinition.Builder(ElytronDescriptionConstants.FILTERS, FILTER)
+    static final ObjectListAttributeDefinition MECH_PROVIDER_FILTERS = new ObjectListAttributeDefinition.Builder(ElytronDescriptionConstants.FILTERS, MECH_PROVIDER_FILTER)
         .setMinSize(1)
         .build();
 
@@ -169,6 +172,26 @@ class SaslServerDefinitions {
 
         }).build();
 
+    static final SimpleAttributeDefinition PREDEFINED_FILTER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PREDEFINED_FILTER, ModelType.STRING, true)
+        .setAllowExpression(true)
+        .setAllowedValues(NamePredicate.names())
+        .setValidator(EnumValidator.create(NamePredicate.class, true, true))
+        .setMinSize(1)
+        .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+        .setAlternatives(ElytronDescriptionConstants.PATTERN_FILTER)
+        .build();
+
+    static final SimpleAttributeDefinition PATTERN_FILTER = new SimpleAttributeDefinitionBuilder(RegexAttributeDefinitions.PATTERN)
+        .setName(ElytronDescriptionConstants.PATTERN_FILTER)
+        .setAlternatives(ElytronDescriptionConstants.PREDEFINED_FILTER)
+        .build();
+
+    static final ObjectTypeAttributeDefinition CONFIGURED_FILTER = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.FILTER, PREDEFINED_FILTER, PATTERN_FILTER, ENABLING)
+        .build();
+
+    static final ObjectListAttributeDefinition CONFIGURED_FILTERS = new ObjectListAttributeDefinition.Builder(ElytronDescriptionConstants.FILTERS, CONFIGURED_FILTER)
+        .build();
+
     private static final AggregateComponentDefinition<SaslServerFactory> AGGREGATE_SASL_SERVER_FACTORY = AggregateComponentDefinition.create(SaslServerFactory.class,
             ElytronDescriptionConstants.AGGREGATE_SASL_SERVER_FACTORY, ElytronDescriptionConstants.SASL_SERVER_FACTORIES, SASL_SERVER_FACTORY_RUNTIME_CAPABILITY,
             (SaslServerFactory[] n) -> new AggregateSaslServerFactory(n));
@@ -178,7 +201,7 @@ class SaslServerDefinitions {
     }
 
     static ResourceDefinition getConfiguredSaslServerFactoryDefinition() {
-        AttributeDefinition[] attributes = new AttributeDefinition[] { SASL_SERVER_FACTORY, SERVER_NAME, PROTOCOL, PROPERTIES };
+        AttributeDefinition[] attributes = new AttributeDefinition[] { SASL_SERVER_FACTORY, SERVER_NAME, PROTOCOL, PROPERTIES, CONFIGURED_FILTERS };
         AbstractAddStepHandler add = new SaslServerAddHander(attributes) {
 
             @Override
@@ -198,6 +221,32 @@ class SaslServerDefinitions {
                     propertiesMap = null;
                 }
 
+                final Predicate<String> finalFilter;
+                if (model.hasDefined(ElytronDescriptionConstants.FILTERS)) {
+                    Predicate<String> filter = null;
+                    List<ModelNode> nodes = model.require(ElytronDescriptionConstants.FILTERS).asList();
+                    for (ModelNode current : nodes) {
+                        Predicate<String> currentFilter = (String s) -> true;
+                        String predefinedFilter = asStringIfDefined(context, PREDEFINED_FILTER, current);
+                        if (predefinedFilter != null) {
+                            currentFilter = NamePredicate.valueOf(predefinedFilter).predicate;
+                        } else {
+                            String patternFilter = asStringIfDefined(context, PATTERN_FILTER, current);
+                            if (patternFilter != null) {
+                                final Pattern pattern = Pattern.compile(patternFilter);
+                                currentFilter = (String s) ->  pattern.matcher(s).find();
+                            }
+                        }
+
+                        currentFilter = ENABLING.resolveModelAttribute(context, current).asBoolean() ? currentFilter : currentFilter.negate();
+                        filter = filter == null ? currentFilter : filter.or(currentFilter);
+                    }
+                    finalFilter = filter;
+                } else {
+                    finalFilter = null;
+                }
+
+
                 final InjectedValue<SaslServerFactory> saslServerFactoryInjector = new InjectedValue<SaslServerFactory>();
 
                 TrivialService<SaslServerFactory> saslServiceFactoryService = new TrivialService<SaslServerFactory>(() -> {
@@ -205,6 +254,7 @@ class SaslServerDefinitions {
                     theFactory = protocol != null ? new ProtocolSaslServerFactory(theFactory, protocol) : theFactory;
                     theFactory = serverName != null ? new ServerNameSaslServerFactory(theFactory, serverName) : theFactory;
                     theFactory = propertiesMap != null ? new PropertiesSaslServerFactory(theFactory, propertiesMap) : theFactory;
+                    theFactory = finalFilter != null ? new FilterMechanismSaslServerFactory(theFactory, finalFilter) : theFactory;
                     return theFactory;
                 });
 
@@ -282,7 +332,7 @@ class SaslServerDefinitions {
     }
 
     static ResourceDefinition getMechanismProviderFilteringSaslServerFactory() {
-        AttributeDefinition[] attributes = new AttributeDefinition[] { SASL_SERVER_FACTORY, ENABLING, FILTERS };
+        AttributeDefinition[] attributes = new AttributeDefinition[] { SASL_SERVER_FACTORY, ENABLING, MECH_PROVIDER_FILTERS };
         AbstractAddStepHandler add = new SaslServerAddHander(attributes) {
 
             @Override
@@ -432,6 +482,39 @@ class SaslServerDefinitions {
             return SASL_SERVER_FACTORY_RUNTIME_CAPABILITY.fromBaseCapability(name).getCapabilityServiceName(SaslServerFactory.class);
         }
 
+    }
+
+    private enum NamePredicate {
+
+        HASH_MD5(SaslMechanismInformation.HASH_MD5),
+        HASH_SHA(SaslMechanismInformation.HASH_SHA),
+        HASH_SHA_256(SaslMechanismInformation.HASH_SHA_256),
+        HASH_SHA_384(SaslMechanismInformation.HASH_SHA_384),
+        HASH_SHA_512(SaslMechanismInformation.HASH_SHA_512),
+        GS2(SaslMechanismInformation.GS2),
+        SCRAM(SaslMechanismInformation.SCRAM),
+        DIGEST(SaslMechanismInformation.DIGEST),
+        IEC_ISO_9798(SaslMechanismInformation.IEC_ISO_9798),
+        EAP(SaslMechanismInformation.EAP),
+        MUTUAL(SaslMechanismInformation.MUTUAL),
+        BINDING(SaslMechanismInformation.BINDING),
+        RECOMMENDED(SaslMechanismInformation.RECOMMENDED);
+
+        private final Predicate<String> predicate;
+
+        private NamePredicate(Predicate<String> predicate) {
+            this.predicate = predicate;
+        }
+
+        static String[] names() {
+            NamePredicate[] namePredicates = NamePredicate.values();
+            String[] names = new String[namePredicates.length];
+            for (int i=0;i<namePredicates.length;i++) {
+                names[i] = namePredicates.toString();
+            }
+
+            return names;
+        }
     }
 
     private enum Comparison {
