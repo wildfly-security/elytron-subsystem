@@ -27,6 +27,7 @@ import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROPERTY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.VALUE;
+import static org.wildfly.extension.elytron.ElytronExtension.asDoubleIfDefined;
 import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
 import static org.wildfly.extension.elytron.SecurityActions.doPrivileged;
 
@@ -34,7 +35,10 @@ import java.security.PrivilegedExceptionAction;
 import java.security.Provider;
 import java.security.Security;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.function.BiPredicate;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import javax.security.sasl.SaslServerFactory;
@@ -44,6 +48,8 @@ import javax.xml.stream.XMLStreamWriter;
 import org.jboss.as.controller.AbstractAddStepHandler;
 import org.jboss.as.controller.AttributeDefinition;
 import org.jboss.as.controller.AttributeMarshaller;
+import org.jboss.as.controller.ObjectListAttributeDefinition;
+import org.jboss.as.controller.ObjectTypeAttributeDefinition;
 import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
 import org.jboss.as.controller.PathAddress;
@@ -56,6 +62,7 @@ import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
 import org.jboss.as.controller.SimpleMapAttributeDefinition;
 import org.jboss.as.controller.SimpleResourceDefinition;
 import org.jboss.as.controller.capability.RuntimeCapability;
+import org.jboss.as.controller.operations.validation.EnumValidator;
 import org.jboss.as.controller.registry.AttributeAccess;
 import org.jboss.as.controller.registry.ManagementResourceRegistration;
 import org.jboss.as.controller.registry.OperationEntry;
@@ -70,6 +77,7 @@ import org.jboss.msc.service.StartException;
 import org.jboss.msc.value.InjectedValue;
 import org.wildfly.extension.elytron.TrivialService.ValueSupplier;
 import org.wildfly.security.sasl.util.AggregateSaslServerFactory;
+import org.wildfly.security.sasl.util.MechanismProviderFilteringSaslServerFactory;
 import org.wildfly.security.sasl.util.PropertiesSaslServerFactory;
 import org.wildfly.security.sasl.util.ProtocolSaslServerFactory;
 import org.wildfly.security.sasl.util.SecurityProviderSaslServerFactory;
@@ -104,6 +112,41 @@ class SaslServerDefinitions {
         .setMinSize(1)
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
         .setCapabilityReference(PROVIDERS_CAPABILITY, SASL_SERVER_FACTORY_CAPABILITY, true)
+        .build();
+
+    static final SimpleAttributeDefinition ENABLING = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ENABLING, ModelType.BOOLEAN, false)
+        .setAllowExpression(true)
+        .setDefaultValue(new ModelNode(true))
+        .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+        .build();
+
+    static final SimpleAttributeDefinition MECHANISM_NAME = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.MECHANISM_NAME, ModelType.STRING, true)
+        .setAllowExpression(true)
+        .build();
+
+    static final SimpleAttributeDefinition PROVIDER_NAME = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PROVIDER_NAME, ModelType.STRING, false)
+        .setAllowExpression(true)
+        .build();
+
+    static final SimpleAttributeDefinition PROVIDER_VERSION = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PROVIDER_VERSION, ModelType.DOUBLE, true)
+        .setAllowExpression(true)
+        .build();
+
+    static final SimpleAttributeDefinition VERSION_COMPARISON = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.VERSION_COMPARISON, ModelType.STRING, true)
+        .setAllowExpression(true)
+        .setRequires(ElytronDescriptionConstants.PROVIDER_VERSION)
+        .setAllowedValues(ElytronDescriptionConstants.LESS_THAN, ElytronDescriptionConstants.GREATER_THAN)
+        .setValidator(EnumValidator.create(Comparison.class, true, true))
+        .setMinSize(1)
+        .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+        .build();
+
+    static final ObjectTypeAttributeDefinition FILTER = new ObjectTypeAttributeDefinition.Builder("", MECHANISM_NAME, PROVIDER_NAME, PROVIDER_VERSION, VERSION_COMPARISON)
+        .build();
+
+
+    static final ObjectListAttributeDefinition FILTERS = new ObjectListAttributeDefinition.Builder(ElytronDescriptionConstants.FILTERS, FILTER)
+        .setMinSize(1)
         .build();
 
     static final SimpleMapAttributeDefinition PROPERTIES = new SimpleMapAttributeDefinition.Builder(ElytronDescriptionConstants.PROPERTIES, ModelType.STRING, true)
@@ -238,6 +281,74 @@ class SaslServerDefinitions {
         return new SaslServerResourceDefinition(ElytronDescriptionConstants.SERVICE_LOADER_SASL_SERVER_FACTORY, add, MODULE, SLOT);
     }
 
+    static ResourceDefinition getMechanismProviderFilteringSaslServerFactory() {
+        AttributeDefinition[] attributes = new AttributeDefinition[] { SASL_SERVER_FACTORY, ENABLING, FILTERS };
+        AbstractAddStepHandler add = new SaslServerAddHander(attributes) {
+
+            @Override
+            protected ServiceBuilder<SaslServerFactory> installService(OperationContext context,
+                    ServiceName saslServerFactoryName, ModelNode model) throws OperationFailedException {
+
+                final String saslServerFactory = SASL_SERVER_FACTORY.resolveModelAttribute(context, model).asString();
+
+                BiPredicate<String, Provider> predicate = null;
+
+                List<ModelNode> nodes = model.require(ElytronDescriptionConstants.FILTERS).asList();
+                for (ModelNode current : nodes) {
+                    final String mechanismName = asStringIfDefined(context, MECHANISM_NAME, current);
+                    final String providerName = PROVIDER_NAME.resolveModelAttribute(context, current).asString();
+                    final Double providerVersion = asDoubleIfDefined(context, PROVIDER_VERSION, current);
+
+                    final Predicate<Double> versionPredicate;
+                    if (providerVersion != null) {
+                       final Comparison comparison = Comparison.getComparison(VERSION_COMPARISON.resolveModelAttribute(context, current).asString());
+
+                       versionPredicate = (Double d) -> comparison.getPredicate().test(d, providerVersion);
+                    } else {
+                        versionPredicate = null;
+                    }
+
+                    BiPredicate<String, Provider> thisPredicate = (String s, Provider p) -> {
+                        return (mechanismName == null || mechanismName.equals(s))
+                                && providerName.equals(p.getName())
+                                && (providerVersion == null || versionPredicate.test(p.getVersion()));
+                    };
+
+                    predicate = predicate == null ? thisPredicate : predicate.or(thisPredicate);
+                }
+
+
+                boolean enabling = ENABLING.resolveModelAttribute(context, model).asBoolean();
+                if (enabling == false) {
+                    predicate = predicate.negate();
+                }
+
+                final BiPredicate<String, Provider> finalPredicate = predicate;
+                final InjectedValue<SaslServerFactory> saslServerFactoryInjector = new InjectedValue<SaslServerFactory>();
+
+                TrivialService<SaslServerFactory> saslServiceFactoryService = new TrivialService<SaslServerFactory>(() -> {
+                    SaslServerFactory theFactory = saslServerFactoryInjector.getValue();
+                    theFactory = new MechanismProviderFilteringSaslServerFactory(theFactory, finalPredicate);
+
+                    return theFactory;
+                });
+
+                ServiceTarget serviceTarget = context.getServiceTarget();
+
+                ServiceBuilder<SaslServerFactory> serviceBuilder = serviceTarget.addService(saslServerFactoryName, saslServiceFactoryService);
+
+                serviceBuilder.addDependency(context.getCapabilityServiceName(
+                        RuntimeCapability.buildDynamicCapabilityName(SASL_SERVER_FACTORY_CAPABILITY, saslServerFactory),
+                        SaslServerFactory.class), SaslServerFactory.class, saslServerFactoryInjector);
+
+                return serviceBuilder;
+            }
+
+        };
+
+        return new SaslServerResourceDefinition(ElytronDescriptionConstants.MECHANISM_PROVIDER_FILTERING_SASL_SERVER_FACTORY, add, attributes);
+    }
+
 
     private static class SaslServerResourceDefinition extends SimpleResourceDefinition {
 
@@ -321,5 +432,42 @@ class SaslServerDefinitions {
             return SASL_SERVER_FACTORY_RUNTIME_CAPABILITY.fromBaseCapability(name).getCapabilityServiceName(SaslServerFactory.class);
         }
 
+    }
+
+    private enum Comparison {
+
+        LESS_THAN(ElytronDescriptionConstants.LESS_THAN, (Double left, Double right) ->  left < right),
+
+        GREATER_THAN(ElytronDescriptionConstants.GREATER_THAN, (Double left, Double right) ->  left > right);
+
+        private final String name;
+
+        private final BiPredicate<Double, Double> predicate;
+
+        private Comparison(final String name, final BiPredicate<Double, Double> predicate) {
+            this.name = name;
+            this.predicate = predicate;
+        }
+
+        BiPredicate<Double, Double> getPredicate() {
+            return predicate;
+        }
+
+        @Override
+        public String toString() {
+            return name;
+        }
+
+
+        static Comparison getComparison(String value) {
+            switch (value) {
+                case ElytronDescriptionConstants.LESS_THAN:
+                    return LESS_THAN;
+                case ElytronDescriptionConstants.GREATER_THAN:
+                    return GREATER_THAN;
+            }
+
+            throw new IllegalArgumentException("Invalid value");
+        }
     }
 }

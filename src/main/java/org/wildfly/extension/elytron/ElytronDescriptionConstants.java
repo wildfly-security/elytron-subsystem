@@ -74,15 +74,18 @@ interface ElytronDescriptionConstants {
     String ENABLE_CONNECTION_POOLING = "enable-connection-pooling";
     String ENCODED = "encoded";
     String EMPTY_ROLE_DECODER = "empty-role-decoder";
+    String ENABLING = "enabling";
     String ENTRY_TYPE = "entry-type";
     String FILE = "file";
     String FILESYSTEM_REALM = "filesystem-realm";
     String FILTER = "filter";
+    String FILTERS = "filters";
     String FILTER_BASE_DN = "filter-base-dn";
     String FINGER_PRINT = "finger-print";
     String FINGER_PRINTS = "finger-prints";
     String FORMAT = "format";
     String FROM = "from";
+    String GREATER_THAN = "greater-than";
     String GROUPS_PROPERTIES = "groups-properties";
     String IMPLEMENTATION = "implementation";
     String INDEX = "index";
@@ -98,6 +101,7 @@ interface ElytronDescriptionConstants {
     String KEYSTORES = "keystores";
     String LDAP_REALM = "ldap-realm";
     String LEFT = "left";
+    String LESS_THAN = "less-than";
     String LEVELS = "levels";
     String LOAD = "load";
     String LOADED_PROVIDER = "loaded-provider";
@@ -109,6 +113,8 @@ interface ElytronDescriptionConstants {
     String MAXIMUM_SEGMENTS = "maximum-segments";
     String MATCH = "match";
     String MAPPERS = "mappers";
+    String MECHANISM_NAME = "mechanism-name";
+    String MECHANISM_PROVIDER_FILTERING_SASL_SERVER_FACTORY = "mechanism-provider-filtering-sasl-server-factory";
     String MINUS = "minus";
     String MODIFIED = "modified";
     String MODULE = "module";
@@ -143,7 +149,9 @@ interface ElytronDescriptionConstants {
     String PROVIDERS = "providers";
     String PROVIDER_LOADER = "provider-loader";
     String PROVIDER_LOADERS = "provider-loaders";
+    String PROVIDER_NAME = "provider-name";
     String PROVIDER_SASL_SERVER_FACTORY = "provider-sasl-server-factory";
+    String PROVIDER_VERSION = "provider-version";
     String PUBLIC_KEY = "public-key";
     String RDN_IDENTIFIER = "rdn-identifier";
     String REALM_MAP = "realm-map";
@@ -201,6 +209,7 @@ interface ElytronDescriptionConstants {
     String USERS_PROPERTIES = "users-properties";
     String VALUE = "value";
     String VERSION = "version";
+    String VERSION_COMPARISON = "version-comparison";
     String WATCH = "watch";
     String X500_ATTRIBUTE_PRINCIPAL_DECODER = "x500-attribute-principal-decoder";
     String XOR = "xor";

@@ -119,6 +119,15 @@ public class ElytronExtension implements Extension {
         return null;
     }
 
+    static Double asDoubleIfDefined(OperationContext context, SimpleAttributeDefinition attributeDefintion, ModelNode model) throws OperationFailedException {
+        ModelNode value = attributeDefintion.resolveModelAttribute(context, model);
+        if (value.isDefined()) {
+            return value.asDouble();
+        }
+
+        return null;
+    }
+
     static int asIntIfDefined(OperationContext context, SimpleAttributeDefinition attributeDefintion, ModelNode model) throws OperationFailedException {
         ModelNode value = attributeDefintion.resolveModelAttribute(context, model);
         if (value.isDefined()) {

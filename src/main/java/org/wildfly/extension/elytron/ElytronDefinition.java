@@ -130,6 +130,7 @@ class ElytronDefinition extends SimpleResourceDefinition {
         // SASL Mechanisms
         resourceRegistration.registerSubModel(SaslServerDefinitions.getAggregateSaslServerFactoryDefinition());
         resourceRegistration.registerSubModel(SaslServerDefinitions.getConfiguredSaslServerFactoryDefinition());
+        resourceRegistration.registerSubModel(SaslServerDefinitions.getMechanismProviderFilteringSaslServerFactory());
         resourceRegistration.registerSubModel(SaslServerDefinitions.getProviderSaslServerFactoryDefintion());
         resourceRegistration.registerSubModel(SaslServerDefinitions.getServiceLoaderSaslServerFactoryDefinition());
 
