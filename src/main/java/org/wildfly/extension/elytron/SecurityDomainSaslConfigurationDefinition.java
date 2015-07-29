@@ -22,6 +22,7 @@ import static org.wildfly.extension.elytron.Capabilities.SECURITY_DOMAIN_CAPABIL
 import static org.wildfly.extension.elytron.Capabilities.SECURITY_DOMAIN_SASL_CONFIGURATION_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SECURITY_DOMAIN_SASL_CONFIGURATION_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
+import static org.wildfly.extension.elytron.SaslFactoryRuntimeResource.wrap;
 
 import javax.security.sasl.SaslServerFactory;
 
@@ -45,7 +46,9 @@ import org.jboss.as.controller.registry.OperationEntry;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
 import org.jboss.msc.service.ServiceBuilder;
+import org.jboss.msc.service.ServiceController;
 import org.jboss.msc.service.ServiceController.Mode;
+import org.jboss.msc.service.ServiceController.State;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.ServiceTarget;
 import org.jboss.msc.value.InjectedValue;
@@ -77,7 +80,7 @@ class SecurityDomainSaslConfigurationDefinition extends SimpleResourceDefinition
     private static final AbstractAddStepHandler ADD = new AddHandler();
     private static final OperationStepHandler REMOVE = new RemoveHandler(ADD);
 
-    SecurityDomainSaslConfigurationDefinition() {
+    private SecurityDomainSaslConfigurationDefinition() {
         super(new Parameters(PathElement.pathElement(ElytronDescriptionConstants.SECURITY_DOMAIN_SASL_CONFIGURATION),
                 ElytronExtension.getResourceDescriptionResolver(ElytronDescriptionConstants.SECURITY_DOMAIN_SASL_CONFIGURATION))
         .setAddHandler(ADD)
@@ -86,12 +89,28 @@ class SecurityDomainSaslConfigurationDefinition extends SimpleResourceDefinition
         .setRemoveRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES));
     }
 
+    static ResourceDefinition create() {
+        return wrap(new SecurityDomainSaslConfigurationDefinition(), SecurityDomainSaslConfigurationDefinition::getSaslServerFactory);
+    }
+
     @Override
     public void registerAttributes(ManagementResourceRegistration resourceRegistration) {
         WriteAttributeHandler write = new WriteAttributeHandler();
         for (AttributeDefinition current : ATTRIBUTES) {
             resourceRegistration.registerReadWriteAttribute(current, null, write);
         }
+    }
+
+    private static SaslServerFactory getSaslServerFactory(OperationContext context) throws OperationFailedException {
+        RuntimeCapability<Void> runtimeCapability = SECURITY_DOMAIN_SASL_CONFIGURATION_RUNTIME_CAPABILITY.fromBaseCapability(context.getCurrentAddressValue());
+        ServiceName securityDomainSaslConfigurationName = runtimeCapability.getCapabilityServiceName(SecurityDomainSaslConfiguration.class);
+
+        @SuppressWarnings("unchecked")
+        ServiceController<SecurityDomainSaslConfiguration> serviceContainer = (ServiceController<SecurityDomainSaslConfiguration>) context.getServiceRegistry(false).getRequiredService(securityDomainSaslConfigurationName);
+        if (serviceContainer.getState() != State.UP) {
+            return null;
+        }
+        return serviceContainer.getValue().getSaslServerFactory();
     }
 
     private static class AddHandler extends AbstractAddStepHandler {

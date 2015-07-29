@@ -41,6 +41,7 @@ interface ElytronDescriptionConstants {
     String AUTHENTICATION_LEVEL = "authentication-level";
     String AUTHENTICATION_REALM = "authentication-realm";
     String AUTHORIZATION_REALM = "authorization-realm";
+    String AVAILABLE_MECHANISMS = "available-mechanisms";
     String BCRYPT_MAPPER = "bcrypt-mapper";
     String CERTIFICATE = "certificate";
     String CERTIFICATES = "certificates";
