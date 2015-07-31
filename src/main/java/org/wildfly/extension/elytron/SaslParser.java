@@ -28,7 +28,6 @@ import static org.jboss.as.controller.parsing.ParseUtils.requireNoContent;
 import static org.jboss.as.controller.parsing.ParseUtils.requireSingleAttribute;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedAttribute;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedElement;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AGGREGATE_NAME_REWRITER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AGGREGATE_SASL_SERVER_FACTORY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CONFIGURABLE_SASL_SERVER_FACTORY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ENABLING;
@@ -240,7 +239,7 @@ class SaslParser {
             throw missingRequired(reader, requiredAttributes);
         }
 
-        addOperation.get(OP_ADDR).set(parentAddress).add(SECURITY_DOMAIN_SASL_CONFIGURATION, name);
+        addOperation.get(OP_ADDR).set(parentAddress).add(CONFIGURABLE_SASL_SERVER_FACTORY, name);
 
         while (reader.hasNext() && reader.nextTag() != END_ELEMENT) {
             verifyNamespace(reader);
@@ -315,7 +314,6 @@ class SaslParser {
                     requireSingleAttribute(reader, VALUE);
                     value = reader.getAttributeValue(0);
                     SaslServerDefinitions.PATTERN_FILTER.parseAndSetParameter(value, filter, reader);
-                    requireNoContent(reader);
                     requireNoContent(reader);
                     break;
                 default:
@@ -413,7 +411,7 @@ class SaslParser {
             throw missingRequired(reader, requiredAttributes);
         }
 
-        addOperation.get(OP_ADDR).set(parentAddress).add(SECURITY_DOMAIN_SASL_CONFIGURATION, name);
+        addOperation.get(OP_ADDR).set(parentAddress).add(MECHANISM_PROVIDER_FILTERING_SASL_SERVER_FACTORY, name);
 
         while (reader.hasNext() && reader.nextTag() != END_ELEMENT) {
             verifyNamespace(reader);
@@ -422,7 +420,15 @@ class SaslParser {
             switch (localName) {
                 case FILTERS:
                     ModelNode filters = addOperation.get(FILTERS);
-                    parseMechanismProviderFilter(filters, reader);
+                    requireNoAttributes(reader);
+
+                    while (reader.hasNext() && reader.nextTag() != END_ELEMENT) {
+                        verifyNamespace(reader);
+                        if (FILTER.equals(reader.getLocalName()) == false) {
+                            throw unexpectedElement(reader);
+                        }
+                        parseMechanismProviderFilter(filters, reader);
+                    }
                     break;
                 default:
                     throw unexpectedElement(reader);
@@ -436,8 +442,6 @@ class SaslParser {
         ModelNode filter = new ModelNode();
 
         Set<String> requiredAttributes = new HashSet<String>(Arrays.asList(new String[] { PROVIDER_NAME }));
-
-        String name = null;
 
         final int count = reader.getAttributeCount();
         for (int i = 0; i < count; i++) {
@@ -600,8 +604,8 @@ class SaslParser {
     private boolean writeConfigurableSaslServerFactory(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (subsystem.hasDefined(CONFIGURABLE_SASL_SERVER_FACTORY)) {
             startSasl(started, writer);
-            List<Property> nameRewriters = subsystem.require(CONFIGURABLE_SASL_SERVER_FACTORY).asPropertyList();
-            for (Property current : nameRewriters) {
+            List<Property> saslServerFactories = subsystem.require(CONFIGURABLE_SASL_SERVER_FACTORY).asPropertyList();
+            for (Property current : saslServerFactories) {
                 ModelNode serverFactory = current.getValue();
                 writer.writeStartElement(CONFIGURABLE_SASL_SERVER_FACTORY);
                 writer.writeAttribute(NAME, current.getName());
@@ -638,12 +642,12 @@ class SaslParser {
     }
 
     private boolean writeMechanismProviderFilteringSaslServerFactory(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
-        if (subsystem.hasDefined(CONFIGURABLE_SASL_SERVER_FACTORY)) {
+        if (subsystem.hasDefined(MECHANISM_PROVIDER_FILTERING_SASL_SERVER_FACTORY)) {
             startSasl(started, writer);
-            List<Property> nameRewriters = subsystem.require(CONFIGURABLE_SASL_SERVER_FACTORY).asPropertyList();
-            for (Property current : nameRewriters) {
+            List<Property> saslServerFactories = subsystem.require(MECHANISM_PROVIDER_FILTERING_SASL_SERVER_FACTORY).asPropertyList();
+            for (Property current : saslServerFactories) {
                 ModelNode serverFactory = current.getValue();
-                writer.writeStartElement(CONFIGURABLE_SASL_SERVER_FACTORY);
+                writer.writeStartElement(MECHANISM_PROVIDER_FILTERING_SASL_SERVER_FACTORY);
                 writer.writeAttribute(NAME, current.getName());
                 SaslServerDefinitions.ENABLING.marshallAsAttribute(serverFactory, writer);
                 SaslServerDefinitions.SASL_SERVER_FACTORY.marshallAsAttribute(serverFactory, writer);
@@ -689,7 +693,7 @@ class SaslParser {
     private boolean writeServiceLoaderFilteringSaslServerFactory(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (subsystem.hasDefined(SERVICE_LOADER_SASL_SERVER_FACTORY)) {
             startSasl(started, writer);
-            List<Property> nameRewriters = subsystem.require(AGGREGATE_NAME_REWRITER).asPropertyList();
+            List<Property> nameRewriters = subsystem.require(SERVICE_LOADER_SASL_SERVER_FACTORY).asPropertyList();
             for (Property current : nameRewriters) {
                 ModelNode serverFactory = current.getValue();
                 writer.writeStartElement(SERVICE_LOADER_SASL_SERVER_FACTORY);

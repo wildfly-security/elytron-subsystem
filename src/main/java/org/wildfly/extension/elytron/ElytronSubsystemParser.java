@@ -116,6 +116,7 @@ class ElytronSubsystemParser implements XMLElementReader<List<ModelNode>>, XMLEl
                     break;
                 case SASL:
                     saslParser.readSasl(parentAddress, reader, operations);
+                    break;
                 case TLS:
                     readTls(parentAddress, reader, operations);
                     break;
@@ -371,6 +372,7 @@ class ElytronSubsystemParser implements XMLElementReader<List<ModelNode>>, XMLEl
 
         realmParser.writeRealms(model, writer);
         mapperParser.writeMappers(model, writer);
+        saslParser.writeSasl(model, writer);
 
         boolean hasTlsContent = false;
         boolean hasKeyStore = model.hasDefined(KEYSTORE);

@@ -161,6 +161,11 @@ public class SubsystemParsingTestCase extends AbstractSubsystemTest {
     }
 
     @Test
+    public void testParseAndMarshalModel_Sasl() throws Exception {
+        testParseAndMarshalModel("sasl.xml");
+    }
+
+    @Test
     public void testParseAndMarshalModel_Realms() throws Exception {
         testParseAndMarshalModel("security-realms.xml");
     }
