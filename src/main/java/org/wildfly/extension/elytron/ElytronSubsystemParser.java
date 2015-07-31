@@ -39,6 +39,7 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROPERTY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDER_LOADER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDER_LOADERS;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SASL;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SECURITY_DOMAIN;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SECURITY_DOMAINS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SECURITY_PROPERTIES;
@@ -76,6 +77,7 @@ class ElytronSubsystemParser implements XMLElementReader<List<ModelNode>>, XMLEl
     private final TlsParser tlsParser = new TlsParser();
     private final ProviderLoaderParser providerLoaderParser = new ProviderLoaderParser();
     private final MapperParser mapperParser = new MapperParser();
+    private final SaslParser saslParser = new SaslParser();
 
     /**
      * {@inheritDoc}
@@ -112,6 +114,8 @@ class ElytronSubsystemParser implements XMLElementReader<List<ModelNode>>, XMLEl
                 case MAPPERS:
                     mapperParser.readMappers(parentAddress, reader, operations);
                     break;
+                case SASL:
+                    saslParser.readSasl(parentAddress, reader, operations);
                 case TLS:
                     readTls(parentAddress, reader, operations);
                     break;

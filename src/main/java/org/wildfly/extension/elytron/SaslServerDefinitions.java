@@ -138,8 +138,9 @@ class SaslServerDefinitions {
         .setAllowExpression(true)
         .build();
 
-    static final SimpleAttributeDefinition VERSION_COMPARISON = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.VERSION_COMPARISON, ModelType.STRING, true)
+    static final SimpleAttributeDefinition VERSION_COMPARISON = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.VERSION_COMPARISON, ModelType.STRING, false)
         .setAllowExpression(true)
+        .setDefaultValue(new ModelNode(ElytronDescriptionConstants.LESS_THAN))
         .setRequires(ElytronDescriptionConstants.PROVIDER_VERSION)
         .setAllowedValues(ElytronDescriptionConstants.LESS_THAN, ElytronDescriptionConstants.GREATER_THAN)
         .setValidator(EnumValidator.create(Comparison.class, true, true))
@@ -177,6 +178,7 @@ class SaslServerDefinitions {
 
     static final SimpleAttributeDefinition PREDEFINED_FILTER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PREDEFINED_FILTER, ModelType.STRING, true)
         .setAllowExpression(true)
+        .setXmlName(VALUE)
         .setAllowedValues(NamePredicate.names())
         .setValidator(EnumValidator.create(NamePredicate.class, true, true))
         .setMinSize(1)
@@ -185,6 +187,7 @@ class SaslServerDefinitions {
         .build();
 
     static final SimpleAttributeDefinition PATTERN_FILTER = new SimpleAttributeDefinitionBuilder(RegexAttributeDefinitions.PATTERN)
+        .setXmlName(VALUE)
         .setName(ElytronDescriptionConstants.PATTERN_FILTER)
         .setAlternatives(ElytronDescriptionConstants.PREDEFINED_FILTER)
         .build();
@@ -207,7 +210,7 @@ class SaslServerDefinitions {
         return wrap(AGGREGATE_SASL_SERVER_FACTORY, SaslServerDefinitions::getSaslServerFactory);
     }
 
-    static ResourceDefinition getConfiguredSaslServerFactoryDefinition() {
+    static ResourceDefinition getConfigurableSaslServerFactoryDefinition() {
         AttributeDefinition[] attributes = new AttributeDefinition[] { SASL_SERVER_FACTORY, SERVER_NAME, PROTOCOL, PROPERTIES, CONFIGURED_FILTERS };
         AbstractAddStepHandler add = new SaslServerAddHander(attributes) {
 
@@ -460,7 +463,7 @@ class SaslServerDefinitions {
             ServiceName saslServerFactoryName = runtimeCapability.getCapabilityServiceName(SaslServerFactory.class);
 
             commonDependencies(installService(context, saslServerFactoryName, model))
-                .setInitialMode(Mode.LAZY)
+                .setInitialMode(Mode.ACTIVE)
                 .install();
         }
 

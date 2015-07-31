@@ -35,6 +35,7 @@
             <xs:element name="security-domains" type="securityDomainsType" minOccurs="0" />
             <xs:element name="security-realms" type="realmsType" minOccurs="0" />
             <xs:element name="mappers" type="mappersType" minOccurs="0" />
+            <xs:element name="sasl" type="saslType" minOccurs="0" />
             <xs:element name="tls" type="tlsType" minOccurs="0" />
         </xs:sequence>
     </xs:complexType>
@@ -1514,6 +1515,359 @@
         </xs:attribute>
     </xs:complexType>
 
+    <!-- 
+        SASL Components
+     -->
+
+    <xs:complexType name="saslType">
+        <xs:annotation>
+            <xs:documentation>
+                Complex type definition type to hold the various SASL definitions within the subsystem. 
+            </xs:documentation>
+        </xs:annotation>
+        <xs:choice maxOccurs="unbounded">
+            <xs:element name="security-domain-sasl-configuration" type="securityDomainSaslConfigurationType" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="aggregate-sasl-server-factory" type="aggregateSaslServerFactoryType" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="configurable-sasl-server-factory" type="configurableSaslServerFactoryType" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="mechanism-provider-filtering-sasl-server-factory" type="mechanismProviderFilteringSaslServerFactoryType" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="provider-sasl-server-factory" type="providerSaslServerFactoryType" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="service-loader-sasl-server-factory" type="serviceLoaderSaslServerFactoryType" minOccurs="0" maxOccurs="unbounded" />
+         </xs:choice>
+    </xs:complexType>
+
+    <xs:complexType name="securityDomainSaslConfigurationType">
+        <xs:annotation>
+            <xs:documentation>
+                Complex type for the definition of a security domain / sasl server factory association.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="name" type="xs:string" use="required" />
+        <xs:attribute name="security-domain" type="xs:string" use="required">
+            <xs:annotation>
+                <xs:documentation>
+                    The security-domain referenced by this resource.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="sasl-server-factory" type="xs:string" use="required">
+            <xs:annotation>
+                <xs:documentation>
+                    The sasl-server-factory referenced by this resource.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="saslServerFactoryType" abstract="true">
+        <xs:annotation>
+            <xs:documentation>
+                Base type for all sasl server factory definitions.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="name" type="xs:string" use="required">
+            <xs:annotation>
+                <xs:documentation>
+                    The unique name for the sasl server factory, note names used for sasl server factories must be unique across the whole context.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="aggregateSaslServerFactoryType">
+        <xs:annotation>
+            <xs:documentation>
+                A NameRewriter definition that is actually an aggregation of other NameRewriters.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="saslServerFactoryType">
+                <xs:sequence>
+                    <xs:element name="sasl-server-factory" type="saslServerFactoryRefType" minOccurs="2" maxOccurs="unbounded" />
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="configurableSaslServerFactoryType">
+        <xs:annotation>
+            <xs:documentation>
+                A SaslServerFactory definition that wraps another SaslServerFactory and applies the specified configuration and filtering.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="saslServerFactoryType">
+                <xs:sequence>
+                    <xs:element name="filters" minOccurs="0">
+                        <xs:annotation>
+                            <xs:documentation>
+                                Filters to be applied to the available mechanisms by name.
+                            </xs:documentation>
+                        </xs:annotation>
+                        <xs:complexType>
+                            <xs:sequence>
+                                <xs:element name="filters" maxOccurs="unbounded">
+                                    <xs:complexType>
+                                        <xs:choice>
+                                            <xs:element name="predefined-filter">
+                                                <xs:annotation>
+                                                    <xs:documentation>
+                                                        A predefined filter to filter mechanisms.
+                                                    </xs:documentation>
+                                                </xs:annotation>
+                                                <xs:complexType>
+                                                    <xs:attribute name="value" type="predefinedFilterType" use="required">
+                                                        <xs:annotation>
+                                                            <xs:documentation>
+                                                                The name of the predefined filter.
+                                                            </xs:documentation>
+                                                        </xs:annotation>
+                                                    </xs:attribute>
+                                                </xs:complexType>
+                                            </xs:element>
+                                            <xs:element name="pattern-filter">
+                                                <xs:annotation>
+                                                    <xs:documentation>
+                                                        A fiter that filters mechanism names using a regular expression pattern.
+                                                    </xs:documentation>
+                                                </xs:annotation>
+                                                <xs:complexType>
+                                                    <xs:attribute name="value" type="xs:string" use="required">
+                                                        <xs:annotation>
+                                                            <xs:documentation>
+                                                                The regular expression.
+                                                            </xs:documentation>
+                                                        </xs:annotation>
+                                                    </xs:attribute>
+                                                </xs:complexType>
+                                            </xs:element>
+                                        </xs:choice>
+                                        <xs:attribute name="enabling" type="xs:boolean" default="true">
+                                            <xs:annotation>
+                                                <xs:documentation>
+                                                    When set to true all mechanisms are disabled unless enabled by matching one of the defined fiters.
+                                                    
+                                                    When set to false all mechanisms are enabled unless disabled by matching one of the defined filters.
+                                                </xs:documentation>
+                                            </xs:annotation>
+                                        </xs:attribute>
+                                    </xs:complexType>
+                                </xs:element>
+                            </xs:sequence>
+                        </xs:complexType>
+                    </xs:element>
+                    <xs:element name="properties" minOccurs="0">
+                        <xs:annotation>
+                            <xs:documentation>
+                                Additional properties that should be passed to the factor for SASL mechanism detection and creation.
+                            </xs:documentation>
+                        </xs:annotation>
+                        <xs:complexType>
+                            <xs:sequence>
+                                <xs:element name="property" type="propertyType" maxOccurs="unbounded" />
+                            </xs:sequence>
+                        </xs:complexType>
+                    </xs:element>
+                </xs:sequence>
+                <xs:attribute name="sasl-server-factory" type="xs:string" use="required">
+                    <xs:annotation>
+                        <xs:documentation>
+                            Reference to the SaslServerFactory to be wrapped by this configuration.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+                <xs:attribute name="protocol" type="xs:string">
+                    <xs:annotation>
+                        <xs:documentation>
+                            Override the protocol specifed when creating a SASL mechanism.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+                <xs:attribute name="server-name" type="xs:string">
+                    <xs:annotation>
+                        <xs:documentation>
+                            Override the server name specified when creating a SASL mechanism.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:simpleType name="predefinedFilterType">
+        <xs:annotation>
+            <xs:documentation>
+                The supported set of predefined filters.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="HASH_MD5" />
+            <xs:enumeration value="HASH_SHA" />
+            <xs:enumeration value="HASH_SHA_256" />
+            <xs:enumeration value="HASH_SHA_384" />
+            <xs:enumeration value="HASH_SHA_512" />
+            <xs:enumeration value="GS2" />
+            <xs:enumeration value="SCRAM" />
+            <xs:enumeration value="DIGEST" />
+            <xs:enumeration value="IEC_ISO_9798" />
+            <xs:enumeration value="EAP" />
+            <xs:enumeration value="MUTUAL" />
+            <xs:enumeration value="BINDING" />
+            <xs:enumeration value="RECOMMENDED" />
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:complexType name="mechanismProviderFilteringSaslServerFactoryType">
+        <xs:annotation>
+            <xs:documentation>
+                A SaslServerFactory definition that wraps another SaslServerFactory and enables filtering of mechanisms based on the mechanism name and Provider name and version.
+                
+                Any mechanisms loaded by factories not located using a Provider will not be filtered by this definition.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="saslServerFactoryType">
+                <xs:sequence>
+                    <xs:element name="filters" minOccurs="0">
+                        <xs:annotation>
+                            <xs:documentation>
+                                Filters to be applied to the available mechanisms by name.
+                            </xs:documentation>
+                        </xs:annotation>
+                        <xs:complexType>
+                            <xs:sequence>
+                                <xs:element name="filter" maxOccurs="unbounded">
+                                    <xs:complexType>
+                                        <xs:attribute name="mechanism-name" type="xs:string">
+                                            <xs:annotation>
+                                                <xs:documentation>
+                                                    The name of the mechanism this filter matches, if omited all names match.
+                                                </xs:documentation>
+                                            </xs:annotation>
+                                        </xs:attribute>
+                                        <xs:attribute name="provider-name" type="xs:string" use="required">
+                                            <xs:annotation>
+                                                <xs:documentation>
+                                                    The name of the provider to match against.
+                                                </xs:documentation>
+                                            </xs:annotation>
+                                        </xs:attribute>
+                                        <xs:attribute name="provider-version" type="xs:double">
+                                            <xs:annotation>
+                                                <xs:documentation>
+                                                    Version to compare agasint the version reported by the provider.
+                                                </xs:documentation>
+                                            </xs:annotation>
+                                        </xs:attribute>
+                                        <xs:attribute name="version-comparison" type="inequalityType" default="less-than">
+                                            <xs:annotation>
+                                                <xs:documentation>
+                                                    When set to 'less-than' a Provider will match against the filter if the Provider's version is less-than the version specified here.
+
+                                                    Setting to 'greater-than' has the opposite effect.
+
+                                                    Has no effect if a provider-version has not been specified in the filter.
+                                                </xs:documentation>
+                                            </xs:annotation>
+                                        </xs:attribute>
+                                    </xs:complexType>
+                                </xs:element>
+                            </xs:sequence>
+                        </xs:complexType>
+                    </xs:element>
+                </xs:sequence>
+                <xs:attribute name="sasl-server-factory" type="xs:string" use="required">
+                    <xs:annotation>
+                        <xs:documentation>
+                            Reference to the SaslServerFactory to be wrapped by this configuration.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+                <xs:attribute name="enabling" type="xs:boolean" default="true">
+                    <xs:annotation>
+                        <xs:documentation>
+                            When set to true all provider loaded mechanisms are disabled unless macthed by one of the filters defined here.
+                            
+                            When set to false all provider loaded mechanisms are enabled unless matched.
+                            
+                            Any mechansims from a factory not loaded by a Provider are unaffected.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:simpleType name="inequalityType">
+        <xs:annotation>
+            <xs:documentation>
+                The type of equality check to use in a comparison.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="less-than" />
+            <xs:enumeration value="greater-than" />
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:complexType name="providerSaslServerFactoryType">
+        <xs:annotation>
+            <xs:documentation>
+                A SaslServerFactory definition that searches an array of Provider instances for all availabel SaslServerFactories.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="saslServerFactoryType">
+                <xs:attribute name="provider-loader" type="xs:string">
+                    <xs:annotation>
+                        <xs:documentation>
+                            Reference to the Provider[] capability to obtain the array of Providers to use.
+                            
+                            If not specified the system registered Providers are used instead.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="serviceLoaderSaslServerFactoryType">
+        <xs:annotation>
+            <xs:documentation>
+                A SaslServerFactory definition that uses a ServiceLoader to search for SaslServerFactory implementations.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="saslServerFactoryType">
+                <xs:attribute name="module" type="xs:string" use="optional">
+                    <xs:annotation>
+                        <xs:documentation>
+                            The name of the module to use.
+
+                            If this is not specified the ClassLoader used to load the service will be used instead.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+                <xs:attribute name="slot" type="xs:string" use="optional">
+                    <xs:annotation>
+                        <xs:documentation>
+                            The slot of the module to use to load the providers.
+
+                            This will only be required in rare situations where a single module is defined with multiple slots.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    
+    <xs:complexType name="saslServerFactoryRefType">
+        <xs:annotation>
+            <xs:documentation>
+                A reference to a SaslServerFactory
+            </xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="name" type="xs:string" use="required" />
+    </xs:complexType>
 
     <!--
         TLS Components
