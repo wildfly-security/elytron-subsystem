@@ -85,6 +85,11 @@ class RoleDecoderDefinitions {
             resourceRegistration.registerReadWriteAttribute(ATTRIBUTE, null, new WriteAttributeHandler(ElytronDescriptionConstants.SIMPLE_ROLE_DECODER, ATTRIBUTE));
         }
 
+        @Override
+        public void registerCapabilities(ManagementResourceRegistration resourceRegistration) {
+            resourceRegistration.registerCapability(ROLE_DECODER_RUNTIME_CAPABILITY);
+        }
+
     }
 
     private static class SimpleRoleDecoderAddHandler extends AbstractAddStepHandler {

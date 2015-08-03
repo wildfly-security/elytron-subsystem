@@ -192,6 +192,11 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
         }
     }
 
+    @Override
+    public void registerCapabilities(ManagementResourceRegistration resourceRegistration) {
+        resourceRegistration.registerCapability(SECURITY_REALM_RUNTIME_CAPABILITY);
+    }
+
     private static class RealmAddHandler extends AbstractAddStepHandler {
 
         public static final String CONNECTION_POOLING_PROPERTY = "com.sun.jndi.ldap.connect.pool";

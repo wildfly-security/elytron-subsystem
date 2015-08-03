@@ -131,6 +131,11 @@ class RealmMapperDefinitions {
             }
         }
 
+        @Override
+        public void registerCapabilities(ManagementResourceRegistration resourceRegistration) {
+            resourceRegistration.registerCapability(REALM_MAPPER_RUNTIME_CAPABILITY);
+        }
+
     }
 
     private static class SimpleRegexRealmMapperAddHandler extends AbstractAddStepHandler {
@@ -198,6 +203,11 @@ class RealmMapperDefinitions {
             for (AttributeDefinition current : ATTRIBUTES) {
                 resourceRegistration.registerReadWriteAttribute(current, null, write);
             }
+        }
+
+        @Override
+        public void registerCapabilities(ManagementResourceRegistration resourceRegistration) {
+            resourceRegistration.registerCapability(REALM_MAPPER_RUNTIME_CAPABILITY);
         }
 
     }

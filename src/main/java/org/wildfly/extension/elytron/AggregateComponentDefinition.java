@@ -53,9 +53,10 @@ class AggregateComponentDefinition<T> extends SimpleResourceDefinition {
 
     private final ListAttributeDefinition aggregateReferences;
     private final OperationStepHandler attributeWriteHandler;
+    private final RuntimeCapability<?> runtimeCapability;
 
     private AggregateComponentDefinition(Class<T> classType, String pathKey, OperationStepHandler addHandler, OperationStepHandler removeHandler,
-            ListAttributeDefinition aggregateReferences, OperationStepHandler attributeWriteHandler) {
+            ListAttributeDefinition aggregateReferences, OperationStepHandler attributeWriteHandler, RuntimeCapability<?> runtimeCapability) {
         super(new Parameters(PathElement.pathElement(pathKey), ElytronExtension.getResourceDescriptionResolver(pathKey))
             .setAddHandler(addHandler)
             .setRemoveHandler(removeHandler)
@@ -64,6 +65,7 @@ class AggregateComponentDefinition<T> extends SimpleResourceDefinition {
 
         this.aggregateReferences = aggregateReferences;
         this.attributeWriteHandler = attributeWriteHandler;
+        this.runtimeCapability = runtimeCapability;
     }
 
     ListAttributeDefinition getReferencesAttribute() {
@@ -76,6 +78,14 @@ class AggregateComponentDefinition<T> extends SimpleResourceDefinition {
     @Override
     public void registerAttributes(ManagementResourceRegistration resourceRegistration) {
         resourceRegistration.registerReadWriteAttribute(aggregateReferences, null, attributeWriteHandler);
+    }
+
+    /**
+     * @see org.jboss.as.controller.SimpleResourceDefinition#registerCapabilities(org.jboss.as.controller.registry.ManagementResourceRegistration)
+     */
+    @Override
+    public void registerCapabilities(ManagementResourceRegistration resourceRegistration) {
+        resourceRegistration.registerCapability(runtimeCapability);
     }
 
     static <T> AggregateComponentDefinition<T> create(Class<T> aggregationType, String componentName, String referencesName, RuntimeCapability<?> runtimeCapability, Function<T[], T> aggregator) {
@@ -91,7 +101,7 @@ class AggregateComponentDefinition<T> extends SimpleResourceDefinition {
         OperationStepHandler remove = new AggregateComponentRemoveHandler<T>(add, runtimeCapability, aggregationType);
         OperationStepHandler write = new WriteAttributeHandler<T>(aggregationType, runtimeCapability, componentName, aggregateReferences);
 
-        return new AggregateComponentDefinition<T>(aggregationType, componentName, add, remove, aggregateReferences, write);
+        return new AggregateComponentDefinition<T>(aggregationType, componentName, add, remove, aggregateReferences, write, runtimeCapability);
     }
 
     private static class AggregateComponentAddHandler<T> extends AbstractAddStepHandler {

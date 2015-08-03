@@ -101,6 +101,11 @@ class SecurityDomainSaslConfigurationDefinition extends SimpleResourceDefinition
         }
     }
 
+    @Override
+    public void registerCapabilities(ManagementResourceRegistration resourceRegistration) {
+        resourceRegistration.registerCapability(SECURITY_DOMAIN_SASL_CONFIGURATION_RUNTIME_CAPABILITY);
+    }
+
     private static SaslServerFactory getSaslServerFactory(OperationContext context) throws OperationFailedException {
         RuntimeCapability<Void> runtimeCapability = SECURITY_DOMAIN_SASL_CONFIGURATION_RUNTIME_CAPABILITY.fromBaseCapability(context.getCurrentAddressValue());
         ServiceName securityDomainSaslConfigurationName = runtimeCapability.getCapabilityServiceName(SecurityDomainSaslConfiguration.class);

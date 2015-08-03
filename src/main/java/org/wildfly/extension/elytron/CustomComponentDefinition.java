@@ -119,6 +119,11 @@ class CustomComponentDefinition<T> extends SimpleResourceDefinition {
         }
     }
 
+    @Override
+    public void registerCapabilities(ManagementResourceRegistration resourceRegistration) {
+        resourceRegistration.registerCapability(runtimeCapability);
+    }
+
     private static class ComponentAddHandler<T> extends AbstractAddStepHandler {
 
         private final RuntimeCapability<Void> runtimeCapability;

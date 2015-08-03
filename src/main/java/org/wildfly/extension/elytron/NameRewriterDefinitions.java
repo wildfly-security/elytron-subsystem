@@ -144,6 +144,12 @@ class NameRewriterDefinitions {
                 resourceRegistration.registerReadWriteAttribute(current, null, write);
             }
         }
+
+        @Override
+        public void registerCapabilities(ManagementResourceRegistration resourceRegistration) {
+            resourceRegistration.registerCapability(NAME_REWRITER_RUNTIME_CAPABILITY);
+        }
+
     }
 
     private static class RegexNameValidatingRewriterDefinition extends SimpleResourceDefinition {
@@ -182,6 +188,10 @@ class NameRewriterDefinitions {
             }
         }
 
+        @Override
+        public void registerCapabilities(ManagementResourceRegistration resourceRegistration) {
+            resourceRegistration.registerCapability(NAME_REWRITER_RUNTIME_CAPABILITY);
+        }
     }
 
     private static class ConstantNameRewriterDefinition extends SimpleResourceDefinition {
@@ -211,6 +221,11 @@ class NameRewriterDefinitions {
         @Override
         public void registerAttributes(ManagementResourceRegistration resourceRegistration) {
                 resourceRegistration.registerReadWriteAttribute(CONSTANT, null, new WriteAttributeHandler(ElytronDescriptionConstants.CONSTANT_NAME_REWRITER, CONSTANT) );
+        }
+
+        @Override
+        public void registerCapabilities(ManagementResourceRegistration resourceRegistration) {
+            resourceRegistration.registerCapability(NAME_REWRITER_RUNTIME_CAPABILITY);
         }
 
     }

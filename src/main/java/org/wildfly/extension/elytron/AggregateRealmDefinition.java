@@ -89,6 +89,14 @@ class AggregateRealmDefinition extends SimpleResourceDefinition {
         }
     }
 
+    /**
+     * @see org.jboss.as.controller.SimpleResourceDefinition#registerCapabilities(org.jboss.as.controller.registry.ManagementResourceRegistration)
+     */
+    @Override
+    public void registerCapabilities(ManagementResourceRegistration resourceRegistration) {
+        resourceRegistration.registerCapability(SECURITY_REALM_RUNTIME_CAPABILITY);
+    }
+
     private static class RealmAddHandler extends AbstractAddStepHandler {
 
         private RealmAddHandler() {

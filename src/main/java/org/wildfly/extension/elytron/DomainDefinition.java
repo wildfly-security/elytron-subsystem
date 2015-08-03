@@ -191,6 +191,11 @@ class DomainDefinition extends SimpleResourceDefinition {
     }
 
     @Override
+    public void registerCapabilities(ManagementResourceRegistration resourceRegistration) {
+        resourceRegistration.registerCapability(SECURITY_DOMAIN_RUNTIME_CAPABILITY);
+    }
+
+    @Override
     public void registerOperations(ManagementResourceRegistration resourceRegistration) {
         super.registerOperations(resourceRegistration);
         registerAuthenticatorOperationHandler(resourceRegistration);

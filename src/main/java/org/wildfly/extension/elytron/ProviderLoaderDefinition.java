@@ -113,6 +113,11 @@ class ProviderLoaderDefinition extends SimpleResourceDefinition {
     }
 
     @Override
+    public void registerCapabilities(ManagementResourceRegistration resourceRegistration) {
+        resourceRegistration.registerCapability(PROVIDERS_RUNTIME_CAPABILITY);
+    }
+
+    @Override
     public void registerOperations(ManagementResourceRegistration resourceRegistration) {
         super.registerOperations(resourceRegistration);
         // We needed a custom add operation so we could specify the parameters.

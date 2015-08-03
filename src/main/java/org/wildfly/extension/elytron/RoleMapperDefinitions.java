@@ -216,6 +216,11 @@ class RoleMapperDefinitions {
              }
         }
 
+        @Override
+        public void registerCapabilities(ManagementResourceRegistration resourceRegistration) {
+            resourceRegistration.registerCapability(ROLE_MAPPER_RUNTIME_CAPABILITY);
+        }
+
     }
 
     private static class RoleMapperAddHander extends AbstractAddStepHandler {

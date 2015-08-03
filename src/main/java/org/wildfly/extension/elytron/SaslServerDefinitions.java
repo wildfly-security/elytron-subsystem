@@ -447,6 +447,11 @@ class SaslServerDefinitions {
              }
         }
 
+        @Override
+        public void registerCapabilities(ManagementResourceRegistration resourceRegistration) {
+            resourceRegistration.registerCapability(SASL_SERVER_FACTORY_RUNTIME_CAPABILITY);
+        }
+
     }
 
     private static class SaslServerAddHander extends AbstractAddStepHandler {

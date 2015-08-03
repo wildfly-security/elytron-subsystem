@@ -222,6 +222,11 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
     }
 
     @Override
+    public void registerCapabilities(ManagementResourceRegistration resourceRegistration) {
+        resourceRegistration.registerCapability(KEY_STORE_RUNTIME_CAPABILITY);
+    }
+
+    @Override
     public void registerOperations(ManagementResourceRegistration resourceRegistration) {
         super.registerOperations(resourceRegistration);
         // Create Key Pair / Certificate (Is this a special op or on a resource?)
