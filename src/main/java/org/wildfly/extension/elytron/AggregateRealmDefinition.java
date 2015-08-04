@@ -96,7 +96,7 @@ class AggregateRealmDefinition extends SimpleResourceDefinition {
         resourceRegistration.registerCapability(SECURITY_REALM_RUNTIME_CAPABILITY);
     }
 
-    private static class RealmAddHandler extends AbstractAddStepHandler {
+    private static class RealmAddHandler extends BaseAddHandler {
 
         private RealmAddHandler() {
             super(SECURITY_REALM_RUNTIME_CAPABILITY, ATTRIBUTES);

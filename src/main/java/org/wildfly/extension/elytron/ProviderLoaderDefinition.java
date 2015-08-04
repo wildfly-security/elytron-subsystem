@@ -136,7 +136,7 @@ class ProviderLoaderDefinition extends SimpleResourceDefinition {
 
     }
 
-    private static class ProviderAddHandler extends AbstractAddStepHandler {
+    private static class ProviderAddHandler extends BaseAddHandler {
 
         ProviderAddHandler() {
             super(PROVIDERS_RUNTIME_CAPABILITY, REGISTER, PROVIDERS);

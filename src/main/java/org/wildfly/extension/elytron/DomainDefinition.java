@@ -34,7 +34,6 @@ import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.RO
 
 import java.util.List;
 
-import org.jboss.as.controller.AbstractAddStepHandler;
 import org.jboss.as.controller.AttributeDefinition;
 import org.jboss.as.controller.ObjectListAttributeDefinition;
 import org.jboss.as.controller.ObjectTypeAttributeDefinition;
@@ -323,7 +322,7 @@ class DomainDefinition extends SimpleResourceDefinition {
         domainBuilder.addDependency(roleDecoderServiceName, RoleDecoder.class, injector);
     }
 
-    private static class DomainAddHandler extends AbstractAddStepHandler {
+    private static class DomainAddHandler extends BaseAddHandler {
 
         private DomainAddHandler() {
             super(SECURITY_DOMAIN_RUNTIME_CAPABILITY, ATTRIBUTES);

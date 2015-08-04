@@ -453,7 +453,7 @@ class SaslServerDefinitions {
 
     }
 
-    private static class SaslServerAddHander extends AbstractAddStepHandler {
+    private static class SaslServerAddHander extends BaseAddHandler {
 
 
         private SaslServerAddHander(AttributeDefinition ... attributes) {

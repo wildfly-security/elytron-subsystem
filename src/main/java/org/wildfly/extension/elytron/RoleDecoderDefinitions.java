@@ -90,7 +90,7 @@ class RoleDecoderDefinitions {
 
     }
 
-    private static class SimpleRoleDecoderAddHandler extends AbstractAddStepHandler {
+    private static class SimpleRoleDecoderAddHandler extends BaseAddHandler {
 
         private SimpleRoleDecoderAddHandler() {
             super(ROLE_DECODER_RUNTIME_CAPABILITY, ATTRIBUTE);

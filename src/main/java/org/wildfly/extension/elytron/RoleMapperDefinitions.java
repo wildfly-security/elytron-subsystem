@@ -222,7 +222,7 @@ class RoleMapperDefinitions {
 
     }
 
-    private static class RoleMapperAddHander extends AbstractAddStepHandler {
+    private static class RoleMapperAddHander extends BaseAddHandler {
 
 
         private RoleMapperAddHander(AttributeDefinition ... attributes) {

@@ -123,7 +123,7 @@ class CustomComponentDefinition<T> extends SimpleResourceDefinition {
         resourceRegistration.registerCapability(runtimeCapability);
     }
 
-    private static class ComponentAddHandler<T> extends AbstractAddStepHandler {
+    private static class ComponentAddHandler<T> extends BaseAddHandler {
 
         private final RuntimeCapability<Void> runtimeCapability;
         private final Class<T> serviceType;

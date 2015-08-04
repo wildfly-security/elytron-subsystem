@@ -103,7 +103,7 @@ class AggregateComponentDefinition<T> extends SimpleResourceDefinition {
         return new AggregateComponentDefinition<T>(aggregationType, componentName, add, remove, aggregateReferences, write, runtimeCapability);
     }
 
-    private static class AggregateComponentAddHandler<T> extends AbstractAddStepHandler {
+    private static class AggregateComponentAddHandler<T> extends BaseAddHandler {
 
         private final Class<T> aggregationType;
         private final Function<T[], T> aggregator;

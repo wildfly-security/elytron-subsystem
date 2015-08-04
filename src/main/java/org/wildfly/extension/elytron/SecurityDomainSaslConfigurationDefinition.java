@@ -117,7 +117,7 @@ class SecurityDomainSaslConfigurationDefinition extends SimpleResourceDefinition
         return serviceContainer.getValue().getSaslServerFactory();
     }
 
-    private static class AddHandler extends AbstractAddStepHandler {
+    private static class AddHandler extends BaseAddHandler {
 
         private AddHandler() {
             super(SECURITY_DOMAIN_SASL_CONFIGURATION_RUNTIME_CAPABILITY, ATTRIBUTES);

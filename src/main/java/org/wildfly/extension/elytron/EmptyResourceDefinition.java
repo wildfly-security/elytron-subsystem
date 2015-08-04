@@ -65,7 +65,7 @@ class EmptyResourceDefinition extends SimpleResourceDefinition {
         resourceRegistration.registerCapability(runtimeCapability);
     }
 
-    private static class ResourceAddHandler<T> extends AbstractAddStepHandler {
+    private static class ResourceAddHandler<T> extends BaseAddHandler {
 
         private final Class<T> valueType;
         private final RuntimeCapability<?> runtimeCapability;

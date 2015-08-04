@@ -42,7 +42,6 @@ import java.security.Provider;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import org.jboss.as.controller.AbstractAddStepHandler;
 import org.jboss.as.controller.AbstractRuntimeOnlyHandler;
 import org.jboss.as.controller.AttributeDefinition;
 import org.jboss.as.controller.OperationContext;
@@ -53,7 +52,6 @@ import org.jboss.as.controller.PathAddress;
 import org.jboss.as.controller.PathElement;
 import org.jboss.as.controller.ResourceDefinition;
 import org.jboss.as.controller.RestartParentWriteAttributeHandler;
-import org.jboss.as.controller.ServiceRemoveStepHandler;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
 import org.jboss.as.controller.SimpleOperationDefinition;
@@ -242,7 +240,7 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
         registerRuntimeResource(resourceRegistration, new KeyStoreAliasDefinition());
     }
 
-    private static class KeyStoreAddHandler extends AbstractAddStepHandler {
+    private static class KeyStoreAddHandler extends BaseAddHandler {
 
         private KeyStoreAddHandler() {
             super(KEY_STORE_RUNTIME_CAPABILITY, CONFIG_ATTRIBUTES);

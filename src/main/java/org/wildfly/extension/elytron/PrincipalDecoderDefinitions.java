@@ -130,7 +130,7 @@ class PrincipalDecoderDefinitions {
 
     }
 
-    private static class PrincipalDecoderAddHander extends AbstractAddStepHandler {
+    private static class PrincipalDecoderAddHander extends BaseAddHandler {
 
 
         private PrincipalDecoderAddHander(AttributeDefinition ... attributes) {

@@ -229,7 +229,7 @@ class NameRewriterDefinitions {
 
     }
 
-    private abstract static class NameRewriterAddHandler extends AbstractAddStepHandler {
+    private abstract static class NameRewriterAddHandler extends BaseAddHandler {
 
         private NameRewriterAddHandler(final AttributeDefinition[] attributes) {
             super(NAME_REWRITER_RUNTIME_CAPABILITY, attributes);

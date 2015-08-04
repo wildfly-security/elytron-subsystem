@@ -137,7 +137,7 @@ class RealmMapperDefinitions {
 
     }
 
-    private static class SimpleRegexRealmMapperAddHandler extends AbstractAddStepHandler {
+    private static class SimpleRegexRealmMapperAddHandler extends BaseAddHandler {
 
         private SimpleRegexRealmMapperAddHandler(final AttributeDefinition[] attributes) {
             super(REALM_MAPPER_RUNTIME_CAPABILITY, attributes);
@@ -211,7 +211,7 @@ class RealmMapperDefinitions {
 
     }
 
-    private static class MappedRegexRealmMapperAddHandler extends AbstractAddStepHandler {
+    private static class MappedRegexRealmMapperAddHandler extends BaseAddHandler {
 
         private MappedRegexRealmMapperAddHandler(final AttributeDefinition[] attributes) {
             super(REALM_MAPPER_RUNTIME_CAPABILITY, attributes);
