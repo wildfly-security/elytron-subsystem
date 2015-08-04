@@ -85,13 +85,13 @@ class ElytronDefinition extends SimpleResourceDefinition {
         resourceRegistration.registerSubModel(new DomainDefinition());
         // Security Realms
         resourceRegistration.registerSubModel(new AggregateRealmDefinition());
-        resourceRegistration.registerSubModel(new CustomComponentDefinition<SecurityRealm>(SecurityRealm.class, SECURITY_REALM_RUNTIME_CAPABILITY, ElytronDescriptionConstants.CUSTOM_REALM));
+        resourceRegistration.registerSubModel(SecurityRealmResourceDecorator.wrap(new CustomComponentDefinition<SecurityRealm>(SecurityRealm.class, SECURITY_REALM_RUNTIME_CAPABILITY, ElytronDescriptionConstants.CUSTOM_REALM)));
         resourceRegistration.registerSubModel(new JaasRealmDefinition());
         resourceRegistration.registerSubModel(new JdbcRealmDefinition());
         resourceRegistration.registerSubModel(new KeyStoreRealmDefinition());
         resourceRegistration.registerSubModel(new PropertiesRealmDefinition());
         resourceRegistration.registerSubModel(new LdapRealmDefinition());
-        resourceRegistration.registerSubModel(new FileSystemRealmDefinition());
+        resourceRegistration.registerSubModel(SecurityRealmResourceDecorator.wrap(new FileSystemRealmDefinition()));
 
         // Name Rewriters
         resourceRegistration.registerSubModel(NameRewriterDefinitions.getAggregateNameRewriterDefinition());

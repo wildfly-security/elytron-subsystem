@@ -1,0 +1,12 @@
+<subsystem xmlns="urn:wildfly:elytron:1.0">
+    <security-domains>
+        <security-domain name="FileSystemDomain" default-realm="FileSystemRealm">
+            <realm name="FileSystemRealm" />
+        </security-domain>
+    </security-domains>
+    <security-realms>
+        <filesystem-realm name="FileSystemRealm">
+            <file path="filesystem-realm-data" relative-to="jboss.server.config.dir"/>
+        </filesystem-realm>
+    </security-realms>
+</subsystem>

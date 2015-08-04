@@ -193,4 +193,7 @@ public interface ElytronSubsystemMessages extends BasicLogger {
      */
     @Message(id = 16, value = "The supplied regular expression '%s' is invalid.")
     OperationFailedException invalidRegularExpression(String pattern, @Cause Exception cause);
+
+    @Message(id = 17, value = "Security realm [%s] is not modifiable.")
+    OperationFailedException realmNotModifiable(ServiceName serviceName);
 }

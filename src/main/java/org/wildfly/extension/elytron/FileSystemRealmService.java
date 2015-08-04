@@ -22,6 +22,7 @@
 package org.wildfly.extension.elytron;
 
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import org.jboss.as.controller.services.path.PathManager;
 import org.jboss.msc.service.Service;
@@ -41,23 +42,27 @@ public class FileSystemRealmService implements Service<SecurityRealm> {
     private volatile SecurityRealm securityRealm;
 
     private final int levels;
-    private final String path;
+    private final String rootPath;
     private final String relativeTo;
     private final InjectedValue<PathManager> pathManagerInjector = new InjectedValue<PathManager>();
     private final InjectedValue<NameRewriter> nameRewriterInjector = new InjectedValue<>();
 
-    public FileSystemRealmService(int levels, String path, String relativeTo) {
+    public FileSystemRealmService(int levels, String rootPath, String relativeTo) {
         this.levels = levels;
-        this.path = path;
+        this.rootPath = rootPath;
         this.relativeTo = relativeTo;
     }
 
     @Override
     public void start(StartContext context) throws StartException {
-        Path path = null;
-        securityRealm = nameRewriterInjector != null ?
-                new FileSystemSecurityRealm(path, nameRewriterInjector.getOptionalValue(), levels) :
-                new FileSystemSecurityRealm(path, levels);
+        PathManager pathManager = getPathManagerInjector().getValue();
+        String resolvedRootPath = pathManager.resolveRelativePathEntry(this.rootPath, this.relativeTo);
+        Path rootPath = Paths.get(resolvedRootPath);
+        NameRewriter nameRewriter = nameRewriterInjector.getOptionalValue();
+
+        securityRealm = nameRewriter != null ?
+                new FileSystemSecurityRealm(rootPath, nameRewriter, levels) :
+                new FileSystemSecurityRealm(rootPath, levels);
     }
 
     @Override

@@ -46,7 +46,6 @@ import org.jboss.as.controller.ResourceDefinition;
 import org.jboss.as.controller.RestartParentWriteAttributeHandler;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
-import org.jboss.as.controller.SimpleOperationDefinition;
 import org.jboss.as.controller.SimpleResourceDefinition;
 import org.jboss.as.controller.capability.RuntimeCapability;
 import org.jboss.as.controller.registry.AttributeAccess;
@@ -56,30 +55,21 @@ import org.jboss.as.controller.registry.Resource;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
 import org.jboss.msc.inject.Injector;
-import org.jboss.msc.service.Service;
 import org.jboss.msc.service.ServiceBuilder;
 import org.jboss.msc.service.ServiceController;
 import org.jboss.msc.service.ServiceController.Mode;
 import org.jboss.msc.service.ServiceName;
-import org.jboss.msc.service.ServiceRegistry;
 import org.jboss.msc.service.ServiceTarget;
 import org.wildfly.extension.elytron.DomainService.RealmDependency;
-import org.wildfly.extension.elytron._private.ElytronSubsystemMessages;
-import org.wildfly.security.auth.server.CredentialSupport;
+import org.wildfly.extension.elytron.IdentityResourceDefinition.AuthenticatorOperationHandler;
 import org.wildfly.security.auth.server.NameRewriter;
 import org.wildfly.security.auth.server.PrincipalDecoder;
 import org.wildfly.security.auth.server.RealmMapper;
 import org.wildfly.security.auth.server.SecurityDomain;
-import org.wildfly.security.auth.server.SecurityIdentity;
 import org.wildfly.security.auth.server.SecurityRealm;
-import org.wildfly.security.auth.server.ServerAuthenticationContext;
 import org.wildfly.security.authz.PermissionMapper;
 import org.wildfly.security.authz.RoleDecoder;
 import org.wildfly.security.authz.RoleMapper;
-import org.wildfly.security.password.Password;
-import org.wildfly.security.password.PasswordFactory;
-import org.wildfly.security.password.interfaces.ClearPassword;
-import org.wildfly.security.password.spec.ClearPasswordSpec;
 
 /**
  * A {@link ResourceDefinition} for a single domain.
@@ -88,7 +78,6 @@ import org.wildfly.security.password.spec.ClearPasswordSpec;
  */
 class DomainDefinition extends SimpleResourceDefinition {
 
-    private static final ServiceUtil<SecurityDomain> DOMAIN_SERVICE_UTIL = ServiceUtil.newInstance(SECURITY_DOMAIN_RUNTIME_CAPABILITY, ElytronDescriptionConstants.SECURITY_DOMAIN, SecurityDomain.class);
     private static final ServiceUtil<SecurityRealm> REALM_SERVICE_UTIL = ServiceUtil.newInstance(SECURITY_REALM_RUNTIME_CAPABILITY, null, SecurityRealm.class);
 
     static final SimpleAttributeDefinition DEFAULT_REALM = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.DEFAULT_REALM, ModelType.STRING, false)
@@ -196,12 +185,12 @@ class DomainDefinition extends SimpleResourceDefinition {
     @Override
     public void registerOperations(ManagementResourceRegistration resourceRegistration) {
         super.registerOperations(resourceRegistration);
-        registerAuthenticatorOperationHandler(resourceRegistration);
+        registerIdentityManagementOperations(resourceRegistration);
     }
 
-    private void registerAuthenticatorOperationHandler(ManagementResourceRegistration resourceRegistration) {
-        resourceRegistration.registerOperationHandler(new SimpleOperationDefinition(AuthenticatorOperationHandler.getOperationName(), getResourceDescriptionResolver(),
-                AuthenticatorOperationHandler.getParameterDefinitions()), AUTHENTICATE);
+    private void registerIdentityManagementOperations(ManagementResourceRegistration resourceRegistration) {
+        IdentityResourceDefinition.ReadSecurityDomainIdentityHandler.register(resourceRegistration, getResourceDescriptionResolver());
+        IdentityResourceDefinition.AuthenticatorOperationHandler.register(resourceRegistration, getResourceDescriptionResolver());
     }
 
     private static ServiceController<SecurityDomain> installService(OperationContext context, ServiceName domainName, ModelNode model) throws OperationFailedException {
@@ -380,109 +369,6 @@ class DomainDefinition extends SimpleResourceDefinition {
             installService(context, getParentServiceName(parentAddress), parentModel);
         }
 
-    }
-
-    /**
-     * <p>A temporary operation that performs authentication based on a {@link SecurityDomain}. This operation will be removed once
-     * the subsystem is fully functional. It should be used for <em>test</em> purposes only.
-     *
-     * <p>This operation is very verbose in order to push messages back to CLI during tests.
-     */
-    private static class AuthenticatorOperationHandler implements OperationStepHandler {
-
-        private static final String OPERATION_NAME = "authenticate";
-        private static final String PARAMETER_USERNAME = "username";
-        private static final String PARAMETER_PASSWORD = "password";
-
-        private static final SimpleAttributeDefinition USER_NAME = new SimpleAttributeDefinitionBuilder(PARAMETER_USERNAME, ModelType.STRING, false)
-                .setAllowExpression(false)
-                .build();
-
-        private static final SimpleAttributeDefinition PASSWORD = new SimpleAttributeDefinitionBuilder(PARAMETER_PASSWORD, ModelType.STRING, false)
-                .setAllowExpression(false)
-                .build();
-
-        private AuthenticatorOperationHandler() {
-        }
-
-        @Override
-        public void execute(OperationContext context, ModelNode operation) throws OperationFailedException {
-            context.addStep((contextStep, operationStep) -> {
-                String principalName = USER_NAME.resolveModelAttribute(context, operation).asString();
-                String password = PASSWORD.resolveModelAttribute(context, operation).asString();
-                SecurityDomain securityDomain = getSecurityDomain(context, operation);
-
-                try {
-                    ServerAuthenticationContext authenticationContext = securityDomain.createNewAuthenticationContext();
-
-                    authenticationContext.setAuthenticationName(principalName);
-
-                    if (!authenticationContext.exists()) {
-                        addFailureDescription("Principal [" + principalName + "] does not exist.", context);
-                        return;
-                    }
-
-                    // for now, only clear passwords. we can provide an enum with different types later. if necessary.
-                    Class<ClearPassword> credentialType = ClearPassword.class;
-                    CredentialSupport credentialSupport = authenticationContext.getCredentialSupport(credentialType, null);
-
-                    if (!credentialSupport.mayBeVerifiable()) {
-                        addFailureDescription("Credential type [" + credentialType + "] not verifiable.", context);
-                        return;
-                    }
-
-                    PasswordFactory passwordFactory = PasswordFactory.getInstance(ClearPassword.ALGORITHM_CLEAR);
-                    Password clearPassword = passwordFactory.generatePassword(new ClearPasswordSpec(password.toCharArray()));
-
-                    if (authenticationContext.verifyCredential(clearPassword)) {
-                        authenticationContext.succeed();
-
-                        SecurityIdentity authorizedIdentity = authenticationContext.getAuthorizedIdentity();
-
-                        if (authorizedIdentity == null) {
-                            addFailureDescription("Principal [" + principalName + "] authenticated but no identity could be obtained.", context);
-                            return;
-                        }
-
-                        context.getResult().add("Principal [" + principalName + "] successfully authenticated.");
-                        context.getResult().add("Roles are " + authorizedIdentity.getRoles() + ".");
-                        context.getResult().add("Permissions are [" + authorizedIdentity.getPermissions() + "].");
-                    } else {
-                        authenticationContext.fail();
-                        addFailureDescription("Invalid credentials for Principal [" + principalName + "].", context);
-                    }
-                } catch (Exception cause) {
-                    addFailureDescription(cause.getMessage(), context);
-                    ElytronSubsystemMessages.ROOT_LOGGER.error(cause);
-                } finally {
-                    context.completeStep(OperationContext.ResultHandler.NOOP_RESULT_HANDLER);
-                }
-
-
-            }, OperationContext.Stage.RUNTIME);
-        }
-
-        private void addFailureDescription(String message, OperationContext context) {
-            ModelNode failureDescription = context.getFailureDescription();
-            failureDescription.add(message);
-        }
-
-        private SecurityDomain getSecurityDomain(OperationContext context, ModelNode operation) {
-            ServiceRegistry serviceRegistry = context.getServiceRegistry(false);
-            @SuppressWarnings("unchecked")
-            ServiceController<SecurityDomain> serviceController = (ServiceController<SecurityDomain>) serviceRegistry.getRequiredService(DOMAIN_SERVICE_UTIL.serviceName(operation));
-            Service<SecurityDomain> service = serviceController.getService();
-
-            return service.getValue();
-        }
-
-        private static String getOperationName() {
-            return OPERATION_NAME;
-        }
-
-        private static AttributeDefinition[] getParameterDefinitions() {
-            return new AttributeDefinition[] {USER_NAME, PASSWORD};
-        }
     }
 }
 
