@@ -125,6 +125,11 @@ class PrincipalDecoderDefinitions {
              }
         }
 
+        @Override
+        public void registerCapabilities(ManagementResourceRegistration resourceRegistration) {
+            resourceRegistration.registerCapability(PRINCIPAL_DECODER_RUNTIME_CAPABILITY);
+        }
+
     }
 
     private static class PrincipalDecoderAddHander extends AbstractAddStepHandler {
