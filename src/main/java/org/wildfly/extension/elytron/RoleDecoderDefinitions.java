@@ -29,7 +29,6 @@ import org.jboss.as.controller.PathAddress;
 import org.jboss.as.controller.PathElement;
 import org.jboss.as.controller.ResourceDefinition;
 import org.jboss.as.controller.RestartParentWriteAttributeHandler;
-import org.jboss.as.controller.ServiceRemoveStepHandler;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
 import org.jboss.as.controller.SimpleResourceDefinition;
@@ -43,7 +42,6 @@ import org.jboss.msc.service.ServiceBuilder;
 import org.jboss.msc.service.ServiceController.Mode;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.ServiceTarget;
-import org.wildfly.security.auth.server.RealmMapper;
 import org.wildfly.security.authz.RoleDecoder;
 
 /**
@@ -70,7 +68,7 @@ class RoleDecoderDefinitions {
     private static class SimpleRoleDecoderDefinition extends SimpleResourceDefinition {
 
         private static final AbstractAddStepHandler ADD = new SimpleRoleDecoderAddHandler();
-        private static final OperationStepHandler REMOVE = new RoleDecoderRemoveHandler(ADD);
+        private static final OperationStepHandler REMOVE = new SingleCapabilityServiceRemoveHandler<RoleDecoder>(ADD, ROLE_DECODER_RUNTIME_CAPABILITY, RoleDecoder.class);
 
         SimpleRoleDecoderDefinition() {
             super(new Parameters(PathElement.pathElement(ElytronDescriptionConstants.SIMPLE_ROLE_DECODER), ElytronExtension.getResourceDescriptionResolver(ElytronDescriptionConstants.SIMPLE_ROLE_DECODER))
@@ -113,19 +111,6 @@ class RoleDecoderDefinitions {
             commonDependencies(roleDecoderBuilderBuilder)
                 .setInitialMode(Mode.LAZY)
                 .install();
-        }
-
-    }
-
-    private static class RoleDecoderRemoveHandler extends ServiceRemoveStepHandler {
-
-        public RoleDecoderRemoveHandler(AbstractAddStepHandler addOperation) {
-            super(addOperation, ROLE_DECODER_RUNTIME_CAPABILITY);
-        }
-
-        @Override
-        protected ServiceName serviceName(String name) {
-            return ROLE_DECODER_RUNTIME_CAPABILITY.fromBaseCapability(name).getCapabilityServiceName(RealmMapper.class);
         }
 
     }

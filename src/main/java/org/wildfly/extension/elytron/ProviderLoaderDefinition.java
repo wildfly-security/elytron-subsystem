@@ -44,7 +44,6 @@ import org.jboss.as.controller.PathAddress;
 import org.jboss.as.controller.PathElement;
 import org.jboss.as.controller.ResourceDefinition;
 import org.jboss.as.controller.RestartParentWriteAttributeHandler;
-import org.jboss.as.controller.ServiceRemoveStepHandler;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
 import org.jboss.as.controller.SimpleOperationDefinition;
@@ -88,7 +87,7 @@ class ProviderLoaderDefinition extends SimpleResourceDefinition {
         .build();
 
     private static final AbstractAddStepHandler ADD = new ProviderAddHandler();
-    private static final OperationStepHandler REMOVE = new ProviderRemoveHandler(ADD);
+    private static final OperationStepHandler REMOVE = new SingleCapabilityServiceRemoveHandler<Provider[]>(ADD, PROVIDERS_RUNTIME_CAPABILITY, Provider[].class);
     private static final OperationStepHandler WRITE = new WriteAttributeHandler();
 
     private static final StandardResourceDescriptionResolver RESOLVER = ElytronExtension.getResourceDescriptionResolver(ElytronDescriptionConstants.PROVIDER_LOADER);
@@ -211,14 +210,6 @@ class ProviderLoaderDefinition extends SimpleResourceDefinition {
             return response;
         }
         return null;
-    }
-
-    private static class ProviderRemoveHandler extends ServiceRemoveStepHandler {
-
-        protected ProviderRemoveHandler(AbstractAddStepHandler addOperation) {
-            super(addOperation, PROVIDERS_RUNTIME_CAPABILITY);
-        }
-
     }
 
     private static class ProvidersAttributeHandler implements OperationStepHandler {

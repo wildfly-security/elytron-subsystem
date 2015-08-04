@@ -58,7 +58,6 @@ import org.jboss.as.controller.PathAddress;
 import org.jboss.as.controller.PathElement;
 import org.jboss.as.controller.ResourceDefinition;
 import org.jboss.as.controller.RestartParentWriteAttributeHandler;
-import org.jboss.as.controller.ServiceRemoveStepHandler;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
 import org.jboss.as.controller.SimpleMapAttributeDefinition;
@@ -430,7 +429,7 @@ class SaslServerDefinitions {
             super(new Parameters(PathElement.pathElement(pathKey),
                     ElytronExtension.getResourceDescriptionResolver(pathKey))
                 .setAddHandler(add)
-                .setRemoveHandler(new RoleMapperRemoveHandler(add))
+                .setRemoveHandler(new SingleCapabilityServiceRemoveHandler<SaslServerFactory>(add, SASL_SERVER_FACTORY_RUNTIME_CAPABILITY, SaslServerFactory.class))
                 .setAddRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
                 .setRemoveRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES));
             this.pathKey = pathKey;
@@ -495,19 +494,6 @@ class SaslServerDefinitions {
         protected ServiceName getParentServiceName(PathAddress pathAddress) {
             return SASL_SERVER_FACTORY_RUNTIME_CAPABILITY.fromBaseCapability(pathAddress.getLastElement().getValue()).getCapabilityServiceName(SaslServerFactory.class);
         }
-    }
-
-    private static class RoleMapperRemoveHandler extends ServiceRemoveStepHandler {
-
-        public RoleMapperRemoveHandler(AbstractAddStepHandler addOperation) {
-            super(addOperation, SASL_SERVER_FACTORY_RUNTIME_CAPABILITY);
-        }
-
-        @Override
-        protected ServiceName serviceName(String name) {
-            return SASL_SERVER_FACTORY_RUNTIME_CAPABILITY.fromBaseCapability(name).getCapabilityServiceName(SaslServerFactory.class);
-        }
-
     }
 
     private enum NamePredicate {

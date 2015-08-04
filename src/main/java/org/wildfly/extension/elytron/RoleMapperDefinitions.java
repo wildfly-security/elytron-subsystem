@@ -35,7 +35,6 @@ import org.jboss.as.controller.PathAddress;
 import org.jboss.as.controller.PathElement;
 import org.jboss.as.controller.ResourceDefinition;
 import org.jboss.as.controller.RestartParentWriteAttributeHandler;
-import org.jboss.as.controller.ServiceRemoveStepHandler;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
 import org.jboss.as.controller.SimpleResourceDefinition;
@@ -199,7 +198,7 @@ class RoleMapperDefinitions {
             super(new Parameters(PathElement.pathElement(pathKey),
                     ElytronExtension.getResourceDescriptionResolver(pathKey))
                 .setAddHandler(add)
-                .setRemoveHandler(new RoleMapperRemoveHandler(add))
+                .setRemoveHandler(new SingleCapabilityServiceRemoveHandler<RoleMapper>(add, ROLE_MAPPER_RUNTIME_CAPABILITY, RoleMapper.class))
                 .setAddRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
                 .setRemoveRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES));
             this.pathKey = pathKey;
@@ -264,19 +263,6 @@ class RoleMapperDefinitions {
         protected ServiceName getParentServiceName(PathAddress pathAddress) {
             return ROLE_MAPPER_RUNTIME_CAPABILITY.fromBaseCapability(pathAddress.getLastElement().getValue()).getCapabilityServiceName(RoleMapper.class);
         }
-    }
-
-    private static class RoleMapperRemoveHandler extends ServiceRemoveStepHandler {
-
-        public RoleMapperRemoveHandler(AbstractAddStepHandler addOperation) {
-            super(addOperation, ROLE_MAPPER_RUNTIME_CAPABILITY);
-        }
-
-        @Override
-        protected ServiceName serviceName(String name) {
-            return ROLE_MAPPER_RUNTIME_CAPABILITY.fromBaseCapability(name).getCapabilityServiceName(RoleMapper.class);
-        }
-
     }
 
     private enum LogicalOperation {

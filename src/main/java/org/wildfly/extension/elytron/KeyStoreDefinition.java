@@ -153,7 +153,7 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
     private static final AttributeDefinition[] CONFIG_ATTRIBUTES = new AttributeDefinition[] { TYPE, PROVIDER, PASSWORD, PATH, RELATIVE_TO, PROVIDER_LOADER, REQUIRED };
 
     private static final KeyStoreAddHandler ADD = new KeyStoreAddHandler();
-    private static final OperationStepHandler REMOVE = new KeyStoreRemoveHandler(ADD);
+    private static final OperationStepHandler REMOVE = new SingleCapabilityServiceRemoveHandler<KeyStore>(ADD, KEY_STORE_RUNTIME_CAPABILITY, KeyStore.class);
     private static final WriteAttributeHandler WRITE = new WriteAttributeHandler();
 
     KeyStoreDefinition() {
@@ -300,14 +300,6 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
             context.addResource(PathAddress.EMPTY_ADDRESS, resource);
 
             return resource;
-        }
-
-    }
-
-    private static class KeyStoreRemoveHandler extends ServiceRemoveStepHandler {
-
-        private KeyStoreRemoveHandler(final AbstractAddStepHandler add) {
-            super(add, KEY_STORE_RUNTIME_CAPABILITY);
         }
 
     }

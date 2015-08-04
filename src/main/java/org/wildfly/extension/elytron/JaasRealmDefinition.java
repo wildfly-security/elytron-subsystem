@@ -31,7 +31,6 @@ import org.jboss.as.controller.PathAddress;
 import org.jboss.as.controller.PathElement;
 import org.jboss.as.controller.ResourceDefinition;
 import org.jboss.as.controller.RestartParentWriteAttributeHandler;
-import org.jboss.as.controller.ServiceRemoveStepHandler;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
 import org.jboss.as.controller.SimpleResourceDefinition;
@@ -63,7 +62,7 @@ class JaasRealmDefinition extends SimpleResourceDefinition {
         .build();
 
     private static final AbstractAddStepHandler ADD = new RealmAddHandler();
-    private static final OperationStepHandler REMOVE = new RealmRemoveHandler(ADD);
+    private static final OperationStepHandler REMOVE = new SingleCapabilityServiceRemoveHandler<SecurityRealm>(ADD, SECURITY_REALM_RUNTIME_CAPABILITY, SecurityRealm.class);
 
     JaasRealmDefinition() {
         super(new Parameters(PathElement.pathElement(ElytronDescriptionConstants.JAAS_REALM), ElytronExtension.getResourceDescriptionResolver(ElytronDescriptionConstants.JAAS_REALM))
@@ -106,19 +105,6 @@ class JaasRealmDefinition extends SimpleResourceDefinition {
             commonDependencies(serviceBuilder)
                 .setInitialMode(Mode.ACTIVE)
                 .install();
-        }
-
-    }
-
-    private static class RealmRemoveHandler extends ServiceRemoveStepHandler {
-
-        public RealmRemoveHandler(AbstractAddStepHandler addOperation) {
-            super(addOperation, SECURITY_REALM_RUNTIME_CAPABILITY);
-        }
-
-        @Override
-        protected ServiceName serviceName(String name) {
-            return REALM_SERVICE_UTIL.serviceName(name);
         }
 
     }

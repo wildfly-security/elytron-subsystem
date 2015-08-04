@@ -42,7 +42,6 @@ import org.jboss.as.controller.OperationStepHandler;
 import org.jboss.as.controller.PathAddress;
 import org.jboss.as.controller.PathElement;
 import org.jboss.as.controller.RestartParentWriteAttributeHandler;
-import org.jboss.as.controller.ServiceRemoveStepHandler;
 import org.jboss.as.controller.SimpleMapAttributeDefinition;
 import org.jboss.as.controller.SimpleResourceDefinition;
 import org.jboss.as.controller.capability.RuntimeCapability;
@@ -103,7 +102,7 @@ class CustomComponentDefinition<T> extends SimpleResourceDefinition {
 
     private static <T> Parameters addAddRemoveHandlers(Parameters parameters, RuntimeCapability<Void> runtimeCapability, Class<T> serviceType) {
         AbstractAddStepHandler add = new ComponentAddHandler<T>(runtimeCapability, serviceType);
-        OperationStepHandler remove = new ComponentRemoveHandler<T>(add, runtimeCapability, serviceType);
+        OperationStepHandler remove = new SingleCapabilityServiceRemoveHandler<T>(add, runtimeCapability, serviceType);
 
         parameters.setAddHandler(add);
         parameters.setRemoveHandler(remove);
@@ -163,24 +162,6 @@ class CustomComponentDefinition<T> extends SimpleResourceDefinition {
                 .install();
         }
 
-    }
-
-    private static class ComponentRemoveHandler<T> extends ServiceRemoveStepHandler {
-
-        private final RuntimeCapability<Void> runtimeCapability;
-        private final Class<T> serviceType;
-
-        public ComponentRemoveHandler(AbstractAddStepHandler addOperation, RuntimeCapability<Void> runtimeCapability, Class<T> serviceType) {
-            super(addOperation, runtimeCapability);
-            this.runtimeCapability = runtimeCapability;
-            this.serviceType = serviceType;
-        }
-
-        @Override
-        protected ServiceName serviceName(String name) {
-            RuntimeCapability<?> dynamicCapability = runtimeCapability.fromBaseCapability(name);
-            return dynamicCapability.getCapabilityServiceName(serviceType);
-        }
     }
 
     private static class WriteAttributeHandler<T> extends RestartParentWriteAttributeHandler {

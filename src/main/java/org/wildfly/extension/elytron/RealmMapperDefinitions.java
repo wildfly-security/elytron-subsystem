@@ -44,7 +44,6 @@ import org.jboss.as.controller.PathAddress;
 import org.jboss.as.controller.PathElement;
 import org.jboss.as.controller.ResourceDefinition;
 import org.jboss.as.controller.RestartParentWriteAttributeHandler;
-import org.jboss.as.controller.ServiceRemoveStepHandler;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
 import org.jboss.as.controller.SimpleMapAttributeDefinition;
@@ -113,7 +112,7 @@ class RealmMapperDefinitions {
         private static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] { PATTERN, DELEGATE_REALM_MAPPER };
 
         private static final AbstractAddStepHandler ADD = new SimpleRegexRealmMapperAddHandler(ATTRIBUTES);
-        private static final OperationStepHandler REMOVE = new RealmMapperRemoveHandler(ADD);
+        private static final OperationStepHandler REMOVE = new SingleCapabilityServiceRemoveHandler<RealmMapper>(ADD, REALM_MAPPER_RUNTIME_CAPABILITY, RealmMapper.class);
 
         private SimpleRegexRealmMapperDefinition() {
             super(new Parameters(PathElement.pathElement(ElytronDescriptionConstants.SIMPLE_REGEX_REALM_MAPPER), ElytronExtension.getResourceDescriptionResolver(ElytronDescriptionConstants.SIMPLE_REGEX_REALM_MAPPER))
@@ -187,7 +186,7 @@ class RealmMapperDefinitions {
         private static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] { PATTERN, REALM_REALM_MAP, DELEGATE_REALM_MAPPER };
 
         private static final AbstractAddStepHandler ADD = new MappedRegexRealmMapperAddHandler(ATTRIBUTES);
-        private static final OperationStepHandler REMOVE = new RealmMapperRemoveHandler(ADD);
+        private static final OperationStepHandler REMOVE = new SingleCapabilityServiceRemoveHandler<RealmMapper>(ADD, REALM_MAPPER_RUNTIME_CAPABILITY, RealmMapper.class);
 
         private MappedRegexRealmMapperDefinition() {
             super(new Parameters(PathElement.pathElement(ElytronDescriptionConstants.MAPPED_REGEX_REALM_MAPPER), ElytronExtension.getResourceDescriptionResolver(ElytronDescriptionConstants.MAPPED_REGEX_REALM_MAPPER))
@@ -257,19 +256,6 @@ class RealmMapperDefinitions {
             commonDependencies(realmMapperBuilder)
                 .setInitialMode(Mode.LAZY)
                 .install();
-        }
-
-    }
-
-    private static class RealmMapperRemoveHandler extends ServiceRemoveStepHandler {
-
-        public RealmMapperRemoveHandler(AbstractAddStepHandler addOperation) {
-            super(addOperation, REALM_MAPPER_RUNTIME_CAPABILITY);
-        }
-
-        @Override
-        protected ServiceName serviceName(String name) {
-            return REALM_MAPPER_RUNTIME_CAPABILITY.fromBaseCapability(name).getCapabilityServiceName(RealmMapper.class);
         }
 
     }

@@ -29,7 +29,6 @@ import org.jboss.as.controller.PathAddress;
 import org.jboss.as.controller.PathElement;
 import org.jboss.as.controller.ResourceDefinition;
 import org.jboss.as.controller.RestartParentWriteAttributeHandler;
-import org.jboss.as.controller.ServiceRemoveStepHandler;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
 import org.jboss.as.controller.SimpleResourceDefinition;
@@ -45,7 +44,6 @@ import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.ServiceTarget;
 import org.wildfly.extension.elytron.TrivialService.ValueSupplier;
 import org.wildfly.security.auth.server.PrincipalDecoder;
-import org.wildfly.security.authz.RoleMapper;
 import org.wildfly.security.x500.X500AttributePrincipalDecoder;
 
 
@@ -108,7 +106,7 @@ class PrincipalDecoderDefinitions {
             super(new Parameters(PathElement.pathElement(pathKey),
                     ElytronExtension.getResourceDescriptionResolver(pathKey))
                 .setAddHandler(add)
-                .setRemoveHandler(new PrincipalDecoderRemoveHandler(add))
+                .setRemoveHandler(new SingleCapabilityServiceRemoveHandler<PrincipalDecoder>(add, PRINCIPAL_DECODER_RUNTIME_CAPABILITY, PrincipalDecoder.class))
                 .setAddRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
                 .setRemoveRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES));
             this.pathKey = pathKey;
@@ -174,19 +172,5 @@ class PrincipalDecoderDefinitions {
             return PRINCIPAL_DECODER_RUNTIME_CAPABILITY.fromBaseCapability(pathAddress.getLastElement().getValue()).getCapabilityServiceName(PrincipalDecoder.class);
         }
     }
-
-    private static class PrincipalDecoderRemoveHandler extends ServiceRemoveStepHandler {
-
-        public PrincipalDecoderRemoveHandler(AbstractAddStepHandler addOperation) {
-            super(addOperation, PRINCIPAL_DECODER_RUNTIME_CAPABILITY);
-        }
-
-        @Override
-        protected ServiceName serviceName(String name) {
-            return PRINCIPAL_DECODER_RUNTIME_CAPABILITY.fromBaseCapability(name).getCapabilityServiceName(RoleMapper.class);
-        }
-
-    }
-
 
 }

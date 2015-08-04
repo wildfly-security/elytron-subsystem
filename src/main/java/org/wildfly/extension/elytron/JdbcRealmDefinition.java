@@ -47,7 +47,6 @@ import org.jboss.as.controller.PathAddress;
 import org.jboss.as.controller.PathElement;
 import org.jboss.as.controller.ResourceDefinition;
 import org.jboss.as.controller.RestartParentWriteAttributeHandler;
-import org.jboss.as.controller.ServiceRemoveStepHandler;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
 import org.jboss.as.controller.SimpleResourceDefinition;
@@ -468,7 +467,7 @@ class JdbcRealmDefinition extends SimpleResourceDefinition {
     private static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] {PrincipalQueryAttributes.PRINCIPAL_QUERIES};
 
     private static final AbstractAddStepHandler ADD = new RealmAddHandler();
-    private static final OperationStepHandler REMOVE = new RealmRemoveHandler(ADD);
+    private static final OperationStepHandler REMOVE = new SingleCapabilityServiceRemoveHandler<SecurityRealm>(ADD, SECURITY_REALM_RUNTIME_CAPABILITY, SecurityRealm.class);
     private static final OperationStepHandler WRITE = new WriteAttributeHandler();
 
     JdbcRealmDefinition() {
@@ -575,19 +574,6 @@ class JdbcRealmDefinition extends SimpleResourceDefinition {
 
             return attributeMappers.toArray(new AttributeMapper[attributeMappers.size()]);
         }
-    }
-
-    private static class RealmRemoveHandler extends ServiceRemoveStepHandler {
-
-        public RealmRemoveHandler(AbstractAddStepHandler addOperation) {
-            super(addOperation, SECURITY_REALM_RUNTIME_CAPABILITY);
-        }
-
-        @Override
-        protected ServiceName serviceName(String name) {
-            return REALM_SERVICE_UTIL.serviceName(name);
-        }
-
     }
 
     private static class WriteAttributeHandler extends RestartParentWriteAttributeHandler {

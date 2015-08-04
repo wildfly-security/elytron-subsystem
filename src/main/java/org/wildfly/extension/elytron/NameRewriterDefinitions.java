@@ -33,7 +33,6 @@ import org.jboss.as.controller.PathAddress;
 import org.jboss.as.controller.PathElement;
 import org.jboss.as.controller.ResourceDefinition;
 import org.jboss.as.controller.RestartParentWriteAttributeHandler;
-import org.jboss.as.controller.ServiceRemoveStepHandler;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
 import org.jboss.as.controller.SimpleResourceDefinition;
@@ -127,7 +126,7 @@ class NameRewriterDefinitions {
             }
         };
 
-        private static final AbstractRemoveStepHandler REMOVE = new NameRewriterRemoveHandler(ADD);
+        private static final AbstractRemoveStepHandler REMOVE = new SingleCapabilityServiceRemoveHandler<NameRewriter>(ADD, NAME_REWRITER_RUNTIME_CAPABILITY, NameRewriter.class);
 
         private RegexNameRewriterDefinition() {
             super(new Parameters(PathElement.pathElement(ElytronDescriptionConstants.REGEX_NAME_REWRITER), ElytronExtension.getResourceDescriptionResolver(ElytronDescriptionConstants.REGEX_NAME_REWRITER))
@@ -169,7 +168,7 @@ class NameRewriterDefinitions {
 
         };
 
-        private static final AbstractRemoveStepHandler REMOVE = new NameRewriterRemoveHandler(ADD);
+        private static final AbstractRemoveStepHandler REMOVE = new SingleCapabilityServiceRemoveHandler<NameRewriter>(ADD, NAME_REWRITER_RUNTIME_CAPABILITY, NameRewriter.class);
 
         private RegexNameValidatingRewriterDefinition() {
             super(new Parameters(PathElement.pathElement(ElytronDescriptionConstants.REGEX_NAME_VALIDATING_REWRITER),
@@ -207,7 +206,7 @@ class NameRewriterDefinitions {
 
         };
 
-        private static final AbstractRemoveStepHandler REMOVE = new NameRewriterRemoveHandler(ADD);
+        private static final AbstractRemoveStepHandler REMOVE = new SingleCapabilityServiceRemoveHandler<NameRewriter>(ADD, NAME_REWRITER_RUNTIME_CAPABILITY, NameRewriter.class);
 
         private ConstantNameRewriterDefinition() {
             super(new Parameters(PathElement.pathElement(ElytronDescriptionConstants.CONSTANT_NAME_REWRITER),
@@ -251,19 +250,6 @@ class NameRewriterDefinitions {
         }
 
         protected abstract ValueSupplier<NameRewriter> getNameRewriterSupplier(OperationContext context, ModelNode operation, ModelNode model) throws OperationFailedException;
-
-    }
-
-    private static class NameRewriterRemoveHandler extends ServiceRemoveStepHandler {
-
-        public NameRewriterRemoveHandler(AbstractAddStepHandler addOperation) {
-            super(addOperation, NAME_REWRITER_RUNTIME_CAPABILITY);
-        }
-
-        @Override
-        protected ServiceName serviceName(String name) {
-            return NAME_REWRITER_RUNTIME_CAPABILITY.fromBaseCapability(name).getCapabilityServiceName(NameRewriter.class);
-        }
 
     }
 

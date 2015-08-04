@@ -45,7 +45,6 @@ import org.jboss.as.controller.PathAddress;
 import org.jboss.as.controller.PathElement;
 import org.jboss.as.controller.ResourceDefinition;
 import org.jboss.as.controller.RestartParentWriteAttributeHandler;
-import org.jboss.as.controller.ServiceRemoveStepHandler;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
 import org.jboss.as.controller.SimpleOperationDefinition;
@@ -171,7 +170,7 @@ class DomainDefinition extends SimpleResourceDefinition {
             new AttributeDefinition[] { PRE_REALM_NAME_REWRITER, POST_REALM_NAME_REWRITER, PRINCIPAL_DECODER, REALM_MAPPER, ROLE_MAPPER, PERMISSION_MAPPER, DEFAULT_REALM, REALMS };
 
     private static final DomainAddHandler ADD = new DomainAddHandler();
-    private static final DomainRemoveHandler REMOVE = new DomainRemoveHandler(ADD);
+    private static final OperationStepHandler REMOVE = new SingleCapabilityServiceRemoveHandler<SecurityDomain>(ADD, SECURITY_DOMAIN_RUNTIME_CAPABILITY, SecurityDomain.class);
     private static final WriteAttributeHandler WRITE = new WriteAttributeHandler(ElytronDescriptionConstants.SECURITY_DOMAIN);
     private static final AuthenticatorOperationHandler AUTHENTICATE = new AuthenticatorOperationHandler();
 
@@ -361,20 +360,6 @@ class DomainDefinition extends SimpleResourceDefinition {
 
             installService(context, domainName, model);
         }
-
-    }
-
-    private static class DomainRemoveHandler extends ServiceRemoveStepHandler {
-
-        public DomainRemoveHandler(AbstractAddStepHandler addOperation) {
-            super(addOperation, SECURITY_DOMAIN_RUNTIME_CAPABILITY);
-        }
-
-        @Override
-        protected ServiceName serviceName(String name) {
-            return super.serviceName(name);
-        }
-
 
     }
 

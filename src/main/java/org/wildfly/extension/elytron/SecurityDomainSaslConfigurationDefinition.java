@@ -35,7 +35,6 @@ import org.jboss.as.controller.PathAddress;
 import org.jboss.as.controller.PathElement;
 import org.jboss.as.controller.ResourceDefinition;
 import org.jboss.as.controller.RestartParentWriteAttributeHandler;
-import org.jboss.as.controller.ServiceRemoveStepHandler;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
 import org.jboss.as.controller.SimpleResourceDefinition;
@@ -78,7 +77,7 @@ class SecurityDomainSaslConfigurationDefinition extends SimpleResourceDefinition
     private static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] { SECURITY_DOMAIN, SASL_SERVER_FACTORY };
 
     private static final AbstractAddStepHandler ADD = new AddHandler();
-    private static final OperationStepHandler REMOVE = new RemoveHandler(ADD);
+    private static final OperationStepHandler REMOVE = new SingleCapabilityServiceRemoveHandler<SecurityDomainSaslConfiguration>(ADD, SECURITY_DOMAIN_SASL_CONFIGURATION_RUNTIME_CAPABILITY, SecurityDomainSaslConfiguration.class);
 
     private SecurityDomainSaslConfigurationDefinition() {
         super(new Parameters(PathElement.pathElement(ElytronDescriptionConstants.SECURITY_DOMAIN_SASL_CONFIGURATION),
@@ -154,19 +153,6 @@ class SecurityDomainSaslConfigurationDefinition extends SimpleResourceDefinition
                 .setInitialMode(Mode.LAZY)
                 .install();
         }
-    }
-
-    private static class RemoveHandler extends ServiceRemoveStepHandler {
-
-        public RemoveHandler(AbstractAddStepHandler addOperation) {
-            super(addOperation, SECURITY_DOMAIN_SASL_CONFIGURATION_RUNTIME_CAPABILITY);
-        }
-
-        @Override
-        protected ServiceName serviceName(String name) {
-            return SECURITY_DOMAIN_SASL_CONFIGURATION_RUNTIME_CAPABILITY.fromBaseCapability(name).getCapabilityServiceName(SecurityDomainSaslConfiguration.class);
-        }
-
     }
 
     private static class WriteAttributeHandler extends RestartParentWriteAttributeHandler {

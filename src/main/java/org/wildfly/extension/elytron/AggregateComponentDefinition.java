@@ -32,7 +32,6 @@ import org.jboss.as.controller.PathAddress;
 import org.jboss.as.controller.PathElement;
 import org.jboss.as.controller.ResourceDefinition;
 import org.jboss.as.controller.RestartParentWriteAttributeHandler;
-import org.jboss.as.controller.ServiceRemoveStepHandler;
 import org.jboss.as.controller.SimpleResourceDefinition;
 import org.jboss.as.controller.StringListAttributeDefinition;
 import org.jboss.as.controller.capability.RuntimeCapability;
@@ -98,7 +97,7 @@ class AggregateComponentDefinition<T> extends SimpleResourceDefinition {
             .build();
 
         AbstractAddStepHandler add = new AggregateComponentAddHandler<T>(aggregationType, aggregator, aggregateReferences, runtimeCapability);
-        OperationStepHandler remove = new AggregateComponentRemoveHandler<T>(add, runtimeCapability, aggregationType);
+        OperationStepHandler remove = new SingleCapabilityServiceRemoveHandler<T>(add, runtimeCapability, aggregationType);
         OperationStepHandler write = new WriteAttributeHandler<T>(aggregationType, runtimeCapability, componentName, aggregateReferences);
 
         return new AggregateComponentDefinition<T>(aggregationType, componentName, add, remove, aggregateReferences, write, runtimeCapability);
@@ -146,24 +145,6 @@ class AggregateComponentDefinition<T> extends SimpleResourceDefinition {
 
         }
 
-    }
-
-    private static class AggregateComponentRemoveHandler<T> extends ServiceRemoveStepHandler {
-
-        private final RuntimeCapability<?> runtimeCapability;
-        private final Class<T> aggregationType;
-
-        public AggregateComponentRemoveHandler(AbstractAddStepHandler addOperation, RuntimeCapability<?> runtimeCapability, Class<T> aggregationType) {
-            super(addOperation, runtimeCapability);
-            this.runtimeCapability = runtimeCapability;
-            this.aggregationType = aggregationType;
-        }
-
-        @Override
-        protected ServiceName serviceName(String name) {
-            RuntimeCapability<?> dynamicCapability = runtimeCapability.fromBaseCapability(name);
-            return dynamicCapability.getCapabilityServiceName(aggregationType);
-        }
     }
 
     private static class WriteAttributeHandler<T> extends RestartParentWriteAttributeHandler {

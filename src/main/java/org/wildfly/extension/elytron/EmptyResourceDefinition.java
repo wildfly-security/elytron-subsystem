@@ -25,7 +25,6 @@ import org.jboss.as.controller.OperationFailedException;
 import org.jboss.as.controller.OperationStepHandler;
 import org.jboss.as.controller.PathElement;
 import org.jboss.as.controller.ResourceDefinition;
-import org.jboss.as.controller.ServiceRemoveStepHandler;
 import org.jboss.as.controller.SimpleResourceDefinition;
 import org.jboss.as.controller.capability.RuntimeCapability;
 import org.jboss.as.controller.registry.ManagementResourceRegistration;
@@ -57,7 +56,7 @@ class EmptyResourceDefinition extends SimpleResourceDefinition {
 
     static <T> ResourceDefinition create(Class<T> valueType, String pathKey, RuntimeCapability<?> runtimeCapability, ValueSupplier<T> valueSupplier) {
         AbstractAddStepHandler add = new ResourceAddHandler<T>(valueType, runtimeCapability, valueSupplier);
-        OperationStepHandler remove = new ResourceRemoveHandler<T>(add, valueType, runtimeCapability);
+        OperationStepHandler remove = new SingleCapabilityServiceRemoveHandler<T>(add, runtimeCapability, valueType);
         return new EmptyResourceDefinition(pathKey, runtimeCapability, add, remove);
     }
 
@@ -97,20 +96,4 @@ class EmptyResourceDefinition extends SimpleResourceDefinition {
         }
     }
 
-    private static class ResourceRemoveHandler<T> extends ServiceRemoveStepHandler {
-
-        private final Class<T> valueType;
-        private final RuntimeCapability<?> runtimeCapability;
-
-        public ResourceRemoveHandler(AbstractAddStepHandler addOperation, Class<T> valueType,RuntimeCapability<?> runtimeCapability) {
-            super(addOperation, runtimeCapability);
-            this.valueType = valueType;
-            this.runtimeCapability = runtimeCapability;
-        }
-
-        @Override
-        protected ServiceName serviceName(String name) {
-            return runtimeCapability.fromBaseCapability(name).getCapabilityServiceName(valueType);
-        }
-    }
 }
