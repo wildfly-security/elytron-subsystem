@@ -28,6 +28,7 @@ import org.jboss.as.controller.ResourceDefinition;
 import org.jboss.as.controller.ServiceRemoveStepHandler;
 import org.jboss.as.controller.SimpleResourceDefinition;
 import org.jboss.as.controller.capability.RuntimeCapability;
+import org.jboss.as.controller.registry.ManagementResourceRegistration;
 import org.jboss.as.controller.registry.OperationEntry;
 import org.jboss.dmr.ModelNode;
 import org.jboss.msc.service.ServiceBuilder;
@@ -43,18 +44,26 @@ import org.wildfly.extension.elytron.TrivialService.ValueSupplier;
  */
 class EmptyResourceDefinition extends SimpleResourceDefinition {
 
-    private EmptyResourceDefinition(String pathKey, OperationStepHandler add, OperationStepHandler remove) {
+    private final RuntimeCapability<?> runtimeCapability;
+
+    private EmptyResourceDefinition(String pathKey, RuntimeCapability<?> runtimeCapability, OperationStepHandler add, OperationStepHandler remove) {
         super(new Parameters(PathElement.pathElement(pathKey), ElytronExtension.getResourceDescriptionResolver(pathKey))
             .setAddHandler(add)
             .setRemoveHandler(remove)
             .setAddRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
             .setRemoveRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES));
+        this.runtimeCapability = runtimeCapability;
     }
 
     static <T> ResourceDefinition create(Class<T> valueType, String pathKey, RuntimeCapability<?> runtimeCapability, ValueSupplier<T> valueSupplier) {
         AbstractAddStepHandler add = new ResourceAddHandler<T>(valueType, runtimeCapability, valueSupplier);
         OperationStepHandler remove = new ResourceRemoveHandler<T>(add, valueType, runtimeCapability);
-        return new EmptyResourceDefinition(pathKey, add, remove);
+        return new EmptyResourceDefinition(pathKey, runtimeCapability, add, remove);
+    }
+
+    @Override
+    public void registerCapabilities(ManagementResourceRegistration resourceRegistration) {
+        resourceRegistration.registerCapability(runtimeCapability);
     }
 
     private static class ResourceAddHandler<T> extends AbstractAddStepHandler {
