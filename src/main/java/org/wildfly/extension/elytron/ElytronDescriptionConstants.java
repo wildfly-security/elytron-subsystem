@@ -27,6 +27,7 @@ interface ElytronDescriptionConstants {
 
     String ADD_PREFIX_ROLE_MAPPER = "add-prefix-role-mapper";
     String ADD_SUFFIX_ROLE_MAPPER = "add-suffix-role-mapper";
+    String AGGREGATE_HTTP_SERVER_FACTORY = "aggregate-http-server-factory";
     String AGGREGATE_NAME_REWRITER = "aggregate-name-rewriter";
     String AGGREGATE_PRINCIPAL_DECODER = "aggregate-principal-decoder";
     String AGGREGATE_REALM = "aggregate-realm";
@@ -51,6 +52,7 @@ interface ElytronDescriptionConstants {
     String CLASS_NAME = "class-name";
     String CLASS_NAMES = "class-names";
     String CLEAR_PASSWORD_MAPPER = "clear-password-mapper";
+    String CONFIGURABLE_HTTP_SERVER_FACTORY = "configurable-http-server-factory";
     String CONFIGURABLE_SASL_SERVER_FACTORY = "configurable-sasl-server-factory";
     String CONFIGURATION = "configuration";
     String CONFIGURATION_FILE = "configuration-file";
@@ -88,6 +90,8 @@ interface ElytronDescriptionConstants {
     String FROM = "from";
     String GREATER_THAN = "greater-than";
     String GROUPS_PROPERTIES = "groups-properties";
+    String HTTP_SERVER_FACTORY = "http-server-factory";
+    String HTTP_SERVER_FACTORIES = "http-server-factories";
     String IMPLEMENTATION = "implementation";
     String INDEX = "index";
     String INFO = "info";
@@ -153,6 +157,7 @@ interface ElytronDescriptionConstants {
     String PROVIDER_LOADER = "provider-loader";
     String PROVIDER_LOADERS = "provider-loaders";
     String PROVIDER_NAME = "provider-name";
+    String PROVIDER_HTTP_SERVER_FACTORY = "provider-http-server-factory";
     String PROVIDER_SASL_SERVER_FACTORY = "provider-sasl-server-factory";
     String PROVIDER_VERSION = "provider-version";
     String PUBLIC_KEY = "public-key";
@@ -190,6 +195,7 @@ interface ElytronDescriptionConstants {
     String SECURITY_PROPERTY = "security-property";
     String SERIAL_NUMBER = "serial-number";
     String SERVICE = "service";
+    String SERVICE_LOADER_HTTP_SERVER_FACTORY = "service-loader-http-server-factory";
     String SERVICE_LOADER_SASL_SERVER_FACTORY = "service-loader-sasl-server-factory";
     String SERVICES = "services";
     String SIGNATURE = "signature";

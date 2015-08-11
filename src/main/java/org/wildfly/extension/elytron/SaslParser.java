@@ -612,7 +612,7 @@ class SaslParser {
                 SaslServerDefinitions.PROTOCOL.marshallAsAttribute(serverFactory, writer);
                 SaslServerDefinitions.SASL_SERVER_FACTORY.marshallAsAttribute(serverFactory, writer);
                 SaslServerDefinitions.SERVER_NAME.marshallAsAttribute(serverFactory, writer);
-                SaslServerDefinitions.PROPERTIES.marshallAsElement(serverFactory, writer);
+                CommonAttributes.PROPERTIES.marshallAsElement(serverFactory, writer);
                 if (serverFactory.hasDefined(FILTERS)) {
                     writer.writeStartElement(FILTERS);
                     List<ModelNode> filters = serverFactory.require(FILTERS).asList();

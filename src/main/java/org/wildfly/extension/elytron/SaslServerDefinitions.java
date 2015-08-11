@@ -23,9 +23,8 @@ import static org.wildfly.extension.elytron.Capabilities.SASL_SERVER_FACTORY_RUN
 import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.MODULE;
 import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.SLOT;
 import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.resolveClassLoader;
+import static org.wildfly.extension.elytron.CommonAttributes.PROPERTIES;
 import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEY;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROPERTY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.VALUE;
 import static org.wildfly.extension.elytron.ElytronExtension.asDoubleIfDefined;
 import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
@@ -44,12 +43,9 @@ import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
 import javax.security.sasl.SaslServerFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
 
 import org.jboss.as.controller.AbstractAddStepHandler;
 import org.jboss.as.controller.AttributeDefinition;
-import org.jboss.as.controller.AttributeMarshaller;
 import org.jboss.as.controller.ObjectListAttributeDefinition;
 import org.jboss.as.controller.ObjectTypeAttributeDefinition;
 import org.jboss.as.controller.OperationContext;
@@ -60,7 +56,6 @@ import org.jboss.as.controller.ResourceDefinition;
 import org.jboss.as.controller.RestartParentWriteAttributeHandler;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
-import org.jboss.as.controller.SimpleMapAttributeDefinition;
 import org.jboss.as.controller.SimpleResourceDefinition;
 import org.jboss.as.controller.capability.RuntimeCapability;
 import org.jboss.as.controller.operations.validation.EnumValidator;
@@ -150,30 +145,9 @@ class SaslServerDefinitions {
     static final ObjectTypeAttributeDefinition MECH_PROVIDER_FILTER = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.FILTER, MECHANISM_NAME, PROVIDER_NAME, PROVIDER_VERSION, VERSION_COMPARISON)
         .build();
 
-
     static final ObjectListAttributeDefinition MECH_PROVIDER_FILTERS = new ObjectListAttributeDefinition.Builder(ElytronDescriptionConstants.FILTERS, MECH_PROVIDER_FILTER)
         .setMinSize(1)
         .build();
-
-    static final SimpleMapAttributeDefinition PROPERTIES = new SimpleMapAttributeDefinition.Builder(ElytronDescriptionConstants.PROPERTIES, ModelType.STRING, true)
-        .setAttributeMarshaller(new AttributeMarshaller() {
-
-            @Override
-            public void marshallAsElement(AttributeDefinition attribute, ModelNode resourceModel, boolean marshallDefault,
-                    XMLStreamWriter writer) throws XMLStreamException {
-                resourceModel = resourceModel.get(attribute.getName());
-                if (resourceModel.isDefined()) {
-                    writer.writeStartElement(attribute.getName());
-                    for (ModelNode property : resourceModel.asList()) {
-                        writer.writeEmptyElement(PROPERTY);
-                        writer.writeAttribute(KEY, property.asProperty().getName());
-                        writer.writeAttribute(VALUE, property.asProperty().getValue().asString());
-                    }
-                    writer.writeEndElement();
-                }
-            }
-
-        }).build();
 
     static final SimpleAttributeDefinition PREDEFINED_FILTER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PREDEFINED_FILTER, ModelType.STRING, true)
         .setAllowExpression(true)
@@ -293,7 +267,7 @@ class SaslServerDefinitions {
                 String provider = asStringIfDefined(context, PROVIDER_LOADER, model);
 
                 final InjectedValue<Provider[]> providerInjector = new InjectedValue<Provider[]>();
-                final Supplier<Provider[]> providerSupplier = provider != null ? (() -> providerInjector.getValue()) : (() -> Security.getProviders());
+                final Supplier<Provider[]> providerSupplier = provider != null ? (providerInjector::getValue) : (Security::getProviders);
 
                 TrivialService<SaslServerFactory> saslServiceFactoryService = new TrivialService<SaslServerFactory>(() -> new SecurityProviderSaslServerFactory(providerSupplier));
 
