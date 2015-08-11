@@ -28,6 +28,7 @@ import org.wildfly.security.auth.server.NameRewriter;
 import org.wildfly.security.auth.server.PrincipalDecoder;
 import org.wildfly.security.auth.server.RealmMapper;
 import org.wildfly.security.auth.server.SecurityDomain;
+import org.wildfly.security.auth.server.SecurityDomainHttpConfiguration;
 import org.wildfly.security.auth.server.SecurityDomainSaslConfiguration;
 import org.wildfly.security.auth.server.SecurityRealm;
 import org.wildfly.security.authz.PermissionMapper;
@@ -114,6 +115,12 @@ class Capabilities {
     static final RuntimeCapability<Void> SECURITY_DOMAIN_RUNTIME_CAPABILITY = RuntimeCapability
         .Builder.of(SECURITY_DOMAIN_CAPABILITY, true, SecurityDomain.class)
         .build();
+
+    static final String SECURITY_DOMAIN_HTTP_CONFIGURATION_CAPABILITY = CAPABILITY_BASE + "security-domain-http-configuration";
+
+    static final RuntimeCapability<Void> SECURITY_DOMAIN_HTTP_CONFIGURATION_RUNTIME_CAPABILITY = RuntimeCapability
+            .Builder.of(SECURITY_DOMAIN_HTTP_CONFIGURATION_CAPABILITY, true, SecurityDomainHttpConfiguration.class)
+            .build();
 
     static final String SECURITY_DOMAIN_SASL_CONFIGURATION_CAPABILITY = CAPABILITY_BASE + "security-domain-sasl-configuration";
 

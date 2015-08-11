@@ -183,6 +183,7 @@ interface ElytronDescriptionConstants {
     String SASL_SERVER_FACTORY = "sasl-server-factory";
     String SEARCH_BASE_DN = "search-base-dn";
     String SECURITY_DOMAIN = "security-domain";
+    String SECURITY_DOMAIN_HTTP_CONFIGURATION = "security-domain-http-configuration";
     String SECURITY_DOMAIN_SASL_CONFIGURATION = "security-domain-sasl-configuration";
     String SECURITY_DOMAINS = "security-domains";
     String SECURITY_REALMS = "security-realms";

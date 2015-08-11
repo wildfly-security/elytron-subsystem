@@ -80,6 +80,7 @@ class ElytronDefinition extends SimpleResourceDefinition {
 
         // Security Domain SASL / HTTP Configurations
         resourceRegistration.registerSubModel(SecurityDomainSaslConfigurationDefinition.create());
+        resourceRegistration.registerSubModel(HttpServerDefinitions.getSecurityDomainHttpServerConfiguration());
 
         // Domain
         resourceRegistration.registerSubModel(new DomainDefinition());

@@ -22,6 +22,8 @@ import static org.jboss.as.controller.capability.RuntimeCapability.buildDynamicC
 import static org.wildfly.extension.elytron.Capabilities.HTTP_SERVER_FACTORY_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.HTTP_SERVER_FACTORY_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.PROVIDERS_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.SECURITY_DOMAIN_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.SECURITY_DOMAIN_HTTP_CONFIGURATION_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.MODULE;
 import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.SLOT;
 import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.resolveClassLoader;
@@ -51,6 +53,8 @@ import org.jboss.msc.service.ServiceBuilder;
 import org.jboss.msc.service.StartException;
 import org.jboss.msc.value.InjectedValue;
 import org.wildfly.extension.elytron.TrivialService.ValueSupplier;
+import org.wildfly.security.auth.server.SecurityDomain;
+import org.wildfly.security.auth.server.SecurityDomainHttpConfiguration;
 import org.wildfly.security.http.HttpServerAuthenticationMechanismFactory;
 import org.wildfly.security.http.util.AggregateServerMechanismFactory;
 import org.wildfly.security.http.util.PropertiesServerMechanismFactory;
@@ -75,6 +79,12 @@ class HttpServerDefinitions {
         .setMinSize(1)
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
         .setCapabilityReference(PROVIDERS_CAPABILITY, HTTP_SERVER_FACTORY_CAPABILITY, true)
+        .build();
+
+    static final SimpleAttributeDefinition SECURITY_DOMAIN = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.SECURITY_DOMAIN, ModelType.STRING, false)
+        .setMinSize(1)
+        .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+        .setCapabilityReference(SECURITY_DOMAIN_CAPABILITY, HTTP_SERVER_FACTORY_CAPABILITY, true)
         .build();
 
     private static final AggregateComponentDefinition<HttpServerAuthenticationMechanismFactory> AGGREGATE_HTTP_SERVER_FACTORY = AggregateComponentDefinition.create(HttpServerAuthenticationMechanismFactory.class,
@@ -149,7 +159,7 @@ class HttpServerDefinitions {
     }
 
     static ResourceDefinition getServiceLoaderServerFactoryDefinition() {
-        AttributeDefinition[] attributes = new AttributeDefinition[] {MODULE, SLOT};
+        AttributeDefinition[] attributes = new AttributeDefinition[] { MODULE, SLOT };
         AbstractAddStepHandler add = new TrivialAddHandler<HttpServerAuthenticationMechanismFactory>(HTTP_SERVER_FACTORY_RUNTIME_CAPABILITY, HttpServerAuthenticationMechanismFactory.class, attributes) {
 
             @Override
@@ -174,6 +184,36 @@ class HttpServerDefinitions {
 
         return new TrivialResourceDefinition<HttpServerAuthenticationMechanismFactory>(ElytronDescriptionConstants.SERVICE_LOADER_HTTP_SERVER_FACTORY, HTTP_SERVER_FACTORY_RUNTIME_CAPABILITY,
                 HttpServerAuthenticationMechanismFactory.class, add, attributes);
+    }
+
+    static ResourceDefinition getSecurityDomainHttpServerConfiguration() {
+        AttributeDefinition[] attributes = new AttributeDefinition[] { SECURITY_DOMAIN, HTTP_SERVER_FACTORY };
+        AbstractAddStepHandler add = new TrivialAddHandler<SecurityDomainHttpConfiguration>(SECURITY_DOMAIN_HTTP_CONFIGURATION_RUNTIME_CAPABILITY, SecurityDomainHttpConfiguration.class, attributes) {
+
+            @Override
+            protected ValueSupplier<SecurityDomainHttpConfiguration> getValueSupplier(
+                    ServiceBuilder<SecurityDomainHttpConfiguration> serviceBuilder, OperationContext context, ModelNode model)
+                    throws OperationFailedException {
+
+                final InjectedValue<SecurityDomain> securityDomainInjector = new InjectedValue<SecurityDomain>();
+                final InjectedValue<HttpServerAuthenticationMechanismFactory> mechanismFactoryInjector = new InjectedValue<HttpServerAuthenticationMechanismFactory>();
+
+                String securityDomain = SECURITY_DOMAIN.resolveModelAttribute(context, model).asString();
+                serviceBuilder.addDependency(context.getCapabilityServiceName(
+                        buildDynamicCapabilityName(SECURITY_DOMAIN_CAPABILITY, securityDomain), SecurityDomain.class),
+                        SecurityDomain.class, securityDomainInjector);
+
+                String httpServerFactory = HTTP_SERVER_FACTORY.resolveModelAttribute(context, model).asString();
+                serviceBuilder.addDependency(context.getCapabilityServiceName(
+                        buildDynamicCapabilityName(HTTP_SERVER_FACTORY_CAPABILITY, httpServerFactory), HttpServerAuthenticationMechanismFactory.class),
+                        HttpServerAuthenticationMechanismFactory.class, mechanismFactoryInjector);
+
+                return () -> new SecurityDomainHttpConfiguration(securityDomainInjector.getValue(), mechanismFactoryInjector.getValue());
+            }
+        };
+
+        return new TrivialResourceDefinition<SecurityDomainHttpConfiguration>(ElytronDescriptionConstants.SECURITY_DOMAIN_HTTP_CONFIGURATION, SECURITY_DOMAIN_HTTP_CONFIGURATION_RUNTIME_CAPABILITY,
+                SecurityDomainHttpConfiguration.class, add, attributes);
     }
 
 }
