@@ -322,6 +322,12 @@
             <scope>provided</scope>
         </dependency>
 
+        <dependency>
+            <groupId>org.wildfly.common</groupId>
+            <artifactId>wildfly-common</artifactId>
+            <version>${version.org.wildfly.common}</version>
+        </dependency>
+
         <!-- TEST Dependencies -->
         <dependency>
             <groupId>org.wildfly.core</groupId>
@@ -334,12 +340,6 @@
             <groupId>org.wildfly.core</groupId>
             <artifactId>wildfly-controller-client</artifactId>
             <version>${version.wildfly.core}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.wildfly.common</groupId>
-            <artifactId>wildfly-common</artifactId>
-            <version>${version.org.wildfly.common}</version>
             <scope>test</scope>
         </dependency>
         <dependency>

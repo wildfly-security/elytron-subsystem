@@ -17,6 +17,7 @@
  */
 package org.wildfly.extension.elytron;
 
+import static org.wildfly.common.Assert.checkNotNullParam;
 import java.util.function.Supplier;
 
 import org.jboss.msc.service.Service;
@@ -31,17 +32,24 @@ import org.jboss.msc.service.StopContext;
  */
 class TrivialService<T> implements Service<T> {
 
-    private final ValueSupplier<T> valueSupplier;
+    private ValueSupplier<T> valueSupplier;
 
     private volatile T value;
 
+    TrivialService() {
+    }
+
     TrivialService(ValueSupplier<T> valueSupplier) {
-        this.valueSupplier = valueSupplier;
+        this.valueSupplier = checkNotNullParam("valueSupplier", valueSupplier);
+    }
+
+    void setValueSupplier(ValueSupplier<T> valueSupplier) {
+        this.valueSupplier = checkNotNullParam("valueSupplier", valueSupplier);
     }
 
     @Override
     public void start(StartContext context) throws StartException {
-        value = valueSupplier.get();
+        value = checkNotNullParam("valueSupplier", valueSupplier).get();
     }
 
     @Override
