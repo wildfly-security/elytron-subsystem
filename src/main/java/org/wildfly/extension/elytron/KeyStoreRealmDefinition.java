@@ -47,6 +47,8 @@ import org.jboss.msc.service.ServiceBuilder;
 import org.jboss.msc.service.ServiceController.Mode;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.ServiceTarget;
+import org.jboss.msc.value.InjectedValue;
+import org.wildfly.security.auth.provider.KeyStoreBackedSecurityRealm;
 import org.wildfly.security.auth.server.SecurityRealm;
 
 
@@ -99,13 +101,15 @@ class KeyStoreRealmDefinition extends SimpleResourceDefinition {
             ServiceTarget serviceTarget = context.getServiceTarget();
             RuntimeCapability<Void> runtimeCapability = SECURITY_REALM_RUNTIME_CAPABILITY.fromBaseCapability(context.getCurrentAddressValue());
             ServiceName realmName = runtimeCapability.getCapabilityServiceName(SecurityRealm.class);
-            KeyStoreRealmService keyStoreRealmService = new KeyStoreRealmService();
+
+            final InjectedValue<KeyStore> keyStore = new InjectedValue<KeyStore>();
+            TrivialService<SecurityRealm> keyStoreRealmService = new TrivialService<SecurityRealm>(() -> new KeyStoreBackedSecurityRealm(keyStore.getValue()));
 
             ServiceBuilder<SecurityRealm> serviceBuilder = serviceTarget.addService(realmName, keyStoreRealmService);
 
             String keyStoreCapabilityName = RuntimeCapability.buildDynamicCapabilityName(KEYSTORE_CAPABILITY, KEYSTORE.resolveModelAttribute(context, model).asString());
             ServiceName keyStoreServiceName = context.getCapabilityServiceName(keyStoreCapabilityName, KeyStore.class);
-            KEY_STORE_UTIL.addInjection(serviceBuilder, keyStoreRealmService.getKeyStoreInjector(), keyStoreServiceName);
+            KEY_STORE_UTIL.addInjection(serviceBuilder, keyStore, keyStoreServiceName);
             commonDependencies(serviceBuilder)
                 .setInitialMode(Mode.ACTIVE)
                 .install();

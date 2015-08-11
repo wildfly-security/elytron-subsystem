@@ -21,12 +21,17 @@ package org.wildfly.extension.elytron;
 import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.CLASS_NAME;
 import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.MODULE;
 import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.SLOT;
+import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.resolveClassLoader;
 import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROPERTY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.VALUE;
 import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
+import static org.wildfly.extension.elytron.SecurityActions.doPrivileged;
+import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
 
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -54,6 +59,7 @@ import org.jboss.msc.service.ServiceBuilder;
 import org.jboss.msc.service.ServiceController.Mode;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.ServiceTarget;
+import org.jboss.msc.service.StartException;
 
 
 /**
@@ -141,9 +147,9 @@ class CustomComponentDefinition<T> extends SimpleResourceDefinition {
             RuntimeCapability<Void> runtimeCapability = this.runtimeCapability.fromBaseCapability(context.getCurrentAddressValue());
             ServiceName componentName = runtimeCapability.getCapabilityServiceName(serviceType);
 
-            String module = asStringIfDefined(context, MODULE, model);
-            String slot = asStringIfDefined(context, SLOT, model);
-            String className = CLASS_NAME.resolveModelAttribute(context, model).asString();
+            final String module = asStringIfDefined(context, MODULE, model);
+            final String slot = asStringIfDefined(context, SLOT, model);
+            final String className = CLASS_NAME.resolveModelAttribute(context, model).asString();
 
             final Map<String, String> configurationMap;
             ModelNode configuration = CONFIGURATION.resolveModelAttribute(context, model);
@@ -154,7 +160,7 @@ class CustomComponentDefinition<T> extends SimpleResourceDefinition {
                 configurationMap = null;
             }
 
-            CustomComponentService<T> customComponentService = new CustomComponentService<T>(serviceType, module, slot, className, configurationMap);
+            TrivialService<T> customComponentService = new TrivialService<T>(() -> createValue(module, slot, className, configurationMap));
 
             ServiceBuilder<T> serviceBuilder = serviceTarget.addService(componentName, customComponentService);
             commonDependencies(serviceBuilder)
@@ -162,6 +168,34 @@ class CustomComponentDefinition<T> extends SimpleResourceDefinition {
                 .install();
         }
 
+        private T createValue(String module, String slot, String className, Map<String, String> configuration) throws StartException {
+            final ClassLoader classLoader;
+            try {
+                classLoader = doPrivileged((PrivilegedExceptionAction<ClassLoader>) () -> resolveClassLoader(module, slot));
+
+                Class<? extends T> typeClazz = classLoader.loadClass(className).asSubclass(serviceType);
+
+                T component = typeClazz.newInstance();
+
+                if (configuration != null) {
+                    if (component instanceof Configurable == false) {
+                        throw ROOT_LOGGER.componentNotConfigurable(component.getClass().getName());
+                    }
+                    Configurable configurableComponent = (Configurable) component;
+                    configurableComponent.initialize(configuration);
+                }
+
+                return component;
+            } catch (PrivilegedActionException e) {
+                throw new StartException(e.getCause());
+            } catch (Exception e) {
+                if (e instanceof RuntimeException) {
+                    throw (RuntimeException) e;
+                }
+
+                throw new StartException(e);
+            }
+        }
     }
 
     private static class WriteAttributeHandler<T> extends RestartParentWriteAttributeHandler {

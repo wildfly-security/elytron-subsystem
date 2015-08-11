@@ -44,6 +44,8 @@ import org.jboss.msc.service.ServiceBuilder;
 import org.jboss.msc.service.ServiceController.Mode;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.ServiceTarget;
+import org.jboss.msc.value.InjectedValue;
+import org.wildfly.security.auth.provider.AggregateSecurityRealm;
 import org.wildfly.security.auth.server.SecurityRealm;
 
 /**
@@ -112,12 +114,15 @@ class AggregateRealmDefinition extends SimpleResourceDefinition {
             String authenticationRealm = AUTHENTICATION_REALM.resolveModelAttribute(context, model).asString();
             String authorizationRealm = AUTHORIZATION_REALM.resolveModelAttribute(context, model).asString();
 
-            AggregateRealmService aggregateRealmService = new AggregateRealmService();
+            final InjectedValue<SecurityRealm> authenticationRealmValue = new InjectedValue<SecurityRealm>();
+            final InjectedValue<SecurityRealm> authorizationRealmValue = new InjectedValue<SecurityRealm>();
+
+            TrivialService<SecurityRealm> aggregateRealmService = new TrivialService<SecurityRealm>( () -> new AggregateSecurityRealm(authenticationRealmValue.getValue(), authorizationRealmValue.getValue()));
 
             ServiceBuilder<SecurityRealm> serviceBuilder = serviceTarget.addService(realmName, aggregateRealmService);
 
-            addRealmDependency(context, serviceBuilder, authenticationRealm, aggregateRealmService.getAuthenticationRealmInjector());
-            addRealmDependency(context, serviceBuilder, authorizationRealm, aggregateRealmService.getAuthorizationRealmInjector());
+            addRealmDependency(context, serviceBuilder, authenticationRealm, authenticationRealmValue);
+            addRealmDependency(context, serviceBuilder, authorizationRealm, authorizationRealmValue);
 
             commonDependencies(serviceBuilder)
                 .setInitialMode(Mode.ACTIVE)

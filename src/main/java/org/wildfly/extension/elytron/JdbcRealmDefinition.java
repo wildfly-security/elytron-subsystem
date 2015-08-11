@@ -503,8 +503,9 @@ class JdbcRealmDefinition extends SimpleResourceDefinition {
             RuntimeCapability<Void> runtimeCapability = SECURITY_REALM_RUNTIME_CAPABILITY.fromBaseCapability(context.getCurrentAddressValue());
             ServiceName realmName = runtimeCapability.getCapabilityServiceName(SecurityRealm.class);
             ModelNode principalQueries = PrincipalQueryAttributes.PRINCIPAL_QUERIES.resolveModelAttribute(context, operation);
-            JdbcSecurityRealmBuilder builder = JdbcSecurityRealm.builder();
-            JdbcRealmService service = new JdbcRealmService(builder);
+            final JdbcSecurityRealmBuilder builder = JdbcSecurityRealm.builder();
+
+            TrivialService<SecurityRealm> service = new TrivialService<SecurityRealm>(builder::build);
             ServiceBuilder<SecurityRealm> serviceBuilder = serviceTarget.addService(realmName, service);
 
             for (ModelNode query : principalQueries.asList()) {

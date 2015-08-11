@@ -44,6 +44,7 @@ import org.jboss.msc.service.ServiceBuilder;
 import org.jboss.msc.service.ServiceController.Mode;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.ServiceTarget;
+import org.wildfly.security.auth.provider.JaasSecurityRealm;
 import org.wildfly.security.auth.server.SecurityRealm;
 
 /**
@@ -98,8 +99,7 @@ class JaasRealmDefinition extends SimpleResourceDefinition {
             ModelNode configurationNode = CONFIGURATION.resolveModelAttribute(context, model);
             final String configuration = configurationNode.isDefined() ? configurationNode.asString() : context.getCurrentAddressValue();
 
-
-            JaasRealmService jaasRealmService = new JaasRealmService(configuration);
+            TrivialService<SecurityRealm> jaasRealmService = new TrivialService<SecurityRealm>(() -> new JaasSecurityRealm(configuration));
 
             ServiceBuilder<SecurityRealm> serviceBuilder = serviceTarget.addService(realmName, jaasRealmService);
             commonDependencies(serviceBuilder)

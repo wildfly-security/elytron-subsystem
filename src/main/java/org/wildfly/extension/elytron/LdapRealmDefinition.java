@@ -209,12 +209,12 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
             ServiceTarget serviceTarget = context.getServiceTarget();
             RuntimeCapability<Void> runtimeCapability = SECURITY_REALM_RUNTIME_CAPABILITY.fromBaseCapability(context.getCurrentAddressValue());
             ServiceName realmName = runtimeCapability.getCapabilityServiceName(SecurityRealm.class);
-            LdapSecurityRealmBuilder builder = LdapSecurityRealmBuilder.builder();
+            final LdapSecurityRealmBuilder builder = LdapSecurityRealmBuilder.builder();
 
             configurePrincipalMapping(context, model, builder);
             configureDirContext(context, model, builder);
 
-            LdapRealmService ldapRealmService = new LdapRealmService(builder);
+            TrivialService<SecurityRealm> ldapRealmService = new TrivialService<SecurityRealm>(builder::build);
             ServiceBuilder<SecurityRealm> serviceBuilder = serviceTarget.addService(realmName, ldapRealmService);
 
             commonDependencies(serviceBuilder).setInitialMode(ServiceController.Mode.ACTIVE).install();
