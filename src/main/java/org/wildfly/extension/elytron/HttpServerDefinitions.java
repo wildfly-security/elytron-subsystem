@@ -28,6 +28,7 @@ import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.MOD
 import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.SLOT;
 import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.resolveClassLoader;
 import static org.wildfly.extension.elytron.CommonAttributes.PROPERTIES;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.VALUE;
 import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
 import static org.wildfly.extension.elytron.SecurityActions.doPrivileged;
 
@@ -36,11 +37,16 @@ import java.security.Provider;
 import java.security.Security;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.regex.Pattern;
 
 import org.jboss.as.controller.AbstractAddStepHandler;
 import org.jboss.as.controller.AttributeDefinition;
+import org.jboss.as.controller.ObjectListAttributeDefinition;
+import org.jboss.as.controller.ObjectTypeAttributeDefinition;
 import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
 import org.jboss.as.controller.ResourceDefinition;
@@ -63,6 +69,7 @@ import org.wildfly.security.auth.server.SecurityDomain;
 import org.wildfly.security.auth.server.SecurityDomainHttpConfiguration;
 import org.wildfly.security.http.HttpServerAuthenticationMechanismFactory;
 import org.wildfly.security.http.util.AggregateServerMechanismFactory;
+import org.wildfly.security.http.util.FilterServerMechanismFactory;
 import org.wildfly.security.http.util.PropertiesServerMechanismFactory;
 import org.wildfly.security.http.util.SecurityProviderServerMechanismFactory;
 import org.wildfly.security.http.util.ServiceLoaderServerMechanismFactory;
@@ -93,6 +100,23 @@ class HttpServerDefinitions {
         .setCapabilityReference(SECURITY_DOMAIN_CAPABILITY, HTTP_SERVER_FACTORY_CAPABILITY, true)
         .build();
 
+    static final SimpleAttributeDefinition PATTERN_FILTER = new SimpleAttributeDefinitionBuilder(RegexAttributeDefinitions.PATTERN)
+        .setXmlName(VALUE)
+        .setName(ElytronDescriptionConstants.PATTERN_FILTER)
+        .build();
+
+    static final SimpleAttributeDefinition ENABLING = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ENABLING, ModelType.BOOLEAN, false)
+        .setAllowExpression(true)
+        .setDefaultValue(new ModelNode(true))
+        .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+        .build();
+
+    static final ObjectTypeAttributeDefinition CONFIGURED_FILTER = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.FILTER, PATTERN_FILTER, ENABLING)
+        .build();
+
+    static final ObjectListAttributeDefinition CONFIGURED_FILTERS = new ObjectListAttributeDefinition.Builder(ElytronDescriptionConstants.FILTERS, CONFIGURED_FILTER)
+        .build();
+
     private static final AggregateComponentDefinition<HttpServerAuthenticationMechanismFactory> AGGREGATE_HTTP_SERVER_FACTORY = AggregateComponentDefinition.create(HttpServerAuthenticationMechanismFactory.class,
             ElytronDescriptionConstants.AGGREGATE_HTTP_SERVER_FACTORY, ElytronDescriptionConstants.HTTP_SERVER_FACTORIES, HTTP_SERVER_FACTORY_RUNTIME_CAPABILITY,
             (HttpServerAuthenticationMechanismFactory[] n) -> new AggregateServerMechanismFactory(n));
@@ -102,7 +126,7 @@ class HttpServerDefinitions {
     }
 
     static ResourceDefinition getConfigurableHttpServerFactoryDefinition() {
-        AttributeDefinition[] attributes = new AttributeDefinition[] { HTTP_SERVER_FACTORY, PROPERTIES };
+        AttributeDefinition[] attributes = new AttributeDefinition[] { HTTP_SERVER_FACTORY, CONFIGURED_FILTERS, PROPERTIES };
         AbstractAddStepHandler add = new TrivialAddHandler<HttpServerAuthenticationMechanismFactory>(HTTP_SERVER_FACTORY_RUNTIME_CAPABILITY, HttpServerAuthenticationMechanismFactory.class, attributes) {
 
             @Override
@@ -117,6 +141,26 @@ class HttpServerDefinitions {
                         buildDynamicCapabilityName(HTTP_SERVER_FACTORY_CAPABILITY, httpServerFactory), HttpServerAuthenticationMechanismFactory.class),
                         HttpServerAuthenticationMechanismFactory.class, factoryInjector);
 
+                final Predicate<String> finalFilter;
+                if (model.hasDefined(ElytronDescriptionConstants.FILTERS)) {
+                    Predicate<String> filter = null;
+                    List<ModelNode> nodes = model.require(ElytronDescriptionConstants.FILTERS).asList();
+                    for (ModelNode current : nodes) {
+                        Predicate<String> currentFilter = (String s) -> true;
+                        String patternFilter = asStringIfDefined(context, PATTERN_FILTER, current);
+                        if (patternFilter != null) {
+                            final Pattern pattern = Pattern.compile(patternFilter);
+                            currentFilter = (String s) -> pattern.matcher(s).find();
+                        }
+
+                        currentFilter = ENABLING.resolveModelAttribute(context, current).asBoolean() ? currentFilter : currentFilter.negate();
+                        filter = filter == null ? currentFilter : filter.or(currentFilter);
+                    }
+                    finalFilter = filter;
+                } else {
+                    finalFilter = null;
+                }
+
                 final Map<String, String> propertiesMap;
                 ModelNode properties = PROPERTIES.resolveModelAttribute(context, model);
                 if (properties.isDefined()) {
@@ -126,7 +170,13 @@ class HttpServerDefinitions {
                     propertiesMap = null;
                 }
 
-                return () -> new PropertiesServerMechanismFactory(factoryInjector.getValue(), propertiesMap);
+                return () -> {
+                    HttpServerAuthenticationMechanismFactory factory = factoryInjector.getValue();
+                    factory = finalFilter != null ? new FilterServerMechanismFactory(factory, finalFilter) : factory;
+                    factory = propertiesMap != null ? new PropertiesServerMechanismFactory(factoryInjector.getValue(), propertiesMap) : factory;
+
+                    return factory;
+                };
             }
         };
 
