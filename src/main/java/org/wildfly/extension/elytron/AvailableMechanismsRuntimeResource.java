@@ -17,10 +17,9 @@
  */
 package org.wildfly.extension.elytron;
 
-import java.util.Collections;
-import java.util.Map;
+import static org.wildfly.common.Assert.checkNotNullParam;
 
-import javax.security.sasl.SaslServerFactory;
+import java.util.function.Function;
 
 import org.jboss.as.controller.AbstractRuntimeOnlyHandler;
 import org.jboss.as.controller.DelegatingResourceDefinition;
@@ -32,26 +31,25 @@ import org.jboss.as.controller.registry.ManagementResourceRegistration;
 import org.jboss.dmr.ModelNode;
 
 /**
- * A {@link ResourceDefintion} to wrap an existing resource and add a runtime attribute to return the available SASL mechanisms.
+ * A {@link ResourceDefintion} to wrap an existing resource and add a runtime attribute to return the available authentication mechanisms.
  *
  * @author <a href="mailto:darran.lofthouse@jboss.com">Darran Lofthouse</a>
  */
-class SaslFactoryRuntimeResource extends DelegatingResourceDefinition {
+class AvailableMechanismsRuntimeResource extends DelegatingResourceDefinition {
 
-    private static final Map<String, ?> EMPTY_MAP = Collections.emptyMap();
+    private final Function<OperationContext, String[]> availableMechanismsFunction;
 
-    private final FactoryFunction saslServerFactory;
+    private static final StringListAttributeDefinition AVAILABLE_MECHANISMS = new StringListAttributeDefinition.Builder(ElytronDescriptionConstants.AVAILABLE_MECHANISMS)
+        .setStorageRuntime()
+        .build();
 
-    private static final StringListAttributeDefinition AVAILABLE_MECHANISMS = new StringListAttributeDefinition.Builder(
-            ElytronDescriptionConstants.AVAILABLE_MECHANISMS).setStorageRuntime().build();
-
-    private SaslFactoryRuntimeResource(ResourceDefinition delegate, FactoryFunction saslServerFactory) {
-        this.saslServerFactory = saslServerFactory;
+    private AvailableMechanismsRuntimeResource(ResourceDefinition delegate, Function<OperationContext, String[]> availableMechanismsFunction) {
+        this.availableMechanismsFunction = checkNotNullParam("availableMechanismsFunction", availableMechanismsFunction);
         setDelegate(delegate);
     }
 
-    static ResourceDefinition wrap(ResourceDefinition delegate, FactoryFunction saslServerFactory) {
-        return new SaslFactoryRuntimeResource(delegate, saslServerFactory);
+    static ResourceDefinition wrap(ResourceDefinition delegate, Function<OperationContext, String[]> availableMechanismsFunction) {
+        return new AvailableMechanismsRuntimeResource(delegate, availableMechanismsFunction);
     }
 
     @Override
@@ -65,29 +63,17 @@ class SaslFactoryRuntimeResource extends DelegatingResourceDefinition {
 
         @Override
         protected void executeRuntimeStep(OperationContext context, ModelNode operation) throws OperationFailedException {
-            SaslServerFactory saslServerFactory = SaslFactoryRuntimeResource.this.saslServerFactory.get(context);
+            String[] mechanisms = availableMechanismsFunction.apply(context);
 
-            if (saslServerFactory != null) {
-                String[] mechanisms = saslServerFactory.getMechanismNames(EMPTY_MAP);
-                ModelNode mechanismList = new ModelNode();
+            ModelNode mechanismList = new ModelNode();
+            if (mechanisms != null) {
                 for (String current : mechanisms) {
                     mechanismList.add(current);
                 }
-                context.getResult().set(mechanismList);
             }
+            context.getResult().set(mechanismList);
         }
-
-    }
-
-    /**
-     * A Function that returns a {@link SaslServerFactory} whilst allowing an {@link OperationFailedException} to be thrown if
-     * not available.
-     */
-    @FunctionalInterface
-    interface FactoryFunction {
-
-        SaslServerFactory get(OperationContext context) throws OperationFailedException;
-
     }
 
 }
+

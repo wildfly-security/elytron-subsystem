@@ -28,12 +28,13 @@ import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.VALUE;
 import static org.wildfly.extension.elytron.ElytronExtension.asDoubleIfDefined;
 import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
-import static org.wildfly.extension.elytron.SaslFactoryRuntimeResource.wrap;
+import static org.wildfly.extension.elytron.AvailableMechanismsRuntimeResource.wrap;
 import static org.wildfly.extension.elytron.SecurityActions.doPrivileged;
 
 import java.security.PrivilegedExceptionAction;
 import java.security.Provider;
 import java.security.Security;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -180,7 +181,7 @@ class SaslServerDefinitions {
     }
 
     static ResourceDefinition getAggregateSaslServerFactoryDefinition() {
-        return wrap(AGGREGATE_SASL_SERVER_FACTORY, SaslServerDefinitions::getSaslServerFactory);
+        return wrap(AGGREGATE_SASL_SERVER_FACTORY, SaslServerDefinitions::getAvailableMechanisms);
     }
 
     static ResourceDefinition getConfigurableSaslServerFactoryDefinition() {
@@ -254,7 +255,7 @@ class SaslServerDefinitions {
 
         };
 
-        return wrap(new SaslServerResourceDefinition(ElytronDescriptionConstants.CONFIGURABLE_SASL_SERVER_FACTORY, add, attributes), SaslServerDefinitions::getSaslServerFactory);
+        return wrap(new SaslServerResourceDefinition(ElytronDescriptionConstants.CONFIGURABLE_SASL_SERVER_FACTORY, add, attributes), SaslServerDefinitions::getAvailableMechanisms);
     }
 
     static ResourceDefinition getProviderSaslServerFactoryDefintion() {
@@ -284,7 +285,7 @@ class SaslServerDefinitions {
             }
         };
 
-        return wrap(new SaslServerResourceDefinition(ElytronDescriptionConstants.PROVIDER_SASL_SERVER_FACTORY, add, PROVIDER_LOADER), SaslServerDefinitions::getSaslServerFactory);
+        return wrap(new SaslServerResourceDefinition(ElytronDescriptionConstants.PROVIDER_SASL_SERVER_FACTORY, add, PROVIDER_LOADER), SaslServerDefinitions::getAvailableMechanisms);
     }
 
     static ResourceDefinition getServiceLoaderSaslServerFactoryDefinition() {
@@ -311,7 +312,7 @@ class SaslServerDefinitions {
             }
         };
 
-        return wrap(new SaslServerResourceDefinition(ElytronDescriptionConstants.SERVICE_LOADER_SASL_SERVER_FACTORY, add, MODULE, SLOT), SaslServerDefinitions::getSaslServerFactory);
+        return wrap(new SaslServerResourceDefinition(ElytronDescriptionConstants.SERVICE_LOADER_SASL_SERVER_FACTORY, add, MODULE, SLOT), SaslServerDefinitions::getAvailableMechanisms);
     }
 
     static ResourceDefinition getMechanismProviderFilteringSaslServerFactory() {
@@ -379,10 +380,10 @@ class SaslServerDefinitions {
 
         };
 
-        return wrap(new SaslServerResourceDefinition(ElytronDescriptionConstants.MECHANISM_PROVIDER_FILTERING_SASL_SERVER_FACTORY, add, attributes), SaslServerDefinitions::getSaslServerFactory);
+        return wrap(new SaslServerResourceDefinition(ElytronDescriptionConstants.MECHANISM_PROVIDER_FILTERING_SASL_SERVER_FACTORY, add, attributes), SaslServerDefinitions::getAvailableMechanisms);
     }
 
-    private static SaslServerFactory getSaslServerFactory(OperationContext context) throws OperationFailedException {
+    private static String[] getAvailableMechanisms(OperationContext context) {
         RuntimeCapability<Void> runtimeCapability = SASL_SERVER_FACTORY_RUNTIME_CAPABILITY.fromBaseCapability(context.getCurrentAddressValue());
         ServiceName saslServerFactoryName = runtimeCapability.getCapabilityServiceName(SaslServerFactory.class);
 
@@ -391,7 +392,7 @@ class SaslServerDefinitions {
         if (serviceContainer.getState() != State.UP) {
             return null;
         }
-        return serviceContainer.getValue();
+        return serviceContainer.getValue().getMechanismNames(Collections.emptyMap());
     }
 
     private static class SaslServerResourceDefinition extends SimpleResourceDefinition {

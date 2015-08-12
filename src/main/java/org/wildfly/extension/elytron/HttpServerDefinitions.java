@@ -34,6 +34,7 @@ import static org.wildfly.extension.elytron.SecurityActions.doPrivileged;
 import java.security.PrivilegedExceptionAction;
 import java.security.Provider;
 import java.security.Security;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -45,11 +46,16 @@ import org.jboss.as.controller.OperationFailedException;
 import org.jboss.as.controller.ResourceDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
+import org.jboss.as.controller.capability.RuntimeCapability;
 import org.jboss.as.controller.registry.AttributeAccess;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
 import org.jboss.dmr.Property;
 import org.jboss.msc.service.ServiceBuilder;
+import org.jboss.msc.service.ServiceController;
+import org.jboss.msc.service.ServiceController.State;
+import org.jboss.msc.service.ServiceName;
+import org.jboss.msc.service.ServiceRegistry;
 import org.jboss.msc.service.StartException;
 import org.jboss.msc.value.InjectedValue;
 import org.wildfly.extension.elytron.TrivialService.ValueSupplier;
@@ -92,7 +98,7 @@ class HttpServerDefinitions {
             (HttpServerAuthenticationMechanismFactory[] n) -> new AggregateServerMechanismFactory(n));
 
     static ResourceDefinition getAggregateHttpServerFactoryDefintion() {
-        return AGGREGATE_HTTP_SERVER_FACTORY;
+        return wrapFactory(AGGREGATE_HTTP_SERVER_FACTORY);
     }
 
     static ResourceDefinition getConfigurableHttpServerFactoryDefinition() {
@@ -124,8 +130,8 @@ class HttpServerDefinitions {
             }
         };
 
-        return new TrivialResourceDefinition<HttpServerAuthenticationMechanismFactory>(ElytronDescriptionConstants.CONFIGURABLE_HTTP_SERVER_FACTORY, HTTP_SERVER_FACTORY_RUNTIME_CAPABILITY,
-                HttpServerAuthenticationMechanismFactory.class, add, attributes);
+        return wrapFactory(new TrivialResourceDefinition<HttpServerAuthenticationMechanismFactory>(ElytronDescriptionConstants.CONFIGURABLE_HTTP_SERVER_FACTORY, HTTP_SERVER_FACTORY_RUNTIME_CAPABILITY,
+                HttpServerAuthenticationMechanismFactory.class, add, attributes));
     }
 
     static ResourceDefinition getProviderHttpServerFactoryDefinition() {
@@ -154,8 +160,8 @@ class HttpServerDefinitions {
 
         };
 
-        return new TrivialResourceDefinition<HttpServerAuthenticationMechanismFactory>(ElytronDescriptionConstants.PROVIDER_HTTP_SERVER_FACTORY, HTTP_SERVER_FACTORY_RUNTIME_CAPABILITY,
-                HttpServerAuthenticationMechanismFactory.class, add, attributes);
+        return wrapFactory(new TrivialResourceDefinition<HttpServerAuthenticationMechanismFactory>(ElytronDescriptionConstants.PROVIDER_HTTP_SERVER_FACTORY, HTTP_SERVER_FACTORY_RUNTIME_CAPABILITY,
+                HttpServerAuthenticationMechanismFactory.class, add, attributes));
     }
 
     static ResourceDefinition getServiceLoaderServerFactoryDefinition() {
@@ -182,8 +188,8 @@ class HttpServerDefinitions {
             }
         };
 
-        return new TrivialResourceDefinition<HttpServerAuthenticationMechanismFactory>(ElytronDescriptionConstants.SERVICE_LOADER_HTTP_SERVER_FACTORY, HTTP_SERVER_FACTORY_RUNTIME_CAPABILITY,
-                HttpServerAuthenticationMechanismFactory.class, add, attributes);
+        return wrapFactory(new TrivialResourceDefinition<HttpServerAuthenticationMechanismFactory>(ElytronDescriptionConstants.SERVICE_LOADER_HTTP_SERVER_FACTORY, HTTP_SERVER_FACTORY_RUNTIME_CAPABILITY,
+                HttpServerAuthenticationMechanismFactory.class, add, attributes));
     }
 
     static ResourceDefinition getSecurityDomainHttpServerConfiguration() {
@@ -212,8 +218,41 @@ class HttpServerDefinitions {
             }
         };
 
-        return new TrivialResourceDefinition<SecurityDomainHttpConfiguration>(ElytronDescriptionConstants.SECURITY_DOMAIN_HTTP_CONFIGURATION, SECURITY_DOMAIN_HTTP_CONFIGURATION_RUNTIME_CAPABILITY,
-                SecurityDomainHttpConfiguration.class, add, attributes);
+        return wrapConfiguration(new TrivialResourceDefinition<SecurityDomainHttpConfiguration>(ElytronDescriptionConstants.SECURITY_DOMAIN_HTTP_CONFIGURATION, SECURITY_DOMAIN_HTTP_CONFIGURATION_RUNTIME_CAPABILITY,
+                SecurityDomainHttpConfiguration.class, add, attributes));
+    }
+
+    private static ResourceDefinition wrapConfiguration(ResourceDefinition resourceDefinition) {
+        return AvailableMechanismsRuntimeResource.wrap(
+                resourceDefinition,
+                (context) -> {
+                    RuntimeCapability<Void> runtimeCapability = SECURITY_DOMAIN_HTTP_CONFIGURATION_RUNTIME_CAPABILITY.fromBaseCapability(context.getCurrentAddressValue());
+                    ServiceName configurationName = runtimeCapability.getCapabilityServiceName(SecurityDomainHttpConfiguration.class);
+
+                    @SuppressWarnings("unchecked")
+                    ServiceController<SecurityDomainHttpConfiguration> serviceContainer = (ServiceController<SecurityDomainHttpConfiguration>) context.getServiceRegistry(false).getRequiredService(configurationName);
+                    if (serviceContainer.getState() != State.UP) {
+                        return null;
+                    }
+                    return serviceContainer.getValue().getMechanismFactory().getMechanismNames(Collections.emptyMap());
+                });
+    }
+
+    private static ResourceDefinition wrapFactory(ResourceDefinition resourceDefinition) {
+        return AvailableMechanismsRuntimeResource.wrap(
+                resourceDefinition,
+                (context) -> {
+                    RuntimeCapability<Void> runtimeCapability = HTTP_SERVER_FACTORY_RUNTIME_CAPABILITY.fromBaseCapability(context.getCurrentAddressValue());
+                    ServiceName httpServerFactoryName = runtimeCapability.getCapabilityServiceName(HttpServerAuthenticationMechanismFactory.class);
+
+                    ServiceRegistry registry = context.getServiceRegistry(false);
+                    @SuppressWarnings("unchecked")
+                    ServiceController<HttpServerAuthenticationMechanismFactory> serviceContainer = (ServiceController<HttpServerAuthenticationMechanismFactory>) registry.getRequiredService(httpServerFactoryName);
+                    if (serviceContainer.getState() != State.UP) {
+                        return null;
+                    }
+                    return serviceContainer.getValue().getMechanismNames(Collections.emptyMap());
+                });
     }
 
 }
