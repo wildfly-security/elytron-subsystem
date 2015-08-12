@@ -326,6 +326,7 @@
             <groupId>org.wildfly.common</groupId>
             <artifactId>wildfly-common</artifactId>
             <version>${version.org.wildfly.common}</version>
+            <scope>provided</scope>
         </dependency>
 
         <!-- TEST Dependencies -->
