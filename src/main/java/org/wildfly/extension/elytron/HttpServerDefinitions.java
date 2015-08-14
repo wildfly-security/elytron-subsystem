@@ -121,6 +121,10 @@ class HttpServerDefinitions {
             ElytronDescriptionConstants.AGGREGATE_HTTP_SERVER_FACTORY, ElytronDescriptionConstants.HTTP_SERVER_FACTORIES, HTTP_SERVER_FACTORY_RUNTIME_CAPABILITY,
             (HttpServerAuthenticationMechanismFactory[] n) -> new AggregateServerMechanismFactory(n));
 
+    static AggregateComponentDefinition<HttpServerAuthenticationMechanismFactory> getRawAggregateHttpServerFactoryDefintion() {
+        return AGGREGATE_HTTP_SERVER_FACTORY;
+    }
+
     static ResourceDefinition getAggregateHttpServerFactoryDefintion() {
         return wrapFactory(AGGREGATE_HTTP_SERVER_FACTORY);
     }
@@ -180,8 +184,8 @@ class HttpServerDefinitions {
             }
         };
 
-        return wrapFactory(new TrivialResourceDefinition<HttpServerAuthenticationMechanismFactory>(ElytronDescriptionConstants.CONFIGURABLE_HTTP_SERVER_FACTORY, HTTP_SERVER_FACTORY_RUNTIME_CAPABILITY,
-                HttpServerAuthenticationMechanismFactory.class, add, attributes));
+        return wrapFactory(new TrivialResourceDefinition<>(ElytronDescriptionConstants.CONFIGURABLE_HTTP_SERVER_FACTORY,
+                HTTP_SERVER_FACTORY_RUNTIME_CAPABILITY, HttpServerAuthenticationMechanismFactory.class, add, attributes));
     }
 
     static ResourceDefinition getProviderHttpServerFactoryDefinition() {
@@ -268,7 +272,7 @@ class HttpServerDefinitions {
             }
         };
 
-        return wrapConfiguration(new TrivialResourceDefinition<SecurityDomainHttpConfiguration>(ElytronDescriptionConstants.SECURITY_DOMAIN_HTTP_CONFIGURATION, SECURITY_DOMAIN_HTTP_CONFIGURATION_RUNTIME_CAPABILITY,
+        return wrapConfiguration(new TrivialResourceDefinition<>(ElytronDescriptionConstants.SECURITY_DOMAIN_HTTP_CONFIGURATION, SECURITY_DOMAIN_HTTP_CONFIGURATION_RUNTIME_CAPABILITY,
                 SecurityDomainHttpConfiguration.class, add, attributes));
     }
 

@@ -90,6 +90,7 @@ interface ElytronDescriptionConstants {
     String FROM = "from";
     String GREATER_THAN = "greater-than";
     String GROUPS_PROPERTIES = "groups-properties";
+    String HTTP = "http";
     String HTTP_SERVER_FACTORY = "http-server-factory";
     String HTTP_SERVER_FACTORIES = "http-server-factories";
     String IMPLEMENTATION = "implementation";
