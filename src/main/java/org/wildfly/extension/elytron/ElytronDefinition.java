@@ -80,6 +80,7 @@ class ElytronDefinition extends SimpleResourceDefinition {
 
         // Security Domain SASL / HTTP Configurations
         resourceRegistration.registerSubModel(SecurityDomainSaslConfigurationDefinition.create());
+        resourceRegistration.registerSubModel(HttpServerDefinitions.getSecurityDomainHttpServerConfiguration());
 
         // Domain
         resourceRegistration.registerSubModel(new DomainDefinition());
@@ -126,6 +127,12 @@ class ElytronDefinition extends SimpleResourceDefinition {
         resourceRegistration.registerSubModel(RoleMapperDefinitions.getConstantRoleMapperDefinition());
         resourceRegistration.registerSubModel(new CustomComponentDefinition<RoleMapper>(RoleMapper.class, ROLE_MAPPER_RUNTIME_CAPABILITY, ElytronDescriptionConstants.CUSTOM_ROLE_MAPPER));
         resourceRegistration.registerSubModel(RoleMapperDefinitions.getLogicalRoleMapperDefinition());
+
+        // HTTP Mechanisms
+        resourceRegistration.registerSubModel(HttpServerDefinitions.getAggregateHttpServerFactoryDefintion());
+        resourceRegistration.registerSubModel(HttpServerDefinitions.getConfigurableHttpServerFactoryDefinition());
+        resourceRegistration.registerSubModel(HttpServerDefinitions.getProviderHttpServerFactoryDefinition());
+        resourceRegistration.registerSubModel(HttpServerDefinitions.getServiceLoaderServerFactoryDefinition());
 
         // SASL Mechanisms
         resourceRegistration.registerSubModel(SaslServerDefinitions.getAggregateSaslServerFactoryDefinition());

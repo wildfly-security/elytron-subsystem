@@ -28,11 +28,13 @@ import org.wildfly.security.auth.server.NameRewriter;
 import org.wildfly.security.auth.server.PrincipalDecoder;
 import org.wildfly.security.auth.server.RealmMapper;
 import org.wildfly.security.auth.server.SecurityDomain;
+import org.wildfly.security.auth.server.SecurityDomainHttpConfiguration;
 import org.wildfly.security.auth.server.SecurityDomainSaslConfiguration;
 import org.wildfly.security.auth.server.SecurityRealm;
 import org.wildfly.security.authz.PermissionMapper;
 import org.wildfly.security.authz.RoleDecoder;
 import org.wildfly.security.authz.RoleMapper;
+import org.wildfly.security.http.HttpServerAuthenticationMechanismFactory;
 
 
 /**
@@ -47,6 +49,12 @@ import org.wildfly.security.authz.RoleMapper;
 class Capabilities {
 
     private static final String CAPABILITY_BASE = "org.wildfly.security.";
+
+    static final String HTTP_SERVER_FACTORY_CAPABILITY = CAPABILITY_BASE + "http-server-mechanism-factory";
+
+    static final RuntimeCapability<Void> HTTP_SERVER_FACTORY_RUNTIME_CAPABILITY =  RuntimeCapability
+        .Builder.of(HTTP_SERVER_FACTORY_CAPABILITY, true, HttpServerAuthenticationMechanismFactory.class)
+        .build();
 
     static final String KEYSTORE_CAPABILITY = CAPABILITY_BASE + "keystore";
 
@@ -107,6 +115,12 @@ class Capabilities {
     static final RuntimeCapability<Void> SECURITY_DOMAIN_RUNTIME_CAPABILITY = RuntimeCapability
         .Builder.of(SECURITY_DOMAIN_CAPABILITY, true, SecurityDomain.class)
         .build();
+
+    static final String SECURITY_DOMAIN_HTTP_CONFIGURATION_CAPABILITY = CAPABILITY_BASE + "security-domain-http-configuration";
+
+    static final RuntimeCapability<Void> SECURITY_DOMAIN_HTTP_CONFIGURATION_RUNTIME_CAPABILITY = RuntimeCapability
+            .Builder.of(SECURITY_DOMAIN_HTTP_CONFIGURATION_CAPABILITY, true, SecurityDomainHttpConfiguration.class)
+            .build();
 
     static final String SECURITY_DOMAIN_SASL_CONFIGURATION_CAPABILITY = CAPABILITY_BASE + "security-domain-sasl-configuration";
 

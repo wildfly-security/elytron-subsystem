@@ -22,7 +22,9 @@ import static org.wildfly.extension.elytron.Capabilities.SECURITY_DOMAIN_CAPABIL
 import static org.wildfly.extension.elytron.Capabilities.SECURITY_DOMAIN_SASL_CONFIGURATION_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SECURITY_DOMAIN_SASL_CONFIGURATION_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
-import static org.wildfly.extension.elytron.SaslFactoryRuntimeResource.wrap;
+import static org.wildfly.extension.elytron.AvailableMechanismsRuntimeResource.wrap;
+
+import java.util.Collections;
 
 import javax.security.sasl.SaslServerFactory;
 
@@ -89,7 +91,7 @@ class SecurityDomainSaslConfigurationDefinition extends SimpleResourceDefinition
     }
 
     static ResourceDefinition create() {
-        return wrap(new SecurityDomainSaslConfigurationDefinition(), SecurityDomainSaslConfigurationDefinition::getSaslServerFactory);
+        return wrap(new SecurityDomainSaslConfigurationDefinition(), SecurityDomainSaslConfigurationDefinition::getAvailableMechanisms);
     }
 
     @Override
@@ -105,7 +107,7 @@ class SecurityDomainSaslConfigurationDefinition extends SimpleResourceDefinition
         resourceRegistration.registerCapability(SECURITY_DOMAIN_SASL_CONFIGURATION_RUNTIME_CAPABILITY);
     }
 
-    private static SaslServerFactory getSaslServerFactory(OperationContext context) throws OperationFailedException {
+    private static String[] getAvailableMechanisms(OperationContext context) {
         RuntimeCapability<Void> runtimeCapability = SECURITY_DOMAIN_SASL_CONFIGURATION_RUNTIME_CAPABILITY.fromBaseCapability(context.getCurrentAddressValue());
         ServiceName securityDomainSaslConfigurationName = runtimeCapability.getCapabilityServiceName(SecurityDomainSaslConfiguration.class);
 
@@ -114,7 +116,8 @@ class SecurityDomainSaslConfigurationDefinition extends SimpleResourceDefinition
         if (serviceContainer.getState() != State.UP) {
             return null;
         }
-        return serviceContainer.getValue().getSaslServerFactory();
+
+        return serviceContainer.getValue().getSaslServerFactory().getMechanismNames(Collections.emptyMap());
     }
 
     private static class AddHandler extends BaseAddHandler {

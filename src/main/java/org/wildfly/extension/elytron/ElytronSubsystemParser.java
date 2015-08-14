@@ -29,6 +29,7 @@ import static org.jboss.as.controller.parsing.ParseUtils.requireNoContent;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedAttribute;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedElement;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CLASS_NAME;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.HTTP;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CONFIGURATION;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEYSTORE;
@@ -78,6 +79,7 @@ class ElytronSubsystemParser implements XMLElementReader<List<ModelNode>>, XMLEl
     private final ProviderLoaderParser providerLoaderParser = new ProviderLoaderParser();
     private final MapperParser mapperParser = new MapperParser();
     private final SaslParser saslParser = new SaslParser();
+    private final HttpParser httpParser = new HttpParser();
 
     /**
      * {@inheritDoc}
@@ -113,6 +115,9 @@ class ElytronSubsystemParser implements XMLElementReader<List<ModelNode>>, XMLEl
                     break;
                 case MAPPERS:
                     mapperParser.readMappers(parentAddress, reader, operations);
+                    break;
+                case HTTP:
+                    httpParser.readHttp(parentAddress, reader, operations);
                     break;
                 case SASL:
                     saslParser.readSasl(parentAddress, reader, operations);
@@ -372,6 +377,7 @@ class ElytronSubsystemParser implements XMLElementReader<List<ModelNode>>, XMLEl
 
         realmParser.writeRealms(model, writer);
         mapperParser.writeMappers(model, writer);
+        httpParser.writeHttp(model, writer);
         saslParser.writeSasl(model, writer);
 
         boolean hasTlsContent = false;

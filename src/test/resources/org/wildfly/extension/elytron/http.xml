@@ -1,0 +1,35 @@
+<subsystem xmlns="urn:wildfly:elytron:1.0">
+    <security-domains>
+        <security-domain name="MyDomain" default-realm="RealmTwo">
+            <realm name="RealmTwo"/>
+        </security-domain>
+    </security-domains>
+    <security-realms>
+        <jaas-realm name="RealmTwo" configuration="custom-domain" />
+    </security-realms>
+    <provider-loaders>
+        <provider-loader name="TestProviderLoader">
+            <provider module="test.module" slot="testing" />
+        </provider-loader>
+    </provider-loaders>
+    <http>
+        <security-domain-http-configuration name="HttpAuthenticationDefinition" security-domain="MyDomain" http-server-factory="ConfigurableHttpServerFactory" />
+        <configurable-http-server-factory name="ConfigurableHttpServerFactory" http-server-factory="AggregateHttpFactory">
+            <properties>
+                <property key="a" value="b" />
+                <property key="c" value="d" />
+            </properties>
+            <filters>
+                <filter enabling="false">
+                    <pattern-filter value="x" />
+                </filter>
+            </filters>
+        </configurable-http-server-factory>
+        <aggregate-http-server-factory name="AggregateHttpFactory">
+            <http-server-factory name="ProviderHttpFactory" />
+            <http-server-factory name="ServiceHttpFactory" />
+        </aggregate-http-server-factory>
+        <provider-http-server-factory name="ProviderHttpFactory" provider-loader="TestProviderLoader" />
+        <service-loader-http-server-factory name="ServiceHttpFactory" module="a.b.c" slot="other" />
+    </http>
+</subsystem>
