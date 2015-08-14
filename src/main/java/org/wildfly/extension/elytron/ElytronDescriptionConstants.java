@@ -26,7 +26,6 @@ package org.wildfly.extension.elytron;
 interface ElytronDescriptionConstants {
 
     String ADD_ATTRIBUTE = "add-attribute";
-    String SET_PASSWORD = "set-password";
     String ADD_PREFIX_ROLE_MAPPER = "add-prefix-role-mapper";
     String ADD_SUFFIX_ROLE_MAPPER = "add-suffix-role-mapper";
     String AGGREGATE_HTTP_SERVER_FACTORY = "aggregate-http-server-factory";
@@ -35,23 +34,25 @@ interface ElytronDescriptionConstants {
     String AGGREGATE_REALM = "aggregate-realm";
     String AGGREGATE_ROLE_MAPPER = "aggregate-role-mapper";
     String AGGREGATE_SASL_SERVER_FACTORY = "aggregate-sasl-server-factory";
-    String ALGORITHM = "algorithm";
     String ALIAS = "alias";
-    String ATTRIBUTE = "attribute";
-    String ATTRIBUTES = "attributes";
-    String ATTRIBUTE_MAPPING = "attribute-mapping";
+    String ALGORITHM = "algorithm";
     String AND = "and";
     String AS_RDN = "as-rdn";
+    String ATTRIBUTE = "attribute";
+    String ATTRIBUTE_MAPPING = "attribute-mapping";
+    String ATTRIBUTES = "attributes";
     String AUTHENTICATION_LEVEL = "authentication-level";
+    String AUTHENTICATION_QUERY = "authentication-query";
     String AUTHENTICATION_REALM = "authentication-realm";
     String AUTHORIZATION_REALM = "authorization-realm";
     String AVAILABLE_MECHANISMS = "available-mechanisms";
-    String AUTHENTICATION_QUERY = "authentication-query";
+
     String BCRYPT = "bcrypt";
     String BCRYPT_MAPPER = "bcrypt-mapper";
+
     String CERTIFICATE = "certificate";
-    String CERTIFICATES = "certificates";
     String CERTIFICATE_CHAIN = "certificate-chain";
+    String CERTIFICATES = "certificates";
     String CHAINED_NAME_REWRITER = "chained-name-rewriter";
     String CLASS_LOADING = "class-loading";
     String CLASS_NAME = "class-name";
@@ -77,31 +78,37 @@ interface ElytronDescriptionConstants {
     String CUSTOM_REALM_MAPPER = "custom-realm-mapper";
     String CUSTOM_ROLE_DECODER = "custom-role-decoder";
     String CUSTOM_ROLE_MAPPER = "custom-role-mapper";
+
     String DATA_SOURCE = "data-source";
     String DEFAULT_REALM = "default-realm";
     String DELEGATE_REALM_MAPPER = "delegate-realm-mapper";
     String DIGEST = "digest";
     String DIR_CONTEXT = "dir-context";
-    String ENABLE_CONNECTION_POOLING = "enable-connection-pooling";
-    String ENCODED = "encoded";
+
     String EMPTY = "empty";
     String EMPTY_ROLE_DECODER = "empty-role-decoder";
+    String ENABLE_CONNECTION_POOLING = "enable-connection-pooling";
     String ENABLING = "enabling";
+    String ENCODED = "encoded";
     String ENTRY_TYPE = "entry-type";
+
     String FILE = "file";
     String FILESYSTEM_REALM = "filesystem-realm";
     String FILTER = "filter";
-    String FILTERS = "filters";
     String FILTER_BASE_DN = "filter-base-dn";
+    String FILTERS = "filters";
     String FINGER_PRINT = "finger-print";
     String FINGER_PRINTS = "finger-prints";
     String FORMAT = "format";
     String FROM = "from";
+
     String GREATER_THAN = "greater-than";
     String GROUPS_PROPERTIES = "groups-properties";
+
     String HTTP = "http";
     String HTTP_SERVER_FACTORY = "http-server-factory";
     String HTTP_SERVER_FACTORIES = "http-server-factories";
+
     String IDENTITY = "identity";
     String IMPLEMENTATION = "implementation";
     String INDEX = "index";
@@ -109,47 +116,54 @@ interface ElytronDescriptionConstants {
     String ISSUER = "issuer";
     String ITERATION_COUNT = "iteration-count";
     String ITERATION_COUNT_INDEX = "iteration-count-index";
+
     String JAAS_REALM = "jaas-realm";
     String JDBC_REALM = "jdbc-realm";
     String JOINER = "joiner";
+
     String KEY = "key";
     String KEYSTORE = "keystore";
     String KEYSTORE_REALM = "keystore-realm";
     String KEYSTORES = "keystores";
+
     String LDAP_REALM = "ldap-realm";
     String LEFT = "left";
     String LESS_THAN = "less-than";
     String LEVELS = "levels";
     String LOAD = "load";
+    String LOAD_SERVICES = "load-services";
     String LOADED_PROVIDER = "loaded-provider";
     String LOADED_PROVIDERS = "loaded-providers";
-    String LOAD_SERVICES = "load-services";
     String LOGICAL_OPERATION = "logical-operation";
     String LOGICAL_ROLE_MAPPER = "logical-role-mapper";
+
     String MAPPED_REGEX_REALM_MAPPER = "mapped-regex-realm-mapper";
-    String MAXIMUM_SEGMENTS = "maximum-segments";
-    String MATCH = "match";
     String MAPPERS = "mappers";
+    String MATCH = "match";
+    String MAXIMUM_SEGMENTS = "maximum-segments";
     String MECHANISM_NAME = "mechanism-name";
     String MECHANISM_PROVIDER_FILTERING_SASL_SERVER_FACTORY = "mechanism-provider-filtering-sasl-server-factory";
     String MINUS = "minus";
     String MODIFIED = "modified";
     String MODULE = "module";
     String MODULE_REFERENCE = "module-reference";
+
     String NAME = "name";
     String NAME_REWRITER = "name-rewriter";
     String NAME_REWRITERS = "name-rewriters";
     String NOT_AFTER = "not-after";
     String NOT_BEFORE = "not-before";
+
     String OID = "oid";
     String OR = "or";
+
     String PATH = "path";
-    String PATTERN = "pattern";
-    String PATTERN_FILTER = "pattern-filter";
     String PASSWORD = "password";
     String PASSWORD_INDEX = "password-index";
-    String PERMISSIONS = "permissions";
+    String PATTERN = "pattern";
+    String PATTERN_FILTER = "pattern-filter";
     String PERMISSION_MAPPER = "permission-mapper";
+    String PERMISSIONS = "permissions";
     String PLAIN_TEXT = "plain-text";
     String POST_REALM_NAME_REWRITER = "post-realm-name-rewriter";
     String PRE_REALM_NAME_REWRITER = "pre-realm-name-rewriter";
@@ -166,20 +180,21 @@ interface ElytronDescriptionConstants {
     String PROPERTY_LIST = "property-list";
     String PROTOCOL = "protocol";
     String PROVIDER = "provider";
-    String PROVIDERS = "providers";
+    String PROVIDER_HTTP_SERVER_FACTORY = "provider-http-server-factory";
     String PROVIDER_LOADER = "provider-loader";
     String PROVIDER_LOADERS = "provider-loaders";
     String PROVIDER_NAME = "provider-name";
-    String PROVIDER_HTTP_SERVER_FACTORY = "provider-http-server-factory";
     String PROVIDER_SASL_SERVER_FACTORY = "provider-sasl-server-factory";
     String PROVIDER_VERSION = "provider-version";
+    String PROVIDERS = "providers";
     String PUBLIC_KEY = "public-key";
+
     String RDN_IDENTIFIER = "rdn-identifier";
     String READ_IDENTITY = "read-identity";
+    String REALM = "realm";
     String REALM_MAP = "realm-map";
     String REALM_MAPPER = "realm-mapper";
     String REALM_MAPPING = "realm-mapping";
-    String REALM = "realm";
     String REALMS = "realms";
     String REGEX_NAME_REWRITER = "regex-name-rewriter";
     String REGEX_NAME_VALIDATING_REWRITER = "regex-name-validating-rewriter";
@@ -194,24 +209,26 @@ interface ElytronDescriptionConstants {
     String ROLE_MAPPER = "role-mapper";
     String ROLE_MAPPERS = "role-mappers";
     String ROLES = "roles";
+
+    String SALT = "salt";
+    String SALT_INDEX = "salt-index";
+    String SALTED_SIMPLE_DIGEST = "salted-simple-digest";
+    String SALTED_SIMPLE_DIGEST_MAPPER = "salted-simple-digest-mapper";
     String SASL = "sasl";
+    String SASL_SERVER_FACTORIES = "sasl-server-factories";
     String SASL_SERVER_FACTORY = "sasl-server-factory";
+    String SCRAM_MAPPER = "scram-mapper";
     String SEARCH_BASE_DN = "search-base-dn";
     String SECURITY_DOMAIN = "security-domain";
     String SECURITY_DOMAIN_HTTP_CONFIGURATION = "security-domain-http-configuration";
     String SECURITY_DOMAIN_SASL_CONFIGURATION = "security-domain-sasl-configuration";
     String SECURITY_DOMAINS = "security-domains";
-    String SECURITY_REALMS = "security-realms";
-    String SERVER_NAME = "server-name";
-    String SALT = "salt";
-    String SALT_INDEX = "salt-index";
-    String SALTED_SIMPLE_DIGEST = "salted-simple-digest";
-    String SALTED_SIMPLE_DIGEST_MAPPER = "salted-simple-digest-mapper";
-    String SASL_SERVER_FACTORIES = "sasl-server-factories";
-    String SCRAM_MAPPER = "scram-mapper";
     String SECURITY_PROPERTIES = "security-properties";
     String SECURITY_PROPERTY = "security-property";
+    String SECURITY_REALMS = "security-realms";
+    String SERVER_NAME = "server-name";
     String SERIAL_NUMBER = "serial-number";
+    String SET_PASSWORD = "set-password";
     String SERVICE = "service";
     String SERVICE_LOADER_HTTP_SERVER_FACTORY = "service-loader-http-server-factory";
     String SERVICE_LOADER_SASL_SERVER_FACTORY = "service-loader-sasl-server-factory";
@@ -230,18 +247,24 @@ interface ElytronDescriptionConstants {
     String SUBJECT = "subject";
     String SUFFIX = "suffix";
     String SYNCHRONIZED = "synchronized";
+
     String TLS = "tls";
     String TO = "to";
     String TYPE = "type";
+
     String UNSET_PASSWORD = "unset-password";
     String URL = "url";
     String USE_RECURSIVE_SEARCH = "use-recursive-search";
     String USERS_PROPERTIES = "users-properties";
+
     String VALUE = "value";
     String VERSION = "version";
     String VERSION_COMPARISON = "version-comparison";
+
     String WATCH = "watch";
+
     String X500_ATTRIBUTE_PRINCIPAL_DECODER = "x500-attribute-principal-decoder";
     String XOR = "xor";
+
 }
 
