@@ -119,7 +119,7 @@ class HttpParser {
                         name = value;
                         break;
                     case HTTP_SERVER_FACTORY:
-                        HttpServerDefinitions.HTTP_SERVER_FACTORY.parseAndSetParameter(value, addOperation, reader);
+                        HttpServerDefinitions.HTTP_SERVER_FACTORY_FOR_CONFIG.parseAndSetParameter(value, addOperation, reader);
                         break;
                     case SECURITY_DOMAIN:
                         HttpServerDefinitions.SECURITY_DOMAIN.parseAndSetParameter(value, addOperation, reader);
@@ -139,6 +139,8 @@ class HttpParser {
         operations.add(addOperation);
 
         requireNoContent(reader);
+
+        System.out.println(addOperation);
     }
 
     private void readAggregateHttpServerFactoryElement(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations) throws XMLStreamException {
@@ -210,7 +212,7 @@ class HttpParser {
                         name = value;
                         break;
                     case HTTP_SERVER_FACTORY:
-                        HttpServerDefinitions.HTTP_SERVER_FACTORY.parseAndSetParameter(value, addOperation, reader);
+                        HttpServerDefinitions.HTTP_SERVER_FACTORY_FOR_FACTORY.parseAndSetParameter(value, addOperation, reader);
                         break;
                     default:
                         throw unexpectedAttribute(reader, i);
@@ -468,7 +470,7 @@ class HttpParser {
                 ModelNode securityDomainHttpConfiguration = current.getValue();
                 writer.writeStartElement(SECURITY_DOMAIN_HTTP_CONFIGURATION);
                 writer.writeAttribute(NAME, current.getName());
-                HttpServerDefinitions.HTTP_SERVER_FACTORY.marshallAsAttribute(securityDomainHttpConfiguration, writer);
+                HttpServerDefinitions.HTTP_SERVER_FACTORY_FOR_CONFIG.marshallAsAttribute(securityDomainHttpConfiguration, writer);
                 HttpServerDefinitions.SECURITY_DOMAIN.marshallAsAttribute(securityDomainHttpConfiguration, writer);
                 writer.writeEndElement();
             }
@@ -486,7 +488,7 @@ class HttpParser {
                 ModelNode serverFactory = current.getValue();
                 writer.writeStartElement(CONFIGURABLE_HTTP_SERVER_FACTORY);
                 writer.writeAttribute(NAME, current.getName());
-                HttpServerDefinitions.HTTP_SERVER_FACTORY.marshallAsAttribute(serverFactory, writer);
+                HttpServerDefinitions.HTTP_SERVER_FACTORY_FOR_FACTORY.marshallAsAttribute(serverFactory, writer);
                 CommonAttributes.PROPERTIES.marshallAsElement(serverFactory, writer);
                 if (serverFactory.hasDefined(FILTERS)) {
                     writer.writeStartElement(FILTERS);
