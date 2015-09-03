@@ -60,7 +60,6 @@ import javax.xml.stream.XMLStreamException;
 
 import org.jboss.as.controller.ListAttributeDefinition;
 import org.jboss.dmr.ModelNode;
-import org.jboss.dmr.Property;
 import org.jboss.staxmapper.XMLExtendedStreamReader;
 import org.jboss.staxmapper.XMLExtendedStreamWriter;
 
@@ -440,11 +439,11 @@ class HttpParser {
     private boolean writeAggregateHttpServerFactory(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (subsystem.hasDefined(AGGREGATE_HTTP_SERVER_FACTORY)) {
             startHttp(started, writer);
-            List<Property> serverFactories = subsystem.require(AGGREGATE_HTTP_SERVER_FACTORY).asPropertyList();
-            for (Property current : serverFactories) {
-                ModelNode serverFactory = current.getValue();
+            ModelNode aggregateHttpServerFactory = subsystem.require(AGGREGATE_HTTP_SERVER_FACTORY);
+            for (String name : aggregateHttpServerFactory.keys()) {
+                ModelNode serverFactory = aggregateHttpServerFactory.require(name);
                 writer.writeStartElement(AGGREGATE_HTTP_SERVER_FACTORY);
-                writer.writeAttribute(NAME, current.getName());
+                writer.writeAttribute(NAME, name);
 
                 List<ModelNode> serverFactoryReferences = serverFactory.get(HTTP_SERVER_FACTORIES).asList();
                 for (ModelNode currentReference : serverFactoryReferences) {
@@ -465,13 +464,13 @@ class HttpParser {
     private boolean writeSecurityDomainHttpConfiguration(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (subsystem.hasDefined(SECURITY_DOMAIN_HTTP_CONFIGURATION)) {
             startHttp(started, writer);
-            List<Property> securityDomainHttpConfigurationInstances = subsystem.require(SECURITY_DOMAIN_HTTP_CONFIGURATION).asPropertyList();
-            for (Property current : securityDomainHttpConfigurationInstances) {
-                ModelNode securityDomainHttpConfiguration = current.getValue();
+            ModelNode securityDomainHttpConfiguration = subsystem.require(SECURITY_DOMAIN_HTTP_CONFIGURATION);
+            for (String name : securityDomainHttpConfiguration.keys()) {
+                ModelNode configuration = securityDomainHttpConfiguration.require(name);
                 writer.writeStartElement(SECURITY_DOMAIN_HTTP_CONFIGURATION);
-                writer.writeAttribute(NAME, current.getName());
-                HttpServerDefinitions.HTTP_SERVER_FACTORY_FOR_CONFIG.marshallAsAttribute(securityDomainHttpConfiguration, writer);
-                HttpServerDefinitions.SECURITY_DOMAIN.marshallAsAttribute(securityDomainHttpConfiguration, writer);
+                writer.writeAttribute(NAME, name);
+                HttpServerDefinitions.HTTP_SERVER_FACTORY_FOR_CONFIG.marshallAsAttribute(configuration, writer);
+                HttpServerDefinitions.SECURITY_DOMAIN.marshallAsAttribute(configuration, writer);
                 writer.writeEndElement();
             }
             return true;
@@ -483,11 +482,11 @@ class HttpParser {
     private boolean writeConfigurableHttpServerFactory(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (subsystem.hasDefined(CONFIGURABLE_HTTP_SERVER_FACTORY)) {
             startHttp(started, writer);
-            List<Property> httpServerFactories = subsystem.require(CONFIGURABLE_HTTP_SERVER_FACTORY).asPropertyList();
-            for (Property current : httpServerFactories) {
-                ModelNode serverFactory = current.getValue();
+            ModelNode httpServerFactories = subsystem.require(CONFIGURABLE_HTTP_SERVER_FACTORY);
+            for (String name : httpServerFactories.keys()) {
+                ModelNode serverFactory = httpServerFactories.require(name);
                 writer.writeStartElement(CONFIGURABLE_HTTP_SERVER_FACTORY);
-                writer.writeAttribute(NAME, current.getName());
+                writer.writeAttribute(NAME, name);
                 HttpServerDefinitions.HTTP_SERVER_FACTORY_FOR_FACTORY.marshallAsAttribute(serverFactory, writer);
                 CommonAttributes.PROPERTIES.marshallAsElement(serverFactory, writer);
                 if (serverFactory.hasDefined(FILTERS)) {
@@ -517,11 +516,11 @@ class HttpParser {
     private boolean writeProviderHttpServerFactory(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (subsystem.hasDefined(PROVIDER_HTTP_SERVER_FACTORY)) {
             startHttp(started, writer);
-            List<Property> serverFactories = subsystem.require(PROVIDER_HTTP_SERVER_FACTORY).asPropertyList();
-            for (Property current : serverFactories) {
-                ModelNode serverFactory = current.getValue();
+            ModelNode serverFactories = subsystem.require(PROVIDER_HTTP_SERVER_FACTORY);
+            for (String name : serverFactories.keys()) {
+                ModelNode serverFactory = serverFactories.require(name);
                 writer.writeStartElement(PROVIDER_HTTP_SERVER_FACTORY);
-                writer.writeAttribute(NAME, current.getName());
+                writer.writeAttribute(NAME, name);
                 HttpServerDefinitions.PROVIDER_LOADER.marshallAsAttribute(serverFactory, writer);
                 writer.writeEndElement();
             }
@@ -534,11 +533,11 @@ class HttpParser {
     private boolean writeServiceLoaderHttpServerFactory(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (subsystem.hasDefined(SERVICE_LOADER_HTTP_SERVER_FACTORY)) {
             startHttp(started, writer);
-            List<Property> serverFactories = subsystem.require(SERVICE_LOADER_HTTP_SERVER_FACTORY).asPropertyList();
-            for (Property current : serverFactories) {
-                ModelNode serverFactory = current.getValue();
+            ModelNode serverFactories = subsystem.require(SERVICE_LOADER_HTTP_SERVER_FACTORY);
+            for (String name : serverFactories.keys()) {
+                ModelNode serverFactory = serverFactories.require(name);
                 writer.writeStartElement(SERVICE_LOADER_HTTP_SERVER_FACTORY);
-                writer.writeAttribute(NAME, current.getName());
+                writer.writeAttribute(NAME, name);
                 ClassLoadingAttributeDefinitions.MODULE.marshallAsAttribute(serverFactory, writer);
                 ClassLoadingAttributeDefinitions.SLOT.marshallAsAttribute(serverFactory, writer);
                 writer.writeEndElement();

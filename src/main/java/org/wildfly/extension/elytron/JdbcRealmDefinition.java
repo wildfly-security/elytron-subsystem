@@ -59,7 +59,6 @@ import org.jboss.as.controller.registry.ManagementResourceRegistration;
 import org.jboss.as.controller.registry.OperationEntry;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
-import org.jboss.dmr.Property;
 import org.jboss.msc.inject.InjectionException;
 import org.jboss.msc.inject.Injector;
 import org.jboss.msc.service.ServiceBuilder;
@@ -540,9 +539,8 @@ class JdbcRealmDefinition extends SimpleResourceDefinition {
         private KeyMapper[] resolveKeyMappers(OperationContext context, ModelNode authenticationQueryNode) throws OperationFailedException {
             List<KeyMapper> keyMappers = new ArrayList<>();
 
-            for (Property property : authenticationQueryNode.asPropertyList()) {
-                String name = property.getName();
-                ModelNode propertyNode = property.getValue();
+            for (String name : authenticationQueryNode.keys()) {
+                ModelNode propertyNode = authenticationQueryNode.require(name);
                 PasswordMapperObjectDefinition mapperResource = PrincipalQueryAttributes.SUPPORTED_PASSWORD_MAPPERS.get(name);
 
                 if (mapperResource == null) {

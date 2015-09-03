@@ -54,7 +54,6 @@ import org.jboss.as.controller.registry.ManagementResourceRegistration;
 import org.jboss.as.controller.registry.OperationEntry;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
-import org.jboss.dmr.Property;
 import org.jboss.msc.service.ServiceBuilder;
 import org.jboss.msc.service.ServiceController.Mode;
 import org.jboss.msc.service.ServiceName;
@@ -155,7 +154,7 @@ class CustomComponentDefinition<T> extends SimpleResourceDefinition {
             ModelNode configuration = CONFIGURATION.resolveModelAttribute(context, model);
             if (configuration.isDefined()) {
                 configurationMap = new HashMap<String, String>();
-                configuration.asPropertyList().forEach((Property p) -> configurationMap.put(p.getName(), p.getValue().asString()));
+                configuration.keys().forEach((String s) -> configurationMap.put(s, configuration.require(s).asString()));
             } else {
                 configurationMap = null;
             }

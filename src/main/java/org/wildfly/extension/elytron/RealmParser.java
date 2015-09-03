@@ -72,7 +72,6 @@ import org.jboss.as.controller.AttributeDefinition;
 import org.jboss.as.controller.ObjectTypeAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.dmr.ModelNode;
-import org.jboss.dmr.Property;
 import org.jboss.staxmapper.XMLExtendedStreamReader;
 import org.jboss.staxmapper.XMLExtendedStreamWriter;
 import org.wildfly.extension.elytron.JdbcRealmDefinition.PasswordMapperObjectDefinition;
@@ -605,11 +604,11 @@ class RealmParser {
     private boolean writeAggregateRealms(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (subsystem.hasDefined(AGGREGATE_REALM)) {
             startRealms(started, writer);
-            List<Property> realms = subsystem.require(AGGREGATE_REALM).asPropertyList();
-            for (Property current : realms) {
-                ModelNode realm = current.getValue();
+            ModelNode realms = subsystem.require(AGGREGATE_REALM);
+            for (String name : realms.keys()) {
+                ModelNode realm = realms.require(name);
                 writer.writeStartElement(AGGREGATE_REALM);
-                writer.writeAttribute(NAME, current.getName());
+                writer.writeAttribute(NAME, name);
                 AggregateRealmDefinition.AUTHENTICATION_REALM.marshallAsAttribute(realm, writer);
                 AggregateRealmDefinition.AUTHORIZATION_REALM.marshallAsAttribute(realm, writer);
                 writer.writeEndElement();
@@ -624,11 +623,11 @@ class RealmParser {
     private boolean writeCustomRealms(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (subsystem.hasDefined(CUSTOM_REALM)) {
             startRealms(started, writer);
-            List<Property> realms = subsystem.require(CUSTOM_REALM).asPropertyList();
-            for (Property current : realms) {
-                ModelNode realm = current.getValue();
+            ModelNode realms = subsystem.require(CUSTOM_REALM);
+            for (String name : realms.keys()) {
+                ModelNode realm = realms.require(name);
 
-                writeCustomComponent(CUSTOM_REALM, current.getName(), realm, writer);
+                writeCustomComponent(CUSTOM_REALM, name, realm, writer);
             }
 
             return true;
@@ -641,11 +640,11 @@ class RealmParser {
         if (subsystem.hasDefined(JAAS_REALM)) {
             startRealms(started, writer);
 
-            List<Property> realms = subsystem.require(JAAS_REALM).asPropertyList();
-            for (Property current : realms) {
+            ModelNode realms = subsystem.require(JAAS_REALM);
+            for (String name : realms.keys()) {
                 writer.writeStartElement(JAAS_REALM);
-                writer.writeAttribute(NAME, current.getName());
-                JaasRealmDefinition.CONFIGURATION.marshallAsAttribute(current.getValue(), writer);
+                writer.writeAttribute(NAME, name);
+                JaasRealmDefinition.CONFIGURATION.marshallAsAttribute(realms.require(name), writer);
                 writer.writeEndElement();
             }
             return true;
@@ -657,12 +656,12 @@ class RealmParser {
         if (subsystem.hasDefined(JDBC_REALM)) {
             startRealms(started, writer);
 
-            List<Property> realms = subsystem.require(JDBC_REALM).asPropertyList();
+            ModelNode realms = subsystem.require(JDBC_REALM);
 
-            for (Property current : realms) {
+            for (String name : realms.keys()) {
                 writer.writeStartElement(JDBC_REALM);
-                writer.writeAttribute(NAME, current.getName());
-                ModelNode jdbcRealmNode = current.getValue();
+                writer.writeAttribute(NAME, name);
+                ModelNode jdbcRealmNode = realms.require(name);
 
                 for (ModelNode principalQueryNode : jdbcRealmNode.get(PRINCIPAL_QUERY).asList()) {
                     writeObjectTypeAttribute(PRINCIPAL_QUERY, PrincipalQueryAttributes.ATTRIBUTES, principalQueryNode, writer, new ChildModelNodeWriter() {
@@ -701,11 +700,11 @@ class RealmParser {
         if (subsystem.hasDefined(KEYSTORE_REALM)) {
             startRealms(started, writer);
 
-            List<Property> realms = subsystem.require(KEYSTORE_REALM).asPropertyList();
-            for (Property current : realms) {
+            ModelNode realms = subsystem.require(KEYSTORE_REALM);
+            for (String name : realms.keys()) {
                 writer.writeStartElement(KEYSTORE_REALM);
-                writer.writeAttribute(NAME, current.getName());
-                KeyStoreRealmDefinition.KEYSTORE.marshallAsAttribute(current.getValue(), writer);
+                writer.writeAttribute(NAME, name);
+                KeyStoreRealmDefinition.KEYSTORE.marshallAsAttribute(realms.require(name), writer);
                 writer.writeEndElement();
             }
             return true;
@@ -717,11 +716,11 @@ class RealmParser {
         if (subsystem.hasDefined(PROPERTIES_REALM)) {
             startRealms(started, writer);
 
-            List<Property> realms = subsystem.require(PROPERTIES_REALM).asPropertyList();
-            for (Property current : realms) {
+            ModelNode realms = subsystem.require(PROPERTIES_REALM);
+            for (String name : realms.keys()) {
                 writer.writeStartElement(PROPERTIES_REALM);
-                writer.writeAttribute(NAME, current.getName());
-                ModelNode model = current.getValue();
+                writer.writeAttribute(NAME, name);
+                ModelNode model = realms.require(name);
                 PropertiesRealmDefinition.PLAIN_TEXT.marshallAsAttribute(model, writer);
                 writeFile(USERS_PROPERTIES, model.get(USERS_PROPERTIES), writer);
                 writeFile(GROUPS_PROPERTIES, model.get(GROUPS_PROPERTIES), writer);
@@ -747,12 +746,12 @@ class RealmParser {
         if (subsystem.hasDefined(LDAP_REALM)) {
             startRealms(started, writer);
 
-            List<Property> realms = subsystem.require(LDAP_REALM).asPropertyList();
+            ModelNode realms = subsystem.require(LDAP_REALM);
 
-            for (Property current : realms) {
+            for (String name : realms.keys()) {
                 writer.writeStartElement(LDAP_REALM);
-                writer.writeAttribute(NAME, current.getName());
-                ModelNode ldapRealmNode = current.getValue();
+                writer.writeAttribute(NAME, name);
+                ModelNode ldapRealmNode = realms.require(name);
 
                 writeObjectTypeAttribute(DIR_CONTEXT, DirContextObjectDefinition.ATTRIBUTES, ldapRealmNode.get(DIR_CONTEXT), writer, null);
                 writeObjectTypeAttribute(PRINCIPAL_MAPPING, PrincipalMappingObjectDefinition.ATTRIBUTES, ldapRealmNode.get(PRINCIPAL_MAPPING), writer, (modelNode, writer1) -> {
@@ -781,12 +780,12 @@ class RealmParser {
         if (subsystem.hasDefined(FILESYSTEM_REALM)) {
             startRealms(started, writer);
 
-            List<Property> realms = subsystem.require(FILESYSTEM_REALM).asPropertyList();
+            ModelNode realms = subsystem.require(FILESYSTEM_REALM);
 
-            for (Property current : realms) {
-                final ModelNode model = current.getValue();
+            for (String name : realms.keys()) {
+                final ModelNode model = realms.require(name);
                 writer.writeStartElement(FILESYSTEM_REALM);
-                writer.writeAttribute(NAME, current.getName());
+                writer.writeAttribute(NAME, name);
                 FileSystemRealmDefinition.LEVELS.marshallAsAttribute(model, writer);
 
                 writer.writeStartElement(FILE);

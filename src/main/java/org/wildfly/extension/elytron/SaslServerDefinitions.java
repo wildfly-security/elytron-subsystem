@@ -17,6 +17,7 @@
  */
 package org.wildfly.extension.elytron;
 
+import static org.wildfly.extension.elytron.AvailableMechanismsRuntimeResource.wrap;
 import static org.wildfly.extension.elytron.Capabilities.PROVIDERS_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SASL_SERVER_FACTORY_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SASL_SERVER_FACTORY_RUNTIME_CAPABILITY;
@@ -28,7 +29,6 @@ import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.VALUE;
 import static org.wildfly.extension.elytron.ElytronExtension.asDoubleIfDefined;
 import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
-import static org.wildfly.extension.elytron.AvailableMechanismsRuntimeResource.wrap;
 import static org.wildfly.extension.elytron.SecurityActions.doPrivileged;
 
 import java.security.PrivilegedExceptionAction;
@@ -65,7 +65,6 @@ import org.jboss.as.controller.registry.ManagementResourceRegistration;
 import org.jboss.as.controller.registry.OperationEntry;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
-import org.jboss.dmr.Property;
 import org.jboss.msc.service.ServiceBuilder;
 import org.jboss.msc.service.ServiceController;
 import org.jboss.msc.service.ServiceController.Mode;
@@ -200,7 +199,7 @@ class SaslServerDefinitions {
                 ModelNode properties = PROPERTIES.resolveModelAttribute(context, model);
                 if (properties.isDefined()) {
                     propertiesMap = new HashMap<String, String>();
-                    properties.asPropertyList().forEach((Property p) -> propertiesMap.put(p.getName(), p.getValue().asString()));
+                    properties.keys().forEach((String s) -> propertiesMap.put(s, properties.require(s).asString()));
                 } else {
                     propertiesMap = null;
                 }

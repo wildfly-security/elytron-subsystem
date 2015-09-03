@@ -93,7 +93,6 @@ import javax.xml.stream.XMLStreamException;
 
 import org.jboss.as.controller.ListAttributeDefinition;
 import org.jboss.dmr.ModelNode;
-import org.jboss.dmr.Property;
 import org.jboss.staxmapper.XMLExtendedStreamReader;
 import org.jboss.staxmapper.XMLExtendedStreamWriter;
 
@@ -928,11 +927,11 @@ class MapperParser {
     private boolean writeAggregateNameRewriters(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (subsystem.hasDefined(AGGREGATE_NAME_REWRITER)) {
             startMappers(started, writer);
-            List<Property> nameRewriters = subsystem.require(AGGREGATE_NAME_REWRITER).asPropertyList();
-            for (Property current : nameRewriters) {
-                ModelNode nameRewriter = current.getValue();
+            ModelNode nameRewriters = subsystem.require(AGGREGATE_NAME_REWRITER);
+            for (String name : nameRewriters.keys()) {
+                ModelNode nameRewriter = nameRewriters.require(name);
                 writer.writeStartElement(AGGREGATE_NAME_REWRITER);
-                writer.writeAttribute(NAME, current.getName());
+                writer.writeAttribute(NAME, name);
 
                 List<ModelNode> nameRewriterReferences = nameRewriter.get(NAME_REWRITERS).asList();
                 for (ModelNode currentReference : nameRewriterReferences) {
@@ -953,11 +952,11 @@ class MapperParser {
     private boolean writeChainedNameRewriters(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (subsystem.hasDefined(CHAINED_NAME_REWRITER)) {
             startMappers(started, writer);
-            List<Property> nameRewriters = subsystem.require(CHAINED_NAME_REWRITER).asPropertyList();
-            for (Property current : nameRewriters) {
-                ModelNode nameRewriter = current.getValue();
+            ModelNode nameRewriters = subsystem.require(CHAINED_NAME_REWRITER);
+            for (String name : nameRewriters.keys()) {
+                ModelNode nameRewriter = nameRewriters.require(name);
                 writer.writeStartElement(CHAINED_NAME_REWRITER);
-                writer.writeAttribute(NAME, current.getName());
+                writer.writeAttribute(NAME, name);
 
                 List<ModelNode> nameRewriterReferences = nameRewriter.get(NAME_REWRITERS).asList();
                 for (ModelNode currentReference : nameRewriterReferences) {
@@ -978,11 +977,11 @@ class MapperParser {
     private boolean writeCustomNameRewriters(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (subsystem.hasDefined(CUSTOM_NAME_REWRITER)) {
             startMappers(started, writer);
-            List<Property> realms = subsystem.require(CUSTOM_NAME_REWRITER).asPropertyList();
-            for (Property current : realms) {
-                ModelNode realm = current.getValue();
+            ModelNode realms = subsystem.require(CUSTOM_NAME_REWRITER);
+            for (String name : realms.keys()) {
+                ModelNode realm = realms.require(name);
 
-                writeCustomComponent(CUSTOM_NAME_REWRITER, current.getName(), realm, writer);
+                writeCustomComponent(CUSTOM_NAME_REWRITER, name, realm, writer);
             }
 
             return true;
@@ -994,11 +993,11 @@ class MapperParser {
     private boolean writeConstantNameRewriters(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (subsystem.hasDefined(CONSTANT_NAME_REWRITER)) {
             startMappers(started, writer);
-            List<Property> nameRewriters = subsystem.require(CONSTANT_NAME_REWRITER).asPropertyList();
-            for (Property current : nameRewriters) {
-                ModelNode nameRewriter = current.getValue();
+            ModelNode nameRewriters = subsystem.require(CONSTANT_NAME_REWRITER);
+            for (String name : nameRewriters.keys()) {
+                ModelNode nameRewriter = nameRewriters.require(name);
                 writer.writeStartElement(CONSTANT_NAME_REWRITER);
-                writer.writeAttribute(NAME, current.getName());
+                writer.writeAttribute(NAME, name);
                 NameRewriterDefinitions.CONSTANT.marshallAsAttribute(nameRewriter, writer);
                 writer.writeEndElement();
             }
@@ -1012,11 +1011,11 @@ class MapperParser {
     private boolean writeRegexNameRewriters(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (subsystem.hasDefined(REGEX_NAME_REWRITER)) {
             startMappers(started, writer);
-            List<Property> nameRewriters = subsystem.require(REGEX_NAME_REWRITER).asPropertyList();
-            for (Property current : nameRewriters) {
-                ModelNode nameRewriter = current.getValue();
+            ModelNode nameRewriters = subsystem.require(REGEX_NAME_REWRITER);
+            for (String name : nameRewriters.keys()) {
+                ModelNode nameRewriter = nameRewriters.require(name);
                 writer.writeStartElement(REGEX_NAME_REWRITER);
-                writer.writeAttribute(NAME, current.getName());
+                writer.writeAttribute(NAME, name);
                 RegexAttributeDefinitions.PATTERN.marshallAsAttribute(nameRewriter, writer);
                 NameRewriterDefinitions.REPLACEMENT.marshallAsAttribute(nameRewriter, writer);
                 NameRewriterDefinitions.REPLACE_ALL.marshallAsAttribute(nameRewriter, writer);
@@ -1032,11 +1031,11 @@ class MapperParser {
     private boolean writeRegexNameValidatingRewriters(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (subsystem.hasDefined(REGEX_NAME_VALIDATING_REWRITER)) {
             startMappers(started, writer);
-            List<Property> nameRewriters = subsystem.require(REGEX_NAME_VALIDATING_REWRITER).asPropertyList();
-            for (Property current : nameRewriters) {
-                ModelNode nameRewriter = current.getValue();
+            ModelNode nameRewriters = subsystem.require(REGEX_NAME_VALIDATING_REWRITER);
+            for (String name : nameRewriters.keys()) {
+                ModelNode nameRewriter = nameRewriters.require(name);
                 writer.writeStartElement(REGEX_NAME_VALIDATING_REWRITER);
-                writer.writeAttribute(NAME, current.getName());
+                writer.writeAttribute(NAME, name);
                 RegexAttributeDefinitions.PATTERN.marshallAsAttribute(nameRewriter, writer);
                 NameRewriterDefinitions.MATCH.marshallAsAttribute(nameRewriter, writer);
                 writer.writeEndElement();
@@ -1051,11 +1050,11 @@ class MapperParser {
     private boolean writeCustomPermissionMappers(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (subsystem.hasDefined(CUSTOM_PERMISSION_MAPPER)) {
             startMappers(started, writer);
-            List<Property> principalDecoders = subsystem.require(CUSTOM_PERMISSION_MAPPER).asPropertyList();
-            for (Property current : principalDecoders) {
-                ModelNode principalDecoder = current.getValue();
+            ModelNode principalDecoders = subsystem.require(CUSTOM_PERMISSION_MAPPER);
+            for (String name : principalDecoders.keys()) {
+                ModelNode principalDecoder = principalDecoders.require(name);
 
-                writeCustomComponent(CUSTOM_PERMISSION_MAPPER, current.getName(), principalDecoder, writer);
+                writeCustomComponent(CUSTOM_PERMISSION_MAPPER, name, principalDecoder, writer);
             }
 
             return true;
@@ -1067,11 +1066,11 @@ class MapperParser {
     private boolean writeAggregatePrincipalDecoders(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (subsystem.hasDefined(AGGREGATE_PRINCIPAL_DECODER)) {
             startMappers(started, writer);
-            List<Property> principalDecoders = subsystem.require(AGGREGATE_PRINCIPAL_DECODER).asPropertyList();
-            for (Property current : principalDecoders) {
-                ModelNode principalDecoder = current.getValue();
+            ModelNode principalDecoders = subsystem.require(AGGREGATE_PRINCIPAL_DECODER);
+            for (String name : principalDecoders.keys()) {
+                ModelNode principalDecoder = principalDecoders.require(name);
                 writer.writeStartElement(AGGREGATE_PRINCIPAL_DECODER);
-                writer.writeAttribute(NAME, current.getName());
+                writer.writeAttribute(NAME, name);
 
                 List<ModelNode> principalDecoderReferences = principalDecoder.get(PRINCIPAL_DECODERS).asList();
                 for (ModelNode currentReference : principalDecoderReferences) {
@@ -1092,11 +1091,11 @@ class MapperParser {
     private boolean writeCustomPrincipalDecoders(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (subsystem.hasDefined(CUSTOM_PRINCIPAL_DECODER)) {
             startMappers(started, writer);
-            List<Property> principalDecoders = subsystem.require(CUSTOM_PRINCIPAL_DECODER).asPropertyList();
-            for (Property current : principalDecoders) {
-                ModelNode principalDecoder = current.getValue();
+            ModelNode principalDecoders = subsystem.require(CUSTOM_PRINCIPAL_DECODER);
+            for (String name : principalDecoders.keys()) {
+                ModelNode principalDecoder = principalDecoders.require(name);
 
-                writeCustomComponent(CUSTOM_PRINCIPAL_DECODER, current.getName(), principalDecoder, writer);
+                writeCustomComponent(CUSTOM_PRINCIPAL_DECODER, name, principalDecoder, writer);
             }
 
             return true;
@@ -1108,11 +1107,11 @@ class MapperParser {
     private boolean writeX500AttributePrincipalDecoders(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (subsystem.hasDefined(X500_ATTRIBUTE_PRINCIPAL_DECODER)) {
             startMappers(started, writer);
-            List<Property> principalDecoders = subsystem.require(X500_ATTRIBUTE_PRINCIPAL_DECODER).asPropertyList();
-            for (Property current : principalDecoders) {
-                ModelNode principalDecoder = current.getValue();
+            ModelNode principalDecoders = subsystem.require(X500_ATTRIBUTE_PRINCIPAL_DECODER);
+            for (String name : principalDecoders.keys()) {
+                ModelNode principalDecoder = principalDecoders.require(name);
                 writer.writeStartElement(X500_ATTRIBUTE_PRINCIPAL_DECODER);
-                writer.writeAttribute(NAME, current.getName());
+                writer.writeAttribute(NAME, name);
                 PrincipalDecoderDefinitions.OID.marshallAsAttribute(principalDecoder, writer);
                 PrincipalDecoderDefinitions.JOINER.marshallAsAttribute(principalDecoder, writer);
                 PrincipalDecoderDefinitions.MAXIMUM_SEGMENTS.marshallAsAttribute(principalDecoder, writer);
@@ -1128,11 +1127,11 @@ class MapperParser {
     private boolean writeCustomRealmMappers(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (subsystem.hasDefined(CUSTOM_REALM_MAPPER)) {
             startMappers(started, writer);
-            List<Property> realmMappers = subsystem.require(CUSTOM_REALM_MAPPER).asPropertyList();
-            for (Property current : realmMappers) {
-                ModelNode realmMapper = current.getValue();
+            ModelNode realmMappers = subsystem.require(CUSTOM_REALM_MAPPER);
+            for (String name : realmMappers.keys()) {
+                ModelNode realmMapper = realmMappers.require(name);
 
-                writeCustomComponent(CUSTOM_REALM_MAPPER, current.getName(), realmMapper, writer);
+                writeCustomComponent(CUSTOM_REALM_MAPPER, name, realmMapper, writer);
             }
 
             return true;
@@ -1144,11 +1143,11 @@ class MapperParser {
     private boolean writeSimpleRegexRealmMappers(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (subsystem.hasDefined(SIMPLE_REGEX_REALM_MAPPER)) {
             startMappers(started, writer);
-            List<Property> nameRewriters = subsystem.require(SIMPLE_REGEX_REALM_MAPPER).asPropertyList();
-            for (Property current : nameRewriters) {
-                ModelNode realmMapper = current.getValue();
+            ModelNode nameRewriters = subsystem.require(SIMPLE_REGEX_REALM_MAPPER);
+            for (String name : nameRewriters.keys()) {
+                ModelNode realmMapper = nameRewriters.require(name);
                 writer.writeStartElement(SIMPLE_REGEX_REALM_MAPPER);
-                writer.writeAttribute(NAME, current.getName());
+                writer.writeAttribute(NAME, name);
                 RegexAttributeDefinitions.PATTERN.marshallAsAttribute(realmMapper, writer);
                 RealmMapperDefinitions.DELEGATE_REALM_MAPPER.marshallAsAttribute(realmMapper, writer);
                 writer.writeEndElement();
@@ -1163,11 +1162,11 @@ class MapperParser {
     private boolean writeMapRegexRealmMappers(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (subsystem.hasDefined(MAPPED_REGEX_REALM_MAPPER)) {
             startMappers(started, writer);
-            List<Property> nameRewriters = subsystem.require(MAPPED_REGEX_REALM_MAPPER).asPropertyList();
-            for (Property current : nameRewriters) {
-                ModelNode realmMapper = current.getValue();
+            ModelNode nameRewriters = subsystem.require(MAPPED_REGEX_REALM_MAPPER);
+            for (String name : nameRewriters.keys()) {
+                ModelNode realmMapper = nameRewriters.require(name);
                 writer.writeStartElement(MAPPED_REGEX_REALM_MAPPER);
-                writer.writeAttribute(NAME, current.getName());
+                writer.writeAttribute(NAME, name);
                 RegexAttributeDefinitions.PATTERN.marshallAsAttribute(realmMapper, writer);
                 RealmMapperDefinitions.DELEGATE_REALM_MAPPER.marshallAsAttribute(realmMapper, writer);
                 RealmMapperDefinitions.REALM_REALM_MAP.marshallAsElement(realmMapper, writer);
@@ -1183,11 +1182,11 @@ class MapperParser {
     private boolean writeCustomRoleDecoders(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (subsystem.hasDefined(CUSTOM_ROLE_DECODER)) {
             startMappers(started, writer);
-            List<Property> roleDecoders = subsystem.require(CUSTOM_ROLE_DECODER).asPropertyList();
-            for (Property current : roleDecoders) {
-                ModelNode roleDecoder = current.getValue();
+            ModelNode roleDecoders = subsystem.require(CUSTOM_ROLE_DECODER);
+            for (String name : roleDecoders.keys()) {
+                ModelNode roleDecoder = roleDecoders.require(name);
 
-                writeCustomComponent(CUSTOM_ROLE_DECODER, current.getName(), roleDecoder, writer);
+                writeCustomComponent(CUSTOM_ROLE_DECODER, name, roleDecoder, writer);
             }
 
             return true;
@@ -1199,10 +1198,10 @@ class MapperParser {
     private boolean writeEmptyRoleDecoders(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (subsystem.hasDefined(EMPTY_ROLE_DECODER)) {
             startMappers(started, writer);
-            List<Property> roleDecoders = subsystem.require(EMPTY_ROLE_DECODER).asPropertyList();
-            for (Property current : roleDecoders) {
+            ModelNode roleDecoders = subsystem.require(EMPTY_ROLE_DECODER);
+            for (String name : roleDecoders.keys()) {
                 writer.writeStartElement(EMPTY_ROLE_DECODER);
-                writer.writeAttribute(NAME, current.getName());
+                writer.writeAttribute(NAME, name);
                 writer.writeEndElement();
             }
 
@@ -1215,11 +1214,11 @@ class MapperParser {
     private boolean writeSimpleRoleDecoders(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (subsystem.hasDefined(SIMPLE_ROLE_DECODER)) {
             startMappers(started, writer);
-            List<Property> roleDecoders = subsystem.require(SIMPLE_ROLE_DECODER).asPropertyList();
-            for (Property current : roleDecoders) {
-                ModelNode roleDecoder = current.getValue();
+            ModelNode roleDecoders = subsystem.require(SIMPLE_ROLE_DECODER);
+            for (String name : roleDecoders.keys()) {
+                ModelNode roleDecoder = roleDecoders.require(name);
                 writer.writeStartElement(SIMPLE_ROLE_DECODER);
-                writer.writeAttribute(NAME, current.getName());
+                writer.writeAttribute(NAME, name);
                 RoleDecoderDefinitions.ATTRIBUTE.marshallAsAttribute(roleDecoder, writer);
                 writer.writeEndElement();
             }
@@ -1233,11 +1232,11 @@ class MapperParser {
     private boolean writeAddPrefixRoleMappers(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (subsystem.hasDefined(ADD_PREFIX_ROLE_MAPPER)) {
             startMappers(started, writer);
-            List<Property> roleMappers = subsystem.require(ADD_PREFIX_ROLE_MAPPER).asPropertyList();
-            for (Property current : roleMappers) {
-                ModelNode roleMapper = current.getValue();
+            ModelNode roleMappers = subsystem.require(ADD_PREFIX_ROLE_MAPPER);
+            for (String name : roleMappers.keys()) {
+                ModelNode roleMapper = roleMappers.require(name);
                 writer.writeStartElement(ADD_PREFIX_ROLE_MAPPER);
-                writer.writeAttribute(NAME, current.getName());
+                writer.writeAttribute(NAME, name);
                 RoleMapperDefinitions.PREFIX.marshallAsAttribute(roleMapper, writer);
                 writer.writeEndElement();
             }
@@ -1251,11 +1250,11 @@ class MapperParser {
     private boolean writeAddSuffixRoleMappers(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (subsystem.hasDefined(ADD_SUFFIX_ROLE_MAPPER)) {
             startMappers(started, writer);
-            List<Property> roleMappers = subsystem.require(ADD_SUFFIX_ROLE_MAPPER).asPropertyList();
-            for (Property current : roleMappers) {
-                ModelNode roleMapper = current.getValue();
+            ModelNode roleMappers = subsystem.require(ADD_SUFFIX_ROLE_MAPPER);
+            for (String name : roleMappers.keys()) {
+                ModelNode roleMapper = roleMappers.require(name);
                 writer.writeStartElement(ADD_SUFFIX_ROLE_MAPPER);
-                writer.writeAttribute(NAME, current.getName());
+                writer.writeAttribute(NAME, name);
                 RoleMapperDefinitions.SUFFIX.marshallAsAttribute(roleMapper, writer);
                 writer.writeEndElement();
             }
@@ -1269,11 +1268,11 @@ class MapperParser {
     private boolean writeAggregateRoleMappers(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (subsystem.hasDefined(AGGREGATE_ROLE_MAPPER)) {
             startMappers(started, writer);
-            List<Property> roleMappers = subsystem.require(AGGREGATE_ROLE_MAPPER).asPropertyList();
-            for (Property current : roleMappers) {
-                ModelNode roleMapper = current.getValue();
+            ModelNode roleMappers = subsystem.require(AGGREGATE_ROLE_MAPPER);
+            for (String name : roleMappers.keys()) {
+                ModelNode roleMapper = roleMappers.require(name);
                 writer.writeStartElement(AGGREGATE_ROLE_MAPPER);
-                writer.writeAttribute(NAME, current.getName());
+                writer.writeAttribute(NAME, name);
 
                 List<ModelNode> roleMapperReferences = roleMapper.get(ROLE_MAPPERS).asList();
                 for (ModelNode currentReference : roleMapperReferences) {
@@ -1294,11 +1293,11 @@ class MapperParser {
     private boolean writeConstantRoleMappers(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (subsystem.hasDefined(CONSTANT_ROLE_MAPPER)) {
             startMappers(started, writer);
-            List<Property> roleMappers = subsystem.require(CONSTANT_ROLE_MAPPER).asPropertyList();
-            for (Property current : roleMappers) {
-                ModelNode roleMapper = current.getValue();
+            ModelNode roleMappers = subsystem.require(CONSTANT_ROLE_MAPPER);
+            for (String name : roleMappers.keys()) {
+                ModelNode roleMapper = roleMappers.require(name);
                 writer.writeStartElement(CONSTANT_ROLE_MAPPER);
-                writer.writeAttribute(NAME, current.getName());
+                writer.writeAttribute(NAME, name);
                 RoleMapperDefinitions.ROLES.getAttributeMarshaller().marshallAsAttribute(RoleMapperDefinitions.ROLES, roleMapper, false, writer);
                 writer.writeEndElement();
             }
@@ -1312,11 +1311,11 @@ class MapperParser {
     private boolean writeCustomRoleMappers(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (subsystem.hasDefined(CUSTOM_ROLE_MAPPER)) {
             startMappers(started, writer);
-            List<Property> roleMappers = subsystem.require(CUSTOM_ROLE_MAPPER).asPropertyList();
-            for (Property current : roleMappers) {
-                ModelNode roleMapper = current.getValue();
+            ModelNode roleMappers = subsystem.require(CUSTOM_ROLE_MAPPER);
+            for (String name : roleMappers.keys()) {
+                ModelNode roleMapper = roleMappers.require(name);
 
-                writeCustomComponent(CUSTOM_ROLE_MAPPER, current.getName(), roleMapper, writer);
+                writeCustomComponent(CUSTOM_ROLE_MAPPER, name, roleMapper, writer);
             }
 
             return true;
@@ -1328,11 +1327,11 @@ class MapperParser {
     private boolean writeLogicalRoleMappers(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (subsystem.hasDefined(LOGICAL_ROLE_MAPPER)) {
             startMappers(started, writer);
-            List<Property> roleMappers = subsystem.require(LOGICAL_ROLE_MAPPER).asPropertyList();
-            for (Property current : roleMappers) {
-                ModelNode roleMapper = current.getValue();
+            ModelNode roleMappers = subsystem.require(LOGICAL_ROLE_MAPPER);
+            for (String name : roleMappers.keys()) {
+                ModelNode roleMapper = roleMappers.require(name);
                 writer.writeStartElement(LOGICAL_ROLE_MAPPER);
-                writer.writeAttribute(NAME, current.getName());
+                writer.writeAttribute(NAME, name);
                 RoleMapperDefinitions.LOGICAL_OPERATION.marshallAsAttribute(roleMapper, writer);
                 RoleMapperDefinitions.LEFT.marshallAsAttribute(roleMapper, writer);
                 RoleMapperDefinitions.RIGHT.marshallAsAttribute(roleMapper, writer);

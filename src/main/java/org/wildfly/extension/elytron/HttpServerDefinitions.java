@@ -57,7 +57,6 @@ import org.jboss.as.controller.capability.RuntimeCapability;
 import org.jboss.as.controller.registry.AttributeAccess;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
-import org.jboss.dmr.Property;
 import org.jboss.msc.service.ServiceBuilder;
 import org.jboss.msc.service.ServiceController;
 import org.jboss.msc.service.ServiceController.State;
@@ -207,10 +206,10 @@ class HttpServerDefinitions {
                 }
 
                 final Map<String, String> propertiesMap;
-                ModelNode properties = PROPERTIES.resolveModelAttribute(context, model);
+                final ModelNode properties = PROPERTIES.resolveModelAttribute(context, model);
                 if (properties.isDefined()) {
                     propertiesMap = new HashMap<String, String>();
-                    properties.asPropertyList().forEach((Property p) -> propertiesMap.put(p.getName(), p.getValue().asString()));
+                    properties.keys().forEach((String s) -> propertiesMap.put(s, properties.require(s).asString()));
                 } else {
                     propertiesMap = null;
                 }

@@ -29,8 +29,8 @@ import static org.jboss.as.controller.parsing.ParseUtils.requireNoContent;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedAttribute;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedElement;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CLASS_NAME;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.HTTP;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CONFIGURATION;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.HTTP;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEYSTORE;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEYSTORES;
@@ -60,7 +60,6 @@ import javax.xml.stream.XMLStreamException;
 
 import org.jboss.as.controller.persistence.SubsystemMarshallingContext;
 import org.jboss.dmr.ModelNode;
-import org.jboss.dmr.Property;
 import org.jboss.staxmapper.XMLElementReader;
 import org.jboss.staxmapper.XMLElementWriter;
 import org.jboss.staxmapper.XMLExtendedStreamReader;
@@ -348,10 +347,11 @@ class ElytronSubsystemParser implements XMLElementReader<List<ModelNode>>, XMLEl
         ModelNode model = context.getModelNode();
         if (model.hasDefined(SECURITY_PROPERTY)) {
             writer.writeStartElement(SECURITY_PROPERTIES);
-            for (Property variable : model.get(SECURITY_PROPERTY).asPropertyList()) {
+            ModelNode securityProperties = model.require(SECURITY_PROPERTY);
+            for (String name : securityProperties.keys()) {
                 writer.writeEmptyElement(SECURITY_PROPERTY);
-                writer.writeAttribute(KEY, variable.getName());
-                SecurityPropertyResourceDefinition.VALUE.marshallAsAttribute(variable.getValue(), writer);
+                writer.writeAttribute(KEY, name);
+                SecurityPropertyResourceDefinition.VALUE.marshallAsAttribute(securityProperties.require(name), writer);
             }
 
             writer.writeEndElement();
@@ -359,18 +359,20 @@ class ElytronSubsystemParser implements XMLElementReader<List<ModelNode>>, XMLEl
 
         if (model.hasDefined(PROVIDER_LOADER)) {
             writer.writeStartElement(PROVIDER_LOADERS);
-            for (Property variable : model.get(PROVIDER_LOADER).asPropertyList()) {
-                ModelNode providerLoader = variable.getValue();
-                providerLoaderParser.writeProviderLoader(variable.getName(), providerLoader, writer);
+            ModelNode providerLoaders = model.require(PROVIDER_LOADER);
+            for (String name : providerLoaders.keys()) {
+                ModelNode providerLoader = providerLoaders.require(name);
+                providerLoaderParser.writeProviderLoader(name, providerLoader, writer);
             }
             writer.writeEndElement();
         }
 
         if (model.hasDefined(SECURITY_DOMAIN)) {
             writer.writeStartElement(SECURITY_DOMAINS);
-            for (Property variable : model.get(SECURITY_DOMAIN).asPropertyList()) {
-                ModelNode domain = variable.getValue();
-                domainParser.writeDomain(variable.getName(), domain, writer);
+            ModelNode securityDomains = model.require(SECURITY_DOMAIN);
+            for (String name : securityDomains.keys()) {
+                ModelNode domain = securityDomains.require(name);
+                domainParser.writeDomain(name, domain, writer);
             }
             writer.writeEndElement();
         }
@@ -388,9 +390,10 @@ class ElytronSubsystemParser implements XMLElementReader<List<ModelNode>>, XMLEl
             writer.writeStartElement(TLS);
             if (hasKeyStore) {
                 writer.writeStartElement(KEYSTORES);
-                for (Property variable : model.get(KEYSTORE).asPropertyList()) {
-                    ModelNode keyStore = variable.getValue();
-                    tlsParser.writeKeyStore(variable.getName(), keyStore, writer);
+                ModelNode keyStores = model.require(KEYSTORE);
+                for (String name : keyStores.keys()) {
+                    ModelNode keyStore = keyStores.require(name);
+                    tlsParser.writeKeyStore(name, keyStore, writer);
                 }
                 writer.writeEndElement();
             }

@@ -27,8 +27,8 @@ import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
 import static org.wildfly.extension.elytron.RegexAttributeDefinitions.PATTERN;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import javax.xml.stream.XMLStreamException;
@@ -54,7 +54,6 @@ import org.jboss.as.controller.registry.ManagementResourceRegistration;
 import org.jboss.as.controller.registry.OperationEntry;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
-import org.jboss.dmr.Property;
 import org.jboss.msc.service.ServiceBuilder;
 import org.jboss.msc.service.ServiceController.Mode;
 import org.jboss.msc.service.ServiceName;
@@ -226,9 +225,10 @@ class RealmMapperDefinitions {
 
             final String pattern = PATTERN.resolveModelAttribute(context, model).asString();
 
-            List<Property> realmMapList = REALM_REALM_MAP.resolveModelAttribute(context, model).asPropertyList();
-            final Map<String, String> realmRealmMap = new HashMap<String, String>(realmMapList.size());
-            realmMapList.forEach((Property p) -> realmRealmMap.put(p.getName(), p.getValue().asString()));
+            ModelNode realmMapList = REALM_REALM_MAP.resolveModelAttribute(context, model);
+            Set<String> names = realmMapList.keys();
+            final Map<String, String> realmRealmMap = new HashMap<String, String>(names.size());
+            names.forEach((String s) -> realmRealmMap.put(s, realmMapList.require(s).asString()));
 
             String delegateRealmMapper = asStringIfDefined(context, DELEGATE_REALM_MAPPER, model);
 

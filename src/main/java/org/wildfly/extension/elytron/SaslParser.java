@@ -68,7 +68,6 @@ import javax.xml.stream.XMLStreamException;
 
 import org.jboss.as.controller.ListAttributeDefinition;
 import org.jboss.dmr.ModelNode;
-import org.jboss.dmr.Property;
 import org.jboss.staxmapper.XMLExtendedStreamReader;
 import org.jboss.staxmapper.XMLExtendedStreamWriter;
 
@@ -561,11 +560,11 @@ class SaslParser {
     private boolean writeSecurityDomainSaslConfiguration(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (subsystem.hasDefined(SECURITY_DOMAIN_SASL_CONFIGURATION)) {
             startSasl(started, writer);
-            List<Property> securityDomainSaslConfigurationInstances = subsystem.require(SECURITY_DOMAIN_SASL_CONFIGURATION).asPropertyList();
-            for (Property current : securityDomainSaslConfigurationInstances) {
-                ModelNode securityDomainSaslConfiguration = current.getValue();
+            ModelNode securityDomainSaslConfigurationInstances = subsystem.require(SECURITY_DOMAIN_SASL_CONFIGURATION);
+            for (String name : securityDomainSaslConfigurationInstances.keys()) {
+                ModelNode securityDomainSaslConfiguration = securityDomainSaslConfigurationInstances.require(name);
                 writer.writeStartElement(SECURITY_DOMAIN_SASL_CONFIGURATION);
-                writer.writeAttribute(NAME, current.getName());
+                writer.writeAttribute(NAME, name);
                 SecurityDomainSaslConfigurationDefinition.SASL_SERVER_FACTORY.marshallAsAttribute(securityDomainSaslConfiguration, writer);
                 SecurityDomainSaslConfigurationDefinition.SECURITY_DOMAIN.marshallAsAttribute(securityDomainSaslConfiguration, writer);
                 writer.writeEndElement();
@@ -579,11 +578,11 @@ class SaslParser {
     private boolean writeAggregateSaslServerFactory(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (subsystem.hasDefined(AGGREGATE_SASL_SERVER_FACTORY)) {
             startSasl(started, writer);
-            List<Property> serverFactories = subsystem.require(AGGREGATE_SASL_SERVER_FACTORY).asPropertyList();
-            for (Property current : serverFactories) {
-                ModelNode serverFactory = current.getValue();
+            ModelNode serverFactories = subsystem.require(AGGREGATE_SASL_SERVER_FACTORY);
+            for (String name : serverFactories.keys()) {
+                ModelNode serverFactory = serverFactories.require(name);
                 writer.writeStartElement(AGGREGATE_SASL_SERVER_FACTORY);
-                writer.writeAttribute(NAME, current.getName());
+                writer.writeAttribute(NAME, name);
 
                 List<ModelNode> serverFactoryReferences = serverFactory.get(SASL_SERVER_FACTORIES).asList();
                 for (ModelNode currentReference : serverFactoryReferences) {
@@ -604,11 +603,11 @@ class SaslParser {
     private boolean writeConfigurableSaslServerFactory(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (subsystem.hasDefined(CONFIGURABLE_SASL_SERVER_FACTORY)) {
             startSasl(started, writer);
-            List<Property> saslServerFactories = subsystem.require(CONFIGURABLE_SASL_SERVER_FACTORY).asPropertyList();
-            for (Property current : saslServerFactories) {
-                ModelNode serverFactory = current.getValue();
+            ModelNode saslServerFactories = subsystem.require(CONFIGURABLE_SASL_SERVER_FACTORY);
+            for (String name : saslServerFactories.keys()) {
+                ModelNode serverFactory = saslServerFactories.require(name);
                 writer.writeStartElement(CONFIGURABLE_SASL_SERVER_FACTORY);
-                writer.writeAttribute(NAME, current.getName());
+                writer.writeAttribute(NAME, name);
                 SaslServerDefinitions.PROTOCOL.marshallAsAttribute(serverFactory, writer);
                 SaslServerDefinitions.SASL_SERVER_FACTORY.marshallAsAttribute(serverFactory, writer);
                 SaslServerDefinitions.SERVER_NAME.marshallAsAttribute(serverFactory, writer);
@@ -644,11 +643,11 @@ class SaslParser {
     private boolean writeMechanismProviderFilteringSaslServerFactory(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (subsystem.hasDefined(MECHANISM_PROVIDER_FILTERING_SASL_SERVER_FACTORY)) {
             startSasl(started, writer);
-            List<Property> saslServerFactories = subsystem.require(MECHANISM_PROVIDER_FILTERING_SASL_SERVER_FACTORY).asPropertyList();
-            for (Property current : saslServerFactories) {
-                ModelNode serverFactory = current.getValue();
+            ModelNode saslServerFactories = subsystem.require(MECHANISM_PROVIDER_FILTERING_SASL_SERVER_FACTORY);
+            for (String name : saslServerFactories.keys()) {
+                ModelNode serverFactory = saslServerFactories.require(name);
                 writer.writeStartElement(MECHANISM_PROVIDER_FILTERING_SASL_SERVER_FACTORY);
-                writer.writeAttribute(NAME, current.getName());
+                writer.writeAttribute(NAME, name);
                 SaslServerDefinitions.ENABLING.marshallAsAttribute(serverFactory, writer);
                 SaslServerDefinitions.SASL_SERVER_FACTORY.marshallAsAttribute(serverFactory, writer);
                 if (serverFactory.hasDefined(FILTERS)) {
@@ -676,11 +675,11 @@ class SaslParser {
     private boolean writeProviderSaslServerFactory(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (subsystem.hasDefined(PROVIDER_SASL_SERVER_FACTORY)) {
             startSasl(started, writer);
-            List<Property> serverFactories = subsystem.require(PROVIDER_SASL_SERVER_FACTORY).asPropertyList();
-            for (Property current : serverFactories) {
-                ModelNode serverFactory = current.getValue();
+            ModelNode serverFactories = subsystem.require(PROVIDER_SASL_SERVER_FACTORY);
+            for (String name : serverFactories.keys()) {
+                ModelNode serverFactory = serverFactories.require(name);
                 writer.writeStartElement(PROVIDER_SASL_SERVER_FACTORY);
-                writer.writeAttribute(NAME, current.getName());
+                writer.writeAttribute(NAME, name);
                 SaslServerDefinitions.PROVIDER_LOADER.marshallAsAttribute(serverFactory, writer);
                 writer.writeEndElement();
             }
@@ -693,11 +692,11 @@ class SaslParser {
     private boolean writeServiceLoaderSaslServerFactory(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (subsystem.hasDefined(SERVICE_LOADER_SASL_SERVER_FACTORY)) {
             startSasl(started, writer);
-            List<Property> serverFactories = subsystem.require(SERVICE_LOADER_SASL_SERVER_FACTORY).asPropertyList();
-            for (Property current : serverFactories) {
-                ModelNode serverFactory = current.getValue();
+            ModelNode serverFactories = subsystem.require(SERVICE_LOADER_SASL_SERVER_FACTORY);
+            for (String name : serverFactories.keys()) {
+                ModelNode serverFactory = serverFactories.require(name);
                 writer.writeStartElement(SERVICE_LOADER_SASL_SERVER_FACTORY);
-                writer.writeAttribute(NAME, current.getName());
+                writer.writeAttribute(NAME, name);
                 ClassLoadingAttributeDefinitions.MODULE.marshallAsAttribute(serverFactory, writer);
                 ClassLoadingAttributeDefinitions.SLOT.marshallAsAttribute(serverFactory, writer);
                 writer.writeEndElement();
