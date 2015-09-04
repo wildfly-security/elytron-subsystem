@@ -24,6 +24,7 @@ import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.MOD
 import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.SLOT;
 import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
 import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
+import static org.wildfly.extension.elytron.ElytronExtension.getRequiredService;
 import static org.wildfly.extension.elytron.FileAttributeDefinitions.pathName;
 import static org.wildfly.extension.elytron.ProviderAttributeDefinition.INDEXED_PROVIDERS;
 import static org.wildfly.extension.elytron.ProviderAttributeDefinition.LOADED_PROVIDERS;
@@ -234,8 +235,7 @@ class ProviderLoaderDefinition extends SimpleResourceDefinition {
         @Override
         protected void executeRuntimeStep(OperationContext context, ModelNode operation) throws OperationFailedException {
             ServiceName providerLoaderName = PROVIDER_LOADER_SERVICE_UTIL.serviceName(operation);
-            @SuppressWarnings("unchecked")
-            ServiceController<Provider[]> serviceContainer = (ServiceController<Provider[]>) context.getServiceRegistry(false).getRequiredService(providerLoaderName);
+            ServiceController<Provider[]> serviceContainer = getRequiredService(context.getServiceRegistry(false), providerLoaderName, Provider[].class);
             if (serviceContainer.getState() != State.UP) {
                 return;
             }

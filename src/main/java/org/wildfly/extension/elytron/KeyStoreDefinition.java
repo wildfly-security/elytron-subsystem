@@ -25,6 +25,7 @@ import static org.wildfly.extension.elytron.Capabilities.PROVIDERS_CAPABILITY;
 import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
 import static org.wildfly.extension.elytron.ElytronExtension.ELYTRON_1_0_0;
 import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
+import static org.wildfly.extension.elytron.ElytronExtension.getRequiredService;
 import static org.wildfly.extension.elytron.ElytronExtension.registerRuntimeResource;
 import static org.wildfly.extension.elytron.FileAttributeDefinitions.PATH;
 import static org.wildfly.extension.elytron.FileAttributeDefinitions.RELATIVE_TO;
@@ -336,8 +337,8 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
         @Override
         protected void executeRuntimeStep(OperationContext context, ModelNode operation) throws OperationFailedException {
             ServiceName keyStoreName = KEY_STORE_UTIL.serviceName(operation);
-            @SuppressWarnings("unchecked")
-            ServiceController<KeyStore> serviceContainer = (ServiceController<KeyStore>) context.getServiceRegistry(writeAccess).getRequiredService(keyStoreName);
+
+            ServiceController<KeyStore> serviceContainer = getRequiredService(context.getServiceRegistry(writeAccess), keyStoreName, KeyStore.class);
             State serviceState;
             if ((serviceState = serviceContainer.getState()) != State.UP) {
                 if (serviceMustBeUp) {

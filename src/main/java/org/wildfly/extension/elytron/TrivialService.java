@@ -18,6 +18,7 @@
 package org.wildfly.extension.elytron;
 
 import static org.wildfly.common.Assert.checkNotNullParam;
+
 import java.util.function.Supplier;
 
 import org.jboss.msc.service.Service;

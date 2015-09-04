@@ -17,12 +17,13 @@
  */
 package org.wildfly.extension.elytron;
 
+import static org.wildfly.extension.elytron.AvailableMechanismsRuntimeResource.wrap;
 import static org.wildfly.extension.elytron.Capabilities.SASL_SERVER_FACTORY_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SECURITY_DOMAIN_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SECURITY_DOMAIN_SASL_CONFIGURATION_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SECURITY_DOMAIN_SASL_CONFIGURATION_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
-import static org.wildfly.extension.elytron.AvailableMechanismsRuntimeResource.wrap;
+import static org.wildfly.extension.elytron.ElytronExtension.getRequiredService;
 
 import java.util.Collections;
 
@@ -111,8 +112,7 @@ class SecurityDomainSaslConfigurationDefinition extends SimpleResourceDefinition
         RuntimeCapability<Void> runtimeCapability = SECURITY_DOMAIN_SASL_CONFIGURATION_RUNTIME_CAPABILITY.fromBaseCapability(context.getCurrentAddressValue());
         ServiceName securityDomainSaslConfigurationName = runtimeCapability.getCapabilityServiceName(SecurityDomainSaslConfiguration.class);
 
-        @SuppressWarnings("unchecked")
-        ServiceController<SecurityDomainSaslConfiguration> serviceContainer = (ServiceController<SecurityDomainSaslConfiguration>) context.getServiceRegistry(false).getRequiredService(securityDomainSaslConfigurationName);
+        ServiceController<SecurityDomainSaslConfiguration> serviceContainer = getRequiredService(context.getServiceRegistry(false), securityDomainSaslConfigurationName, SecurityDomainSaslConfiguration.class);
         if (serviceContainer.getState() != State.UP) {
             return null;
         }

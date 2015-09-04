@@ -31,6 +31,7 @@ import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.res
 import static org.wildfly.extension.elytron.CommonAttributes.PROPERTIES;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.VALUE;
 import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
+import static org.wildfly.extension.elytron.ElytronExtension.getRequiredService;
 import static org.wildfly.extension.elytron.SecurityActions.doPrivileged;
 
 import java.security.PrivilegedExceptionAction;
@@ -293,8 +294,8 @@ class HttpServerDefinitions {
                     RuntimeCapability<Void> runtimeCapability = SECURITY_DOMAIN_HTTP_CONFIGURATION_RUNTIME_CAPABILITY.fromBaseCapability(context.getCurrentAddressValue());
                     ServiceName configurationName = runtimeCapability.getCapabilityServiceName(SecurityDomainHttpConfiguration.class);
 
-                    @SuppressWarnings("unchecked")
-                    ServiceController<SecurityDomainHttpConfiguration> serviceContainer = (ServiceController<SecurityDomainHttpConfiguration>) context.getServiceRegistry(false).getRequiredService(configurationName);
+                    ServiceRegistry registry = context.getServiceRegistry(false);
+                    ServiceController<SecurityDomainHttpConfiguration> serviceContainer = getRequiredService(registry, configurationName, SecurityDomainHttpConfiguration.class);
                     if (serviceContainer.getState() != State.UP) {
                         return null;
                     }
@@ -310,8 +311,7 @@ class HttpServerDefinitions {
                     ServiceName httpServerFactoryName = runtimeCapability.getCapabilityServiceName(HttpServerAuthenticationMechanismFactory.class);
 
                     ServiceRegistry registry = context.getServiceRegistry(false);
-                    @SuppressWarnings("unchecked")
-                    ServiceController<HttpServerAuthenticationMechanismFactory> serviceContainer = (ServiceController<HttpServerAuthenticationMechanismFactory>) registry.getRequiredService(httpServerFactoryName);
+                    ServiceController<HttpServerAuthenticationMechanismFactory> serviceContainer = getRequiredService(registry, httpServerFactoryName, HttpServerAuthenticationMechanismFactory.class);
                     if (serviceContainer.getState() != State.UP) {
                         return null;
                     }

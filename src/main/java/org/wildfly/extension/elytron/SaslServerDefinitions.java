@@ -29,6 +29,7 @@ import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.VALUE;
 import static org.wildfly.extension.elytron.ElytronExtension.asDoubleIfDefined;
 import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
+import static org.wildfly.extension.elytron.ElytronExtension.getRequiredService;
 import static org.wildfly.extension.elytron.SecurityActions.doPrivileged;
 
 import java.security.PrivilegedExceptionAction;
@@ -386,8 +387,7 @@ class SaslServerDefinitions {
         RuntimeCapability<Void> runtimeCapability = SASL_SERVER_FACTORY_RUNTIME_CAPABILITY.fromBaseCapability(context.getCurrentAddressValue());
         ServiceName saslServerFactoryName = runtimeCapability.getCapabilityServiceName(SaslServerFactory.class);
 
-        @SuppressWarnings("unchecked")
-        ServiceController<SaslServerFactory> serviceContainer = (ServiceController<SaslServerFactory>) context.getServiceRegistry(false).getRequiredService(saslServerFactoryName);
+        ServiceController<SaslServerFactory> serviceContainer = getRequiredService(context.getServiceRegistry(false), saslServerFactoryName, SaslServerFactory.class);
         if (serviceContainer.getState() != State.UP) {
             return null;
         }

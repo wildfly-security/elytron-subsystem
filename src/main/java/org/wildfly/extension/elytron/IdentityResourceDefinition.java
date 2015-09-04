@@ -18,12 +18,19 @@
 
 package org.wildfly.extension.elytron;
 
+import static org.jboss.as.controller.OperationContext.ResultHandler.NOOP_RESULT_HANDLER;
+import static org.wildfly.extension.elytron.Capabilities.SECURITY_DOMAIN_RUNTIME_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY;
+import static org.wildfly.extension.elytron.ElytronExtension.getRequiredService;
+import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
+
 import java.security.NoSuchAlgorithmException;
 import java.security.Permission;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
+
 import org.jboss.as.controller.AttributeDefinition;
 import org.jboss.as.controller.ObjectTypeAttributeDefinition;
 import org.jboss.as.controller.OperationContext;
@@ -77,11 +84,6 @@ import org.wildfly.security.password.spec.IteratedSaltedPasswordAlgorithmSpec;
 import org.wildfly.security.password.spec.PasswordSpec;
 import org.wildfly.security.password.spec.SaltedPasswordAlgorithmSpec;
 
-import static org.jboss.as.controller.OperationContext.ResultHandler.NOOP_RESULT_HANDLER;
-import static org.wildfly.extension.elytron.Capabilities.SECURITY_DOMAIN_RUNTIME_CAPABILITY;
-import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY;
-import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
-
 /**
  * A {@link org.jboss.as.controller.ResourceDefinition} that defines identity management operations for those {@link SecurityRealm} resources
  * resources that implements {@link ModifiableSecurityRealm}.
@@ -124,6 +126,7 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
         private IdentityAddHandler() {
         }
 
+        @Override
         public void execute(final OperationContext context, final ModelNode operation) throws OperationFailedException {
             context.addStep(operation, (context1, operation1) -> {
                 ModifiableSecurityRealm modifiableRealm = getModifiableSecurityRealm(context);
@@ -149,6 +152,7 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
         private IdentityRemoveHandler() {
         }
 
+        @Override
         public void execute(final OperationContext context, final ModelNode operation) throws OperationFailedException {
             context.addStep(operation, (context1, operation1) -> {
                 ModifiableSecurityRealm modifiableRealm = getModifiableSecurityRealm(context1);
@@ -188,7 +192,7 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
                 ServiceRegistry serviceRegistry = parentContext.getServiceRegistry(false);
                 RuntimeCapability<Void> runtimeCapability = SECURITY_DOMAIN_RUNTIME_CAPABILITY.fromBaseCapability(parentContext.getCurrentAddressValue());
                 ServiceName domainServiceName = runtimeCapability.getCapabilityServiceName(SecurityDomain.class);
-                ServiceController<SecurityDomain> serviceController = (ServiceController<SecurityDomain>) serviceRegistry.getRequiredService(domainServiceName);
+                ServiceController<SecurityDomain> serviceController = getRequiredService(serviceRegistry, domainServiceName, SecurityDomain.class);
                 SecurityDomain domain = serviceController.getValue();
                 ServerAuthenticationContext authenticationContext = domain.createNewAuthenticationContext();
                 String principalName = NAME.resolveModelAttribute(parentContext, parentOperation).asString();
@@ -664,7 +668,7 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
         PathAddress currentAddress = context.getCurrentAddress();
         RuntimeCapability<Void> runtimeCapability = SECURITY_REALM_RUNTIME_CAPABILITY.fromBaseCapability(currentAddress.subAddress(0, currentAddress.size() - 1).getLastElement().getValue());
         ServiceName realmName = runtimeCapability.getCapabilityServiceName(SecurityRealm.class);
-        ServiceController<SecurityRealm> serviceController = (ServiceController<SecurityRealm>) serviceRegistry.getRequiredService(realmName);
+        ServiceController<SecurityRealm> serviceController = getRequiredService(serviceRegistry, realmName, SecurityRealm.class);
         SecurityRealm realm = serviceController.getValue();
 
         if (!ModifiableSecurityRealm.class.isInstance(realm)) {
@@ -844,8 +848,7 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
 
         private SecurityDomain getSecurityDomain(OperationContext context, ModelNode operation) {
             ServiceRegistry serviceRegistry = context.getServiceRegistry(false);
-            @SuppressWarnings("unchecked")
-            ServiceController<SecurityDomain> serviceController = (ServiceController<SecurityDomain>) serviceRegistry.getRequiredService(DOMAIN_SERVICE_UTIL.serviceName(operation));
+            ServiceController<SecurityDomain> serviceController = getRequiredService(serviceRegistry, DOMAIN_SERVICE_UTIL.serviceName(operation), SecurityDomain.class);
             Service<SecurityDomain> service = serviceController.getService();
 
             return service.getValue();

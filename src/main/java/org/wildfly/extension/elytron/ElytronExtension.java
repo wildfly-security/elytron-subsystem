@@ -37,7 +37,9 @@ import org.jboss.as.controller.operations.common.GenericSubsystemDescribeHandler
 import org.jboss.as.controller.parsing.ExtensionParsingContext;
 import org.jboss.as.controller.registry.ManagementResourceRegistration;
 import org.jboss.dmr.ModelNode;
+import org.jboss.msc.service.ServiceController;
 import org.jboss.msc.service.ServiceName;
+import org.jboss.msc.service.ServiceRegistry;
 
 
 /**
@@ -108,6 +110,12 @@ public class ElytronExtension implements Extension {
     static void registerRuntimeResource(ManagementResourceRegistration resourceRegistration, final ResourceDefinition resourceDefinition) {
         resourceRegistration = resourceRegistration.registerSubModel(resourceDefinition);
         resourceRegistration.setRuntimeOnly(true);
+    }
+
+    @SuppressWarnings("unchecked")
+    static <T> ServiceController<T> getRequiredService(ServiceRegistry serviceRegistry, ServiceName serviceName, Class<T> serviceType) {
+        ServiceController<?> controller = serviceRegistry.getRequiredService(serviceName);
+        return (ServiceController<T>) controller;
     }
 
     static String asStringIfDefined(OperationContext context, SimpleAttributeDefinition attributeDefintion, ModelNode model) throws OperationFailedException {
