@@ -129,10 +129,10 @@ class SaslParser {
                         name = value;
                         break;
                     case SASL_SERVER_FACTORY:
-                        SecurityDomainSaslConfigurationDefinition.SASL_SERVER_FACTORY.parseAndSetParameter(value, addOperation, reader);
+                        SaslServerDefinitions.SASL_SERVER_FACTORY_FOR_CONFIG.parseAndSetParameter(value, addOperation, reader);
                         break;
                     case SECURITY_DOMAIN:
-                        SecurityDomainSaslConfigurationDefinition.SECURITY_DOMAIN.parseAndSetParameter(value, addOperation, reader);
+                        SaslServerDefinitions.SECURITY_DOMAIN.parseAndSetParameter(value, addOperation, reader);
                         break;
                     default:
                         throw unexpectedAttribute(reader, i);
@@ -220,7 +220,7 @@ class SaslParser {
                         name = value;
                         break;
                     case SASL_SERVER_FACTORY:
-                        SaslServerDefinitions.SASL_SERVER_FACTORY.parseAndSetParameter(value, addOperation, reader);
+                        SaslServerDefinitions.SASL_SERVER_FACTORY_FOR_FACTORY.parseAndSetParameter(value, addOperation, reader);
                         break;
                     case PROTOCOL:
                         SaslServerDefinitions.PROTOCOL.parseAndSetParameter(value, addOperation, reader);
@@ -395,7 +395,7 @@ class SaslParser {
                         name = value;
                         break;
                     case SASL_SERVER_FACTORY:
-                        SaslServerDefinitions.SASL_SERVER_FACTORY.parseAndSetParameter(value, addOperation, reader);
+                        SaslServerDefinitions.SASL_SERVER_FACTORY_FOR_FACTORY.parseAndSetParameter(value, addOperation, reader);
                         break;
                     case ENABLING:
                         SaslServerDefinitions.ENABLING.parseAndSetParameter(value, addOperation, reader);
@@ -565,8 +565,8 @@ class SaslParser {
                 ModelNode securityDomainSaslConfiguration = securityDomainSaslConfigurationInstances.require(name);
                 writer.writeStartElement(SECURITY_DOMAIN_SASL_CONFIGURATION);
                 writer.writeAttribute(NAME, name);
-                SecurityDomainSaslConfigurationDefinition.SASL_SERVER_FACTORY.marshallAsAttribute(securityDomainSaslConfiguration, writer);
-                SecurityDomainSaslConfigurationDefinition.SECURITY_DOMAIN.marshallAsAttribute(securityDomainSaslConfiguration, writer);
+                SaslServerDefinitions.SASL_SERVER_FACTORY_FOR_CONFIG.marshallAsAttribute(securityDomainSaslConfiguration, writer);
+                SaslServerDefinitions.SECURITY_DOMAIN.marshallAsAttribute(securityDomainSaslConfiguration, writer);
                 writer.writeEndElement();
             }
             return true;
@@ -609,7 +609,7 @@ class SaslParser {
                 writer.writeStartElement(CONFIGURABLE_SASL_SERVER_FACTORY);
                 writer.writeAttribute(NAME, name);
                 SaslServerDefinitions.PROTOCOL.marshallAsAttribute(serverFactory, writer);
-                SaslServerDefinitions.SASL_SERVER_FACTORY.marshallAsAttribute(serverFactory, writer);
+                SaslServerDefinitions.SASL_SERVER_FACTORY_FOR_FACTORY.marshallAsAttribute(serverFactory, writer);
                 SaslServerDefinitions.SERVER_NAME.marshallAsAttribute(serverFactory, writer);
                 CommonAttributes.PROPERTIES.marshallAsElement(serverFactory, writer);
                 if (serverFactory.hasDefined(FILTERS)) {
@@ -649,7 +649,7 @@ class SaslParser {
                 writer.writeStartElement(MECHANISM_PROVIDER_FILTERING_SASL_SERVER_FACTORY);
                 writer.writeAttribute(NAME, name);
                 SaslServerDefinitions.ENABLING.marshallAsAttribute(serverFactory, writer);
-                SaslServerDefinitions.SASL_SERVER_FACTORY.marshallAsAttribute(serverFactory, writer);
+                SaslServerDefinitions.SASL_SERVER_FACTORY_FOR_FACTORY.marshallAsAttribute(serverFactory, writer);
                 if (serverFactory.hasDefined(FILTERS)) {
                     writer.writeStartElement(FILTERS);
                     List<ModelNode> filters = serverFactory.require(FILTERS).asList();

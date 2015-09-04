@@ -92,12 +92,6 @@ class HttpServerDefinitions {
         .setCapabilityReference(HTTP_SERVER_FACTORY_CAPABILITY, HTTP_SERVER_FACTORY_CAPABILITY, true)
         .build();
 
-    //static final SimpleAttributeDefinition HTTP_SERVER_FACTORY_FOR_FACTORY = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.HTTP_SERVER_FACTORY, ModelType.STRING, false)
-    //    .setMinSize(1)
-    //    .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
-    //    .setCapabilityReference(HTTP_SERVER_FACTORY_CAPABILITY, HTTP_SERVER_FACTORY_CAPABILITY, true)
-    //    .build();
-
     static final SimpleAttributeDefinition PROVIDER_LOADER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PROVIDER_LOADER, ModelType.STRING, true)
         .setAllowExpression(true)
         .setMinSize(1)

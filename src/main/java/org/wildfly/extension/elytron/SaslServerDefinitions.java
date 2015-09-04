@@ -17,10 +17,14 @@
  */
 package org.wildfly.extension.elytron;
 
+import static org.jboss.as.controller.capability.RuntimeCapability.buildDynamicCapabilityName;
 import static org.wildfly.extension.elytron.AvailableMechanismsRuntimeResource.wrap;
 import static org.wildfly.extension.elytron.Capabilities.PROVIDERS_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SASL_SERVER_FACTORY_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SASL_SERVER_FACTORY_RUNTIME_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.SECURITY_DOMAIN_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.SECURITY_DOMAIN_SASL_CONFIGURATION_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.SECURITY_DOMAIN_SASL_CONFIGURATION_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.MODULE;
 import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.SLOT;
 import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.resolveClassLoader;
@@ -75,6 +79,8 @@ import org.jboss.msc.service.ServiceTarget;
 import org.jboss.msc.service.StartException;
 import org.jboss.msc.value.InjectedValue;
 import org.wildfly.extension.elytron.TrivialService.ValueSupplier;
+import org.wildfly.security.auth.server.SecurityDomain;
+import org.wildfly.security.auth.server.SecurityDomainSaslConfiguration;
 import org.wildfly.security.sasl.util.AggregateSaslServerFactory;
 import org.wildfly.security.sasl.util.FilterMechanismSaslServerFactory;
 import org.wildfly.security.sasl.util.MechanismProviderFilteringSaslServerFactory;
@@ -102,7 +108,19 @@ class SaslServerDefinitions {
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
         .build();
 
-    static final SimpleAttributeDefinition SASL_SERVER_FACTORY = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.SASL_SERVER_FACTORY, ModelType.STRING, false)
+    static final SimpleAttributeDefinition SECURITY_DOMAIN = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.SECURITY_DOMAIN, ModelType.STRING, false)
+        .setMinSize(1)
+        .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+        .setCapabilityReference(SECURITY_DOMAIN_CAPABILITY, SECURITY_DOMAIN_SASL_CONFIGURATION_CAPABILITY, true)
+        .build();
+
+    static final SimpleAttributeDefinition SASL_SERVER_FACTORY_FOR_CONFIG = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.SASL_SERVER_FACTORY, ModelType.STRING, false)
+        .setMinSize(1)
+        .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+        .setCapabilityReference(SASL_SERVER_FACTORY_CAPABILITY, SECURITY_DOMAIN_SASL_CONFIGURATION_CAPABILITY, true)
+        .build();
+
+    static final SimpleAttributeDefinition SASL_SERVER_FACTORY_FOR_FACTORY = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.SASL_SERVER_FACTORY, ModelType.STRING, false)
         .setMinSize(1)
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
         .setCapabilityReference(SASL_SERVER_FACTORY_CAPABILITY, SASL_SERVER_FACTORY_CAPABILITY, true)
@@ -176,23 +194,55 @@ class SaslServerDefinitions {
             ElytronDescriptionConstants.AGGREGATE_SASL_SERVER_FACTORY, ElytronDescriptionConstants.SASL_SERVER_FACTORIES, SASL_SERVER_FACTORY_RUNTIME_CAPABILITY,
             (SaslServerFactory[] n) -> new AggregateSaslServerFactory(n));
 
+    static ResourceDefinition getSecurityDomainSaslConfiguration() {
+        AttributeDefinition[] attributes = new AttributeDefinition[] { SECURITY_DOMAIN, SASL_SERVER_FACTORY_FOR_CONFIG };
+
+        AbstractAddStepHandler add = new TrivialAddHandler<SecurityDomainSaslConfiguration>(SECURITY_DOMAIN_SASL_CONFIGURATION_RUNTIME_CAPABILITY, SecurityDomainSaslConfiguration.class, attributes) {
+
+            @Override
+            protected ValueSupplier<SecurityDomainSaslConfiguration> getValueSupplier(
+                    ServiceBuilder<SecurityDomainSaslConfiguration> serviceBuilder, OperationContext context, ModelNode model)
+                    throws OperationFailedException {
+
+                String securityDomain = SECURITY_DOMAIN.resolveModelAttribute(context, model).asString();
+                String saslServerFactory = SASL_SERVER_FACTORY_FOR_CONFIG.resolveModelAttribute(context, model).asString();
+
+                final InjectedValue<SecurityDomain> securityDomainInjector = new InjectedValue<SecurityDomain>();
+                final InjectedValue<SaslServerFactory> saslServerFactoryInjector = new InjectedValue<SaslServerFactory>();
+
+                serviceBuilder.addDependency(context.getCapabilityServiceName(
+                        buildDynamicCapabilityName(SECURITY_DOMAIN_CAPABILITY, securityDomain), SecurityDomain.class),
+                        SecurityDomain.class, securityDomainInjector);
+
+                serviceBuilder.addDependency(context.getCapabilityServiceName(
+                        buildDynamicCapabilityName(SASL_SERVER_FACTORY_CAPABILITY, saslServerFactory), SaslServerFactory.class),
+                        SaslServerFactory.class, saslServerFactoryInjector);
+
+                return () -> new SecurityDomainSaslConfiguration(securityDomainInjector.getValue(), saslServerFactoryInjector.getValue());
+            }
+        };
+
+        return wrap(new TrivialResourceDefinition<SecurityDomainSaslConfiguration>(ElytronDescriptionConstants.SECURITY_DOMAIN_SASL_CONFIGURATION,
+                SECURITY_DOMAIN_SASL_CONFIGURATION_RUNTIME_CAPABILITY, SecurityDomainSaslConfiguration.class, add, attributes), SaslServerDefinitions::getConfigurationAvailableMechanisms);
+    }
+
     static AggregateComponentDefinition<SaslServerFactory> getRawAggregateSaslServerFactoryDefinition() {
         return AGGREGATE_SASL_SERVER_FACTORY;
     }
 
     static ResourceDefinition getAggregateSaslServerFactoryDefinition() {
-        return wrap(AGGREGATE_SASL_SERVER_FACTORY, SaslServerDefinitions::getAvailableMechanisms);
+        return wrap(AGGREGATE_SASL_SERVER_FACTORY, SaslServerDefinitions::getSaslServerAvailableMechanisms);
     }
 
     static ResourceDefinition getConfigurableSaslServerFactoryDefinition() {
-        AttributeDefinition[] attributes = new AttributeDefinition[] { SASL_SERVER_FACTORY, SERVER_NAME, PROTOCOL, PROPERTIES, CONFIGURED_FILTERS };
+        AttributeDefinition[] attributes = new AttributeDefinition[] { SASL_SERVER_FACTORY_FOR_FACTORY, SERVER_NAME, PROTOCOL, PROPERTIES, CONFIGURED_FILTERS };
         AbstractAddStepHandler add = new SaslServerAddHander(attributes) {
 
             @Override
             protected ServiceBuilder<SaslServerFactory> installService(OperationContext context,
                     ServiceName saslServerFactoryName, ModelNode model) throws OperationFailedException {
 
-                final String saslServerFactory = SASL_SERVER_FACTORY.resolveModelAttribute(context, model).asString();
+                final String saslServerFactory = SASL_SERVER_FACTORY_FOR_FACTORY.resolveModelAttribute(context, model).asString();
                 final String protocol = asStringIfDefined(context, PROTOCOL, model);
                 final String serverName = asStringIfDefined(context, SERVER_NAME, model);
 
@@ -255,7 +305,7 @@ class SaslServerDefinitions {
 
         };
 
-        return wrap(new SaslServerResourceDefinition(ElytronDescriptionConstants.CONFIGURABLE_SASL_SERVER_FACTORY, add, attributes), SaslServerDefinitions::getAvailableMechanisms);
+        return wrap(new SaslServerResourceDefinition(ElytronDescriptionConstants.CONFIGURABLE_SASL_SERVER_FACTORY, add, attributes), SaslServerDefinitions::getSaslServerAvailableMechanisms);
     }
 
     static ResourceDefinition getProviderSaslServerFactoryDefintion() {
@@ -285,7 +335,7 @@ class SaslServerDefinitions {
             }
         };
 
-        return wrap(new SaslServerResourceDefinition(ElytronDescriptionConstants.PROVIDER_SASL_SERVER_FACTORY, add, PROVIDER_LOADER), SaslServerDefinitions::getAvailableMechanisms);
+        return wrap(new SaslServerResourceDefinition(ElytronDescriptionConstants.PROVIDER_SASL_SERVER_FACTORY, add, PROVIDER_LOADER), SaslServerDefinitions::getSaslServerAvailableMechanisms);
     }
 
     static ResourceDefinition getServiceLoaderSaslServerFactoryDefinition() {
@@ -312,18 +362,18 @@ class SaslServerDefinitions {
             }
         };
 
-        return wrap(new SaslServerResourceDefinition(ElytronDescriptionConstants.SERVICE_LOADER_SASL_SERVER_FACTORY, add, MODULE, SLOT), SaslServerDefinitions::getAvailableMechanisms);
+        return wrap(new SaslServerResourceDefinition(ElytronDescriptionConstants.SERVICE_LOADER_SASL_SERVER_FACTORY, add, MODULE, SLOT), SaslServerDefinitions::getSaslServerAvailableMechanisms);
     }
 
     static ResourceDefinition getMechanismProviderFilteringSaslServerFactory() {
-        AttributeDefinition[] attributes = new AttributeDefinition[] { SASL_SERVER_FACTORY, ENABLING, MECH_PROVIDER_FILTERS };
+        AttributeDefinition[] attributes = new AttributeDefinition[] { SASL_SERVER_FACTORY_FOR_FACTORY, ENABLING, MECH_PROVIDER_FILTERS };
         AbstractAddStepHandler add = new SaslServerAddHander(attributes) {
 
             @Override
             protected ServiceBuilder<SaslServerFactory> installService(OperationContext context,
                     ServiceName saslServerFactoryName, ModelNode model) throws OperationFailedException {
 
-                final String saslServerFactory = SASL_SERVER_FACTORY.resolveModelAttribute(context, model).asString();
+                final String saslServerFactory = SASL_SERVER_FACTORY_FOR_FACTORY.resolveModelAttribute(context, model).asString();
 
                 BiPredicate<String, Provider> predicate = null;
 
@@ -380,10 +430,10 @@ class SaslServerDefinitions {
 
         };
 
-        return wrap(new SaslServerResourceDefinition(ElytronDescriptionConstants.MECHANISM_PROVIDER_FILTERING_SASL_SERVER_FACTORY, add, attributes), SaslServerDefinitions::getAvailableMechanisms);
+        return wrap(new SaslServerResourceDefinition(ElytronDescriptionConstants.MECHANISM_PROVIDER_FILTERING_SASL_SERVER_FACTORY, add, attributes), SaslServerDefinitions::getSaslServerAvailableMechanisms);
     }
 
-    private static String[] getAvailableMechanisms(OperationContext context) {
+    private static String[] getSaslServerAvailableMechanisms(OperationContext context) {
         RuntimeCapability<Void> runtimeCapability = SASL_SERVER_FACTORY_RUNTIME_CAPABILITY.fromBaseCapability(context.getCurrentAddressValue());
         ServiceName saslServerFactoryName = runtimeCapability.getCapabilityServiceName(SaslServerFactory.class);
 
@@ -392,6 +442,18 @@ class SaslServerDefinitions {
             return null;
         }
         return serviceContainer.getValue().getMechanismNames(Collections.emptyMap());
+    }
+
+    private static String[] getConfigurationAvailableMechanisms(OperationContext context) {
+        RuntimeCapability<Void> runtimeCapability = SECURITY_DOMAIN_SASL_CONFIGURATION_RUNTIME_CAPABILITY.fromBaseCapability(context.getCurrentAddressValue());
+        ServiceName securityDomainSaslConfigurationName = runtimeCapability.getCapabilityServiceName(SecurityDomainSaslConfiguration.class);
+
+        ServiceController<SecurityDomainSaslConfiguration> serviceContainer = getRequiredService(context.getServiceRegistry(false), securityDomainSaslConfigurationName, SecurityDomainSaslConfiguration.class);
+        if (serviceContainer.getState() != State.UP) {
+            return null;
+        }
+
+        return serviceContainer.getValue().getSaslServerFactory().getMechanismNames(Collections.emptyMap());
     }
 
     private static class SaslServerResourceDefinition extends SimpleResourceDefinition {
