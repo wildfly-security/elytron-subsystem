@@ -23,8 +23,8 @@ import static org.wildfly.extension.elytron.Capabilities.PROVIDERS_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SASL_SERVER_FACTORY_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SASL_SERVER_FACTORY_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SECURITY_DOMAIN_CAPABILITY;
-import static org.wildfly.extension.elytron.Capabilities.SECURITY_DOMAIN_SASL_CONFIGURATION_CAPABILITY;
-import static org.wildfly.extension.elytron.Capabilities.SECURITY_DOMAIN_SASL_CONFIGURATION_RUNTIME_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.SASL_SERVER_AUTHENTICATION_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.SASL_SERVER_AUTHENTICATION_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.MODULE;
 import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.SLOT;
 import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.resolveClassLoader;
@@ -111,13 +111,13 @@ class SaslServerDefinitions {
     static final SimpleAttributeDefinition SECURITY_DOMAIN = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.SECURITY_DOMAIN, ModelType.STRING, false)
         .setMinSize(1)
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
-        .setCapabilityReference(SECURITY_DOMAIN_CAPABILITY, SECURITY_DOMAIN_SASL_CONFIGURATION_CAPABILITY, true)
+        .setCapabilityReference(SECURITY_DOMAIN_CAPABILITY, SASL_SERVER_AUTHENTICATION_CAPABILITY, true)
         .build();
 
     static final SimpleAttributeDefinition SASL_SERVER_FACTORY_FOR_CONFIG = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.SASL_SERVER_FACTORY, ModelType.STRING, false)
         .setMinSize(1)
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
-        .setCapabilityReference(SASL_SERVER_FACTORY_CAPABILITY, SECURITY_DOMAIN_SASL_CONFIGURATION_CAPABILITY, true)
+        .setCapabilityReference(SASL_SERVER_FACTORY_CAPABILITY, SASL_SERVER_AUTHENTICATION_CAPABILITY, true)
         .build();
 
     static final SimpleAttributeDefinition SASL_SERVER_FACTORY_FOR_FACTORY = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.SASL_SERVER_FACTORY, ModelType.STRING, false)
@@ -197,7 +197,7 @@ class SaslServerDefinitions {
     static ResourceDefinition getSecurityDomainSaslConfiguration() {
         AttributeDefinition[] attributes = new AttributeDefinition[] { SECURITY_DOMAIN, SASL_SERVER_FACTORY_FOR_CONFIG };
 
-        AbstractAddStepHandler add = new TrivialAddHandler<SecurityDomainSaslConfiguration>(SECURITY_DOMAIN_SASL_CONFIGURATION_RUNTIME_CAPABILITY, SecurityDomainSaslConfiguration.class, attributes) {
+        AbstractAddStepHandler add = new TrivialAddHandler<SecurityDomainSaslConfiguration>(SASL_SERVER_AUTHENTICATION_RUNTIME_CAPABILITY, SecurityDomainSaslConfiguration.class, attributes) {
 
             @Override
             protected ValueSupplier<SecurityDomainSaslConfiguration> getValueSupplier(
@@ -222,8 +222,8 @@ class SaslServerDefinitions {
             }
         };
 
-        return wrap(new TrivialResourceDefinition<SecurityDomainSaslConfiguration>(ElytronDescriptionConstants.SECURITY_DOMAIN_SASL_CONFIGURATION,
-                SECURITY_DOMAIN_SASL_CONFIGURATION_RUNTIME_CAPABILITY, SecurityDomainSaslConfiguration.class, add, attributes), SaslServerDefinitions::getConfigurationAvailableMechanisms);
+        return wrap(new TrivialResourceDefinition<SecurityDomainSaslConfiguration>(ElytronDescriptionConstants.SASL_SERVER_AUTHENTICATION,
+                SASL_SERVER_AUTHENTICATION_RUNTIME_CAPABILITY, SecurityDomainSaslConfiguration.class, add, attributes), SaslServerDefinitions::getConfigurationAvailableMechanisms);
     }
 
     static AggregateComponentDefinition<SaslServerFactory> getRawAggregateSaslServerFactoryDefinition() {
@@ -445,7 +445,7 @@ class SaslServerDefinitions {
     }
 
     private static String[] getConfigurationAvailableMechanisms(OperationContext context) {
-        RuntimeCapability<Void> runtimeCapability = SECURITY_DOMAIN_SASL_CONFIGURATION_RUNTIME_CAPABILITY.fromBaseCapability(context.getCurrentAddressValue());
+        RuntimeCapability<Void> runtimeCapability = SASL_SERVER_AUTHENTICATION_RUNTIME_CAPABILITY.fromBaseCapability(context.getCurrentAddressValue());
         ServiceName securityDomainSaslConfigurationName = runtimeCapability.getCapabilityServiceName(SecurityDomainSaslConfiguration.class);
 
         ServiceController<SecurityDomainSaslConfiguration> serviceContainer = getRequiredService(context.getServiceRegistry(false), securityDomainSaslConfigurationName, SecurityDomainSaslConfiguration.class);

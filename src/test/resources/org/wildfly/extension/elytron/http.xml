@@ -13,7 +13,7 @@
         </provider-loader>
     </provider-loaders>
     <http>
-        <security-domain-http-configuration name="HttpAuthenticationDefinition" security-domain="MyDomain" http-server-factory="ConfigurableHttpServerFactory" />
+        <http-server-authentication name="HttpAuthenticationDefinition" security-domain="MyDomain" http-server-factory="ConfigurableHttpServerFactory" />
         <configurable-http-server-factory name="ConfigurableHttpServerFactory" http-server-factory="AggregateHttpFactory">
             <properties>
                 <property key="a" value="b" />

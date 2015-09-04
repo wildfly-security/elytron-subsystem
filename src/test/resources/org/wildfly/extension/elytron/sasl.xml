@@ -13,7 +13,7 @@
         </provider-loader>
     </provider-loaders>
     <sasl>
-        <security-domain-sasl-configuration name="SaslAuthenticationDefinition" security-domain="MyDomain" sasl-server-factory="ConfigurableSaslServerFactory" />
+        <sasl-server-authentication name="SaslAuthenticationDefinition" security-domain="MyDomain" sasl-server-factory="ConfigurableSaslServerFactory" />
         <configurable-sasl-server-factory name="ConfigurableSaslServerFactory" server-name="server" protocol="test-protocol" sasl-server-factory="MechFiltering">
             <properties>
                 <property key="a" value="b" />

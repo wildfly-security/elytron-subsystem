@@ -1527,7 +1527,7 @@
              </xs:documentation>
          </xs:annotation>
          <xs:choice maxOccurs="unbounded">
-             <xs:element name="security-domain-http-configuration" type="securityDomainHttpConfigurationType" minOccurs="0"/>
+             <xs:element name="http-server-authentication" type="httpServerAuthenticationType" minOccurs="0"/>
              <xs:element name="aggregate-http-server-factory" type="aggregateHttpServerFactoryType" minOccurs="0" />
              <xs:element name="configurable-http-server-factory" type="configurableHttpServerFactoryType" minOccurs="0" />
              <xs:element name="provider-http-server-factory" type="providerHttpServerFactoryType" minOccurs="0" />
@@ -1535,10 +1535,10 @@
          </xs:choice>
      </xs:complexType>
 
-     <xs:complexType name="securityDomainHttpConfigurationType">
+     <xs:complexType name="httpServerAuthenticationType">
         <xs:annotation>
             <xs:documentation>
-                Complex type for the definition of a security domain / http server factory association.
+                Complex type for the definition of the server side HTTP authentication policy.
             </xs:documentation>
         </xs:annotation>
         <xs:attribute name="name" type="xs:string" use="required" />
@@ -1734,7 +1734,7 @@
             </xs:documentation>
         </xs:annotation>
         <xs:choice maxOccurs="unbounded">
-            <xs:element name="security-domain-sasl-configuration" type="securityDomainSaslConfigurationType" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="sasl-server-authentication" type="saslServerAuthenticationType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="aggregate-sasl-server-factory" type="aggregateSaslServerFactoryType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="configurable-sasl-server-factory" type="configurableSaslServerFactoryType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="mechanism-provider-filtering-sasl-server-factory" type="mechanismProviderFilteringSaslServerFactoryType" minOccurs="0" maxOccurs="unbounded" />
@@ -1743,10 +1743,10 @@
          </xs:choice>
     </xs:complexType>
 
-    <xs:complexType name="securityDomainSaslConfigurationType">
+    <xs:complexType name="saslServerAuthenticationType">
         <xs:annotation>
             <xs:documentation>
-                Complex type for the definition of a security domain / sasl server factory association.
+                The SASL authentication policy for the server side. 
             </xs:documentation>
         </xs:annotation>
         <xs:attribute name="name" type="xs:string" use="required" />

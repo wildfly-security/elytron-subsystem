@@ -106,6 +106,7 @@ interface ElytronDescriptionConstants {
     String GROUPS_PROPERTIES = "groups-properties";
 
     String HTTP = "http";
+    String HTTP_SERVER_AUTHENITCATION = "http-server-authentication";
     String HTTP_SERVER_FACTORY = "http-server-factory";
     String HTTP_SERVER_FACTORIES = "http-server-factories";
 
@@ -215,13 +216,12 @@ interface ElytronDescriptionConstants {
     String SALTED_SIMPLE_DIGEST = "salted-simple-digest";
     String SALTED_SIMPLE_DIGEST_MAPPER = "salted-simple-digest-mapper";
     String SASL = "sasl";
+    String SASL_SERVER_AUTHENTICATION = "sasl-server-authentication";
     String SASL_SERVER_FACTORIES = "sasl-server-factories";
     String SASL_SERVER_FACTORY = "sasl-server-factory";
     String SCRAM_MAPPER = "scram-mapper";
     String SEARCH_BASE_DN = "search-base-dn";
     String SECURITY_DOMAIN = "security-domain";
-    String SECURITY_DOMAIN_HTTP_CONFIGURATION = "security-domain-http-configuration";
-    String SECURITY_DOMAIN_SASL_CONFIGURATION = "security-domain-sasl-configuration";
     String SECURITY_DOMAINS = "security-domains";
     String SECURITY_PROPERTIES = "security-properties";
     String SECURITY_PROPERTY = "security-property";

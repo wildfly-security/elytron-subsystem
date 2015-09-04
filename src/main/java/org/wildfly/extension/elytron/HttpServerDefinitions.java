@@ -23,8 +23,8 @@ import static org.wildfly.extension.elytron.Capabilities.HTTP_SERVER_FACTORY_CAP
 import static org.wildfly.extension.elytron.Capabilities.HTTP_SERVER_FACTORY_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.PROVIDERS_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SECURITY_DOMAIN_CAPABILITY;
-import static org.wildfly.extension.elytron.Capabilities.SECURITY_DOMAIN_HTTP_CONFIGURATION_CAPABILITY;
-import static org.wildfly.extension.elytron.Capabilities.SECURITY_DOMAIN_HTTP_CONFIGURATION_RUNTIME_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.HTTP_SERVER_AUTHENTICATION_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.HTTP_SERVER_AUTHENTICATION_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.MODULE;
 import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.SLOT;
 import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.resolveClassLoader;
@@ -85,7 +85,7 @@ class HttpServerDefinitions {
     static final SimpleAttributeDefinition HTTP_SERVER_FACTORY_FOR_CONFIG = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.HTTP_SERVER_FACTORY, ModelType.STRING, false)
         .setMinSize(1)
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
-        .setCapabilityReference(HTTP_SERVER_FACTORY_CAPABILITY, SECURITY_DOMAIN_HTTP_CONFIGURATION_CAPABILITY, true)
+        .setCapabilityReference(HTTP_SERVER_FACTORY_CAPABILITY, HTTP_SERVER_AUTHENTICATION_CAPABILITY, true)
         .build();
 
     static final SimpleAttributeDefinition HTTP_SERVER_FACTORY_FOR_FACTORY = new SimpleAttributeDefinitionBuilder(HTTP_SERVER_FACTORY_FOR_CONFIG)
@@ -102,7 +102,7 @@ class HttpServerDefinitions {
     static final SimpleAttributeDefinition SECURITY_DOMAIN = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.SECURITY_DOMAIN, ModelType.STRING, false)
         .setMinSize(1)
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
-        .setCapabilityReference(SECURITY_DOMAIN_CAPABILITY, SECURITY_DOMAIN_HTTP_CONFIGURATION_CAPABILITY, true)
+        .setCapabilityReference(SECURITY_DOMAIN_CAPABILITY, HTTP_SERVER_AUTHENTICATION_CAPABILITY, true)
         .build();
 
     static final SimpleAttributeDefinition PATTERN_FILTER = new SimpleAttributeDefinitionBuilder(RegexAttributeDefinitions.PATTERN)
@@ -128,7 +128,7 @@ class HttpServerDefinitions {
 
     static ResourceDefinition getSecurityDomainHttpServerConfiguration() {
         AttributeDefinition[] attributes = new AttributeDefinition[] { SECURITY_DOMAIN, HTTP_SERVER_FACTORY_FOR_CONFIG };
-        AbstractAddStepHandler add = new TrivialAddHandler<SecurityDomainHttpConfiguration>(SECURITY_DOMAIN_HTTP_CONFIGURATION_RUNTIME_CAPABILITY, SecurityDomainHttpConfiguration.class, attributes) {
+        AbstractAddStepHandler add = new TrivialAddHandler<SecurityDomainHttpConfiguration>(HTTP_SERVER_AUTHENTICATION_RUNTIME_CAPABILITY, SecurityDomainHttpConfiguration.class, attributes) {
 
             @Override
             protected ValueSupplier<SecurityDomainHttpConfiguration> getValueSupplier(
@@ -152,7 +152,7 @@ class HttpServerDefinitions {
             }
         };
 
-        return wrapConfiguration(new TrivialResourceDefinition<>(ElytronDescriptionConstants.SECURITY_DOMAIN_HTTP_CONFIGURATION, SECURITY_DOMAIN_HTTP_CONFIGURATION_RUNTIME_CAPABILITY,
+        return wrapConfiguration(new TrivialResourceDefinition<>(ElytronDescriptionConstants.HTTP_SERVER_AUTHENITCATION, HTTP_SERVER_AUTHENTICATION_RUNTIME_CAPABILITY,
                 SecurityDomainHttpConfiguration.class, add, attributes));
     }
 
@@ -285,7 +285,7 @@ class HttpServerDefinitions {
         return AvailableMechanismsRuntimeResource.wrap(
                 resourceDefinition,
                 (context) -> {
-                    RuntimeCapability<Void> runtimeCapability = SECURITY_DOMAIN_HTTP_CONFIGURATION_RUNTIME_CAPABILITY.fromBaseCapability(context.getCurrentAddressValue());
+                    RuntimeCapability<Void> runtimeCapability = HTTP_SERVER_AUTHENTICATION_RUNTIME_CAPABILITY.fromBaseCapability(context.getCurrentAddressValue());
                     ServiceName configurationName = runtimeCapability.getCapabilityServiceName(SecurityDomainHttpConfiguration.class);
 
                     ServiceRegistry registry = context.getServiceRegistry(false);

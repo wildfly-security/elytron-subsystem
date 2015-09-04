@@ -45,7 +45,7 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROPERTY
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDER_HTTP_SERVER_FACTORY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDER_LOADER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SECURITY_DOMAIN;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SECURITY_DOMAIN_HTTP_CONFIGURATION;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.HTTP_SERVER_AUTHENITCATION;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SERVICE_LOADER_HTTP_SERVER_FACTORY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SLOT;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.VALUE;
@@ -76,8 +76,8 @@ class HttpParser {
             verifyNamespace(reader);
             String localName = reader.getLocalName();
             switch (localName) {
-                case SECURITY_DOMAIN_HTTP_CONFIGURATION:
-                    readSecurityDomainHttpConfigurationElement(parentAddress, reader, operations);
+                case HTTP_SERVER_AUTHENITCATION:
+                    readHttpServerAuthenticationElement(parentAddress, reader, operations);
                     break;
                 case AGGREGATE_HTTP_SERVER_FACTORY:
                     readAggregateHttpServerFactoryElement(parentAddress, reader, operations);
@@ -97,7 +97,7 @@ class HttpParser {
         }
     }
 
-    private void readSecurityDomainHttpConfigurationElement(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations) throws XMLStreamException {
+    private void readHttpServerAuthenticationElement(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations) throws XMLStreamException {
         ModelNode addOperation = new ModelNode();
         addOperation.get(OP).set(ADD);
 
@@ -133,7 +133,7 @@ class HttpParser {
             throw missingRequired(reader, requiredAttributes);
         }
 
-        addOperation.get(OP_ADDR).set(parentAddress).add(SECURITY_DOMAIN_HTTP_CONFIGURATION, name);
+        addOperation.get(OP_ADDR).set(parentAddress).add(HTTP_SERVER_AUTHENITCATION, name);
 
         operations.add(addOperation);
 
@@ -461,13 +461,13 @@ class HttpParser {
         return false;
     }
 
-    private boolean writeSecurityDomainHttpConfiguration(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
-        if (subsystem.hasDefined(SECURITY_DOMAIN_HTTP_CONFIGURATION)) {
+    private boolean writeHttpServerAuthentication(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
+        if (subsystem.hasDefined(HTTP_SERVER_AUTHENITCATION)) {
             startHttp(started, writer);
-            ModelNode securityDomainHttpConfiguration = subsystem.require(SECURITY_DOMAIN_HTTP_CONFIGURATION);
+            ModelNode securityDomainHttpConfiguration = subsystem.require(HTTP_SERVER_AUTHENITCATION);
             for (String name : securityDomainHttpConfiguration.keys()) {
                 ModelNode configuration = securityDomainHttpConfiguration.require(name);
-                writer.writeStartElement(SECURITY_DOMAIN_HTTP_CONFIGURATION);
+                writer.writeStartElement(HTTP_SERVER_AUTHENITCATION);
                 writer.writeAttribute(NAME, name);
                 HttpServerDefinitions.HTTP_SERVER_FACTORY_FOR_CONFIG.marshallAsAttribute(configuration, writer);
                 HttpServerDefinitions.SECURITY_DOMAIN.marshallAsAttribute(configuration, writer);
@@ -551,7 +551,7 @@ class HttpParser {
     void writeHttp(ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         boolean started = false;
 
-        started = started | writeSecurityDomainHttpConfiguration(started, subsystem, writer);
+        started = started | writeHttpServerAuthentication(started, subsystem, writer);
         started = started | writeAggregateHttpServerFactory(started, subsystem, writer);
         started = started | writeConfigurableHttpServerFactory(started, subsystem, writer);
         started = started | writeProviderHttpServerFactory(started, subsystem, writer);
