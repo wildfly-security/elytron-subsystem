@@ -27,6 +27,16 @@
         <security-realms>
             <?REALM_DEFINITIONS?>
         </security-realms>
+
+        <http>
+            <http-server-authentication name="management-http-authentication" http-server-factory="global" security-domain="ManagementDomain"/>
+            <provider-http-server-factory name="global"/>
+        </http>
+
+        <sasl>
+            <sasl-server-authentication name="management-sasl-authentication" sasl-server-factory="global" security-domain="ManagementDomain"/>
+            <provider-sasl-server-factory name="global"/>
+        </sasl>
     </subsystem>
 
     <supplement name="domain">
