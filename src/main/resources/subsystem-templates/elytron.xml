@@ -29,12 +29,12 @@
         </security-realms>
 
         <http>
-            <http-server-authentication name="management-http-authentication" http-server-factory="global" security-domain="ManagementDomain"/>
+            <?HTTP_DEFINITIONS?>
             <provider-http-server-factory name="global"/>
         </http>
 
         <sasl>
-            <sasl-server-authentication name="management-sasl-authentication" sasl-server-factory="global" security-domain="ManagementDomain"/>
+            <?SASL_DEFINITIONS?>
             <provider-sasl-server-factory name="global"/>
         </sasl>
     </subsystem>
@@ -51,6 +51,12 @@
                 <groups-properties path="application-roles.properties" relative-to="jboss.domain.config.dir" />
             </properties-realm>
         </replacement>
+        <replacement placeholder="HTTP_DEFINITIONS">
+            <http-server-authentication name="application-http-authentication" http-server-factory="global" security-domain="ApplicationDomain"/>
+        </replacement>
+        <replacement placeholder="SASL_DEFINITIONS">
+            <sasl-server-authentication name="application-sasl-authentication" sasl-server-factory="global" security-domain="ApplicationDomain"/>
+        </replacement>
     </supplement>
 
     <supplement name="host">
@@ -64,6 +70,12 @@
                 <users-properties path="mgmt-users.properties" relative-to="jboss.domain.config.dir" />
                 <groups-properties path="mgmt-groups.properties" relative-to="jboss.domain.config.dir" />
             </properties-realm>
+        </replacement>
+        <replacement placeholder="HTTP_DEFINITIONS">
+            <http-server-authentication name="management-http-authentication" http-server-factory="global" security-domain="ManagementDomain"/>
+        </replacement>
+        <replacement placeholder="SASL_DEFINITIONS">
+            <sasl-server-authentication name="management-sasl-authentication" sasl-server-factory="global" security-domain="ManagementDomain"/>
         </replacement>
     </supplement>
 
@@ -87,6 +99,14 @@
                 <users-properties path="mgmt-users.properties" relative-to="jboss.server.config.dir" />
                 <groups-properties path="mgmt-groups.properties" relative-to="jboss.server.config.dir" />
             </properties-realm>
+        </replacement>
+        <replacement placeholder="HTTP_DEFINITIONS">
+            <http-server-authentication name="management-http-authentication" http-server-factory="global" security-domain="ManagementDomain"/>
+            <http-server-authentication name="application-http-authentication" http-server-factory="global" security-domain="ApplicationDomain"/>
+        </replacement>
+        <replacement placeholder="SASL_DEFINITIONS">
+            <sasl-server-authentication name="management-sasl-authentication" sasl-server-factory="global" security-domain="ManagementDomain"/>
+            <sasl-server-authentication name="application-sasl-authentication" sasl-server-factory="global" security-domain="ApplicationDomain"/>
         </replacement>
     </supplement>
 </config>
