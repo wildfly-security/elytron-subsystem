@@ -275,7 +275,7 @@ public class IdentityOperationsTestCase extends AbstractSubsystemTest {
 
         byte[] salt = PasswordUtil.generateRandomSalt(BCryptPassword.BCRYPT_SALT_SIZE);
 
-        operation = createPasswordOperation(realmAddress, principalName,
+        operation = createPasswordOperation("default", realmAddress, principalName,
                 IdentityResourceDefinition.PasswordSetHandler.Bcrypt.OBJECT_DEFINITION, "bcryptPassword", salt, 10, null, null);
         result = services.executeOperation(operation);
         assertSuccessful(result);
@@ -292,7 +292,7 @@ public class IdentityOperationsTestCase extends AbstractSubsystemTest {
         ModelNode result = services.executeOperation(operation);
         assertSuccessful(result);
 
-        operation = createPasswordOperation(realmAddress, principalName,
+        operation = createPasswordOperation("default", realmAddress, principalName,
                 IdentityResourceDefinition.PasswordSetHandler.Clear.OBJECT_DEFINITION, "clearPassword", null, null, null, null);
         result = services.executeOperation(operation);
         assertSuccessful(result);
@@ -309,7 +309,7 @@ public class IdentityOperationsTestCase extends AbstractSubsystemTest {
         ModelNode result = services.executeOperation(operation);
         assertSuccessful(result);
 
-        operation = createPasswordOperation(realmAddress, principalName,
+        operation = createPasswordOperation("default", realmAddress, principalName,
                 IdentityResourceDefinition.PasswordSetHandler.SimpleDigest.OBJECT_DEFINITION, "simpleDigest", null, null, null, SimpleDigestPassword.ALGORITHM_SIMPLE_DIGEST_SHA_1);
         result = services.executeOperation(operation);
         assertSuccessful(result);
@@ -326,7 +326,7 @@ public class IdentityOperationsTestCase extends AbstractSubsystemTest {
         ModelNode result = services.executeOperation(operation);
         assertSuccessful(result);
 
-        operation = createPasswordOperation(realmAddress, principalName,
+        operation = createPasswordOperation("default", realmAddress, principalName,
                 IdentityResourceDefinition.PasswordSetHandler.SaltedSimpleDigest.OBJECT_DEFINITION, "saltedSimpleDigest", PasswordUtil.generateRandomSalt(16), null, null, SaltedSimpleDigestPassword.ALGORITHM_PASSWORD_SALT_DIGEST_SHA_256);
         result = services.executeOperation(operation);
         assertSuccessful(result);
@@ -343,7 +343,7 @@ public class IdentityOperationsTestCase extends AbstractSubsystemTest {
         ModelNode result = services.executeOperation(operation);
         assertSuccessful(result);
 
-        operation = createPasswordOperation(realmAddress, principalName,
+        operation = createPasswordOperation("default", realmAddress, principalName,
                 IdentityResourceDefinition.PasswordSetHandler.Digest.OBJECT_DEFINITION, "digestPassword", null, null, "Elytron Realm", DigestPassword.ALGORITHM_DIGEST_MD5);
 
         result = services.executeOperation(operation);
@@ -361,13 +361,13 @@ public class IdentityOperationsTestCase extends AbstractSubsystemTest {
         ModelNode result = services.executeOperation(operation);
         assertSuccessful(result);
 
-        operation = createPasswordOperation(realmAddress, principalName,
+        operation = createPasswordOperation("default", realmAddress, principalName,
                 IdentityResourceDefinition.PasswordSetHandler.Digest.OBJECT_DEFINITION, "digestPassword", null, null, "Elytron Realm", DigestPassword.ALGORITHM_DIGEST_MD5);
 
         result = services.executeOperation(operation);
         assertSuccessful(result);
 
-        operation = createPasswordOperation(realmAddress, principalName,
+        operation = createPasswordOperation("default", realmAddress, principalName,
                 IdentityResourceDefinition.PasswordSetHandler.Clear.OBJECT_DEFINITION, "clearPassword", null, null, null, null);
         result = services.executeOperation(operation);
         assertSuccessful(result);
@@ -384,23 +384,22 @@ public class IdentityOperationsTestCase extends AbstractSubsystemTest {
         ModelNode result = services.executeOperation(operation);
         assertSuccessful(result);
 
-        operation = createPasswordOperation(realmAddress, principalName,
+        operation = createPasswordOperation("default", realmAddress, principalName,
                 IdentityResourceDefinition.PasswordSetHandler.Clear.OBJECT_DEFINITION, "clearPassword", null, null, null, null);
         result = services.executeOperation(operation);
         assertSuccessful(result);
 
         PathAddress securityDomainAddress = getSecurityDomainAddress("FileSystemDomain");
 
-        operation = createAuthenticateOperation(securityDomainAddress, principalName, "clearPassword");
+        operation = createAuthenticateOperation(securityDomainAddress, "default", principalName, "clearPassword");
         result = services.executeOperation(operation);
         assertSuccessful(result);
 
-        operation = createUnsetPasswordOperation(realmAddress, principalName,
-                IdentityResourceDefinition.PasswordSetHandler.Clear.OBJECT_DEFINITION, null);
+        operation = createUnsetPasswordOperation(realmAddress, principalName, "default");
         result = services.executeOperation(operation);
         assertSuccessful(result);
 
-        operation = createAuthenticateOperation(securityDomainAddress, principalName, "clearPassword");
+        operation = createAuthenticateOperation(securityDomainAddress, "default", principalName, "clearPassword");
         result = services.executeOperation(operation);
         assertFail(result);
     }
@@ -470,8 +469,10 @@ public class IdentityOperationsTestCase extends AbstractSubsystemTest {
                 .build();
     }
 
-    private ModelNode createPasswordOperation(PathAddress parentAddress, String principalName, ObjectTypeAttributeDefinition passwordDefinition, String password, byte[] salt, Integer iterationCount, String realm, String algorithm) {
+    private ModelNode createPasswordOperation(String credentialName, PathAddress parentAddress, String principalName, ObjectTypeAttributeDefinition passwordDefinition, String password, byte[] salt, Integer iterationCount, String realm, String algorithm) {
         ModelNode passwordNode = new ModelNode();
+
+        passwordNode.get(ElytronDescriptionConstants.NAME).set(credentialName);
 
         if (salt != null) {
             passwordNode.get(ElytronDescriptionConstants.SALT).set(salt);
@@ -498,11 +499,11 @@ public class IdentityOperationsTestCase extends AbstractSubsystemTest {
                 .build();
     }
 
-    private ModelNode createUnsetPasswordOperation(PathAddress parentAddress, String principalName, ObjectTypeAttributeDefinition passwordDefinition, String algorithm) {
+    private ModelNode createUnsetPasswordOperation(PathAddress parentAddress, String principalName, String credentialName) {
         ModelNode address = PathAddress.pathAddress(parentAddress).append(ElytronDescriptionConstants.IDENTITY, principalName).toModelNode();
         return SubsystemOperations.OperationBuilder.create(new SimpleOperationDefinition(ElytronDescriptionConstants.UNSET_PASSWORD,
                 ElytronExtension.getResourceDescriptionResolver(ElytronDescriptionConstants.IDENTITY)), address)
-                .addAttribute(IdentityResourceDefinition.PasswordUnsetHandler.TYPE, passwordDefinition.getName())
+                .addAttribute(IdentityResourceDefinition.PasswordUnsetHandler.NAME, credentialName)
                 .build();
     }
 
@@ -518,8 +519,9 @@ public class IdentityOperationsTestCase extends AbstractSubsystemTest {
                 PathAddress.pathAddress(parentAddress, PathElement.pathElement(IDENTITY, principalName)).toModelNode()).build();
     }
 
-    private ModelNode createAuthenticateOperation(PathAddress parentAddress, String principalName, String password) {
+    private ModelNode createAuthenticateOperation(PathAddress parentAddress, String credentialName, String principalName, String password) {
         return SubsystemOperations.OperationBuilder.create(new SimpleOperationDefinition("authenticate", ElytronExtension.getResourceDescriptionResolver(ElytronDescriptionConstants.SECURITY_DOMAIN)), parentAddress.toModelNode())
+                .addAttribute(AuthenticatorOperationHandler.CREDENTIAL_NAME, credentialName)
                 .addAttribute(AuthenticatorOperationHandler.USER_NAME, principalName)
                 .addAttribute(AuthenticatorOperationHandler.PASSWORD, password)
                 .build();

@@ -31,7 +31,7 @@
         </properties-realm>
         <jdbc-realm name="JdbcRealmWithMultipleQueries">
             <principal-query sql="SELECT password FROM USER_CLEAR_PASSWORD WHERE name = ?" data-source="TestDS">
-                <clear-password-mapper password-index="1"/>
+                <clear-password-mapper name="default" password-index="1"/>
             </principal-query>
             <principal-query sql="SELECT first_name, last_name, email FROM USER_CLEAR_PASSWORD WHERE name = ?" data-source="TestDS">
                 <attribute-mapping>
@@ -43,16 +43,16 @@
         </jdbc-realm>
         <jdbc-realm name="JdbcRealmWithSingleQueryNoAttributes">
             <principal-query sql="SELECT password FROM USER_CLEAR_PASSWORD WHERE name = ?" data-source="TestDS">
-                <clear-password-mapper password-index="1"/>
-                <bcrypt-mapper password-index="1" salt-index="2" iteration-count-index="3"/>
-                <simple-digest-mapper password-index="1"/>
-                <salted-simple-digest-mapper password-index="1" salt-index="2"/>
-                <scram-mapper password-index="1" salt-index="2" iteration-count-index="3"/>
+                <clear-password-mapper name="clear" password-index="1"/>
+                <bcrypt-mapper name="bcrypt" password-index="1" salt-index="2" iteration-count-index="3"/>
+                <simple-digest-mapper name="simple-digest" password-index="1"/>
+                <salted-simple-digest-mapper name="salted-simple-digest" password-index="1" salt-index="2"/>
+                <scram-mapper name="scram" password-index="1" salt-index="2" iteration-count-index="3"/>
             </principal-query>
         </jdbc-realm>
         <jdbc-realm name="JdbcRealmWithSingleQueryWithAttributes">
             <principal-query sql="SELECT password, first_name, last_name, email FROM USER_CLEAR_PASSWORD WHERE name = ?" data-source="TestDS">
-                <clear-password-mapper password-index="1"/>
+                <clear-password-mapper name="default" password-index="1"/>
                 <attribute-mapping>
                     <attribute index="2" to="firstName"/>
                     <attribute index="3" to="lastName"/>
