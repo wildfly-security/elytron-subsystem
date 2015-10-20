@@ -24,6 +24,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
+
 import org.jboss.as.controller.AttributeDefinition;
 import org.jboss.as.controller.ObjectTypeAttributeDefinition;
 import org.jboss.as.controller.OperationContext;
@@ -63,6 +64,8 @@ import org.wildfly.security.auth.server.ServerAuthenticationContext;
 import org.wildfly.security.authz.Attributes;
 import org.wildfly.security.authz.AuthorizationIdentity;
 import org.wildfly.security.authz.MapAttributes;
+import org.wildfly.security.credential.PasswordCredential;
+import org.wildfly.security.evidence.PasswordGuessEvidence;
 import org.wildfly.security.password.Password;
 import org.wildfly.security.password.PasswordFactory;
 import org.wildfly.security.password.interfaces.BCryptPassword;
@@ -555,7 +558,7 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
                 String credentialName = NAME.resolveModelAttribute(context, passwordProperty.getValue()).asString();
 
                 try {
-                    realmIdentity.setCredential(credentialName, createPassword(parentContext, principalName, passwordProperty));
+                    realmIdentity.setCredential(credentialName, new PasswordCredential(createPassword(parentContext, principalName, passwordProperty)));
                 } catch (NoSuchAlgorithmException | InvalidKeySpecException | RealmUnavailableException e) {
                     throw new OperationFailedException("Could not create password.", e);
                 }
@@ -796,7 +799,7 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
                     }
 
                     // for now, only clear passwords. we can provide an enum with different types later. if necessary.
-                    if (authenticationContext.verifyCredential(credentialName, password.toCharArray())) {
+                    if (authenticationContext.verifyEvidence(credentialName, new PasswordGuessEvidence(password.toCharArray()))) {
                         authenticationContext.succeed();
 
                         SecurityIdentity authorizedIdentity = authenticationContext.getAuthorizedIdentity();
