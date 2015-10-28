@@ -19,12 +19,12 @@
 package org.wildfly.extension.elytron;
 
 import static org.jboss.as.controller.capability.RuntimeCapability.buildDynamicCapabilityName;
+import static org.wildfly.extension.elytron.Capabilities.HTTP_SERVER_AUTHENTICATION_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.HTTP_SERVER_AUTHENTICATION_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.HTTP_SERVER_FACTORY_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.HTTP_SERVER_FACTORY_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.PROVIDERS_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SECURITY_DOMAIN_CAPABILITY;
-import static org.wildfly.extension.elytron.Capabilities.HTTP_SERVER_AUTHENTICATION_CAPABILITY;
-import static org.wildfly.extension.elytron.Capabilities.HTTP_SERVER_AUTHENTICATION_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.MODULE;
 import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.SLOT;
 import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.resolveClassLoader;
@@ -37,6 +37,7 @@ import static org.wildfly.extension.elytron.SecurityActions.doPrivileged;
 import java.security.PrivilegedExceptionAction;
 import java.security.Provider;
 import java.security.Security;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -66,8 +67,10 @@ import org.jboss.msc.service.ServiceRegistry;
 import org.jboss.msc.service.StartException;
 import org.jboss.msc.value.InjectedValue;
 import org.wildfly.extension.elytron.TrivialService.ValueSupplier;
+import org.wildfly.security.auth.server.HttpAuthenticationFactory;
+import org.wildfly.security.auth.server.HttpAuthenticationFactory.Builder;
+import org.wildfly.security.auth.server.MechanismConfiguration;
 import org.wildfly.security.auth.server.SecurityDomain;
-import org.wildfly.security.auth.server.SecurityDomainHttpConfiguration;
 import org.wildfly.security.http.HttpServerAuthenticationMechanismFactory;
 import org.wildfly.security.http.util.AggregateServerMechanismFactory;
 import org.wildfly.security.http.util.FilterServerMechanismFactory;
@@ -128,11 +131,11 @@ class HttpServerDefinitions {
 
     static ResourceDefinition getSecurityDomainHttpServerConfiguration() {
         AttributeDefinition[] attributes = new AttributeDefinition[] { SECURITY_DOMAIN, HTTP_SERVER_FACTORY_FOR_CONFIG };
-        AbstractAddStepHandler add = new TrivialAddHandler<SecurityDomainHttpConfiguration>(HTTP_SERVER_AUTHENTICATION_RUNTIME_CAPABILITY, SecurityDomainHttpConfiguration.class, attributes) {
+        AbstractAddStepHandler add = new TrivialAddHandler<HttpAuthenticationFactory>(HTTP_SERVER_AUTHENTICATION_RUNTIME_CAPABILITY, HttpAuthenticationFactory.class, attributes) {
 
             @Override
-            protected ValueSupplier<SecurityDomainHttpConfiguration> getValueSupplier(
-                    ServiceBuilder<SecurityDomainHttpConfiguration> serviceBuilder, OperationContext context, ModelNode model)
+            protected ValueSupplier<HttpAuthenticationFactory> getValueSupplier(
+                    ServiceBuilder<HttpAuthenticationFactory> serviceBuilder, OperationContext context, ModelNode model)
                     throws OperationFailedException {
 
                 final InjectedValue<SecurityDomain> securityDomainInjector = new InjectedValue<SecurityDomain>();
@@ -148,12 +151,30 @@ class HttpServerDefinitions {
                         buildDynamicCapabilityName(HTTP_SERVER_FACTORY_CAPABILITY, httpServerFactory), HttpServerAuthenticationMechanismFactory.class),
                         HttpServerAuthenticationMechanismFactory.class, mechanismFactoryInjector);
 
-                return () -> new SecurityDomainHttpConfiguration(securityDomainInjector.getValue(), mechanismFactoryInjector.getValue());
+                return () -> {
+                    HttpServerAuthenticationMechanismFactory injectedHttpServerFactory = mechanismFactoryInjector.getValue();
+
+                    Builder builder = HttpAuthenticationFactory.builder()
+                            .setSecurityDomain(securityDomainInjector.getValue())
+                            .setHttpServerAuthenticationMechanismFactory(injectedHttpServerFactory);
+
+                    // TODO - There will be no hard coded credential names, these will be defined within the model.
+                    final List<String> credentialNames = Collections.unmodifiableList(Arrays.asList(new String[] { "password-digest-md5", "password-clear" }));
+                    MechanismConfiguration defaultConfig = MechanismConfiguration.builder()
+                            .setCredentialNameSupplier(() -> credentialNames)
+                            .build();
+
+                    for (String mech :injectedHttpServerFactory.getMechanismNames(Collections.emptyMap())) {
+                        builder.addMechanism(mech, defaultConfig);
+                    }
+
+                    return builder.build();
+                };
             }
         };
 
         return wrapConfiguration(new TrivialResourceDefinition<>(ElytronDescriptionConstants.HTTP_SERVER_AUTHENITCATION, HTTP_SERVER_AUTHENTICATION_RUNTIME_CAPABILITY,
-                SecurityDomainHttpConfiguration.class, add, attributes));
+                HttpAuthenticationFactory.class, add, attributes));
     }
 
     static AggregateComponentDefinition<HttpServerAuthenticationMechanismFactory> getRawAggregateHttpServerFactoryDefintion() {
@@ -286,10 +307,10 @@ class HttpServerDefinitions {
                 resourceDefinition,
                 (context) -> {
                     RuntimeCapability<Void> runtimeCapability = HTTP_SERVER_AUTHENTICATION_RUNTIME_CAPABILITY.fromBaseCapability(context.getCurrentAddressValue());
-                    ServiceName configurationName = runtimeCapability.getCapabilityServiceName(SecurityDomainHttpConfiguration.class);
+                    ServiceName configurationName = runtimeCapability.getCapabilityServiceName(HttpAuthenticationFactory.class);
 
                     ServiceRegistry registry = context.getServiceRegistry(false);
-                    ServiceController<SecurityDomainHttpConfiguration> serviceContainer = getRequiredService(registry, configurationName, SecurityDomainHttpConfiguration.class);
+                    ServiceController<HttpAuthenticationFactory> serviceContainer = getRequiredService(registry, configurationName, HttpAuthenticationFactory.class);
                     if (serviceContainer.getState() != State.UP) {
                         return null;
                     }

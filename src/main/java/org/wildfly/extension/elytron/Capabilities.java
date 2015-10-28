@@ -24,12 +24,12 @@ import java.security.Provider;
 import javax.security.sasl.SaslServerFactory;
 
 import org.jboss.as.controller.capability.RuntimeCapability;
+import org.wildfly.security.auth.server.HttpAuthenticationFactory;
 import org.wildfly.security.auth.server.NameRewriter;
 import org.wildfly.security.auth.server.PrincipalDecoder;
 import org.wildfly.security.auth.server.RealmMapper;
+import org.wildfly.security.auth.server.SaslAuthenticationFactory;
 import org.wildfly.security.auth.server.SecurityDomain;
-import org.wildfly.security.auth.server.SecurityDomainHttpConfiguration;
-import org.wildfly.security.auth.server.SecurityDomainSaslConfiguration;
 import org.wildfly.security.auth.server.SecurityRealm;
 import org.wildfly.security.authz.PermissionMapper;
 import org.wildfly.security.authz.RoleDecoder;
@@ -53,7 +53,7 @@ class Capabilities {
     static final String HTTP_SERVER_AUTHENTICATION_CAPABILITY = CAPABILITY_BASE + "http-server-authentication";
 
     static final RuntimeCapability<Void> HTTP_SERVER_AUTHENTICATION_RUNTIME_CAPABILITY = RuntimeCapability
-            .Builder.of(HTTP_SERVER_AUTHENTICATION_CAPABILITY, true, SecurityDomainHttpConfiguration.class)
+            .Builder.of(HTTP_SERVER_AUTHENTICATION_CAPABILITY, true, HttpAuthenticationFactory.class)
             .build();
 
     static final String HTTP_SERVER_FACTORY_CAPABILITY = CAPABILITY_BASE + "http-server-mechanism-factory";
@@ -113,7 +113,7 @@ class Capabilities {
     static final String SASL_SERVER_AUTHENTICATION_CAPABILITY = CAPABILITY_BASE + "sasl-server-authentication";
 
     static final RuntimeCapability<Void> SASL_SERVER_AUTHENTICATION_RUNTIME_CAPABILITY = RuntimeCapability
-            .Builder.of(SASL_SERVER_AUTHENTICATION_CAPABILITY, true, SecurityDomainSaslConfiguration.class)
+            .Builder.of(SASL_SERVER_AUTHENTICATION_CAPABILITY, true, SaslAuthenticationFactory.class)
             .build();
     static final String SASL_SERVER_FACTORY_CAPABILITY = CAPABILITY_BASE + "sasl-server-factory";
 
