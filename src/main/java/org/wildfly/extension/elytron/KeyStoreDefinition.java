@@ -26,7 +26,6 @@ import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies
 import static org.wildfly.extension.elytron.ElytronExtension.ELYTRON_1_0_0;
 import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
 import static org.wildfly.extension.elytron.ElytronExtension.getRequiredService;
-import static org.wildfly.extension.elytron.ElytronExtension.registerRuntimeResource;
 import static org.wildfly.extension.elytron.FileAttributeDefinitions.PATH;
 import static org.wildfly.extension.elytron.FileAttributeDefinitions.RELATIVE_TO;
 import static org.wildfly.extension.elytron.FileAttributeDefinitions.pathName;
@@ -238,7 +237,7 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
 
     @Override
     public void registerChildren(ManagementResourceRegistration resourceRegistration) {
-        registerRuntimeResource(resourceRegistration, new KeyStoreAliasDefinition());
+        resourceRegistration.registerSubModel(new KeyStoreAliasDefinition());
     }
 
     private static class KeyStoreAddHandler extends BaseAddHandler {

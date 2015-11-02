@@ -72,7 +72,8 @@ class KeyStoreAliasDefinition extends SimpleResourceDefinition {
         super(new Parameters(PathElement.pathElement(ElytronDescriptionConstants.ALIAS), ElytronExtension.getResourceDescriptionResolver(ElytronDescriptionConstants.KEYSTORE, ElytronDescriptionConstants.ALIAS))
             .setRemoveHandler(new RemoveHandler())
             .setAddRestartLevel(OperationEntry.Flag.RESTART_NONE)
-            .setRemoveRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES));
+            .setRemoveRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
+            .setRuntime());
     }
 
     @Override

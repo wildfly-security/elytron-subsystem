@@ -29,7 +29,6 @@ import org.jboss.as.controller.ModelVersion;
 import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
 import org.jboss.as.controller.PathElement;
-import org.jboss.as.controller.ResourceDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SubsystemRegistration;
 import org.jboss.as.controller.descriptions.StandardResourceDescriptionResolver;
@@ -105,11 +104,6 @@ public class ElytronExtension implements Extension {
         subsystem.get(OP).set(ADD);
         subsystem.get(OP_ADDR).add(SUBSYSTEM, SUBSYSTEM_NAME);
         return subsystem;
-    }
-
-    static void registerRuntimeResource(ManagementResourceRegistration resourceRegistration, final ResourceDefinition resourceDefinition) {
-        resourceRegistration = resourceRegistration.registerSubModel(resourceDefinition);
-        resourceRegistration.setRuntimeOnly(true);
     }
 
     @SuppressWarnings("unchecked")
