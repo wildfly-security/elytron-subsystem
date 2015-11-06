@@ -48,8 +48,9 @@ import org.jboss.msc.service.ServiceController;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.ServiceTarget;
 import org.wildfly.security.auth.provider.ldap.DirContextFactory;
+import org.wildfly.security.auth.provider.ldap.LdapSecurityRealm.Attribute;
 import org.wildfly.security.auth.provider.ldap.LdapSecurityRealmBuilder;
-import org.wildfly.security.auth.provider.ldap.LdapSecurityRealmBuilder.PrincipalMappingBuilder;
+import org.wildfly.security.auth.provider.ldap.LdapSecurityRealmBuilder.IdentityMappingBuilder;
 import org.wildfly.security.auth.provider.ldap.SimpleDirContextFactoryBuilder;
 import org.wildfly.security.auth.server.SecurityRealm;
 
@@ -243,22 +244,22 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
         private void configurePrincipalMapping(OperationContext context, ModelNode model, LdapSecurityRealmBuilder builder) throws OperationFailedException {
             ModelNode principalMappingNode = PrincipalMappingObjectDefinition.OBJECT_DEFINITION.resolveModelAttribute(context, model);
 
-            PrincipalMappingBuilder principalMappingBuilder = PrincipalMappingBuilder.builder();
+            IdentityMappingBuilder identityMappingBuilder = builder.identityMapping();
 
             ModelNode nameAttributeNode = PrincipalMappingObjectDefinition.RDN_IDENTIFIER.resolveModelAttribute(context, principalMappingNode);
 
-            principalMappingBuilder.setRdnIdentifier(nameAttributeNode.asString());
+            identityMappingBuilder.setRdnIdentifier(nameAttributeNode.asString());
 
             ModelNode searchDnNode = PrincipalMappingObjectDefinition.SEARCH_BASE_DN.resolveModelAttribute(context, principalMappingNode);
 
             if (searchDnNode.isDefined()) {
-                principalMappingBuilder.setSearchDn(searchDnNode.asString());
+                identityMappingBuilder.setSearchDn(searchDnNode.asString());
             }
 
             ModelNode useRecursiveSearchNode = PrincipalMappingObjectDefinition.USE_RECURSIVE_SEARCH.resolveModelAttribute(context, principalMappingNode);
 
             if (useRecursiveSearchNode.asBoolean()) {
-                principalMappingBuilder.searchRecursive();
+                identityMappingBuilder.searchRecursive();
             }
 
             ModelNode attributeMappingNode = PrincipalMappingObjectDefinition.ATTRIBUTE_MAPPINGS.resolveModelAttribute(context, principalMappingNode);
@@ -268,14 +269,14 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
                     ModelNode fromNode = AttributeMappingObjectDefinition.FROM.resolveModelAttribute(context, attributeNode);
                     ModelNode filterNode = AttributeMappingObjectDefinition.FILTER.resolveModelAttribute(context, attributeNode);
                     ModelNode filterBaseDnNode = AttributeMappingObjectDefinition.FILTER_BASE_DN.resolveModelAttribute(context, attributeNode);
-                    PrincipalMappingBuilder.Attribute attribute;
+                    Attribute attribute;
 
                     if (filterBaseDnNode.isDefined()) {
-                        attribute = PrincipalMappingBuilder.Attribute.fromFilter(filterBaseDnNode.asString(), filterNode.asString(), fromNode.asString());
+                        attribute = Attribute.fromFilter(filterBaseDnNode.asString(), filterNode.asString(), fromNode.asString());
                     } else if (filterNode.isDefined()) {
-                        attribute = PrincipalMappingBuilder.Attribute.fromFilter(filterNode.asString(), fromNode.asString());
+                        attribute = Attribute.fromFilter(filterNode.asString(), fromNode.asString());
                     } else {
-                        attribute = PrincipalMappingBuilder.Attribute.from(fromNode.asString());
+                        attribute = Attribute.from(fromNode.asString());
                     }
 
                     ModelNode toNode = AttributeMappingObjectDefinition.TO.resolveModelAttribute(context, attributeNode);
@@ -290,11 +291,11 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
                         attribute.asRdn(asRdnNode.asString());
                     }
 
-                    principalMappingBuilder.map(attribute);
+                    identityMappingBuilder.map(attribute);
                 }
             }
 
-            builder.setPrincipalMapping(principalMappingBuilder.build());
+            identityMappingBuilder.build();
         }
     }
 
