@@ -34,6 +34,7 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ATTRIBUT
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ATTRIBUTE_MAPPING;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AUTHENTICATION_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AUTHORIZATION_REALM;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.DIRECT_VERIFICATION_CREDENTIALS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CONFIGURATION;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CUSTOM_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.DIR_CONTEXT;
@@ -50,7 +51,7 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME_REWRITER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PATH;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PLAIN_TEXT;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PRINCIPAL_MAPPING;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.IDENTITY_MAPPING;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PRINCIPAL_QUERY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROPERTIES_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.RELATIVE_TO;
@@ -77,7 +78,7 @@ import org.jboss.staxmapper.XMLExtendedStreamWriter;
 import org.wildfly.extension.elytron.JdbcRealmDefinition.PasswordMapperObjectDefinition;
 import org.wildfly.extension.elytron.JdbcRealmDefinition.PrincipalQueryAttributes;
 import org.wildfly.extension.elytron.LdapRealmDefinition.DirContextObjectDefinition;
-import org.wildfly.extension.elytron.LdapRealmDefinition.PrincipalMappingObjectDefinition;
+import org.wildfly.extension.elytron.LdapRealmDefinition.IdentityMappingObjectDefinition;
 
 /**
  * A parser for the security realm definition.
@@ -505,6 +506,11 @@ class RealmParser {
                     case NAME:
                         name = value;
                         break;
+                    case DIRECT_VERIFICATION_CREDENTIALS:
+                        for (String credentialName : reader.getListAttributeValue(i)) {
+                            LdapRealmDefinition.DIRECT_CREDENTIAL_NAMES.parseAndAddParameterElement(credentialName, addRealm, reader);
+                        }
+                        break;
                     default:
                         throw unexpectedAttribute(reader, i);
                 }
@@ -527,8 +533,8 @@ class RealmParser {
                     requireNoContent(reader);
                     addRealm.get(DIR_CONTEXT).set(dirContextNode);
                     break;
-                case PRINCIPAL_MAPPING:
-                    ModelNode principalMappingNode = readModelNode(PrincipalMappingObjectDefinition.ATTRIBUTES, reader, (parentNode, reader1) -> {
+                case IDENTITY_MAPPING:
+                    ModelNode principalMappingNode = readModelNode(IdentityMappingObjectDefinition.ATTRIBUTES, reader, (parentNode, reader1) -> {
                         if (reader1.getLocalName().equals(ATTRIBUTE_MAPPING)) {
                             ModelNode attributeMappingNode = readModelNode(null, reader, (parentNode1, reader2) -> {
                                 if (reader1.getLocalName().equals(ATTRIBUTE)) {
@@ -545,7 +551,7 @@ class RealmParser {
                         }
                     });
 
-                    addRealm.get(PRINCIPAL_MAPPING).set(principalMappingNode);
+                    addRealm.get(IDENTITY_MAPPING).set(principalMappingNode);
                     break;
                 default:
                     throw unexpectedElement(reader);
@@ -753,8 +759,10 @@ class RealmParser {
                 writer.writeAttribute(NAME, name);
                 ModelNode ldapRealmNode = realms.require(name);
 
+                LdapRealmDefinition.DIRECT_CREDENTIAL_NAMES.getAttributeMarshaller().marshallAsAttribute(LdapRealmDefinition.DIRECT_CREDENTIAL_NAMES, ldapRealmNode, false, writer);
+
                 writeObjectTypeAttribute(DIR_CONTEXT, DirContextObjectDefinition.ATTRIBUTES, ldapRealmNode.get(DIR_CONTEXT), writer, null);
-                writeObjectTypeAttribute(PRINCIPAL_MAPPING, PrincipalMappingObjectDefinition.ATTRIBUTES, ldapRealmNode.get(PRINCIPAL_MAPPING), writer, (modelNode, writer1) -> {
+                writeObjectTypeAttribute(IDENTITY_MAPPING, IdentityMappingObjectDefinition.ATTRIBUTES, ldapRealmNode.get(IDENTITY_MAPPING), writer, (modelNode, writer1) -> {
                     ModelNode attributeMappingNode = modelNode.get(ATTRIBUTE_MAPPING);
 
                     if (attributeMappingNode.isDefined()) {

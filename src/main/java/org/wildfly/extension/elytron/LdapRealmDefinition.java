@@ -21,6 +21,7 @@ package org.wildfly.extension.elytron;
 import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
 
+import java.util.List;
 import java.util.Properties;
 
 import org.jboss.as.controller.AbstractAddStepHandler;
@@ -37,6 +38,7 @@ import org.jboss.as.controller.RestartParentWriteAttributeHandler;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
 import org.jboss.as.controller.SimpleResourceDefinition;
+import org.jboss.as.controller.StringListAttributeDefinition;
 import org.jboss.as.controller.capability.RuntimeCapability;
 import org.jboss.as.controller.registry.AttributeAccess;
 import org.jboss.as.controller.registry.ManagementResourceRegistration;
@@ -101,7 +103,7 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
                 .build();
     }
 
-    static class PrincipalMappingObjectDefinition {
+    static class IdentityMappingObjectDefinition {
 
         static final SimpleAttributeDefinition RDN_IDENTIFIER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.RDN_IDENTIFIER, ModelType.STRING, false)
                 .setAllowExpression(true)
@@ -129,7 +131,7 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
 
         static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] {RDN_IDENTIFIER, USE_RECURSIVE_SEARCH, SEARCH_BASE_DN, ATTRIBUTE_MAPPINGS};
 
-        static final ObjectTypeAttributeDefinition OBJECT_DEFINITION = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.PRINCIPAL_MAPPING, ATTRIBUTES)
+        static final ObjectTypeAttributeDefinition OBJECT_DEFINITION = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.IDENTITY_MAPPING, ATTRIBUTES)
                 .setAllowNull(false)
                 .build();
     }
@@ -171,7 +173,14 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
                 .build();
     }
 
-    private static final SimpleAttributeDefinition[] ATTRIBUTES = new SimpleAttributeDefinition[] {DirContextObjectDefinition.OBJECT_DEFINITION, PrincipalMappingObjectDefinition.OBJECT_DEFINITION};
+    static final StringListAttributeDefinition DIRECT_CREDENTIAL_NAMES = new StringListAttributeDefinition.Builder(ElytronDescriptionConstants.DIRECT_VERIFICATION_CREDENTIALS)
+            .setAllowNull(true)
+            .setAllowExpression(true)
+            .setMinSize(1)
+            .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+            .build();
+
+    private static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] {DirContextObjectDefinition.OBJECT_DEFINITION, IdentityMappingObjectDefinition.OBJECT_DEFINITION, DIRECT_CREDENTIAL_NAMES};
 
     private static final AbstractAddStepHandler ADD = new RealmAddHandler();
     private static final OperationStepHandler REMOVE = new SingleCapabilityServiceRemoveHandler<SecurityRealm>(ADD, SECURITY_REALM_RUNTIME_CAPABILITY, SecurityRealm.class);
@@ -212,8 +221,10 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
             ServiceName realmName = runtimeCapability.getCapabilityServiceName(SecurityRealm.class);
             final LdapSecurityRealmBuilder builder = LdapSecurityRealmBuilder.builder();
 
-            configurePrincipalMapping(context, model, builder);
+            configureIdentityMapping(context, model, builder);
             configureDirContext(context, model, builder);
+
+            configureDirectCredentialValidation(context, model, builder);
 
             TrivialService<SecurityRealm> ldapRealmService = new TrivialService<SecurityRealm>(builder::build);
             ServiceBuilder<SecurityRealm> serviceBuilder = serviceTarget.addService(realmName, ldapRealmService);
@@ -241,28 +252,28 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
             builder.setDirContextFactory(dirContextFactory);
         }
 
-        private void configurePrincipalMapping(OperationContext context, ModelNode model, LdapSecurityRealmBuilder builder) throws OperationFailedException {
-            ModelNode principalMappingNode = PrincipalMappingObjectDefinition.OBJECT_DEFINITION.resolveModelAttribute(context, model);
+        private void configureIdentityMapping(OperationContext context, ModelNode model, LdapSecurityRealmBuilder builder) throws OperationFailedException {
+            ModelNode principalMappingNode = IdentityMappingObjectDefinition.OBJECT_DEFINITION.resolveModelAttribute(context, model);
 
             IdentityMappingBuilder identityMappingBuilder = builder.identityMapping();
 
-            ModelNode nameAttributeNode = PrincipalMappingObjectDefinition.RDN_IDENTIFIER.resolveModelAttribute(context, principalMappingNode);
+            ModelNode nameAttributeNode = IdentityMappingObjectDefinition.RDN_IDENTIFIER.resolveModelAttribute(context, principalMappingNode);
 
             identityMappingBuilder.setRdnIdentifier(nameAttributeNode.asString());
 
-            ModelNode searchDnNode = PrincipalMappingObjectDefinition.SEARCH_BASE_DN.resolveModelAttribute(context, principalMappingNode);
+            ModelNode searchDnNode = IdentityMappingObjectDefinition.SEARCH_BASE_DN.resolveModelAttribute(context, principalMappingNode);
 
             if (searchDnNode.isDefined()) {
                 identityMappingBuilder.setSearchDn(searchDnNode.asString());
             }
 
-            ModelNode useRecursiveSearchNode = PrincipalMappingObjectDefinition.USE_RECURSIVE_SEARCH.resolveModelAttribute(context, principalMappingNode);
+            ModelNode useRecursiveSearchNode = IdentityMappingObjectDefinition.USE_RECURSIVE_SEARCH.resolveModelAttribute(context, principalMappingNode);
 
             if (useRecursiveSearchNode.asBoolean()) {
                 identityMappingBuilder.searchRecursive();
             }
 
-            ModelNode attributeMappingNode = PrincipalMappingObjectDefinition.ATTRIBUTE_MAPPINGS.resolveModelAttribute(context, principalMappingNode);
+            ModelNode attributeMappingNode = IdentityMappingObjectDefinition.ATTRIBUTE_MAPPINGS.resolveModelAttribute(context, principalMappingNode);
 
             if (attributeMappingNode.isDefined()) {
                 for (ModelNode attributeNode : attributeMappingNode.asList()) {
@@ -297,6 +308,11 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
 
             identityMappingBuilder.build();
         }
+
+        private void configureDirectCredentialValidation(OperationContext context, ModelNode model, LdapSecurityRealmBuilder builder) throws OperationFailedException {
+            List<String> directValidationCredentialNames = DIRECT_CREDENTIAL_NAMES.unwrap(context, model);
+            builder.addDirectEvidenceVerification(directValidationCredentialNames.toArray(new String[directValidationCredentialNames.size()]));
+       }
     }
 
     private static class WriteAttributeHandler extends RestartParentWriteAttributeHandler {

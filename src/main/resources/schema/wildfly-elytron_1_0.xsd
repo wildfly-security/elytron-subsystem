@@ -693,8 +693,16 @@
             <xs:extension base="realmType">
                 <xs:sequence>
                     <xs:element name="dir-context" type="dirContextType" minOccurs="1" maxOccurs="1" nillable="false"/>
-                    <xs:element name="principal-mapping" type="principalMappingType" minOccurs="1" maxOccurs="1" nillable="false"/>
+                    <xs:element name="identity-mapping" type="identityMappingType" minOccurs="1" maxOccurs="1" nillable="false"/>
                 </xs:sequence>
+                <xs:attribute name="direct-verification-credentials" type="stringListType" use="optional">
+                    <xs:annotation>
+                        <xs:documentation>
+                            A List of credential names that can be verified by this realm by connecting to the directory
+                            server as the account being authenticated.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
             </xs:extension>
         </xs:complexContent>
     </xs:complexType>
@@ -772,7 +780,7 @@
         </xs:attribute>
     </xs:complexType>
 
-    <xs:complexType name="principalMappingType">
+    <xs:complexType name="identityMappingType">
         <xs:annotation>
             <xs:documentation>
                 The configuration options that define how principals are mapped to their corresponding entries in the underlying LDAP server.

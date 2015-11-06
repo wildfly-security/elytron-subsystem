@@ -84,6 +84,7 @@ interface ElytronDescriptionConstants {
     String DELEGATE_REALM_MAPPER = "delegate-realm-mapper";
     String DIGEST = "digest";
     String DIR_CONTEXT = "dir-context";
+    String DIRECT_VERIFICATION_CREDENTIALS = "direct-verification-credentials";
 
     String EMPTY = "empty";
     String EMPTY_ROLE_DECODER = "empty-role-decoder";
@@ -111,6 +112,7 @@ interface ElytronDescriptionConstants {
     String HTTP_SERVER_FACTORIES = "http-server-factories";
 
     String IDENTITY = "identity";
+    String IDENTITY_MAPPING = "identity-mapping";
     String IMPLEMENTATION = "implementation";
     String INDEX = "index";
     String INFO = "info";
@@ -173,7 +175,6 @@ interface ElytronDescriptionConstants {
     String PRINCIPAL = "principal";
     String PRINCIPAL_DECODER = "principal-decoder";
     String PRINCIPAL_DECODERS = "principal-decoders";
-    String PRINCIPAL_MAPPING = "principal-mapping";
     String PRINCIPAL_QUERY = "principal-query";
     String PROPERTIES = "properties";
     String PROPERTIES_REALM = "properties-realm";
