@@ -70,6 +70,7 @@ interface ElytronDescriptionConstants {
     String CORE_SERVICE = "core-service";
     String CREATION_DATE = "creation-date";
     String CREDENTIAL = "credential";
+    String CREDENTIAL_NAME = "credential-name";
     String CREDENTIALS = "credentials";
     String CUSTOM_NAME_REWRITER = "custom-name-rewriter";
     String CUSTOM_PERMISSION_MAPPER = "custom-permission-mapper";
@@ -247,6 +248,8 @@ interface ElytronDescriptionConstants {
     String STORE = "store";
     String SUBJECT = "subject";
     String SUFFIX = "suffix";
+    String SUPPORTED_CREDENTIAL = "supported-credential";
+    String SUPPORTED_CREDENTIALS = "supported-credentials";
     String SYNCHRONIZED = "synchronized";
 
     String TLS = "tls";

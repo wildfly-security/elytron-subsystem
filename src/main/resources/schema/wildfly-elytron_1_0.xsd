@@ -669,6 +669,31 @@
                             </xs:documentation>
                         </xs:annotation>
                     </xs:element>
+                    <xs:element name="supported-credential" minOccurs="0">
+                        <xs:complexType>
+                            <xs:annotation>
+                                <xs:documentation>
+                                    A named credential supported by this realm.
+                                </xs:documentation>
+                            </xs:annotation>
+                            <xs:attribute name="credential-name" type="xs:string" use="required" >
+                                <xs:annotation>
+                                    <xs:documentation>
+                                        The name of the supported credential.
+                                    </xs:documentation>
+                                </xs:annotation>
+                            </xs:attribute>
+                            <xs:attribute name="plain-text" type="xs:boolean" default="false">
+                                <xs:annotation>
+                                    <xs:documentation>
+                                        Does this named credential represent a plain text credential?
+                                        
+                                        If not it is assumed the credential is a digested representation.
+                                    </xs:documentation>
+                                </xs:annotation>
+                            </xs:attribute>
+                        </xs:complexType>
+                    </xs:element>
                 </xs:sequence>
                 <xs:attribute name="plain-text" type="xs:boolean" default="false">
                     <xs:annotation>

@@ -24,6 +24,8 @@
         <keystore-realm name="RealmFour" keystore="KeyStoreTwo" />
         <properties-realm name="RealmFive">
             <users-properties path="my.properties" />
+            <supported-credential credential-name="digested-credential"/>
+            <supported-credential credential-name="plain-credential" plain-text="true" />
         </properties-realm>
         <properties-realm name="RealmSix" plain-text="true">
             <users-properties path="my.properties" relative-to="my.path" />

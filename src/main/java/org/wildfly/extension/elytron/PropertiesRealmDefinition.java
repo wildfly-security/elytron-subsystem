@@ -34,12 +34,14 @@ import java.util.List;
 
 import org.jboss.as.controller.AbstractAddStepHandler;
 import org.jboss.as.controller.AttributeDefinition;
+import org.jboss.as.controller.MapAttributeDefinition;
 import org.jboss.as.controller.ObjectTypeAttributeDefinition;
 import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
 import org.jboss.as.controller.ResourceDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
+import org.jboss.as.controller.SimpleMapAttributeDefinition;
 import org.jboss.as.controller.registry.AttributeAccess;
 import org.jboss.as.controller.services.path.PathEntry;
 import org.jboss.as.controller.services.path.PathManager;
@@ -54,6 +56,7 @@ import org.jboss.msc.service.StartException;
 import org.jboss.msc.value.InjectedValue;
 import org.wildfly.extension.elytron.TrivialService.ValueSupplier;
 import org.wildfly.security.auth.provider.LegacyPropertiesSecurityRealm;
+import org.wildfly.security.auth.provider.LegacyPropertiesSecurityRealm.Builder;
 import org.wildfly.security.auth.server.SecurityRealm;
 
 /**
@@ -81,7 +84,11 @@ class PropertiesRealmDefinition extends TrivialResourceDefinition<SecurityRealm>
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
         .build();
 
-    private static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] { USERS_PROPERTIES, GROUPS_PROPERTIES, PLAIN_TEXT };
+    static final MapAttributeDefinition SUPPORTED_CREDENTIALS = new SimpleMapAttributeDefinition.Builder(ElytronDescriptionConstants.SUPPORTED_CREDENTIALS, ModelType.BOOLEAN, true)
+        .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+        .build();
+
+    private static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] { USERS_PROPERTIES, GROUPS_PROPERTIES, PLAIN_TEXT, SUPPORTED_CREDENTIALS};
 
     private static final AbstractAddStepHandler ADD = new TrivialAddHandler<SecurityRealm>(SECURITY_REALM_RUNTIME_CAPABILITY, SecurityRealm.class, ATTRIBUTES) {
 
@@ -120,6 +127,8 @@ class PropertiesRealmDefinition extends TrivialResourceDefinition<SecurityRealm>
                 }
             }
 
+            final ModelNode credentialNames = SUPPORTED_CREDENTIALS.resolveModelAttribute(context, model);
+
             return new ValueSupplier<SecurityRealm>() {
 
                 private final List<Handle> callbackHandles = new ArrayList<>();
@@ -131,11 +140,14 @@ class PropertiesRealmDefinition extends TrivialResourceDefinition<SecurityRealm>
 
                     try (InputStream usersInputStream = new FileInputStream(usersFile);
                             InputStream groupsInputStream = groupsFile != null ? new FileInputStream(groupsFile) : null) {
-                        return LegacyPropertiesSecurityRealm.builder()
+                        Builder builder = LegacyPropertiesSecurityRealm.builder()
                                 .setPasswordsStream(usersInputStream)
                                 .setGroupsStream(groupsInputStream)
-                                .setPlainText(plainText)
-                                .build();
+                                .setPlainText(plainText);
+
+                        credentialNames.asPropertyList().forEach(p -> builder.addCredentialName(p.getName(), p.getValue().asBoolean()));
+
+                        return builder.build();
 
                     } catch (IOException e) {
                         throw ROOT_LOGGER.unableToLoadPropertiesFiles(e);
