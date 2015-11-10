@@ -19,37 +19,41 @@
 package org.wildfly.extension.elytron;
 
 import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY;
-import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
 import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
 import static org.wildfly.extension.elytron.FileAttributeDefinitions.PATH;
 import static org.wildfly.extension.elytron.FileAttributeDefinitions.RELATIVE_TO;
 import static org.wildfly.extension.elytron.FileAttributeDefinitions.pathName;
+import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.jboss.as.controller.AbstractAddStepHandler;
 import org.jboss.as.controller.AttributeDefinition;
 import org.jboss.as.controller.ObjectTypeAttributeDefinition;
 import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
-import org.jboss.as.controller.OperationStepHandler;
-import org.jboss.as.controller.PathAddress;
-import org.jboss.as.controller.PathElement;
 import org.jboss.as.controller.ResourceDefinition;
-import org.jboss.as.controller.RestartParentWriteAttributeHandler;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
-import org.jboss.as.controller.SimpleResourceDefinition;
-import org.jboss.as.controller.capability.RuntimeCapability;
 import org.jboss.as.controller.registry.AttributeAccess;
-import org.jboss.as.controller.registry.ManagementResourceRegistration;
-import org.jboss.as.controller.registry.OperationEntry;
+import org.jboss.as.controller.services.path.PathEntry;
 import org.jboss.as.controller.services.path.PathManager;
+import org.jboss.as.controller.services.path.PathManager.Callback.Handle;
+import org.jboss.as.controller.services.path.PathManager.Event;
+import org.jboss.as.controller.services.path.PathManager.PathEventContext;
 import org.jboss.as.controller.services.path.PathManagerService;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
 import org.jboss.msc.service.ServiceBuilder;
-import org.jboss.msc.service.ServiceController.Mode;
-import org.jboss.msc.service.ServiceName;
-import org.jboss.msc.service.ServiceTarget;
+import org.jboss.msc.service.StartException;
+import org.jboss.msc.value.InjectedValue;
+import org.wildfly.extension.elytron.TrivialService.ValueSupplier;
+import org.wildfly.security.auth.provider.LegacyPropertiesSecurityRealm;
 import org.wildfly.security.auth.server.SecurityRealm;
 
 /**
@@ -57,7 +61,7 @@ import org.wildfly.security.auth.server.SecurityRealm;
  *
  * @author <a href="mailto:darran.lofthouse@jboss.com">Darran Lofthouse</a>
  */
-public class PropertiesRealmDefinition extends SimpleResourceDefinition {
+class PropertiesRealmDefinition extends TrivialResourceDefinition<SecurityRealm> {
 
     static final ServiceUtil<SecurityRealm> REALM_SERVICE_UTIL = ServiceUtil.newInstance(SECURITY_REALM_RUNTIME_CAPABILITY, ElytronDescriptionConstants.PROPERTIES_REALM, SecurityRealm.class);
 
@@ -79,42 +83,11 @@ public class PropertiesRealmDefinition extends SimpleResourceDefinition {
 
     private static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] { USERS_PROPERTIES, GROUPS_PROPERTIES, PLAIN_TEXT };
 
-    private static final AbstractAddStepHandler ADD = new RealmAddHandler();
-    private static final OperationStepHandler REMOVE = new SingleCapabilityServiceRemoveHandler<SecurityRealm>(ADD, SECURITY_REALM_RUNTIME_CAPABILITY, SecurityRealm.class);
-
-    PropertiesRealmDefinition() {
-        super(new Parameters(PathElement.pathElement(ElytronDescriptionConstants.PROPERTIES_REALM), ElytronExtension.getResourceDescriptionResolver(ElytronDescriptionConstants.PROPERTIES_REALM))
-            .setAddHandler(ADD)
-            .setRemoveHandler(REMOVE)
-            .setAddRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
-            .setRemoveRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES));
-    }
-
-    @Override
-    public void registerAttributes(ManagementResourceRegistration resourceRegistration) {
-        OperationStepHandler write = new WriteAttributeHandler();
-        for (AttributeDefinition current : ATTRIBUTES) {
-            resourceRegistration.registerReadWriteAttribute(current, null, write);
-        }
-    }
-
-    @Override
-    public void registerCapabilities(ManagementResourceRegistration resourceRegistration) {
-        resourceRegistration.registerCapability(SECURITY_REALM_RUNTIME_CAPABILITY);
-    }
-
-    private static class RealmAddHandler extends BaseAddHandler {
-
-        private RealmAddHandler() {
-            super(SECURITY_REALM_RUNTIME_CAPABILITY, ATTRIBUTES);
-        }
+    private static final AbstractAddStepHandler ADD = new TrivialAddHandler<SecurityRealm>(SECURITY_REALM_RUNTIME_CAPABILITY, SecurityRealm.class, ATTRIBUTES) {
 
         @Override
-        protected void performRuntime(OperationContext context, ModelNode operation, ModelNode model)
-                throws OperationFailedException {
-            ServiceTarget serviceTarget = context.getServiceTarget();
-            RuntimeCapability<Void> runtimeCapability = SECURITY_REALM_RUNTIME_CAPABILITY.fromBaseCapability(context.getCurrentAddressValue());
-            ServiceName realmName = runtimeCapability.getCapabilityServiceName(SecurityRealm.class);
+        protected ValueSupplier<SecurityRealm> getValueSupplier(ServiceBuilder<SecurityRealm> serviceBuilder,
+                OperationContext context, ModelNode model) throws OperationFailedException {
 
             final String usersPath;
             final String usersRelativeTo;
@@ -135,12 +108,10 @@ public class PropertiesRealmDefinition extends SimpleResourceDefinition {
                 groupsRelativeTo = null;
             }
 
-            PropertiesRealmService propertiesRealmService = new PropertiesRealmService(usersPath, usersRelativeTo, groupsPath, groupsRelativeTo, plainText);
+            final InjectedValue<PathManager> pathManagerjector = new InjectedValue<PathManager>();
 
-            ServiceBuilder<SecurityRealm> serviceBuilder = serviceTarget.addService(realmName, propertiesRealmService);
             if (usersRelativeTo != null || groupsRelativeTo != null) {
-                serviceBuilder.addDependency(PathManagerService.SERVICE_NAME, PathManager.class,
-                        propertiesRealmService.getPathManagerInjector());
+                serviceBuilder.addDependency(PathManagerService.SERVICE_NAME, PathManager.class, pathManagerjector);
                 if (usersRelativeTo != null) {
                     serviceBuilder.addDependency(pathName(usersRelativeTo));
                 }
@@ -149,24 +120,67 @@ public class PropertiesRealmDefinition extends SimpleResourceDefinition {
                 }
             }
 
-            commonDependencies(serviceBuilder)
-                .setInitialMode(Mode.ACTIVE)
-                .install();
+            return new ValueSupplier<SecurityRealm>() {
+
+                private final List<Handle> callbackHandles = new ArrayList<>();
+
+                @Override
+                public SecurityRealm get() throws StartException {
+                    File usersFile = resolveFileLocation(usersPath, usersRelativeTo);
+                    File groupsFile = groupsPath != null ? resolveFileLocation(groupsPath, groupsRelativeTo) : null;
+
+                    try (InputStream usersInputStream = new FileInputStream(usersFile);
+                            InputStream groupsInputStream = groupsFile != null ? new FileInputStream(groupsFile) : null) {
+                        return LegacyPropertiesSecurityRealm.builder()
+                                .setPasswordsStream(usersInputStream)
+                                .setGroupsStream(groupsInputStream)
+                                .setPlainText(plainText)
+                                .build();
+
+                    } catch (IOException e) {
+                        throw ROOT_LOGGER.unableToLoadPropertiesFiles(e);
+                    }
+                }
+
+                @Override
+                public void dispose() {
+                    callbackHandles.forEach(h -> h.remove());
+                }
+
+                private File resolveFileLocation(String path, String relativeTo) {
+                    final File resolvedPath;
+                    if (relativeTo != null) {
+                        PathManager pathManager =  pathManagerjector.getValue();
+                        resolvedPath = new File(pathManager.resolveRelativePathEntry(path, relativeTo));
+                        Handle callbackHandle = pathManager.registerCallback(relativeTo, new org.jboss.as.controller.services.path.PathManager.Callback() {
+
+                            @Override
+                            public void pathModelEvent(PathEventContext eventContext, String name) {
+                                if (eventContext.isResourceServiceRestartAllowed() == false) {
+                                    eventContext.reloadRequired();
+                                }
+                            }
+
+                            @Override
+                            public void pathEvent(Event event, PathEntry pathEntry) {
+                                // Service dependencies should trigger a stop and start.
+                            }
+                        }, Event.REMOVED, Event.UPDATED);
+                        callbackHandles.add(callbackHandle);
+                    } else {
+                        resolvedPath = new File(path);
+                    }
+
+                    return resolvedPath;
+                }
+
+            };
         }
 
+    };
+
+    PropertiesRealmDefinition() {
+        super(ElytronDescriptionConstants.PROPERTIES_REALM, SECURITY_REALM_RUNTIME_CAPABILITY, SecurityRealm.class, ADD, ATTRIBUTES);
     }
-
-    private static class WriteAttributeHandler extends RestartParentWriteAttributeHandler {
-
-        WriteAttributeHandler() {
-            super(ElytronDescriptionConstants.PROPERTIES_REALM, ATTRIBUTES);
-        }
-
-        @Override
-        protected ServiceName getParentServiceName(PathAddress pathAddress) {
-            return SECURITY_REALM_RUNTIME_CAPABILITY.fromBaseCapability(pathAddress.getLastElement().getValue()).getCapabilityServiceName(SecurityRealm.class);
-        }
-    }
-
 
 }

@@ -55,6 +55,7 @@ class TrivialService<T> implements Service<T> {
 
     @Override
     public void stop(StopContext context) {
+        valueSupplier.dispose();
         value = null;
     }
 
@@ -71,6 +72,8 @@ class TrivialService<T> implements Service<T> {
     interface ValueSupplier<T> {
 
         T get() throws StartException;
+
+        default void dispose() {}
 
     }
 }
