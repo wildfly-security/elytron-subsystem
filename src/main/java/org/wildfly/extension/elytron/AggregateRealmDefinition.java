@@ -84,7 +84,7 @@ class AggregateRealmDefinition extends SimpleResourceDefinition {
 
     @Override
     public void registerAttributes(ManagementResourceRegistration resourceRegistration) {
-        WriteAttributeHandler write = new WriteAttributeHandler();
+        WriteAttributeHandler write = new WriteAttributeHandler(ElytronDescriptionConstants.AGGREGATE_REALM);
         for (AttributeDefinition current : ATTRIBUTES) {
             resourceRegistration.registerReadWriteAttribute(current, null, write);
         }
@@ -140,8 +140,8 @@ class AggregateRealmDefinition extends SimpleResourceDefinition {
 
     private static class WriteAttributeHandler extends RestartParentWriteAttributeHandler {
 
-        WriteAttributeHandler() {
-            super(ElytronDescriptionConstants.JAAS_REALM, ATTRIBUTES);
+        WriteAttributeHandler(final String key) {
+            super(key, ATTRIBUTES);
         }
 
         @Override

@@ -34,14 +34,14 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ATTRIBUT
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ATTRIBUTE_MAPPING;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AUTHENTICATION_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AUTHORIZATION_REALM;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.DIRECT_VERIFICATION_CREDENTIALS;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CONFIGURATION;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CREDENTIAL_NAME;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CUSTOM_REALM;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.DIRECT_VERIFICATION_CREDENTIALS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.DIR_CONTEXT;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.FILE;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.FILESYSTEM_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.GROUPS_PROPERTIES;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.JAAS_REALM;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.IDENTITY_MAPPING;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.JDBC_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEYSTORE;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEYSTORE_REALM;
@@ -51,14 +51,12 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME_REWRITER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PATH;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PLAIN_TEXT;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SUPPORTED_CREDENTIALS;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SUPPORTED_CREDENTIAL;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CREDENTIAL_NAME;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.IDENTITY_MAPPING;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PRINCIPAL_QUERY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROPERTIES_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.RELATIVE_TO;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SECURITY_REALMS;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SUPPORTED_CREDENTIAL;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SUPPORTED_CREDENTIALS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.USERS_PROPERTIES;
 import static org.wildfly.extension.elytron.ElytronSubsystemParser.readCustomComponent;
 import static org.wildfly.extension.elytron.ElytronSubsystemParser.verifyNamespace;
@@ -103,9 +101,6 @@ class RealmParser {
                     break;
                 case CUSTOM_REALM:
                     readCustomComponent(CUSTOM_REALM, parentAddress, reader, operations);
-                    break;
-                case JAAS_REALM:
-                    readJaasRealm(parentAddress, reader, operations);
                     break;
                 case JDBC_REALM:
                     readJdbcRealm(parentAddress, reader, operations);
@@ -169,44 +164,6 @@ class RealmParser {
         requireNoContent(reader);
 
         operations.add(addRealm);
-    }
-
-    private void readJaasRealm(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations)
-            throws XMLStreamException {
-        ModelNode addRealm = new ModelNode();
-        addRealm.get(OP).set(ADD);
-
-        String name = null;
-
-        final int count = reader.getAttributeCount();
-        for (int i = 0; i < count; i++) {
-            final String value = reader.getAttributeValue(i);
-            if (!isNoNamespaceAttribute(reader, i)) {
-                throw unexpectedAttribute(reader, i);
-            } else {
-                String attribute = reader.getAttributeLocalName(i);
-                switch (attribute) {
-                    case NAME:
-                        name = value;
-                        break;
-                    case CONFIGURATION:
-                        JaasRealmDefinition.CONFIGURATION.parseAndSetParameter(value, addRealm, reader);
-                        break;
-                    default:
-                        throw unexpectedAttribute(reader, i);
-                }
-            }
-        }
-
-        if (name == null) {
-            throw missingRequired(reader, NAME);
-        }
-
-        addRealm.get(OP_ADDR).set(parentAddress).add(JAAS_REALM, name);
-
-        operations.add(addRealm);
-
-        requireNoContent(reader);
     }
 
     private void readJdbcRealm(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations) throws XMLStreamException {
@@ -682,22 +639,6 @@ class RealmParser {
         return false;
     }
 
-    private boolean writeJaasRealms(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
-        if (subsystem.hasDefined(JAAS_REALM)) {
-            startRealms(started, writer);
-
-            ModelNode realms = subsystem.require(JAAS_REALM);
-            for (String name : realms.keys()) {
-                writer.writeStartElement(JAAS_REALM);
-                writer.writeAttribute(NAME, name);
-                JaasRealmDefinition.CONFIGURATION.marshallAsAttribute(realms.require(name), writer);
-                writer.writeEndElement();
-            }
-            return true;
-        }
-        return false;
-    }
-
     private boolean writeJdbcRealms(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (subsystem.hasDefined(JDBC_REALM)) {
             startRealms(started, writer);
@@ -892,7 +833,6 @@ class RealmParser {
 
         realmsStarted = realmsStarted | writeAggregateRealms(realmsStarted, subsystem, writer);
         realmsStarted = realmsStarted | writeCustomRealms(realmsStarted, subsystem, writer);
-        realmsStarted = realmsStarted | writeJaasRealms(realmsStarted, subsystem, writer);
         realmsStarted = realmsStarted | writeJdbcRealms(realmsStarted, subsystem, writer);
         realmsStarted = realmsStarted | writeKeyStoreRealms(realmsStarted, subsystem, writer);
         realmsStarted = realmsStarted | writePropertiesRealms(realmsStarted, subsystem, writer);

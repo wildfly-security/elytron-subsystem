@@ -121,7 +121,6 @@ interface ElytronDescriptionConstants {
     String ITERATION_COUNT = "iteration-count";
     String ITERATION_COUNT_INDEX = "iteration-count-index";
 
-    String JAAS_REALM = "jaas-realm";
     String JDBC_REALM = "jdbc-realm";
     String JOINER = "joiner";
 

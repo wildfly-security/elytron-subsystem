@@ -10,7 +10,7 @@
         </keystores>
     </tls>
     <security-realms>
-        <aggregate-realm name="AggregateOne" authentication-realm="RealmOne" authorization-realm="RealmTwo" />
+        <aggregate-realm name="AggregateOne" authentication-realm="RealmThree" authorization-realm="RealmFour" />
         <custom-realm name="CustomOne" class-name="org.wildfly.security.ElytronRealm" />
         <custom-realm name="CustomTwo" module="a.b.c" slot="d" class-name="org.wildfly.security.ElytronRealm">
             <configuration>
@@ -18,8 +18,6 @@
                 <property key="c" value="d" />
             </configuration>
         </custom-realm>
-        <jaas-realm name="RealmOne" />
-        <jaas-realm name="RealmTwo" configuration="custom-domain" />
         <keystore-realm name="RealmThree" keystore="KeyStoreOne" />
         <keystore-realm name="RealmFour" keystore="KeyStoreTwo" />
         <properties-realm name="RealmFive">

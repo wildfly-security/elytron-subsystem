@@ -5,7 +5,9 @@
         </security-domain>
     </security-domains>
     <security-realms>
-        <jaas-realm name="RealmTwo" configuration="custom-domain" />
+        <properties-realm name="RealmTwo">
+            <users-properties path="my.properties" />
+        </properties-realm>
     </security-realms>
     <provider-loaders>
         <provider-loader name="TestProviderLoader">

@@ -8,9 +8,15 @@
         </security-domain>
     </security-domains>
     <security-realms>
-        <jaas-realm name="RealmOne" />
-        <jaas-realm name="RealmTwo" configuration="custom-domain" />
-        <jaas-realm name="RealmThree" configuration="custom-domain" />
+        <properties-realm name="RealmOne">
+            <users-properties path="my.properties" />
+        </properties-realm>
+        <properties-realm name="RealmTwo">
+            <users-properties path="my.properties" />
+        </properties-realm>
+        <properties-realm name="RealmThree">
+            <users-properties path="my.properties" />
+        </properties-realm>
     </security-realms>
     <mappers>
         <regex-name-rewriter name="RegexOne" pattern="a" replacement="b" />
