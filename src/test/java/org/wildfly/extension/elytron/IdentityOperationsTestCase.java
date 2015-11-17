@@ -394,14 +394,6 @@ public class IdentityOperationsTestCase extends AbstractSubsystemTest {
         operation = createAuthenticateOperation(securityDomainAddress, "default", principalName, "clearPassword");
         result = services.executeOperation(operation);
         assertSuccessful(result);
-
-        operation = createUnsetPasswordOperation(realmAddress, principalName, "default");
-        result = services.executeOperation(operation);
-        assertSuccessful(result);
-
-        operation = createAuthenticateOperation(securityDomainAddress, "default", principalName, "clearPassword");
-        result = services.executeOperation(operation);
-        assertFail(result);
     }
 
     private void assertSuccessful(ModelNode result) {
@@ -499,14 +491,6 @@ public class IdentityOperationsTestCase extends AbstractSubsystemTest {
                 .build();
     }
 
-    private ModelNode createUnsetPasswordOperation(PathAddress parentAddress, String principalName, String credentialName) {
-        ModelNode address = PathAddress.pathAddress(parentAddress).append(ElytronDescriptionConstants.IDENTITY, principalName).toModelNode();
-        return SubsystemOperations.OperationBuilder.create(new SimpleOperationDefinition(ElytronDescriptionConstants.UNSET_PASSWORD,
-                ElytronExtension.getResourceDescriptionResolver(ElytronDescriptionConstants.IDENTITY)), address)
-                .addAttribute(IdentityResourceDefinition.PasswordUnsetHandler.NAME, credentialName)
-                .build();
-    }
-
     private ModelNode createReadSecurityDomainIdentityOperation(PathAddress parentAddress, String principalName) {
         return SubsystemOperations.OperationBuilder.create(new SimpleOperationDefinition(ElytronDescriptionConstants.READ_IDENTITY, ElytronExtension.getResourceDescriptionResolver(ElytronDescriptionConstants.SECURITY_DOMAIN)),
                 parentAddress.toModelNode())
@@ -521,7 +505,6 @@ public class IdentityOperationsTestCase extends AbstractSubsystemTest {
 
     private ModelNode createAuthenticateOperation(PathAddress parentAddress, String credentialName, String principalName, String password) {
         return SubsystemOperations.OperationBuilder.create(new SimpleOperationDefinition("authenticate", ElytronExtension.getResourceDescriptionResolver(ElytronDescriptionConstants.SECURITY_DOMAIN)), parentAddress.toModelNode())
-                .addAttribute(AuthenticatorOperationHandler.CREDENTIAL_NAME, credentialName)
                 .addAttribute(AuthenticatorOperationHandler.USER_NAME, principalName)
                 .addAttribute(AuthenticatorOperationHandler.PASSWORD, password)
                 .build();

@@ -49,8 +49,6 @@
              <properties-realm name="ApplicationRealm">
                 <users-properties path="application-users.properties" relative-to="jboss.domain.config.dir" />
                 <groups-properties path="application-roles.properties" relative-to="jboss.domain.config.dir" />
-                <supported-credential credential-name="digest-credential"/>
-                <supported-credential credential-name="plain-credential" plain-text="true" />
             </properties-realm>
         </replacement>
         <replacement placeholder="HTTP_DEFINITIONS">
@@ -71,8 +69,6 @@
             <properties-realm name="ManagementRealm">
                 <users-properties path="mgmt-users.properties" relative-to="jboss.domain.config.dir" />
                 <groups-properties path="mgmt-groups.properties" relative-to="jboss.domain.config.dir" />
-                <supported-credential credential-name="digest-credential"/>
-                <supported-credential credential-name="plain-credential" plain-text="true" />
             </properties-realm>
         </replacement>
         <replacement placeholder="HTTP_DEFINITIONS">
@@ -98,15 +94,11 @@
              <properties-realm name="ApplicationRealm">
                 <users-properties path="application-users.properties" relative-to="jboss.server.config.dir" />
                 <groups-properties path="application-roles.properties" relative-to="jboss.server.config.dir" />
-                <supported-credential credential-name="digest-credential"/>
-                <supported-credential credential-name="plain-credential" plain-text="true" />
             </properties-realm>
 
             <properties-realm name="ManagementRealm">
                 <users-properties path="mgmt-users.properties" relative-to="jboss.server.config.dir" />
                 <groups-properties path="mgmt-groups.properties" relative-to="jboss.server.config.dir" />
-                <supported-credential credential-name="digest-credential"/>
-                <supported-credential credential-name="plain-credential" plain-text="true" />
             </properties-realm>
         </replacement>
 
