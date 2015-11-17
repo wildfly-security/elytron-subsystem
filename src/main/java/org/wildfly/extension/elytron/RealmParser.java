@@ -35,7 +35,7 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ATTRIBUT
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AUTHENTICATION_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AUTHORIZATION_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CUSTOM_REALM;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.DIRECT_VERIFICATION_CREDENTIALS;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.DIRECT_VERIFICATION;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.DIR_CONTEXT;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.FILE;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.FILESYSTEM_REALM;
@@ -463,10 +463,8 @@ class RealmParser {
                     case NAME:
                         name = value;
                         break;
-                    case DIRECT_VERIFICATION_CREDENTIALS:
-                        for (String credentialName : reader.getListAttributeValue(i)) {
-                            LdapRealmDefinition.DIRECT_CREDENTIAL_NAMES.parseAndAddParameterElement(credentialName, addRealm, reader);
-                        }
+                    case DIRECT_VERIFICATION:
+                        LdapRealmDefinition.DIRECT_VERIFICATION.parseAndSetParameter(value, addRealm, reader);
                         break;
                     default:
                         throw unexpectedAttribute(reader, i);
@@ -700,8 +698,7 @@ class RealmParser {
                 writer.writeStartElement(LDAP_REALM);
                 writer.writeAttribute(NAME, name);
                 ModelNode ldapRealmNode = realms.require(name);
-
-                LdapRealmDefinition.DIRECT_CREDENTIAL_NAMES.getAttributeMarshaller().marshallAsAttribute(LdapRealmDefinition.DIRECT_CREDENTIAL_NAMES, ldapRealmNode, false, writer);
+                LdapRealmDefinition.DIRECT_VERIFICATION.marshallAsElement(ldapRealmNode, false, writer);
 
                 writeObjectTypeAttribute(DIR_CONTEXT, DirContextObjectDefinition.ATTRIBUTES, ldapRealmNode.get(DIR_CONTEXT), writer, null);
                 writeObjectTypeAttribute(IDENTITY_MAPPING, IdentityMappingObjectDefinition.ATTRIBUTES, ldapRealmNode.get(IDENTITY_MAPPING), writer, (modelNode, writer1) -> {

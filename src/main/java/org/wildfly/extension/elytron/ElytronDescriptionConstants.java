@@ -85,7 +85,7 @@ interface ElytronDescriptionConstants {
     String DELEGATE_REALM_MAPPER = "delegate-realm-mapper";
     String DIGEST = "digest";
     String DIR_CONTEXT = "dir-context";
-    String DIRECT_VERIFICATION_CREDENTIALS = "direct-verification-credentials";
+    String DIRECT_VERIFICATION = "direct-verification";
 
     String EMPTY = "empty";
     String EMPTY_ROLE_DECODER = "empty-role-decoder";

@@ -21,7 +21,6 @@ package org.wildfly.extension.elytron;
 import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
 
-import java.util.List;
 import java.util.Properties;
 
 import org.jboss.as.controller.AbstractAddStepHandler;
@@ -38,7 +37,6 @@ import org.jboss.as.controller.RestartParentWriteAttributeHandler;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
 import org.jboss.as.controller.SimpleResourceDefinition;
-import org.jboss.as.controller.StringListAttributeDefinition;
 import org.jboss.as.controller.capability.RuntimeCapability;
 import org.jboss.as.controller.registry.AttributeAccess;
 import org.jboss.as.controller.registry.ManagementResourceRegistration;
@@ -173,14 +171,13 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
                 .build();
     }
 
-    static final StringListAttributeDefinition DIRECT_CREDENTIAL_NAMES = new StringListAttributeDefinition.Builder(ElytronDescriptionConstants.DIRECT_VERIFICATION_CREDENTIALS)
-            .setAllowNull(true)
-            .setAllowExpression(true)
-            .setMinSize(1)
-            .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
-            .build();
+    static final SimpleAttributeDefinition DIRECT_VERIFICATION = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.DIRECT_VERIFICATION, ModelType.BOOLEAN, true)
+        .setDefaultValue(new ModelNode(false))
+        .setAllowExpression(true)
+        .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+        .build();
 
-    private static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] {DirContextObjectDefinition.OBJECT_DEFINITION, IdentityMappingObjectDefinition.OBJECT_DEFINITION, DIRECT_CREDENTIAL_NAMES};
+    private static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] {DirContextObjectDefinition.OBJECT_DEFINITION, IdentityMappingObjectDefinition.OBJECT_DEFINITION, DIRECT_VERIFICATION};
 
     private static final AbstractAddStepHandler ADD = new RealmAddHandler();
     private static final OperationStepHandler REMOVE = new SingleCapabilityServiceRemoveHandler<SecurityRealm>(ADD, SECURITY_REALM_RUNTIME_CAPABILITY, SecurityRealm.class);
@@ -224,7 +221,9 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
             configureIdentityMapping(context, model, builder);
             configureDirContext(context, model, builder);
 
-            configureDirectCredentialValidation(context, model, builder);
+            if (DIRECT_VERIFICATION.resolveModelAttribute(context, model).asBoolean()) {
+                builder.addDirectEvidenceVerification();
+            }
 
             TrivialService<SecurityRealm> ldapRealmService = new TrivialService<SecurityRealm>(builder::build);
             ServiceBuilder<SecurityRealm> serviceBuilder = serviceTarget.addService(realmName, ldapRealmService);
@@ -309,10 +308,6 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
             identityMappingBuilder.build();
         }
 
-        private void configureDirectCredentialValidation(OperationContext context, ModelNode model, LdapSecurityRealmBuilder builder) throws OperationFailedException {
-            List<String> directValidationCredentialNames = DIRECT_CREDENTIAL_NAMES.unwrap(context, model);
-            builder.addDirectEvidenceVerification(directValidationCredentialNames.toArray(new String[directValidationCredentialNames.size()]));
-       }
     }
 
     private static class WriteAttributeHandler extends RestartParentWriteAttributeHandler {

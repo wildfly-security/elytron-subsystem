@@ -672,11 +672,10 @@
                     <xs:element name="dir-context" type="dirContextType" minOccurs="1" maxOccurs="1" nillable="false"/>
                     <xs:element name="identity-mapping" type="identityMappingType" minOccurs="1" maxOccurs="1" nillable="false"/>
                 </xs:sequence>
-                <xs:attribute name="direct-verification-credentials" type="stringListType" use="optional">
+                <xs:attribute name="direct-verification" type="xs:boolean" use="optional" default="false">
                     <xs:annotation>
                         <xs:documentation>
-                            A List of credential names that can be verified by this realm by connecting to the directory
-                            server as the account being authenticated.
+                            Should this realm instance support verification of credentials by directly connectint to LDAP as the account being authenticated.
                         </xs:documentation>
                     </xs:annotation>
                 </xs:attribute>
