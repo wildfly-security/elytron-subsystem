@@ -255,7 +255,6 @@ interface ElytronDescriptionConstants {
     String TO = "to";
     String TYPE = "type";
 
-    String UNSET_PASSWORD = "unset-password";
     String URL = "url";
     String USE_RECURSIVE_SEARCH = "use-recursive-search";
     String USERS_PROPERTIES = "users-properties";

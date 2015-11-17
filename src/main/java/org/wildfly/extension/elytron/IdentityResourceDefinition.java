@@ -18,10 +18,17 @@
 
 package org.wildfly.extension.elytron;
 
+import static org.jboss.as.controller.OperationContext.ResultHandler.NOOP_RESULT_HANDLER;
+import static org.wildfly.extension.elytron.Capabilities.SECURITY_DOMAIN_RUNTIME_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY;
+import static org.wildfly.extension.elytron.ElytronExtension.getRequiredService;
+import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
+
 import java.security.NoSuchAlgorithmException;
 import java.security.Permission;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
 
@@ -80,12 +87,6 @@ import org.wildfly.security.password.spec.IteratedSaltedPasswordAlgorithmSpec;
 import org.wildfly.security.password.spec.PasswordSpec;
 import org.wildfly.security.password.spec.SaltedPasswordAlgorithmSpec;
 
-import static org.jboss.as.controller.OperationContext.ResultHandler.NOOP_RESULT_HANDLER;
-import static org.wildfly.extension.elytron.Capabilities.SECURITY_DOMAIN_RUNTIME_CAPABILITY;
-import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY;
-import static org.wildfly.extension.elytron.ElytronExtension.getRequiredService;
-import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
-
 /**
  * A {@link org.jboss.as.controller.ResourceDefinition} that defines identity management operations for those {@link SecurityRealm} resources
  * resources that implements {@link ModifiableSecurityRealm}.
@@ -115,7 +116,6 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
 
     private void registerCredentialOperations(ManagementResourceRegistration resourceRegistration) {
         PasswordSetHandler.register(resourceRegistration, getResourceDescriptionResolver());
-        PasswordUnsetHandler.register(resourceRegistration, getResourceDescriptionResolver());
     }
 
     private void registerAttributeOperations(ManagementResourceRegistration resourceRegistration) {
@@ -135,7 +135,7 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
                 String principalName = PathAddress.pathAddress(operation.get(ModelDescriptionConstants.ADDRESS)).getLastElement().getValue();
 
                 try {
-                    ModifiableRealmIdentity identity = modifiableRealm.createRealmIdentity(principalName);
+                    ModifiableRealmIdentity identity = modifiableRealm.getRealmIdentityForUpdate(principalName);
 
                     if (identity.exists()) {
                         throw new OperationFailedException("Identity with name [" + principalName + "] already exists.");
@@ -161,7 +161,7 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
                 String principalName = PathAddress.pathAddress(operation1.get(ModelDescriptionConstants.ADDRESS)).getLastElement().getValue();
 
                 try {
-                    ModifiableRealmIdentity realmIdentity = modifiableRealm.createRealmIdentity(principalName);
+                    ModifiableRealmIdentity realmIdentity = modifiableRealm.getRealmIdentityForUpdate(principalName);
 
                     if (!realmIdentity.exists()) {
                         throw new OperationFailedException("Identity with name [" + principalName + "] not found.");
@@ -405,10 +405,6 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
 
     static class PasswordSetHandler implements OperationStepHandler {
 
-        public static final SimpleAttributeDefinition NAME = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.NAME, ModelType.STRING, false)
-                .setAllowExpression(false)
-                .build();
-
         static class Bcrypt {
             static final SimpleAttributeDefinition ALGORITHM = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ALGORITHM, ModelType.STRING, false)
                     .setDefaultValue(new ModelNode(BCryptPassword.ALGORITHM_BCRYPT))
@@ -430,7 +426,7 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
                     .build();
 
             static final ObjectTypeAttributeDefinition OBJECT_DEFINITION = new ObjectTypeAttributeDefinition.Builder(
-                    ElytronDescriptionConstants.BCRYPT, NAME, PASSWORD, SALT, ITERATION_COUNT)
+                    ElytronDescriptionConstants.BCRYPT, PASSWORD, SALT, ITERATION_COUNT)
                     .setAllowNull(true)
                     .build();
         }
@@ -449,7 +445,7 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
 
 
             static final ObjectTypeAttributeDefinition OBJECT_DEFINITION = new ObjectTypeAttributeDefinition.Builder(
-                    ElytronDescriptionConstants.CLEAR, NAME, PASSWORD)
+                    ElytronDescriptionConstants.CLEAR, PASSWORD)
                     .setAllowNull(true)
                     .build();
         }
@@ -475,7 +471,7 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
 
 
             static final ObjectTypeAttributeDefinition OBJECT_DEFINITION = new ObjectTypeAttributeDefinition.Builder(
-                    ElytronDescriptionConstants.SIMPLE_DIGEST, NAME, ALGORITHM, PASSWORD)
+                    ElytronDescriptionConstants.SIMPLE_DIGEST, ALGORITHM, PASSWORD)
                     .setAllowNull(true)
                     .build();
         }
@@ -507,7 +503,7 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
                     .build();
 
             static final ObjectTypeAttributeDefinition OBJECT_DEFINITION = new ObjectTypeAttributeDefinition.Builder(
-                    ElytronDescriptionConstants.SALTED_SIMPLE_DIGEST, NAME, ALGORITHM, PASSWORD, SALT)
+                    ElytronDescriptionConstants.SALTED_SIMPLE_DIGEST, ALGORITHM, PASSWORD, SALT)
                     .setAllowNull(true)
                     .build();
         }
@@ -533,7 +529,7 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
                     .build();
 
             static final ObjectTypeAttributeDefinition OBJECT_DEFINITION = new ObjectTypeAttributeDefinition.Builder(
-                    ElytronDescriptionConstants.DIGEST, NAME, ALGORITHM, PASSWORD, REALM)
+                    ElytronDescriptionConstants.DIGEST, ALGORITHM, PASSWORD, REALM)
                     .setAllowNull(true)
                     .build();
         }
@@ -555,10 +551,9 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
                 Property passwordProperty = modelNodes.get(2).asProperty();
                 PathAddress currentAddress = parentContext.getCurrentAddress();
                 String principalName = currentAddress.getLastElement().getValue();
-                String credentialName = NAME.resolveModelAttribute(context, passwordProperty.getValue()).asString();
 
                 try {
-                    realmIdentity.setCredential(credentialName, new PasswordCredential(createPassword(parentContext, principalName, passwordProperty)));
+                    realmIdentity.setCredentials(Collections.singleton( new PasswordCredential(createPassword(parentContext, principalName, passwordProperty))));
                 } catch (NoSuchAlgorithmException | InvalidKeySpecException | RealmUnavailableException e) {
                     throw new OperationFailedException("Could not create password.", e);
                 }
@@ -602,43 +597,6 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
         }
     }
 
-    static class PasswordUnsetHandler implements OperationStepHandler {
-
-        static final SimpleAttributeDefinition NAME = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.NAME, ModelType.STRING, false)
-                .setAllowExpression(false)
-                .build();
-
-        static final SimpleAttributeDefinition TYPE = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.TYPE, ModelType.STRING, false)
-                .setAllowedValues(
-                        ElytronDescriptionConstants.BCRYPT,
-                        ElytronDescriptionConstants.CLEAR,
-                        ElytronDescriptionConstants.SIMPLE_DIGEST,
-                        ElytronDescriptionConstants.SALTED_SIMPLE_DIGEST,
-                        ElytronDescriptionConstants.DIGEST
-                )
-                .build();
-
-        public static void register(ManagementResourceRegistration resourceRegistration, ResourceDescriptionResolver resourceDescriptionResolver) {
-            resourceRegistration.registerOperationHandler(new SimpleOperationDefinition(ElytronDescriptionConstants.UNSET_PASSWORD, resourceDescriptionResolver,
-                    TYPE), new PasswordUnsetHandler());
-        }
-
-        @Override
-        public void execute(OperationContext context, ModelNode operation) throws OperationFailedException {
-            context.addStep(operation, (parentContext, parentOperation) -> {
-                ModifiableRealmIdentity realmIdentity = getRealmIdentity(context);
-                String credentialName = NAME.resolveModelAttribute(context, operation).asString();
-
-                try {
-                    realmIdentity.deleteCredential(credentialName);
-                } catch (RealmUnavailableException e) {
-                    throw new OperationFailedException("Could not create password with name [" + credentialName + "].", e);
-                }
-                parentContext.completeStep(NOOP_RESULT_HANDLER);
-            }, OperationContext.Stage.RUNTIME);
-        }
-    }
-
     /**
      * Try to obtain a {@link ModifiableSecurityRealm} based on the given {@link OperationContext}.
      *
@@ -674,7 +632,7 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
         String principalName = currentAddress.getLastElement().getValue();
 
         try {
-            ModifiableRealmIdentity realmIdentity = modifiableRealm.createRealmIdentity(principalName);
+            ModifiableRealmIdentity realmIdentity = modifiableRealm.getRealmIdentityForUpdate(principalName);
 
             if (!realmIdentity.exists()) {
                 throw new OperationFailedException("Identity [" + principalName + "] not found.");
@@ -748,13 +706,8 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
         private static final ServiceUtil<SecurityDomain> DOMAIN_SERVICE_UTIL = ServiceUtil.newInstance(SECURITY_DOMAIN_RUNTIME_CAPABILITY, ElytronDescriptionConstants.SECURITY_DOMAIN, SecurityDomain.class);
 
         private static final String OPERATION_NAME = "authenticate";
-        private static final String PARAMETER_CREDENTIAL_NAME = "credential-name";
         private static final String PARAMETER_USERNAME = "username";
         private static final String PARAMETER_PASSWORD = "password";
-
-        public static final SimpleAttributeDefinition CREDENTIAL_NAME = new SimpleAttributeDefinitionBuilder(PARAMETER_CREDENTIAL_NAME, ModelType.STRING, false)
-                .setAllowExpression(false)
-                .build();
 
         public static final SimpleAttributeDefinition USER_NAME = new SimpleAttributeDefinitionBuilder(PARAMETER_USERNAME, ModelType.STRING, false)
                 .setAllowExpression(false)
@@ -783,7 +736,6 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
         @Override
         public void execute(OperationContext context, ModelNode operation) throws OperationFailedException {
             context.addStep((contextStep, operationStep) -> {
-                String credentialName = CREDENTIAL_NAME.resolveModelAttribute(context, operation).asString();
                 String principalName = USER_NAME.resolveModelAttribute(context, operation).asString();
                 String password = PASSWORD.resolveModelAttribute(context, operation).asString();
                 SecurityDomain securityDomain = getSecurityDomain(context, operation);
@@ -799,7 +751,7 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
                     }
 
                     // for now, only clear passwords. we can provide an enum with different types later. if necessary.
-                    if (authenticationContext.verifyEvidence(credentialName, new PasswordGuessEvidence(password.toCharArray()))) {
+                    if (authenticationContext.verifyEvidence(new PasswordGuessEvidence(password.toCharArray()))) {
                         authenticationContext.succeed();
 
                         SecurityIdentity authorizedIdentity = authenticationContext.getAuthorizedIdentity();
