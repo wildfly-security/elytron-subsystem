@@ -34,7 +34,6 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ATTRIBUT
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ATTRIBUTE_MAPPING;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AUTHENTICATION_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AUTHORIZATION_REALM;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CREDENTIAL_NAME;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CUSTOM_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.DIRECT_VERIFICATION_CREDENTIALS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.DIR_CONTEXT;
@@ -55,8 +54,6 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PRINCIPA
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROPERTIES_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.RELATIVE_TO;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SECURITY_REALMS;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SUPPORTED_CREDENTIAL;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SUPPORTED_CREDENTIALS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.USERS_PROPERTIES;
 import static org.wildfly.extension.elytron.ElytronSubsystemParser.readCustomComponent;
 import static org.wildfly.extension.elytron.ElytronSubsystemParser.verifyNamespace;
@@ -74,7 +71,6 @@ import org.jboss.as.controller.AttributeDefinition;
 import org.jboss.as.controller.ObjectTypeAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.dmr.ModelNode;
-import org.jboss.dmr.Property;
 import org.jboss.staxmapper.XMLExtendedStreamReader;
 import org.jboss.staxmapper.XMLExtendedStreamWriter;
 import org.wildfly.extension.elytron.JdbcRealmDefinition.PasswordMapperObjectDefinition;
@@ -325,9 +321,6 @@ class RealmParser {
                     readFileAttributes(groupsProperties, reader);
                     addRealm.get(GROUPS_PROPERTIES).set(groupsProperties);
                     break;
-                case SUPPORTED_CREDENTIAL:
-                    readSupportedCredential(addRealm, reader);
-                    break;
                 default:
                     throw unexpectedElement(reader);
             }
@@ -338,39 +331,6 @@ class RealmParser {
         }
 
         operations.add(addRealm);
-    }
-
-    private void readSupportedCredential(ModelNode realmAdd, XMLExtendedStreamReader reader) throws XMLStreamException {
-        String credentialName = null;
-        boolean plainText = false;
-
-        final int count = reader.getAttributeCount();
-        for (int i = 0; i < count; i++) {
-            final String value = reader.getAttributeValue(i);
-            if (!isNoNamespaceAttribute(reader, i)) {
-                throw unexpectedAttribute(reader, i);
-            } else {
-                String attribute = reader.getAttributeLocalName(i);
-                switch (attribute) {
-                    case CREDENTIAL_NAME:
-                        credentialName = value;
-                        break;
-                    case PLAIN_TEXT:
-                        plainText = Boolean.parseBoolean(value);
-                        break;
-                    default:
-                        throw unexpectedAttribute(reader, i);
-                }
-            }
-        }
-
-        if (credentialName == null) {
-            throw missingRequired(reader, CREDENTIAL_NAME);
-        }
-
-        realmAdd.get(SUPPORTED_CREDENTIALS).add(credentialName, plainText);
-
-        requireNoContent(reader);
     }
 
     private void readFileSystemRealm(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations) throws XMLStreamException {
@@ -711,18 +671,6 @@ class RealmParser {
                 PropertiesRealmDefinition.PLAIN_TEXT.marshallAsAttribute(model, writer);
                 writeFile(USERS_PROPERTIES, model.get(USERS_PROPERTIES), writer);
                 writeFile(GROUPS_PROPERTIES, model.get(GROUPS_PROPERTIES), writer);
-
-                ModelNode supportedCredentials = model.get(SUPPORTED_CREDENTIALS);
-                if (supportedCredentials.isDefined()) {
-                    for (Property property : supportedCredentials.asPropertyList()) {
-                        writer.writeStartElement(SUPPORTED_CREDENTIAL);
-                        writer.writeAttribute(CREDENTIAL_NAME, property.getName());
-                        if (property.getValue().asBoolean()) {
-                            writer.writeAttribute(PLAIN_TEXT, Boolean.TRUE.toString());
-                        }
-                        writer.writeEndElement();
-                    }
-                }
 
                 writer.writeEndElement();
             }
