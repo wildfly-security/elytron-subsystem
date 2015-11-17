@@ -37,7 +37,6 @@ import static org.wildfly.extension.elytron.SecurityActions.doPrivileged;
 import java.security.PrivilegedExceptionAction;
 import java.security.Provider;
 import java.security.Security;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -158,10 +157,7 @@ class HttpServerDefinitions {
                             .setSecurityDomain(securityDomainInjector.getValue())
                             .setHttpServerAuthenticationMechanismFactory(injectedHttpServerFactory);
 
-                    // TODO - There will be no hard coded credential names, these will be defined within the model.
-                    final List<String> credentialNames = Collections.unmodifiableList(Arrays.asList(new String[] { "password-digest-md5", "password-clear" }));
                     MechanismConfiguration defaultConfig = MechanismConfiguration.builder()
-                            .setCredentialNameSupplier(() -> credentialNames)
                             .build();
 
                     for (String mech :injectedHttpServerFactory.getMechanismNames(Collections.emptyMap())) {
