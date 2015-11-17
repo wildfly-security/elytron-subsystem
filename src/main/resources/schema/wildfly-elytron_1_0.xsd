@@ -470,13 +470,6 @@
                 A key mapper that maps a column returned from a SQL query to a Clear Password key type.
             </xs:documentation>
         </xs:annotation>
-        <xs:attribute name="name" type="xs:string" use="required">
-            <xs:annotation>
-                <xs:documentation>
-                    The credential name.
-                </xs:documentation>
-            </xs:annotation>
-        </xs:attribute>
         <xs:attribute name="password-index" type="xs:int" use="required">
             <xs:annotation>
                 <xs:documentation>
@@ -492,13 +485,6 @@
                 A key mapper that maps a column returned from a SQL query to a Bcrypt key type.
             </xs:documentation>
         </xs:annotation>
-        <xs:attribute name="name" type="xs:string" use="required">
-            <xs:annotation>
-                <xs:documentation>
-                    The credential name.
-                </xs:documentation>
-            </xs:annotation>
-        </xs:attribute>
         <xs:attribute name="password-index" type="xs:int" use="required">
             <xs:annotation>
                 <xs:documentation>
@@ -528,13 +514,6 @@
                 A key mapper that maps a column returned from a SQL query to a Salted Simple Digest key type.
             </xs:documentation>
         </xs:annotation>
-        <xs:attribute name="name" type="xs:string" use="required">
-            <xs:annotation>
-                <xs:documentation>
-                    The credential name.
-                </xs:documentation>
-            </xs:annotation>
-        </xs:attribute>
         <xs:attribute name="password-index" type="xs:int" use="required">
             <xs:annotation>
                 <xs:documentation>
@@ -557,13 +536,6 @@
                 A key mapper that maps a column returned from a SQL query to a Simple Digest key type.
             </xs:documentation>
         </xs:annotation>
-        <xs:attribute name="name" type="xs:string" use="required">
-            <xs:annotation>
-                <xs:documentation>
-                    The credential name.
-                </xs:documentation>
-            </xs:annotation>
-        </xs:attribute>
         <xs:attribute name="password-index" type="xs:int" use="required">
             <xs:annotation>
                 <xs:documentation>
@@ -579,13 +551,6 @@
                 A key mapper that maps a column returned from a SQL query to a Scram key type.
             </xs:documentation>
         </xs:annotation>
-        <xs:attribute name="name" type="xs:string" use="required">
-            <xs:annotation>
-                <xs:documentation>
-                    The credential name.
-                </xs:documentation>
-            </xs:annotation>
-        </xs:attribute>
         <xs:attribute name="password-index" type="xs:int" use="required">
             <xs:annotation>
                 <xs:documentation>
