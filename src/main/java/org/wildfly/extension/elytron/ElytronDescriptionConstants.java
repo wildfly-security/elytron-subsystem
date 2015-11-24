@@ -71,6 +71,7 @@ interface ElytronDescriptionConstants {
     String CREATION_DATE = "creation-date";
     String CREDENTIAL = "credential";
     String CREDENTIAL_NAME = "credential-name";
+    String CREDENTIAL_SECURITY_FACTORY = "credential-security-factory";
     String CREDENTIALS = "credentials";
     String CUSTOM_NAME_REWRITER = "custom-name-rewriter";
     String CUSTOM_PERMISSION_MAPPER = "custom-permission-mapper";
@@ -99,6 +100,7 @@ interface ElytronDescriptionConstants {
     String FILTER = "filter";
     String FILTER_BASE_DN = "filter-base-dn";
     String FILTERS = "filters";
+    String FINAL_NAME_REWRITER = "final-name-rewriter";
     String FINGER_PRINT = "finger-print";
     String FINGER_PRINTS = "finger-prints";
     String FORMAT = "format";
@@ -144,8 +146,12 @@ interface ElytronDescriptionConstants {
     String MAPPERS = "mappers";
     String MATCH = "match";
     String MAXIMUM_SEGMENTS = "maximum-segments";
+    String MECHANISM_CONFIGURATION = "mechanism-configuration";
+    String MECHANISM_CONFIGURATIONS = "mechanism-configurations";
     String MECHANISM_NAME = "mechanism-name";
     String MECHANISM_PROVIDER_FILTERING_SASL_SERVER_FACTORY = "mechanism-provider-filtering-sasl-server-factory";
+    String MECHANISM_REALM_CONFIGURATION = "mechanism-realm-configuration";
+    String MECHANISM_REALM_CONFIGURATIONS = "mechanism-realm-configurations";
     String MINUS = "minus";
     String MODIFIED = "modified";
     String MODULE = "module";
@@ -197,6 +203,7 @@ interface ElytronDescriptionConstants {
     String REALM_MAP = "realm-map";
     String REALM_MAPPER = "realm-mapper";
     String REALM_MAPPING = "realm-mapping";
+    String REALM_NAME = "realm-name";
     String REALMS = "realms";
     String REGEX_NAME_REWRITER = "regex-name-rewriter";
     String REGEX_NAME_VALIDATING_REWRITER = "regex-name-validating-rewriter";

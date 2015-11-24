@@ -26,6 +26,8 @@ import static org.wildfly.extension.elytron.Capabilities.SASL_SERVER_AUTHENTICAT
 import static org.wildfly.extension.elytron.Capabilities.SASL_SERVER_AUTHENTICATION_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SASL_SERVER_FACTORY_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SECURITY_DOMAIN_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.NAME_REWRITER_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.SECURITY_FACTORY_CREDENTIAL_CAPABILITY;
 import static org.wildfly.extension.elytron.ElytronExtension.getRequiredService;
 
 import java.util.Collection;
@@ -35,6 +37,8 @@ import javax.security.sasl.SaslServerFactory;
 
 import org.jboss.as.controller.AbstractAddStepHandler;
 import org.jboss.as.controller.AttributeDefinition;
+import org.jboss.as.controller.ObjectListAttributeDefinition;
+import org.jboss.as.controller.ObjectTypeAttributeDefinition;
 import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
 import org.jboss.as.controller.ResourceDefinition;
@@ -80,13 +84,78 @@ class AuthenticationFactoryDefinitions {
             .setCapabilityReference(SASL_SERVER_FACTORY_CAPABILITY, SASL_SERVER_AUTHENTICATION_CAPABILITY, true)
             .build();
 
+    static final SimpleAttributeDefinition MECHANISM_NAME = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.MECHANISM_NAME, ModelType.STRING, false)
+            .setAllowExpression(true)
+            .setMinSize(1)
+            .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+            .build();
+
+    static final SimpleAttributeDefinition BASE_CREDENTIAL_SECURITY_FACTORY = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.CREDENTIAL_SECURITY_FACTORY, ModelType.STRING, true)
+            .setMinSize(1)
+            .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+            .build();
+
+    static final SimpleAttributeDefinition BASE_PRE_REALM_NAME_REWRITER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PRE_REALM_NAME_REWRITER, ModelType.STRING, true)
+            .setMinSize(1)
+            .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+            .build();
+
+    static final SimpleAttributeDefinition BASE_POST_REALM_NAME_REWRITER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.POST_REALM_NAME_REWRITER, ModelType.STRING, true)
+            .setMinSize(1)
+            .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+            .build();
+
+    static final SimpleAttributeDefinition BASE_FINAL_NAME_REWRITER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.FINAL_NAME_REWRITER, ModelType.STRING, true)
+            .setMinSize(1)
+            .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+            .build();
+
+    static final SimpleAttributeDefinition REALM_NAME = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.REALM_NAME, ModelType.STRING, false)
+            .setMinSize(1)
+            .setAllowExpression(true)
+            .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+            .build();
+
+    private static AttributeDefinition getMechanismConfiguration(String forCapability) {
+        SimpleAttributeDefinition preRealmNameRewriterAttribute = new SimpleAttributeDefinitionBuilder(BASE_PRE_REALM_NAME_REWRITER)
+                .setCapabilityReference(NAME_REWRITER_CAPABILITY, forCapability, true)
+                .build();
+        SimpleAttributeDefinition postRealmNameRewriterAttribute = new SimpleAttributeDefinitionBuilder(BASE_POST_REALM_NAME_REWRITER)
+                .setCapabilityReference(NAME_REWRITER_CAPABILITY, forCapability, true)
+                .build();
+        SimpleAttributeDefinition finalNameRewriterAttribute = new SimpleAttributeDefinitionBuilder(BASE_FINAL_NAME_REWRITER)
+                .setCapabilityReference(NAME_REWRITER_CAPABILITY, forCapability, true)
+                .build();
+
+        ObjectTypeAttributeDefinition mechanismRealmConfguration = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.MECHANISM_REALM_CONFIGURATION, REALM_NAME, preRealmNameRewriterAttribute, postRealmNameRewriterAttribute, finalNameRewriterAttribute)
+                .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+                .build();
+
+        ObjectListAttributeDefinition mechanismRealmConfigurations = new ObjectListAttributeDefinition.Builder(ElytronDescriptionConstants.MECHANISM_REALM_CONFIGURATIONS, mechanismRealmConfguration)
+                .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+                .build();
+
+        SimpleAttributeDefinition credentialSecurityFactoryAttribute = new SimpleAttributeDefinitionBuilder(BASE_CREDENTIAL_SECURITY_FACTORY)
+                .setCapabilityReference(SECURITY_FACTORY_CREDENTIAL_CAPABILITY, forCapability, true)
+                .build();
+
+        ObjectTypeAttributeDefinition mechanismConfiguration = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.MECHANISM_CONFIGURATION, MECHANISM_NAME, preRealmNameRewriterAttribute, postRealmNameRewriterAttribute, finalNameRewriterAttribute, mechanismRealmConfigurations, credentialSecurityFactoryAttribute)
+                .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+                .build();
+
+        return new ObjectListAttributeDefinition.Builder(ElytronDescriptionConstants.MECHANISM_CONFIGURATIONS, mechanismConfiguration)
+                .setAllowNull(true)
+                .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+                .build();
+    }
+
     static ResourceDefinition getSecurityDomainHttpServerConfiguration() {
 
-        SimpleAttributeDefinition SECURITY_DOMAIN = new SimpleAttributeDefinitionBuilder(BASE_SECURITY_DOMAIN_REF)
+        SimpleAttributeDefinition securityDomainAttribute = new SimpleAttributeDefinitionBuilder(BASE_SECURITY_DOMAIN_REF)
                 .setCapabilityReference(SECURITY_DOMAIN_CAPABILITY, HTTP_SERVER_AUTHENTICATION_CAPABILITY, true)
                 .build();
 
-        AttributeDefinition[] attributes = new AttributeDefinition[] { SECURITY_DOMAIN, HTTP_SERVER_FACTORY };
+        AttributeDefinition[] attributes = new AttributeDefinition[] { securityDomainAttribute, HTTP_SERVER_FACTORY, getMechanismConfiguration(HTTP_SERVER_AUTHENTICATION_CAPABILITY) };
         AbstractAddStepHandler add = new TrivialAddHandler<HttpAuthenticationFactory>(HTTP_SERVER_AUTHENTICATION_RUNTIME_CAPABILITY, HttpAuthenticationFactory.class, attributes) {
 
             @Override
@@ -97,7 +166,7 @@ class AuthenticationFactoryDefinitions {
                 final InjectedValue<SecurityDomain> securityDomainInjector = new InjectedValue<SecurityDomain>();
                 final InjectedValue<HttpServerAuthenticationMechanismFactory> mechanismFactoryInjector = new InjectedValue<HttpServerAuthenticationMechanismFactory>();
 
-                String securityDomain = SECURITY_DOMAIN.resolveModelAttribute(context, model).asString();
+                String securityDomain = securityDomainAttribute.resolveModelAttribute(context, model).asString();
                 serviceBuilder.addDependency(context.getCapabilityServiceName(
                         buildDynamicCapabilityName(SECURITY_DOMAIN_CAPABILITY, securityDomain), SecurityDomain.class),
                         SecurityDomain.class, securityDomainInjector);
@@ -144,11 +213,11 @@ class AuthenticationFactoryDefinitions {
     }
 
     static ResourceDefinition getSecurityDomainSaslConfiguration() {
-        SimpleAttributeDefinition SECURITY_DOMAIN = new SimpleAttributeDefinitionBuilder(BASE_SECURITY_DOMAIN_REF)
+        SimpleAttributeDefinition securityDomainAttribute = new SimpleAttributeDefinitionBuilder(BASE_SECURITY_DOMAIN_REF)
                 .setCapabilityReference(SECURITY_DOMAIN_CAPABILITY, SASL_SERVER_AUTHENTICATION_CAPABILITY, true)
                 .build();
 
-        AttributeDefinition[] attributes = new AttributeDefinition[] { SECURITY_DOMAIN, SASL_SERVER_FACTORY };
+        AttributeDefinition[] attributes = new AttributeDefinition[] { securityDomainAttribute, SASL_SERVER_FACTORY, getMechanismConfiguration(SASL_SERVER_AUTHENTICATION_CAPABILITY) };
 
         AbstractAddStepHandler add = new TrivialAddHandler<SaslAuthenticationFactory>(SASL_SERVER_AUTHENTICATION_RUNTIME_CAPABILITY, SaslAuthenticationFactory.class, attributes) {
 
@@ -157,7 +226,7 @@ class AuthenticationFactoryDefinitions {
                     ServiceBuilder<SaslAuthenticationFactory> serviceBuilder, OperationContext context, ModelNode model)
                     throws OperationFailedException {
 
-                String securityDomain = SECURITY_DOMAIN.resolveModelAttribute(context, model).asString();
+                String securityDomain = securityDomainAttribute.resolveModelAttribute(context, model).asString();
                 String saslServerFactory = SASL_SERVER_FACTORY.resolveModelAttribute(context, model).asString();
 
                 final InjectedValue<SecurityDomain> securityDomainInjector = new InjectedValue<SecurityDomain>();
