@@ -34,6 +34,7 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ENABLING
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.FILTER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.FILTERS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.HTTP;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.HTTP_SERVER_AUTHENITCATION;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.HTTP_SERVER_FACTORIES;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.HTTP_SERVER_FACTORY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEY;
@@ -44,8 +45,6 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROPERTI
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROPERTY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDER_HTTP_SERVER_FACTORY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDER_LOADER;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SECURITY_DOMAIN;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.HTTP_SERVER_AUTHENITCATION;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SERVICE_LOADER_HTTP_SERVER_FACTORY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SLOT;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.VALUE;
@@ -70,6 +69,8 @@ import org.jboss.staxmapper.XMLExtendedStreamWriter;
  */
 class HttpParser {
 
+    private final AuthenticationFactoryParser authenticationFactoryParser = new AuthenticationFactoryParser();
+
     void readHttp(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations) throws XMLStreamException {
         requireNoAttributes(reader);
         while (reader.hasNext() && reader.nextTag() != END_ELEMENT) {
@@ -77,7 +78,7 @@ class HttpParser {
             String localName = reader.getLocalName();
             switch (localName) {
                 case HTTP_SERVER_AUTHENITCATION:
-                    readHttpServerAuthenticationElement(parentAddress, reader, operations);
+                    authenticationFactoryParser.readHttpServerAuthenticationElement(parentAddress, reader, operations);
                     break;
                 case AGGREGATE_HTTP_SERVER_FACTORY:
                     readAggregateHttpServerFactoryElement(parentAddress, reader, operations);
@@ -95,51 +96,6 @@ class HttpParser {
                     throw unexpectedElement(reader);
             }
         }
-    }
-
-    private void readHttpServerAuthenticationElement(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations) throws XMLStreamException {
-        ModelNode addOperation = new ModelNode();
-        addOperation.get(OP).set(ADD);
-
-        Set<String> requiredAttributes = new HashSet<String>(Arrays.asList(new String[] { NAME, SECURITY_DOMAIN, HTTP_SERVER_FACTORY }));
-
-        String name = null;
-
-        final int count = reader.getAttributeCount();
-        for (int i = 0; i < count; i++) {
-            final String value = reader.getAttributeValue(i);
-            if (!isNoNamespaceAttribute(reader, i)) {
-                throw unexpectedAttribute(reader, i);
-            } else {
-                String attribute = reader.getAttributeLocalName(i);
-                requiredAttributes.remove(attribute);
-                switch (attribute) {
-                    case NAME:
-                        name = value;
-                        break;
-                    case HTTP_SERVER_FACTORY:
-                        HttpServerDefinitions.HTTP_SERVER_FACTORY_FOR_CONFIG.parseAndSetParameter(value, addOperation, reader);
-                        break;
-                    case SECURITY_DOMAIN:
-                        HttpServerDefinitions.SECURITY_DOMAIN.parseAndSetParameter(value, addOperation, reader);
-                        break;
-                    default:
-                        throw unexpectedAttribute(reader, i);
-                }
-            }
-        }
-
-        if (requiredAttributes.isEmpty() == false) {
-            throw missingRequired(reader, requiredAttributes);
-        }
-
-        addOperation.get(OP_ADDR).set(parentAddress).add(HTTP_SERVER_AUTHENITCATION, name);
-
-        operations.add(addOperation);
-
-        requireNoContent(reader);
-
-        System.out.println(addOperation);
     }
 
     private void readAggregateHttpServerFactoryElement(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations) throws XMLStreamException {
@@ -211,7 +167,7 @@ class HttpParser {
                         name = value;
                         break;
                     case HTTP_SERVER_FACTORY:
-                        HttpServerDefinitions.HTTP_SERVER_FACTORY_FOR_FACTORY.parseAndSetParameter(value, addOperation, reader);
+                        HttpServerDefinitions.HTTP_SERVER_FACTORY.parseAndSetParameter(value, addOperation, reader);
                         break;
                     default:
                         throw unexpectedAttribute(reader, i);
@@ -461,24 +417,6 @@ class HttpParser {
         return false;
     }
 
-    private boolean writeHttpServerAuthentication(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
-        if (subsystem.hasDefined(HTTP_SERVER_AUTHENITCATION)) {
-            startHttp(started, writer);
-            ModelNode securityDomainHttpConfiguration = subsystem.require(HTTP_SERVER_AUTHENITCATION);
-            for (String name : securityDomainHttpConfiguration.keys()) {
-                ModelNode configuration = securityDomainHttpConfiguration.require(name);
-                writer.writeStartElement(HTTP_SERVER_AUTHENITCATION);
-                writer.writeAttribute(NAME, name);
-                HttpServerDefinitions.HTTP_SERVER_FACTORY_FOR_CONFIG.marshallAsAttribute(configuration, writer);
-                HttpServerDefinitions.SECURITY_DOMAIN.marshallAsAttribute(configuration, writer);
-                writer.writeEndElement();
-            }
-            return true;
-        }
-
-        return false;
-    }
-
     private boolean writeConfigurableHttpServerFactory(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (subsystem.hasDefined(CONFIGURABLE_HTTP_SERVER_FACTORY)) {
             startHttp(started, writer);
@@ -487,7 +425,7 @@ class HttpParser {
                 ModelNode serverFactory = httpServerFactories.require(name);
                 writer.writeStartElement(CONFIGURABLE_HTTP_SERVER_FACTORY);
                 writer.writeAttribute(NAME, name);
-                HttpServerDefinitions.HTTP_SERVER_FACTORY_FOR_FACTORY.marshallAsAttribute(serverFactory, writer);
+                HttpServerDefinitions.HTTP_SERVER_FACTORY.marshallAsAttribute(serverFactory, writer);
                 CommonAttributes.PROPERTIES.marshallAsElement(serverFactory, writer);
                 if (serverFactory.hasDefined(FILTERS)) {
                     writer.writeStartElement(FILTERS);
@@ -551,7 +489,7 @@ class HttpParser {
     void writeHttp(ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         boolean started = false;
 
-        started = started | writeHttpServerAuthentication(started, subsystem, writer);
+        started = started | authenticationFactoryParser.writeHttpServerAuthentication(started, subsystem, writer, b -> startHttp(b, writer));
         started = started | writeAggregateHttpServerFactory(started, subsystem, writer);
         started = started | writeConfigurableHttpServerFactory(started, subsystem, writer);
         started = started | writeProviderHttpServerFactory(started, subsystem, writer);

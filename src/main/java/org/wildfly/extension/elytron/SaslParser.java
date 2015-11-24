@@ -51,7 +51,6 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SASL;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SASL_SERVER_AUTHENTICATION;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SASL_SERVER_FACTORIES;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SASL_SERVER_FACTORY;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SECURITY_DOMAIN;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SERVER_NAME;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SERVICE_LOADER_SASL_SERVER_FACTORY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SLOT;
@@ -78,6 +77,8 @@ import org.jboss.staxmapper.XMLExtendedStreamWriter;
  */
 class SaslParser {
 
+    private final AuthenticationFactoryParser authenticationFactoryParser = new AuthenticationFactoryParser();
+
     void readSasl(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations) throws XMLStreamException {
         requireNoAttributes(reader);
         while (reader.hasNext() && reader.nextTag() != END_ELEMENT) {
@@ -85,7 +86,7 @@ class SaslParser {
             String localName = reader.getLocalName();
             switch (localName) {
                 case SASL_SERVER_AUTHENTICATION:
-                    readSaslServerAuthenticationElement(parentAddress, reader, operations);
+                    authenticationFactoryParser.readSaslServerAuthenticationElement(parentAddress, reader, operations);
                     break;
                 case AGGREGATE_SASL_SERVER_FACTORY:
                     readAggregateSaslServerFactoryElement(parentAddress, reader, operations);
@@ -106,49 +107,6 @@ class SaslParser {
                     throw unexpectedElement(reader);
             }
         }
-    }
-
-    private void readSaslServerAuthenticationElement(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations) throws XMLStreamException {
-        ModelNode addOperation = new ModelNode();
-        addOperation.get(OP).set(ADD);
-
-        Set<String> requiredAttributes = new HashSet<String>(Arrays.asList(new String[] { NAME, SECURITY_DOMAIN, SASL_SERVER_FACTORY }));
-
-        String name = null;
-
-        final int count = reader.getAttributeCount();
-        for (int i = 0; i < count; i++) {
-            final String value = reader.getAttributeValue(i);
-            if (!isNoNamespaceAttribute(reader, i)) {
-                throw unexpectedAttribute(reader, i);
-            } else {
-                String attribute = reader.getAttributeLocalName(i);
-                requiredAttributes.remove(attribute);
-                switch (attribute) {
-                    case NAME:
-                        name = value;
-                        break;
-                    case SASL_SERVER_FACTORY:
-                        SaslServerDefinitions.SASL_SERVER_FACTORY_FOR_CONFIG.parseAndSetParameter(value, addOperation, reader);
-                        break;
-                    case SECURITY_DOMAIN:
-                        SaslServerDefinitions.SECURITY_DOMAIN.parseAndSetParameter(value, addOperation, reader);
-                        break;
-                    default:
-                        throw unexpectedAttribute(reader, i);
-                }
-            }
-        }
-
-        if (requiredAttributes.isEmpty() == false) {
-            throw missingRequired(reader, requiredAttributes);
-        }
-
-        addOperation.get(OP_ADDR).set(parentAddress).add(SASL_SERVER_AUTHENTICATION, name);
-
-        operations.add(addOperation);
-
-        requireNoContent(reader);
     }
 
     private void readAggregateSaslServerFactoryElement(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations) throws XMLStreamException {
@@ -220,7 +178,7 @@ class SaslParser {
                         name = value;
                         break;
                     case SASL_SERVER_FACTORY:
-                        SaslServerDefinitions.SASL_SERVER_FACTORY_FOR_FACTORY.parseAndSetParameter(value, addOperation, reader);
+                        SaslServerDefinitions.SASL_SERVER_FACTORY.parseAndSetParameter(value, addOperation, reader);
                         break;
                     case PROTOCOL:
                         SaslServerDefinitions.PROTOCOL.parseAndSetParameter(value, addOperation, reader);
@@ -395,7 +353,7 @@ class SaslParser {
                         name = value;
                         break;
                     case SASL_SERVER_FACTORY:
-                        SaslServerDefinitions.SASL_SERVER_FACTORY_FOR_FACTORY.parseAndSetParameter(value, addOperation, reader);
+                        SaslServerDefinitions.SASL_SERVER_FACTORY.parseAndSetParameter(value, addOperation, reader);
                         break;
                     case ENABLING:
                         SaslServerDefinitions.ENABLING.parseAndSetParameter(value, addOperation, reader);
@@ -557,24 +515,6 @@ class SaslParser {
         }
     }
 
-    private boolean writeSaslServerAuthenticationonfiguration(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
-        if (subsystem.hasDefined(SASL_SERVER_AUTHENTICATION)) {
-            startSasl(started, writer);
-            ModelNode securityDomainSaslConfigurationInstances = subsystem.require(SASL_SERVER_AUTHENTICATION);
-            for (String name : securityDomainSaslConfigurationInstances.keys()) {
-                ModelNode securityDomainSaslConfiguration = securityDomainSaslConfigurationInstances.require(name);
-                writer.writeStartElement(SASL_SERVER_AUTHENTICATION);
-                writer.writeAttribute(NAME, name);
-                SaslServerDefinitions.SASL_SERVER_FACTORY_FOR_CONFIG.marshallAsAttribute(securityDomainSaslConfiguration, writer);
-                SaslServerDefinitions.SECURITY_DOMAIN.marshallAsAttribute(securityDomainSaslConfiguration, writer);
-                writer.writeEndElement();
-            }
-            return true;
-        }
-
-        return false;
-    }
-
     private boolean writeAggregateSaslServerFactory(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (subsystem.hasDefined(AGGREGATE_SASL_SERVER_FACTORY)) {
             startSasl(started, writer);
@@ -609,7 +549,7 @@ class SaslParser {
                 writer.writeStartElement(CONFIGURABLE_SASL_SERVER_FACTORY);
                 writer.writeAttribute(NAME, name);
                 SaslServerDefinitions.PROTOCOL.marshallAsAttribute(serverFactory, writer);
-                SaslServerDefinitions.SASL_SERVER_FACTORY_FOR_FACTORY.marshallAsAttribute(serverFactory, writer);
+                SaslServerDefinitions.SASL_SERVER_FACTORY.marshallAsAttribute(serverFactory, writer);
                 SaslServerDefinitions.SERVER_NAME.marshallAsAttribute(serverFactory, writer);
                 CommonAttributes.PROPERTIES.marshallAsElement(serverFactory, writer);
                 if (serverFactory.hasDefined(FILTERS)) {
@@ -649,7 +589,7 @@ class SaslParser {
                 writer.writeStartElement(MECHANISM_PROVIDER_FILTERING_SASL_SERVER_FACTORY);
                 writer.writeAttribute(NAME, name);
                 SaslServerDefinitions.ENABLING.marshallAsAttribute(serverFactory, writer);
-                SaslServerDefinitions.SASL_SERVER_FACTORY_FOR_FACTORY.marshallAsAttribute(serverFactory, writer);
+                SaslServerDefinitions.SASL_SERVER_FACTORY.marshallAsAttribute(serverFactory, writer);
                 if (serverFactory.hasDefined(FILTERS)) {
                     writer.writeStartElement(FILTERS);
                     List<ModelNode> filters = serverFactory.require(FILTERS).asList();
@@ -710,7 +650,7 @@ class SaslParser {
     void writeSasl(ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         boolean saslStarted = false;
 
-        saslStarted = saslStarted | writeSaslServerAuthenticationonfiguration(saslStarted, subsystem, writer);
+        saslStarted = saslStarted | authenticationFactoryParser.writeSaslServerAuthenticationonfiguration(saslStarted, subsystem, writer, b -> startSasl(b, writer));
         saslStarted = saslStarted | writeAggregateSaslServerFactory(saslStarted, subsystem, writer);
         saslStarted = saslStarted | writeConfigurableSaslServerFactory(saslStarted, subsystem, writer);
         saslStarted = saslStarted | writeMechanismProviderFilteringSaslServerFactory(saslStarted, subsystem, writer);
