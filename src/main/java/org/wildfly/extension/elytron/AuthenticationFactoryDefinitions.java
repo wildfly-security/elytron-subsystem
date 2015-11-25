@@ -31,6 +31,7 @@ import static org.wildfly.extension.elytron.Capabilities.SECURITY_FACTORY_CREDEN
 import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
 import static org.wildfly.extension.elytron.ElytronExtension.getRequiredService;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -50,6 +51,7 @@ import org.jboss.as.controller.OperationFailedException;
 import org.jboss.as.controller.ResourceDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
+import org.jboss.as.controller.StringListAttributeDefinition;
 import org.jboss.as.controller.capability.RuntimeCapability;
 import org.jboss.as.controller.registry.AttributeAccess;
 import org.jboss.dmr.ModelNode;
@@ -69,7 +71,6 @@ import org.wildfly.security.auth.server.MechanismRealmConfiguration;
 import org.wildfly.security.auth.server.NameRewriter;
 import org.wildfly.security.auth.server.SaslAuthenticationFactory;
 import org.wildfly.security.auth.server.SecurityDomain;
-import org.wildfly.security.credential.Credential;
 import org.wildfly.security.http.HttpServerAuthenticationMechanismFactory;
 
 
@@ -103,8 +104,7 @@ class AuthenticationFactoryDefinitions {
             .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
             .build();
 
-    static final SimpleAttributeDefinition BASE_CREDENTIAL_SECURITY_FACTORY = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.CREDENTIAL_SECURITY_FACTORY, ModelType.STRING, true)
-            .setMinSize(1)
+    static final StringListAttributeDefinition BASE_CREDENTIAL_SECURITY_FACTORIES = new StringListAttributeDefinition.Builder(ElytronDescriptionConstants.CREDENTIAL_SECURITY_FACTORIES)
             .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
             .build();
 
@@ -148,13 +148,12 @@ class AuthenticationFactoryDefinitions {
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
 
-        // TODO - This needs to be a list of security credentials.
-
-        SimpleAttributeDefinition credentialSecurityFactoryAttribute = new SimpleAttributeDefinitionBuilder(BASE_CREDENTIAL_SECURITY_FACTORY)
+        StringListAttributeDefinition credentialSecurityFactoriesAttribute = new StringListAttributeDefinition.Builder(BASE_CREDENTIAL_SECURITY_FACTORIES)
                 .setCapabilityReference(SECURITY_FACTORY_CREDENTIAL_CAPABILITY, forCapability, true)
                 .build();
 
-        ObjectTypeAttributeDefinition mechanismConfiguration = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.MECHANISM_CONFIGURATION, MECHANISM_NAME, preRealmNameRewriterAttribute, postRealmNameRewriterAttribute, finalNameRewriterAttribute, mechanismRealmConfigurations, credentialSecurityFactoryAttribute)
+        ObjectTypeAttributeDefinition mechanismConfiguration = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.MECHANISM_CONFIGURATION, MECHANISM_NAME, preRealmNameRewriterAttribute,
+                    postRealmNameRewriterAttribute, finalNameRewriterAttribute, mechanismRealmConfigurations, credentialSecurityFactoriesAttribute)
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
 
@@ -180,11 +179,16 @@ class AuthenticationFactoryDefinitions {
             injectNameRewriter(BASE_POST_REALM_NAME_REWRITER, serviceBuilder, context, currentMechanismConfiguration, resolvedMechanismConfiguration.postRealmNameRewriter);
             injectNameRewriter(BASE_FINAL_NAME_REWRITER, serviceBuilder, context, currentMechanismConfiguration, resolvedMechanismConfiguration.finalNameRewriter);
 
-            String securityFactory = asStringIfDefined(context, BASE_CREDENTIAL_SECURITY_FACTORY, currentMechanismConfiguration);
-            if (securityFactory != null) {
+            List<String> securityFactories = BASE_CREDENTIAL_SECURITY_FACTORIES.unwrap(context, currentMechanismConfiguration);
+
+            for (String securityFactory : securityFactories) {
+                InjectedValue<SecurityFactory> securityFactoryInjector = new InjectedValue<>();
+
                 serviceBuilder.addDependency(context.getCapabilityServiceName(
                         buildDynamicCapabilityName(SECURITY_FACTORY_CREDENTIAL_CAPABILITY, securityFactory), SecurityFactory.class),
-                        SecurityFactory.class, resolvedMechanismConfiguration.securityFactory);
+                        SecurityFactory.class, securityFactoryInjector);
+
+                resolvedMechanismConfiguration.securityFactories.add(securityFactoryInjector);
             }
 
             if (currentMechanismConfiguration.hasDefined(ElytronDescriptionConstants.MECHANISM_REALM_CONFIGURATIONS)) {
@@ -225,10 +229,8 @@ class AuthenticationFactoryDefinitions {
                 builder.addMechanismRealm(mechRealmBuilder.build());
             }
 
-            // TODO - This will be switched to a list of these !
-            SecurityFactory<?> securityFactory;
-            if ((securityFactory = resolvedMechanismConfiguration.securityFactory.getOptionalValue()) != null) {
-                builder.addServerCredential((SecurityFactory<Credential>)securityFactory);
+            for (InjectedValue<SecurityFactory> securityFactory : resolvedMechanismConfiguration.securityFactories) {
+                builder.addServerCredential(securityFactory.getValue());
             }
 
             factoryBuilder.addMechanism(currentEntry.getKey(), builder.build());
@@ -384,7 +386,7 @@ class AuthenticationFactoryDefinitions {
 
     private static class ResolvedMechanismConfiguration extends NameRewriterTrio {
         final Map<String, NameRewriterTrio> mechanismRealms = new HashMap<>();
-        final InjectedValue<SecurityFactory> securityFactory = new InjectedValue<>();
+        final List<InjectedValue<SecurityFactory>> securityFactories = new ArrayList<>();
     }
 
 }

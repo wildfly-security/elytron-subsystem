@@ -71,6 +71,7 @@ interface ElytronDescriptionConstants {
     String CREATION_DATE = "creation-date";
     String CREDENTIAL = "credential";
     String CREDENTIAL_NAME = "credential-name";
+    String CREDENTIAL_SECURITY_FACTORIES = "credential-security-factories";
     String CREDENTIAL_SECURITY_FACTORY = "credential-security-factory";
     String CREDENTIALS = "credentials";
     String CUSTOM_NAME_REWRITER = "custom-name-rewriter";
