@@ -17,21 +17,27 @@
  */
 package org.wildfly.extension.elytron;
 
-import static org.wildfly.extension.elytron.AvailableMechanismsRuntimeResource.wrap;
 import static org.jboss.as.controller.capability.RuntimeCapability.buildDynamicCapabilityName;
+import static org.wildfly.extension.elytron.AvailableMechanismsRuntimeResource.wrap;
 import static org.wildfly.extension.elytron.Capabilities.HTTP_SERVER_AUTHENTICATION_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.HTTP_SERVER_AUTHENTICATION_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.HTTP_SERVER_FACTORY_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.NAME_REWRITER_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SASL_SERVER_AUTHENTICATION_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SASL_SERVER_AUTHENTICATION_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SASL_SERVER_FACTORY_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SECURITY_DOMAIN_CAPABILITY;
-import static org.wildfly.extension.elytron.Capabilities.NAME_REWRITER_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SECURITY_FACTORY_CREDENTIAL_CAPABILITY;
+import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
 import static org.wildfly.extension.elytron.ElytronExtension.getRequiredService;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.function.Consumer;
 
 import javax.security.sasl.SaslServerFactory;
 
@@ -48,17 +54,24 @@ import org.jboss.as.controller.capability.RuntimeCapability;
 import org.jboss.as.controller.registry.AttributeAccess;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
+import org.jboss.msc.inject.Injector;
 import org.jboss.msc.service.ServiceBuilder;
 import org.jboss.msc.service.ServiceController;
 import org.jboss.msc.service.ServiceController.State;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.value.InjectedValue;
 import org.wildfly.extension.elytron.TrivialService.ValueSupplier;
+import org.wildfly.security.SecurityFactory;
 import org.wildfly.security.auth.server.HttpAuthenticationFactory;
+import org.wildfly.security.auth.server.MechanismAuthenticationFactory;
 import org.wildfly.security.auth.server.MechanismConfiguration;
+import org.wildfly.security.auth.server.MechanismRealmConfiguration;
+import org.wildfly.security.auth.server.NameRewriter;
 import org.wildfly.security.auth.server.SaslAuthenticationFactory;
 import org.wildfly.security.auth.server.SecurityDomain;
+import org.wildfly.security.credential.Credential;
 import org.wildfly.security.http.HttpServerAuthenticationMechanismFactory;
+
 
 /**
  * The {@link ResourceDefinition} instances for the authentication factory definitions.
@@ -135,6 +148,8 @@ class AuthenticationFactoryDefinitions {
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
 
+        // TODO - This needs to be a list of security credentials.
+
         SimpleAttributeDefinition credentialSecurityFactoryAttribute = new SimpleAttributeDefinitionBuilder(BASE_CREDENTIAL_SECURITY_FACTORY)
                 .setCapabilityReference(SECURITY_FACTORY_CREDENTIAL_CAPABILITY, forCapability, true)
                 .build();
@@ -149,13 +164,102 @@ class AuthenticationFactoryDefinitions {
                 .build();
     }
 
+    static Map<String, ResolvedMechanismConfiguration> getResolvedMechanismConfiguration(AttributeDefinition mechanismConfigurationAttribute, ServiceBuilder<?> serviceBuilder,
+            OperationContext context, ModelNode model) throws OperationFailedException {
+        ModelNode mechanismConfiguration = mechanismConfigurationAttribute.resolveModelAttribute(context, model);
+        if (mechanismConfiguration.isDefined() == false) {
+            return Collections.emptyMap();
+        }
+        List<ModelNode> mechanismConfigurations = mechanismConfiguration.asList();
+        Map<String, ResolvedMechanismConfiguration> resolvedMechanismConfigurationMap = new HashMap<>(mechanismConfigurations.size());
+        for (ModelNode currentMechanismConfiguration : mechanismConfigurations) {
+            ResolvedMechanismConfiguration resolvedMechanismConfiguration = new ResolvedMechanismConfiguration();
+            String mechanismName = MECHANISM_NAME.resolveModelAttribute(context, currentMechanismConfiguration).asString();
+
+            injectNameRewriter(BASE_PRE_REALM_NAME_REWRITER, serviceBuilder, context, currentMechanismConfiguration, resolvedMechanismConfiguration.preRealmNameRewriter);
+            injectNameRewriter(BASE_POST_REALM_NAME_REWRITER, serviceBuilder, context, currentMechanismConfiguration, resolvedMechanismConfiguration.postRealmNameRewriter);
+            injectNameRewriter(BASE_FINAL_NAME_REWRITER, serviceBuilder, context, currentMechanismConfiguration, resolvedMechanismConfiguration.finalNameRewriter);
+
+            String securityFactory = asStringIfDefined(context, BASE_CREDENTIAL_SECURITY_FACTORY, currentMechanismConfiguration);
+            if (securityFactory != null) {
+                serviceBuilder.addDependency(context.getCapabilityServiceName(
+                        buildDynamicCapabilityName(SECURITY_FACTORY_CREDENTIAL_CAPABILITY, securityFactory), SecurityFactory.class),
+                        SecurityFactory.class, resolvedMechanismConfiguration.securityFactory);
+            }
+
+            if (currentMechanismConfiguration.hasDefined(ElytronDescriptionConstants.MECHANISM_REALM_CONFIGURATIONS)) {
+                for (ModelNode currentMechanismRealm : currentMechanismConfiguration.require(ElytronDescriptionConstants.MECHANISM_REALM_CONFIGURATIONS).asList()) {
+                    String realmName = REALM_NAME.resolveModelAttribute(context, currentMechanismRealm).asString();
+                    NameRewriterTrio nameRewriters = new NameRewriterTrio();
+                    injectNameRewriter(BASE_PRE_REALM_NAME_REWRITER, serviceBuilder, context, currentMechanismRealm, nameRewriters.preRealmNameRewriter);
+                    injectNameRewriter(BASE_POST_REALM_NAME_REWRITER, serviceBuilder, context, currentMechanismRealm, nameRewriters.postRealmNameRewriter);
+                    injectNameRewriter(BASE_FINAL_NAME_REWRITER, serviceBuilder, context, currentMechanismRealm, nameRewriters.finalNameRewriter);
+                    resolvedMechanismConfiguration.mechanismRealms.put(realmName, nameRewriters);
+                }
+            }
+
+            resolvedMechanismConfigurationMap.put(mechanismName, resolvedMechanismConfiguration);
+        }
+
+        return resolvedMechanismConfigurationMap;
+    }
+
+    static void buildMechanismConfiguration(Map<String, ResolvedMechanismConfiguration> resolvedMechanismConfigurationMap, MechanismAuthenticationFactory.Builder factoryBuilder) {
+        for (Entry<String, ResolvedMechanismConfiguration> currentEntry : resolvedMechanismConfigurationMap.entrySet()) {
+            ResolvedMechanismConfiguration resolvedMechanismConfiguration = currentEntry.getValue();
+            MechanismConfiguration.Builder builder = MechanismConfiguration.builder();
+
+            setNameRewriter(resolvedMechanismConfiguration.preRealmNameRewriter, builder::setPreRealmRewriter);
+            setNameRewriter(resolvedMechanismConfiguration.postRealmNameRewriter, builder::setPostRealmRewriter);
+            setNameRewriter(resolvedMechanismConfiguration.finalNameRewriter, builder::setFinalRewriter);
+
+            for (Entry<String, NameRewriterTrio> currentMechRealmEntry : resolvedMechanismConfiguration.mechanismRealms.entrySet()) {
+                MechanismRealmConfiguration.Builder mechRealmBuilder = MechanismRealmConfiguration.builder();
+                mechRealmBuilder.setRealmName(currentMechRealmEntry.getKey());
+                NameRewriterTrio nameRewriters = currentMechRealmEntry.getValue();
+
+                setNameRewriter(nameRewriters.preRealmNameRewriter, mechRealmBuilder::setPreRealmRewriter);
+                setNameRewriter(nameRewriters.postRealmNameRewriter, mechRealmBuilder::setPostRealmRewriter);
+                setNameRewriter(nameRewriters.finalNameRewriter, mechRealmBuilder::setFinalRewriter);
+
+                builder.addMechanismRealm(mechRealmBuilder.build());
+            }
+
+            // TODO - This will be switched to a list of these !
+            SecurityFactory<?> securityFactory;
+            if ((securityFactory = resolvedMechanismConfiguration.securityFactory.getOptionalValue()) != null) {
+                builder.addServerCredential((SecurityFactory<Credential>)securityFactory);
+            }
+
+            factoryBuilder.addMechanism(currentEntry.getKey(), builder.build());
+        }
+    }
+
+    private static void setNameRewriter(InjectedValue<NameRewriter> injectedValue, Consumer<NameRewriter> nameRewriterConsumer) {
+        NameRewriter nameRewriter = injectedValue.getOptionalValue();
+        if (nameRewriter != null) {
+            nameRewriterConsumer.accept(nameRewriter);
+        }
+    }
+
+    private static void injectNameRewriter(SimpleAttributeDefinition nameRewriterAttribute, ServiceBuilder<?> serviceBuilder, OperationContext context, ModelNode model, Injector<NameRewriter> preRealmNameRewriter) throws OperationFailedException {
+        String nameRewriter = asStringIfDefined(context, nameRewriterAttribute, model);
+        if (nameRewriter != null) {
+            serviceBuilder.addDependency(context.getCapabilityServiceName(
+                    buildDynamicCapabilityName(NAME_REWRITER_CAPABILITY, nameRewriter), NameRewriter.class),
+                    NameRewriter.class, preRealmNameRewriter);
+        }
+    }
+
     static ResourceDefinition getSecurityDomainHttpServerConfiguration() {
 
         SimpleAttributeDefinition securityDomainAttribute = new SimpleAttributeDefinitionBuilder(BASE_SECURITY_DOMAIN_REF)
                 .setCapabilityReference(SECURITY_DOMAIN_CAPABILITY, HTTP_SERVER_AUTHENTICATION_CAPABILITY, true)
                 .build();
 
-        AttributeDefinition[] attributes = new AttributeDefinition[] { securityDomainAttribute, HTTP_SERVER_FACTORY, getMechanismConfiguration(HTTP_SERVER_AUTHENTICATION_CAPABILITY) };
+        AttributeDefinition mechanismConfigurationAttribute = getMechanismConfiguration(HTTP_SERVER_AUTHENTICATION_CAPABILITY);
+
+        AttributeDefinition[] attributes = new AttributeDefinition[] { securityDomainAttribute, HTTP_SERVER_FACTORY, mechanismConfigurationAttribute };
         AbstractAddStepHandler add = new TrivialAddHandler<HttpAuthenticationFactory>(HTTP_SERVER_AUTHENTICATION_RUNTIME_CAPABILITY, HttpAuthenticationFactory.class, attributes) {
 
             @Override
@@ -176,6 +280,8 @@ class AuthenticationFactoryDefinitions {
                         buildDynamicCapabilityName(HTTP_SERVER_FACTORY_CAPABILITY, httpServerFactory), HttpServerAuthenticationMechanismFactory.class),
                         HttpServerAuthenticationMechanismFactory.class, mechanismFactoryInjector);
 
+                final Map<String, ResolvedMechanismConfiguration> resolvedMechanismConfiguration = getResolvedMechanismConfiguration(mechanismConfigurationAttribute, serviceBuilder, context, model);
+
                 return () -> {
                     HttpServerAuthenticationMechanismFactory injectedHttpServerFactory = mechanismFactoryInjector.getValue();
 
@@ -183,12 +289,7 @@ class AuthenticationFactoryDefinitions {
                             .setSecurityDomain(securityDomainInjector.getValue())
                             .setHttpServerAuthenticationMechanismFactory(injectedHttpServerFactory);
 
-                    MechanismConfiguration defaultConfig = MechanismConfiguration.builder()
-                            .build();
-
-                    for (String mech :injectedHttpServerFactory.getMechanismNames(Collections.emptyMap())) {
-                        builder.addMechanism(mech, defaultConfig);
-                    }
+                    buildMechanismConfiguration(resolvedMechanismConfiguration, builder);
 
                     return builder.build();
                 };
@@ -217,7 +318,9 @@ class AuthenticationFactoryDefinitions {
                 .setCapabilityReference(SECURITY_DOMAIN_CAPABILITY, SASL_SERVER_AUTHENTICATION_CAPABILITY, true)
                 .build();
 
-        AttributeDefinition[] attributes = new AttributeDefinition[] { securityDomainAttribute, SASL_SERVER_FACTORY, getMechanismConfiguration(SASL_SERVER_AUTHENTICATION_CAPABILITY) };
+        AttributeDefinition mechanismConfigurationAttribute = getMechanismConfiguration(SASL_SERVER_AUTHENTICATION_CAPABILITY);
+
+        AttributeDefinition[] attributes = new AttributeDefinition[] { securityDomainAttribute, SASL_SERVER_FACTORY, mechanismConfigurationAttribute };
 
         AbstractAddStepHandler add = new TrivialAddHandler<SaslAuthenticationFactory>(SASL_SERVER_AUTHENTICATION_RUNTIME_CAPABILITY, SaslAuthenticationFactory.class, attributes) {
 
@@ -240,6 +343,8 @@ class AuthenticationFactoryDefinitions {
                         buildDynamicCapabilityName(SASL_SERVER_FACTORY_CAPABILITY, saslServerFactory), SaslServerFactory.class),
                         SaslServerFactory.class, saslServerFactoryInjector);
 
+                final Map<String, ResolvedMechanismConfiguration> resolvedMechanismConfiguration = getResolvedMechanismConfiguration(mechanismConfigurationAttribute, serviceBuilder, context, model);
+
                 return () -> {
                     SaslServerFactory injectedSaslServerFactory = saslServerFactoryInjector.getValue();
 
@@ -247,12 +352,7 @@ class AuthenticationFactoryDefinitions {
                             .setSecurityDomain(securityDomainInjector.getValue())
                             .setSaslServerFactory(injectedSaslServerFactory);
 
-                    MechanismConfiguration defaultConfig = MechanismConfiguration.builder()
-                            .build();
-
-                    for (String mech :injectedSaslServerFactory.getMechanismNames(Collections.emptyMap())) {
-                        builder.addMechanism(mech, defaultConfig);
-                    }
+                    buildMechanismConfiguration(resolvedMechanismConfiguration, builder);
 
                     return builder.build();
                 };
@@ -274,6 +374,17 @@ class AuthenticationFactoryDefinitions {
 
         Collection<String> mechanismNames = serviceContainer.getValue().getMechanismNames();
         return  mechanismNames.toArray(new String[mechanismNames.size()]);
+    }
+
+    private static class NameRewriterTrio {
+        final InjectedValue<NameRewriter> preRealmNameRewriter = new InjectedValue<>();
+        final InjectedValue<NameRewriter> postRealmNameRewriter = new InjectedValue<>();
+        final InjectedValue<NameRewriter> finalNameRewriter = new InjectedValue<>();
+    }
+
+    private static class ResolvedMechanismConfiguration extends NameRewriterTrio {
+        final Map<String, NameRewriterTrio> mechanismRealms = new HashMap<>();
+        final InjectedValue<SecurityFactory> securityFactory = new InjectedValue<>();
     }
 
 }
