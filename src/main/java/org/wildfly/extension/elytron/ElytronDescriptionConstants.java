@@ -147,10 +147,12 @@ interface ElytronDescriptionConstants {
     String MAPPERS = "mappers";
     String MATCH = "match";
     String MAXIMUM_SEGMENTS = "maximum-segments";
+    String MECHANISM = "mechanism";
     String MECHANISM_CONFIGURATION = "mechanism-configuration";
     String MECHANISM_CONFIGURATIONS = "mechanism-configurations";
     String MECHANISM_NAME = "mechanism-name";
     String MECHANISM_PROVIDER_FILTERING_SASL_SERVER_FACTORY = "mechanism-provider-filtering-sasl-server-factory";
+    String MECHANISM_REALM = "mechanism-realm";
     String MECHANISM_REALM_CONFIGURATION = "mechanism-realm-configuration";
     String MECHANISM_REALM_CONFIGURATIONS = "mechanism-realm-configurations";
     String MINUS = "minus";

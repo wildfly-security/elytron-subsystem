@@ -1500,6 +1500,109 @@
         </xs:attribute>
     </xs:complexType>
 
+    <!-- 
+        Mechanism Configuration
+    -->
+
+    <xs:complexType name="mechanismConfigurationType">
+        <xs:annotation>
+            <xs:documentation>
+                Wrapper type to contain the configuration of the authentication mechanisms.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="mechanism" type="mechanismType" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="mechanismType">
+        <xs:annotation>
+            <xs:documentation>
+                Configuration for a specific authentication mechanism.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="mechanism-realm" type="mechanismRealmType" maxOccurs="unbounded" />
+        </xs:sequence>
+        <xs:attribute name="mechanism-name" type="xs:string" use="required" >
+            <xs:annotation>
+                <xs:documentation>
+                    The name of the authentication mechanism being configured.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="pre-realm-name-rewriter" type="xs:string" >
+            <xs:annotation>
+                <xs:documentation>
+                    Reference to a NameRewriter that should be used before the actual realm is selected.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="post-realm-name-rewriter" type="xs:string">
+            <xs:annotation>
+                <xs:documentation>
+                    Reference to a NameRewriter that should be used after the realm.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="final-name-rewriter" type="xs:string">
+            <xs:annotation>
+                <xs:documentation>
+                    Reference to the final NameRewriter.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="credential-security-factories" type="stringListType">
+            <xs:annotation>
+                <xs:documentation>
+                  A list of references to security factories that can return credentials for use by this mechanism.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:complexType>
+
+
+    <xs:complexType name="mechanismRealmType">
+        <xs:annotation>
+            <xs:documentation>
+                Definition of a realm name specific to the mechanism.
+
+                This is the realm name that a mechanism may present to the remote client being authenticated, if a mechanism
+                only supports a single realm then only the first will be used and the remainder ignored.
+
+                If a mechanism does not support realm names then the entire list will be ignored.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="realm-name" type="xs:string" use="required">
+            <xs:annotation>
+                <xs:documentation>
+                    The name of the realm.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="pre-realm-name-rewriter" type="xs:string">
+            <xs:annotation>
+                <xs:documentation>
+                    Reference to a NameRewriter that should be used before the actual realm is selected.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="post-realm-name-rewriter" type="xs:string">
+            <xs:annotation>
+                <xs:documentation>
+                    Reference to a NameRewriter that should be used after the realm.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="final-name-rewriter" type="xs:string">
+            <xs:annotation>
+                <xs:documentation>
+                    Reference to the final NameRewriter.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:complexType>
+
     <!--
         HTTP Components
      -->
@@ -1525,6 +1628,9 @@
                 Complex type for the definition of the server side HTTP authentication policy.
             </xs:documentation>
         </xs:annotation>
+        <xs:sequence>
+            <xs:element name="mechanism-configuration" minOccurs="0" type="mechanismConfigurationType"/>
+        </xs:sequence>
         <xs:attribute name="name" type="xs:string" use="required" />
         <xs:attribute name="security-domain" type="xs:string" use="required">
             <xs:annotation>
@@ -1733,6 +1839,9 @@
                 The SASL authentication policy for the server side. 
             </xs:documentation>
         </xs:annotation>
+        <xs:sequence>
+            <xs:element name="mechanism-configuration" minOccurs="0" type="mechanismConfigurationType"/>
+        </xs:sequence>
         <xs:attribute name="name" type="xs:string" use="required" />
         <xs:attribute name="security-domain" type="xs:string" use="required">
             <xs:annotation>

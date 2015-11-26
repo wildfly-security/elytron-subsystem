@@ -17,21 +17,35 @@
  */
 package org.wildfly.extension.elytron;
 
+import static javax.xml.stream.XMLStreamConstants.END_ELEMENT;
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.ADD;
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP;
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP_ADDR;
 import static org.jboss.as.controller.parsing.ParseUtils.isNoNamespaceAttribute;
 import static org.jboss.as.controller.parsing.ParseUtils.missingRequired;
-import static org.jboss.as.controller.parsing.ParseUtils.requireNoContent;
+import static org.jboss.as.controller.parsing.ParseUtils.requireNoAttributes;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedAttribute;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CREDENTIAL_SECURITY_FACTORIES;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.FINAL_NAME_REWRITER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.HTTP_SERVER_AUTHENITCATION;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.HTTP_SERVER_FACTORY;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MECHANISM;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MECHANISM_CONFIGURATION;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MECHANISM_CONFIGURATIONS;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MECHANISM_NAME;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MECHANISM_REALM;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MECHANISM_REALM_CONFIGURATIONS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.POST_REALM_NAME_REWRITER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PRE_REALM_NAME_REWRITER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REALM_NAME;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SASL_SERVER_AUTHENTICATION;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SASL_SERVER_FACTORY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SECURITY_DOMAIN;
+import static org.wildfly.extension.elytron.ElytronSubsystemParser.verifyNamespace;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -48,6 +62,117 @@ import org.jboss.staxmapper.XMLExtendedStreamWriter;
  * @author <a href="mailto:darran.lofthouse@jboss.com">Darran Lofthouse</a>
  */
 class AuthenticationFactoryParser {
+
+    private void readMechanismRealmElement(ModelNode mechanismRealmConfiguration, XMLExtendedStreamReader reader) throws XMLStreamException {
+        final int count = reader.getAttributeCount();
+        for (int i = 0; i < count; i++) {
+            final String value = reader.getAttributeValue(i);
+            if (!isNoNamespaceAttribute(reader, i)) {
+                throw unexpectedAttribute(reader, i);
+            } else {
+                String attribute = reader.getAttributeLocalName(i);
+                switch (attribute) {
+                    case REALM_NAME:
+                        AuthenticationFactoryDefinitions.REALM_NAME.parseAndSetParameter(value, mechanismRealmConfiguration, reader);
+                        break;
+                    case PRE_REALM_NAME_REWRITER:
+                        AuthenticationFactoryDefinitions.BASE_PRE_REALM_NAME_REWRITER.parseAndSetParameter(value, mechanismRealmConfiguration, reader);
+                        break;
+                    case POST_REALM_NAME_REWRITER:
+                        AuthenticationFactoryDefinitions.BASE_POST_REALM_NAME_REWRITER.parseAndSetParameter(value, mechanismRealmConfiguration, reader);
+                        break;
+                    case FINAL_NAME_REWRITER:
+                        AuthenticationFactoryDefinitions.BASE_FINAL_NAME_REWRITER.parseAndSetParameter(value, mechanismRealmConfiguration, reader);
+                        break;
+                    default:
+                        throw unexpectedAttribute(reader, i);
+                }
+            }
+        }
+
+        if (mechanismRealmConfiguration.hasDefined(REALM_NAME) == false) {
+            throw missingRequired(reader, Collections.singleton(REALM_NAME));
+        }
+
+        requireNoAttributes(reader);
+    }
+
+    private void readMechanismElement(ModelNode mechanismConfiguration, XMLExtendedStreamReader reader) throws XMLStreamException {
+
+        final int count = reader.getAttributeCount();
+        for (int i = 0; i < count; i++) {
+            final String value = reader.getAttributeValue(i);
+            if (!isNoNamespaceAttribute(reader, i)) {
+                throw unexpectedAttribute(reader, i);
+            } else {
+                String attribute = reader.getAttributeLocalName(i);
+                switch (attribute) {
+                    case MECHANISM_NAME:
+                        AuthenticationFactoryDefinitions.MECHANISM_NAME.parseAndSetParameter(value, mechanismConfiguration, reader);
+                        break;
+                    case PRE_REALM_NAME_REWRITER:
+                        AuthenticationFactoryDefinitions.BASE_PRE_REALM_NAME_REWRITER.parseAndSetParameter(value, mechanismConfiguration, reader);
+                        break;
+                    case POST_REALM_NAME_REWRITER:
+                        AuthenticationFactoryDefinitions.BASE_POST_REALM_NAME_REWRITER.parseAndSetParameter(value, mechanismConfiguration, reader);
+                        break;
+                    case FINAL_NAME_REWRITER:
+                        AuthenticationFactoryDefinitions.BASE_FINAL_NAME_REWRITER.parseAndSetParameter(value, mechanismConfiguration, reader);
+                        break;
+                    case CREDENTIAL_SECURITY_FACTORIES:
+                        for (String credentialSecurityFactory : reader.getListAttributeValue(i)) {
+                            AuthenticationFactoryDefinitions.BASE_CREDENTIAL_SECURITY_FACTORIES.parseAndAddParameterElement(credentialSecurityFactory, mechanismConfiguration, reader);
+                        }
+                        break;
+                    default:
+                        throw unexpectedAttribute(reader, i);
+                }
+            }
+        }
+
+        if (mechanismConfiguration.hasDefined(MECHANISM_NAME) == false) {
+            throw missingRequired(reader, Collections.singleton(MECHANISM_NAME));
+        }
+
+        while (reader.hasNext() && reader.nextTag() != END_ELEMENT) {
+            verifyNamespace(reader);
+            String localName = reader.getLocalName();
+            if (MECHANISM_REALM.equals(localName)) {
+                ModelNode mechanismRealmConfiguration = new ModelNode();
+                readMechanismRealmElement(mechanismRealmConfiguration, reader);
+                mechanismConfiguration.get(MECHANISM_REALM_CONFIGURATIONS).add(mechanismRealmConfiguration);
+            }
+        }
+    }
+
+
+    private void readMechanismConfigurationElement(ModelNode addOperation, XMLExtendedStreamReader reader) throws XMLStreamException {
+        requireNoAttributes(reader);
+
+        while (reader.hasNext() && reader.nextTag() != END_ELEMENT) {
+            verifyNamespace(reader);
+            String localName = reader.getLocalName();
+            if (MECHANISM.equals(localName)) {
+               ModelNode mechanismConfiguration = new ModelNode();
+               readMechanismElement(mechanismConfiguration, reader);
+               addOperation.get(MECHANISM_CONFIGURATIONS).add(mechanismConfiguration);
+            }
+        }
+
+    }
+
+    private void attemptReadMechanismConfigurationElement(ModelNode addOperation, XMLExtendedStreamReader reader) throws XMLStreamException {
+        boolean mechanismConfigurationAdded = false;
+        while (reader.hasNext() && reader.nextTag() != END_ELEMENT) {
+            verifyNamespace(reader);
+            String localName = reader.getLocalName();
+            if (MECHANISM_CONFIGURATION.equals(localName) && mechanismConfigurationAdded==false) {
+                mechanismConfigurationAdded = true;
+               readMechanismConfigurationElement(addOperation, reader);
+            }
+
+        }
+    }
 
     void readHttpServerAuthenticationElement(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations) throws XMLStreamException {
         ModelNode addOperation = new ModelNode();
@@ -87,11 +212,10 @@ class AuthenticationFactoryParser {
 
         addOperation.get(OP_ADDR).set(parentAddress).add(HTTP_SERVER_AUTHENITCATION, name);
 
+        attemptReadMechanismConfigurationElement(addOperation, reader);
+
         operations.add(addOperation);
 
-        requireNoContent(reader);
-
-        System.out.println(addOperation);
     }
 
     void readSaslServerAuthenticationElement(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations) throws XMLStreamException {
@@ -132,9 +256,37 @@ class AuthenticationFactoryParser {
 
         addOperation.get(OP_ADDR).set(parentAddress).add(SASL_SERVER_AUTHENTICATION, name);
 
+        attemptReadMechanismConfigurationElement(addOperation, reader);
+
         operations.add(addOperation);
 
-        requireNoContent(reader);
+    }
+
+    private void writeMechanismConfiguration(ModelNode configuration, XMLExtendedStreamWriter writer) throws XMLStreamException {
+        if (configuration.hasDefined(MECHANISM_CONFIGURATIONS)) {
+            writer.writeStartElement(MECHANISM_CONFIGURATION);
+            for (ModelNode currentMechConfig : configuration.require(MECHANISM_CONFIGURATIONS).asList()) {
+                writer.writeStartElement(MECHANISM);
+                AuthenticationFactoryDefinitions.MECHANISM_NAME.marshallAsAttribute(currentMechConfig, writer);
+                AuthenticationFactoryDefinitions.BASE_PRE_REALM_NAME_REWRITER.marshallAsAttribute(currentMechConfig, writer);
+                AuthenticationFactoryDefinitions.BASE_POST_REALM_NAME_REWRITER.marshallAsAttribute(currentMechConfig, writer);
+                AuthenticationFactoryDefinitions.BASE_FINAL_NAME_REWRITER.marshallAsAttribute(currentMechConfig, writer);
+                AuthenticationFactoryDefinitions.BASE_CREDENTIAL_SECURITY_FACTORIES.getAttributeMarshaller()
+                    .marshallAsAttribute(AuthenticationFactoryDefinitions.BASE_CREDENTIAL_SECURITY_FACTORIES, currentMechConfig, false, writer);
+                if (currentMechConfig.hasDefined(MECHANISM_REALM_CONFIGURATIONS)) {
+                    for (ModelNode currentMechRealmConfig : currentMechConfig.require(MECHANISM_REALM_CONFIGURATIONS).asList()) {
+                        writer.writeStartElement(MECHANISM_REALM);
+                        AuthenticationFactoryDefinitions.REALM_NAME.marshallAsAttribute(currentMechConfig, writer);
+                        AuthenticationFactoryDefinitions.BASE_PRE_REALM_NAME_REWRITER.marshallAsAttribute(currentMechConfig, writer);
+                        AuthenticationFactoryDefinitions.BASE_POST_REALM_NAME_REWRITER.marshallAsAttribute(currentMechConfig, writer);
+                        AuthenticationFactoryDefinitions.BASE_FINAL_NAME_REWRITER.marshallAsAttribute(currentMechConfig, writer);
+                        writer.writeEndElement();
+                    }
+                }
+                writer.writeEndElement();
+            }
+            writer.writeEndElement();
+        }
     }
 
     boolean writeHttpServerAuthentication(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer, WrapperWriter wrapperWriter) throws XMLStreamException {
@@ -147,6 +299,7 @@ class AuthenticationFactoryParser {
                 writer.writeAttribute(NAME, name);
                 AuthenticationFactoryDefinitions.HTTP_SERVER_FACTORY.marshallAsAttribute(configuration, writer);
                 AuthenticationFactoryDefinitions.BASE_SECURITY_DOMAIN_REF.marshallAsAttribute(configuration, writer);
+                writeMechanismConfiguration(configuration, writer);
                 writer.writeEndElement();
             }
             return true;
@@ -160,11 +313,12 @@ class AuthenticationFactoryParser {
             wrapperWriter.start(started);
             ModelNode securityDomainSaslConfigurationInstances = subsystem.require(SASL_SERVER_AUTHENTICATION);
             for (String name : securityDomainSaslConfigurationInstances.keys()) {
-                ModelNode securityDomainSaslConfiguration = securityDomainSaslConfigurationInstances.require(name);
+                ModelNode configuration = securityDomainSaslConfigurationInstances.require(name);
                 writer.writeStartElement(SASL_SERVER_AUTHENTICATION);
                 writer.writeAttribute(NAME, name);
-                SaslServerDefinitions.SASL_SERVER_FACTORY.marshallAsAttribute(securityDomainSaslConfiguration, writer);
-                SaslServerDefinitions.SECURITY_DOMAIN.marshallAsAttribute(securityDomainSaslConfiguration, writer);
+                SaslServerDefinitions.SASL_SERVER_FACTORY.marshallAsAttribute(configuration, writer);
+                SaslServerDefinitions.SECURITY_DOMAIN.marshallAsAttribute(configuration, writer);
+                writeMechanismConfiguration(configuration, writer);
                 writer.writeEndElement();
             }
             return true;
