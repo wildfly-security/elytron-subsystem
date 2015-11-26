@@ -105,6 +105,7 @@ class AuthenticationFactoryDefinitions {
             .build();
 
     static final StringListAttributeDefinition BASE_CREDENTIAL_SECURITY_FACTORIES = new StringListAttributeDefinition.Builder(ElytronDescriptionConstants.CREDENTIAL_SECURITY_FACTORIES)
+            .setAllowNull(true)
             .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
             .build();
 
