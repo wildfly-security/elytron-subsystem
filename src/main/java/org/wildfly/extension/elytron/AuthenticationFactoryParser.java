@@ -24,7 +24,9 @@ import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP_
 import static org.jboss.as.controller.parsing.ParseUtils.isNoNamespaceAttribute;
 import static org.jboss.as.controller.parsing.ParseUtils.missingRequired;
 import static org.jboss.as.controller.parsing.ParseUtils.requireNoAttributes;
+import static org.jboss.as.controller.parsing.ParseUtils.requireNoContent;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedAttribute;
+import static org.jboss.as.controller.parsing.ParseUtils.unexpectedElement;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CREDENTIAL_SECURITY_FACTORIES;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.FINAL_NAME_REWRITER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.HTTP_SERVER_AUTHENITCATION;
@@ -94,7 +96,7 @@ class AuthenticationFactoryParser {
             throw missingRequired(reader, Collections.singleton(REALM_NAME));
         }
 
-        requireNoAttributes(reader);
+        requireNoContent(reader);
     }
 
     private void readMechanismElement(ModelNode mechanismConfiguration, XMLExtendedStreamReader reader) throws XMLStreamException {
@@ -166,9 +168,11 @@ class AuthenticationFactoryParser {
         while (reader.hasNext() && reader.nextTag() != END_ELEMENT) {
             verifyNamespace(reader);
             String localName = reader.getLocalName();
-            if (MECHANISM_CONFIGURATION.equals(localName) && mechanismConfigurationAdded==false) {
+            if (MECHANISM_CONFIGURATION.equals(localName) && mechanismConfigurationAdded == false) {
                 mechanismConfigurationAdded = true;
                readMechanismConfigurationElement(addOperation, reader);
+            } else {
+                throw unexpectedElement(reader);
             }
 
         }
@@ -276,10 +280,10 @@ class AuthenticationFactoryParser {
                 if (currentMechConfig.hasDefined(MECHANISM_REALM_CONFIGURATIONS)) {
                     for (ModelNode currentMechRealmConfig : currentMechConfig.require(MECHANISM_REALM_CONFIGURATIONS).asList()) {
                         writer.writeStartElement(MECHANISM_REALM);
-                        AuthenticationFactoryDefinitions.REALM_NAME.marshallAsAttribute(currentMechConfig, writer);
-                        AuthenticationFactoryDefinitions.BASE_PRE_REALM_NAME_REWRITER.marshallAsAttribute(currentMechConfig, writer);
-                        AuthenticationFactoryDefinitions.BASE_POST_REALM_NAME_REWRITER.marshallAsAttribute(currentMechConfig, writer);
-                        AuthenticationFactoryDefinitions.BASE_FINAL_NAME_REWRITER.marshallAsAttribute(currentMechConfig, writer);
+                        AuthenticationFactoryDefinitions.REALM_NAME.marshallAsAttribute(currentMechRealmConfig, writer);
+                        AuthenticationFactoryDefinitions.BASE_PRE_REALM_NAME_REWRITER.marshallAsAttribute(currentMechRealmConfig, writer);
+                        AuthenticationFactoryDefinitions.BASE_POST_REALM_NAME_REWRITER.marshallAsAttribute(currentMechRealmConfig, writer);
+                        AuthenticationFactoryDefinitions.BASE_FINAL_NAME_REWRITER.marshallAsAttribute(currentMechRealmConfig, writer);
                         writer.writeEndElement();
                     }
                 }

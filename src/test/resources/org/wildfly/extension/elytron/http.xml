@@ -14,8 +14,22 @@
             <provider module="test.module" slot="testing" />
         </provider-loader>
     </provider-loaders>
+    <mappers>
+        <constant-name-rewriter name="PreRealmNameRewriter" constant="constant" />
+        <constant-name-rewriter name="PostRealmNameRewriter" constant="constant" />
+        <constant-name-rewriter name="FinalNameRewriter" constant="constant" />
+        <constant-name-rewriter name="PreRealmNameRewriter_II" constant="constant" />
+        <constant-name-rewriter name="PostRealmNameRewriter_II" constant="constant" />
+        <constant-name-rewriter name="FinalNameRewriter_II" constant="constant" />
+    </mappers>
     <http>
-        <http-server-authentication name="HttpAuthenticationDefinition" security-domain="MyDomain" http-server-factory="ConfigurableHttpServerFactory" />
+        <http-server-authentication name="HttpAuthenticationDefinition" security-domain="MyDomain" http-server-factory="ConfigurableHttpServerFactory">
+            <mechanism-configuration>
+                <mechanism mechanism-name="BASIC" pre-realm-name-rewriter="PreRealmNameRewriter"  post-realm-name-rewriter="PostRealmNameRewriter" final-name-rewriter="FinalNameRewriter">
+                    <mechanism-realm realm-name="Test Realm" pre-realm-name-rewriter="PreRealmNameRewriter_II"  post-realm-name-rewriter="PostRealmNameRewriter_II" final-name-rewriter="FinalNameRewriter_II" />
+                </mechanism>
+            </mechanism-configuration>
+        </http-server-authentication>
         <configurable-http-server-factory name="ConfigurableHttpServerFactory" http-server-factory="AggregateHttpFactory">
             <properties>
                 <property key="a" value="b" />
