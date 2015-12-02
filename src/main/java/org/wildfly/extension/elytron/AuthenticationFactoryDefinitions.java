@@ -290,7 +290,7 @@ class AuthenticationFactoryDefinitions {
 
                     HttpAuthenticationFactory.Builder builder = HttpAuthenticationFactory.builder()
                             .setSecurityDomain(securityDomainInjector.getValue())
-                            .setHttpServerAuthenticationMechanismFactory(injectedHttpServerFactory);
+                            .setFactory(injectedHttpServerFactory);
 
                     buildMechanismConfiguration(resolvedMechanismConfiguration, builder);
 
@@ -353,7 +353,7 @@ class AuthenticationFactoryDefinitions {
 
                     SaslAuthenticationFactory.Builder builder = SaslAuthenticationFactory.builder()
                             .setSecurityDomain(securityDomainInjector.getValue())
-                            .setSaslServerFactory(injectedSaslServerFactory);
+                            .setFactory(injectedSaslServerFactory);
 
                     buildMechanismConfiguration(resolvedMechanismConfiguration, builder);
 
