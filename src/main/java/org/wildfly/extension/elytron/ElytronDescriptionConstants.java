@@ -108,6 +108,8 @@ interface ElytronDescriptionConstants {
     String FROM = "from";
 
     String GREATER_THAN = "greater-than";
+    String GROUPS = "groups";
+    String GROUPS_ATTRIBUTE = "groups-attribute";
     String GROUPS_PROPERTIES = "groups-properties";
 
     String HTTP = "http";

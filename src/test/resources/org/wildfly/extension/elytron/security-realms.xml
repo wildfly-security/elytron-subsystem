@@ -23,7 +23,7 @@
         <properties-realm name="RealmFive">
             <users-properties path="my.properties" />
         </properties-realm>
-        <properties-realm name="RealmSix" plain-text="true">
+        <properties-realm name="RealmSix" plain-text="true" groups-attribute="roles">
             <users-properties path="my.properties" relative-to="my.path" />
             <groups-properties path="mygroup.properties" relative-to="mygroup.path" />
         </properties-realm>

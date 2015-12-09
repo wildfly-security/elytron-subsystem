@@ -81,7 +81,13 @@ class PropertiesRealmDefinition extends TrivialResourceDefinition<SecurityRealm>
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
         .build();
 
-    private static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] { USERS_PROPERTIES, GROUPS_PROPERTIES, PLAIN_TEXT };
+    static final SimpleAttributeDefinition GROUPS_ATTRIBUTE = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.GROUPS_ATTRIBUTE, ModelType.STRING, true)
+        .setDefaultValue(new ModelNode(ElytronDescriptionConstants.GROUPS))
+        .setAllowExpression(true)
+        .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+        .build();
+
+    private static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] { USERS_PROPERTIES, GROUPS_PROPERTIES, PLAIN_TEXT, GROUPS_ATTRIBUTE };
 
     private static final AbstractAddStepHandler ADD = new TrivialAddHandler<SecurityRealm>(SECURITY_REALM_RUNTIME_CAPABILITY, SecurityRealm.class, ATTRIBUTES) {
 
@@ -94,6 +100,7 @@ class PropertiesRealmDefinition extends TrivialResourceDefinition<SecurityRealm>
             final String groupsPath;
             final String groupsRelativeTo;
             final boolean plainText = PLAIN_TEXT.resolveModelAttribute(context, model).asBoolean();
+            final String groupsAttribue = GROUPS_ATTRIBUTE.resolveModelAttribute(context, model).asString();
 
             ModelNode usersProperties = USERS_PROPERTIES.resolveModelAttribute(context, model);
             usersPath = asStringIfDefined(context, PATH, usersProperties);
@@ -135,6 +142,7 @@ class PropertiesRealmDefinition extends TrivialResourceDefinition<SecurityRealm>
                                 .setPasswordsStream(usersInputStream)
                                 .setGroupsStream(groupsInputStream)
                                 .setPlainText(plainText)
+                                .setGroupsAttribute(groupsAttribue)
                                 .build();
 
                     } catch (IOException e) {

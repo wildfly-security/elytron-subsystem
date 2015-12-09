@@ -39,6 +39,7 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.DIRECT_V
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.DIR_CONTEXT;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.FILE;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.FILESYSTEM_REALM;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.GROUPS_ATTRIBUTE;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.GROUPS_PROPERTIES;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.IDENTITY_MAPPING;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.JDBC_REALM;
@@ -293,6 +294,9 @@ class RealmParser {
                         break;
                     case PLAIN_TEXT:
                         PropertiesRealmDefinition.PLAIN_TEXT.parseAndSetParameter(value, addRealm, reader);
+                        break;
+                    case GROUPS_ATTRIBUTE:
+                        PropertiesRealmDefinition.GROUPS_ATTRIBUTE.parseAndSetParameter(value, addRealm, reader);
                         break;
                     default:
                         throw unexpectedAttribute(reader, i);
@@ -667,6 +671,7 @@ class RealmParser {
                 writer.writeAttribute(NAME, name);
                 ModelNode model = realms.require(name);
                 PropertiesRealmDefinition.PLAIN_TEXT.marshallAsAttribute(model, writer);
+                PropertiesRealmDefinition.GROUPS_ATTRIBUTE.marshallAsAttribute(model, writer);
                 writeFile(USERS_PROPERTIES, model.get(USERS_PROPERTIES), writer);
                 writeFile(GROUPS_PROPERTIES, model.get(GROUPS_PROPERTIES), writer);
 

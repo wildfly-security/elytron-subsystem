@@ -619,6 +619,13 @@
                         </xs:documentation>
                     </xs:annotation>
                 </xs:attribute>
+                <xs:attribute name="groups-attribute" type="xs:string" default="groups">
+                    <xs:annotation>
+                        <xs:documentation>
+                            The name of the attribute in the returned AuthorizationIdentity that should contain the group membership information for the identity.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
             </xs:extension>
         </xs:complexContent>
     </xs:complexType>
