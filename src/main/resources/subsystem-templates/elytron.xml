@@ -28,6 +28,10 @@
             <?REALM_DEFINITIONS?>
         </security-realms>
 
+        <mappers>
+            <simple-role-decoder name="groups-to-roles" attribute="groups" />
+        </mappers>
+
         <http>
             <?HTTP_DEFINITIONS?>
             <provider-http-server-factory name="global"/>
@@ -42,7 +46,7 @@
     <supplement name="domain">
         <replacement placeholder="DOMAIN_DEFINITIONS">
             <security-domain name="ApplicationDomain" default-realm="ApplicationRealm">
-                <realm name="ApplicationRealm" />
+                <realm name="ApplicationRealm" role-decoder="groups-to-roles" />
             </security-domain>
         </replacement>
         <replacement placeholder="REALM_DEFINITIONS">
@@ -68,7 +72,7 @@
     <supplement name="host">
         <replacement placeholder="DOMAIN_DEFINITIONS">
             <security-domain name="ManagementDomain" default-realm="ManagementRealm">
-                <realm name="ManagementRealm" />
+                <realm name="ManagementRealm" role-decoder="groups-to-roles" />
             </security-domain>
         </replacement>
         <replacement placeholder="REALM_DEFINITIONS">
@@ -94,11 +98,11 @@
     <supplement name="standalone">
         <replacement placeholder="DOMAIN_DEFINITIONS">
             <security-domain name="ApplicationDomain" default-realm="ApplicationRealm">
-                <realm name="ApplicationRealm" />
+                <realm name="ApplicationRealm" role-decoder="groups-to-roles" />
             </security-domain>
 
             <security-domain name="ManagementDomain" default-realm="ManagementRealm">
-                <realm name="ManagementRealm" />
+                <realm name="ManagementRealm" role-decoder="groups-to-roles" />
             </security-domain>
         </replacement>
 
