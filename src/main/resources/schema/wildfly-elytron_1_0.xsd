@@ -1559,6 +1559,13 @@
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
+        <xs:attribute name="realm-mapper" type="xs:string">
+            <xs:annotation>
+                <xs:documentation>
+                    Reference to a RealmMapper to be used by this mechanism.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
         <xs:attribute name="credential-security-factories" type="stringListType">
             <xs:annotation>
                 <xs:documentation>
@@ -1605,6 +1612,13 @@
             <xs:annotation>
                 <xs:documentation>
                     Reference to the final NameRewriter.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="realm-mapper" type="xs:string">
+            <xs:annotation>
+                <xs:documentation>
+                    Reference to a RealmMapper to be used by this mechanism realm.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>

@@ -21,12 +21,14 @@
         <constant-name-rewriter name="PreRealmNameRewriter_II" constant="constant" />
         <constant-name-rewriter name="PostRealmNameRewriter_II" constant="constant" />
         <constant-name-rewriter name="FinalNameRewriter_II" constant="constant" />
+        <simple-regex-realm-mapper name="RegexMapper" pattern="(constant)" />
+        <simple-regex-realm-mapper name="RegexMapper_II" pattern="(constant)" />
     </mappers>
     <http>
         <http-server-authentication name="HttpAuthenticationDefinition" security-domain="MyDomain" http-server-factory="ConfigurableHttpServerFactory">
             <mechanism-configuration>
-                <mechanism mechanism-name="BASIC" pre-realm-name-rewriter="PreRealmNameRewriter"  post-realm-name-rewriter="PostRealmNameRewriter" final-name-rewriter="FinalNameRewriter">
-                    <mechanism-realm realm-name="Test Realm" pre-realm-name-rewriter="PreRealmNameRewriter_II"  post-realm-name-rewriter="PostRealmNameRewriter_II" final-name-rewriter="FinalNameRewriter_II" />
+                <mechanism mechanism-name="BASIC" pre-realm-name-rewriter="PreRealmNameRewriter"  post-realm-name-rewriter="PostRealmNameRewriter" final-name-rewriter="FinalNameRewriter" realm-mapper="RegexMapper">
+                    <mechanism-realm realm-name="Test Realm" pre-realm-name-rewriter="PreRealmNameRewriter_II"  post-realm-name-rewriter="PostRealmNameRewriter_II" final-name-rewriter="FinalNameRewriter_II" realm-mapper="RegexMapper_II" />
                 </mechanism>
             </mechanism-configuration>
         </http-server-authentication>

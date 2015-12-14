@@ -23,6 +23,7 @@ import static org.wildfly.extension.elytron.Capabilities.HTTP_SERVER_AUTHENTICAT
 import static org.wildfly.extension.elytron.Capabilities.HTTP_SERVER_AUTHENTICATION_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.HTTP_SERVER_FACTORY_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.NAME_REWRITER_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.REALM_MAPPER_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SASL_SERVER_AUTHENTICATION_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SASL_SERVER_AUTHENTICATION_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SASL_SERVER_FACTORY_CAPABILITY;
@@ -69,6 +70,7 @@ import org.wildfly.security.auth.server.MechanismAuthenticationFactory;
 import org.wildfly.security.auth.server.MechanismConfiguration;
 import org.wildfly.security.auth.server.MechanismRealmConfiguration;
 import org.wildfly.security.auth.server.NameRewriter;
+import org.wildfly.security.auth.server.RealmMapper;
 import org.wildfly.security.auth.server.SaslAuthenticationFactory;
 import org.wildfly.security.auth.server.SecurityDomain;
 import org.wildfly.security.http.HttpServerAuthenticationMechanismFactory;
@@ -124,6 +126,11 @@ class AuthenticationFactoryDefinitions {
             .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
             .build();
 
+    static final SimpleAttributeDefinition BASE_REALM_MAPPER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.REALM_MAPPER, ModelType.STRING, true)
+            .setMinSize(1)
+            .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+            .build();
+
     static final SimpleAttributeDefinition REALM_NAME = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.REALM_NAME, ModelType.STRING, false)
             .setMinSize(1)
             .setAllowExpression(true)
@@ -140,8 +147,11 @@ class AuthenticationFactoryDefinitions {
         SimpleAttributeDefinition finalNameRewriterAttribute = new SimpleAttributeDefinitionBuilder(BASE_FINAL_NAME_REWRITER)
                 .setCapabilityReference(NAME_REWRITER_CAPABILITY, forCapability, true)
                 .build();
+        SimpleAttributeDefinition realmMapperAttribute = new SimpleAttributeDefinitionBuilder(BASE_REALM_MAPPER)
+                .setCapabilityReference(REALM_MAPPER_CAPABILITY, forCapability, true)
+                .build();
 
-        ObjectTypeAttributeDefinition mechanismRealmConfguration = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.MECHANISM_REALM_CONFIGURATION, REALM_NAME, preRealmNameRewriterAttribute, postRealmNameRewriterAttribute, finalNameRewriterAttribute)
+        ObjectTypeAttributeDefinition mechanismRealmConfguration = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.MECHANISM_REALM_CONFIGURATION, REALM_NAME, preRealmNameRewriterAttribute, postRealmNameRewriterAttribute, finalNameRewriterAttribute, realmMapperAttribute)
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
 
@@ -154,7 +164,7 @@ class AuthenticationFactoryDefinitions {
                 .build();
 
         ObjectTypeAttributeDefinition mechanismConfiguration = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.MECHANISM_CONFIGURATION, MECHANISM_NAME, preRealmNameRewriterAttribute,
-                    postRealmNameRewriterAttribute, finalNameRewriterAttribute, mechanismRealmConfigurations, credentialSecurityFactoriesAttribute)
+                    postRealmNameRewriterAttribute, finalNameRewriterAttribute, realmMapperAttribute, mechanismRealmConfigurations, credentialSecurityFactoriesAttribute)
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
 
@@ -179,6 +189,7 @@ class AuthenticationFactoryDefinitions {
             injectNameRewriter(BASE_PRE_REALM_NAME_REWRITER, serviceBuilder, context, currentMechanismConfiguration, resolvedMechanismConfiguration.preRealmNameRewriter);
             injectNameRewriter(BASE_POST_REALM_NAME_REWRITER, serviceBuilder, context, currentMechanismConfiguration, resolvedMechanismConfiguration.postRealmNameRewriter);
             injectNameRewriter(BASE_FINAL_NAME_REWRITER, serviceBuilder, context, currentMechanismConfiguration, resolvedMechanismConfiguration.finalNameRewriter);
+            injectRealmMapper(BASE_REALM_MAPPER, serviceBuilder, context, currentMechanismConfiguration, resolvedMechanismConfiguration.realmMapper);
 
             List<String> securityFactories = BASE_CREDENTIAL_SECURITY_FACTORIES.unwrap(context, currentMechanismConfiguration);
 
@@ -195,11 +206,12 @@ class AuthenticationFactoryDefinitions {
             if (currentMechanismConfiguration.hasDefined(ElytronDescriptionConstants.MECHANISM_REALM_CONFIGURATIONS)) {
                 for (ModelNode currentMechanismRealm : currentMechanismConfiguration.require(ElytronDescriptionConstants.MECHANISM_REALM_CONFIGURATIONS).asList()) {
                     String realmName = REALM_NAME.resolveModelAttribute(context, currentMechanismRealm).asString();
-                    NameRewriterTrio nameRewriters = new NameRewriterTrio();
-                    injectNameRewriter(BASE_PRE_REALM_NAME_REWRITER, serviceBuilder, context, currentMechanismRealm, nameRewriters.preRealmNameRewriter);
-                    injectNameRewriter(BASE_POST_REALM_NAME_REWRITER, serviceBuilder, context, currentMechanismRealm, nameRewriters.postRealmNameRewriter);
-                    injectNameRewriter(BASE_FINAL_NAME_REWRITER, serviceBuilder, context, currentMechanismRealm, nameRewriters.finalNameRewriter);
-                    resolvedMechanismConfiguration.mechanismRealms.put(realmName, nameRewriters);
+                    ResolvedMechanismRealmConfiguration resolvedMechanismRealmConfiguration = new ResolvedMechanismRealmConfiguration();
+                    injectNameRewriter(BASE_PRE_REALM_NAME_REWRITER, serviceBuilder, context, currentMechanismRealm, resolvedMechanismRealmConfiguration.preRealmNameRewriter);
+                    injectNameRewriter(BASE_POST_REALM_NAME_REWRITER, serviceBuilder, context, currentMechanismRealm, resolvedMechanismRealmConfiguration.postRealmNameRewriter);
+                    injectNameRewriter(BASE_FINAL_NAME_REWRITER, serviceBuilder, context, currentMechanismRealm, resolvedMechanismRealmConfiguration.finalNameRewriter);
+                    injectRealmMapper(BASE_REALM_MAPPER, serviceBuilder, context, currentMechanismRealm, resolvedMechanismRealmConfiguration.realmMapper);
+                    resolvedMechanismConfiguration.mechanismRealms.put(realmName, resolvedMechanismRealmConfiguration);
                 }
             }
 
@@ -217,15 +229,17 @@ class AuthenticationFactoryDefinitions {
             setNameRewriter(resolvedMechanismConfiguration.preRealmNameRewriter, builder::setPreRealmRewriter);
             setNameRewriter(resolvedMechanismConfiguration.postRealmNameRewriter, builder::setPostRealmRewriter);
             setNameRewriter(resolvedMechanismConfiguration.finalNameRewriter, builder::setFinalRewriter);
+            setRealmMapper(resolvedMechanismConfiguration.realmMapper, builder::setRealmMapper);
 
-            for (Entry<String, NameRewriterTrio> currentMechRealmEntry : resolvedMechanismConfiguration.mechanismRealms.entrySet()) {
+            for (Entry<String, ResolvedMechanismRealmConfiguration> currentMechRealmEntry : resolvedMechanismConfiguration.mechanismRealms.entrySet()) {
                 MechanismRealmConfiguration.Builder mechRealmBuilder = MechanismRealmConfiguration.builder();
                 mechRealmBuilder.setRealmName(currentMechRealmEntry.getKey());
-                NameRewriterTrio nameRewriters = currentMechRealmEntry.getValue();
+                ResolvedMechanismRealmConfiguration resolvedMechanismRealmConfiguration = currentMechRealmEntry.getValue();
 
-                setNameRewriter(nameRewriters.preRealmNameRewriter, mechRealmBuilder::setPreRealmRewriter);
-                setNameRewriter(nameRewriters.postRealmNameRewriter, mechRealmBuilder::setPostRealmRewriter);
-                setNameRewriter(nameRewriters.finalNameRewriter, mechRealmBuilder::setFinalRewriter);
+                setNameRewriter(resolvedMechanismRealmConfiguration.preRealmNameRewriter, mechRealmBuilder::setPreRealmRewriter);
+                setNameRewriter(resolvedMechanismRealmConfiguration.postRealmNameRewriter, mechRealmBuilder::setPostRealmRewriter);
+                setNameRewriter(resolvedMechanismRealmConfiguration.finalNameRewriter, mechRealmBuilder::setFinalRewriter);
+                setRealmMapper(resolvedMechanismRealmConfiguration.realmMapper, mechRealmBuilder::setRealmMapper);
 
                 builder.addMechanismRealm(mechRealmBuilder.build());
             }
@@ -251,6 +265,22 @@ class AuthenticationFactoryDefinitions {
             serviceBuilder.addDependency(context.getCapabilityServiceName(
                     buildDynamicCapabilityName(NAME_REWRITER_CAPABILITY, nameRewriter), NameRewriter.class),
                     NameRewriter.class, preRealmNameRewriter);
+        }
+    }
+
+    private static void setRealmMapper(InjectedValue<RealmMapper> injectedValue, Consumer<RealmMapper> realmMapperConsumer) {
+        RealmMapper realmMapper = injectedValue.getOptionalValue();
+        if (realmMapper != null) {
+            realmMapperConsumer.accept(realmMapper);
+        }
+    }
+
+    private static void injectRealmMapper(SimpleAttributeDefinition realmMapperAttribute, ServiceBuilder<?> serviceBuilder, OperationContext context, ModelNode model, Injector<RealmMapper> realmMapperInjector) throws OperationFailedException {
+        String realmMapper = asStringIfDefined(context, realmMapperAttribute, model);
+        if (realmMapper != null) {
+            serviceBuilder.addDependency(context.getCapabilityServiceName(
+                    buildDynamicCapabilityName(REALM_MAPPER_CAPABILITY, realmMapper), RealmMapper.class),
+                    RealmMapper.class, realmMapperInjector);
         }
     }
 
@@ -379,14 +409,15 @@ class AuthenticationFactoryDefinitions {
         return  mechanismNames.toArray(new String[mechanismNames.size()]);
     }
 
-    private static class NameRewriterTrio {
+    private static class ResolvedMechanismRealmConfiguration {
         final InjectedValue<NameRewriter> preRealmNameRewriter = new InjectedValue<>();
         final InjectedValue<NameRewriter> postRealmNameRewriter = new InjectedValue<>();
         final InjectedValue<NameRewriter> finalNameRewriter = new InjectedValue<>();
+        final InjectedValue<RealmMapper> realmMapper = new InjectedValue<>();
     }
 
-    private static class ResolvedMechanismConfiguration extends NameRewriterTrio {
-        final Map<String, NameRewriterTrio> mechanismRealms = new HashMap<>();
+    private static class ResolvedMechanismConfiguration extends ResolvedMechanismRealmConfiguration {
+        final Map<String, ResolvedMechanismRealmConfiguration> mechanismRealms = new HashMap<>();
         final List<InjectedValue<SecurityFactory>> securityFactories = new ArrayList<>();
     }
 

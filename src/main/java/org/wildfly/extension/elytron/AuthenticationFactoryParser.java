@@ -40,6 +40,7 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MECHANIS
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.POST_REALM_NAME_REWRITER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PRE_REALM_NAME_REWRITER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REALM_MAPPER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REALM_NAME;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SASL_SERVER_AUTHENTICATION;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SASL_SERVER_FACTORY;
@@ -86,6 +87,9 @@ class AuthenticationFactoryParser {
                     case FINAL_NAME_REWRITER:
                         AuthenticationFactoryDefinitions.BASE_FINAL_NAME_REWRITER.parseAndSetParameter(value, mechanismRealmConfiguration, reader);
                         break;
+                    case REALM_MAPPER:
+                        AuthenticationFactoryDefinitions.BASE_REALM_MAPPER.parseAndSetParameter(value, mechanismRealmConfiguration, reader);
+                        break;
                     default:
                         throw unexpectedAttribute(reader, i);
                 }
@@ -120,6 +124,9 @@ class AuthenticationFactoryParser {
                         break;
                     case FINAL_NAME_REWRITER:
                         AuthenticationFactoryDefinitions.BASE_FINAL_NAME_REWRITER.parseAndSetParameter(value, mechanismConfiguration, reader);
+                        break;
+                    case REALM_MAPPER:
+                        AuthenticationFactoryDefinitions.BASE_REALM_MAPPER.parseAndSetParameter(value, mechanismConfiguration, reader);
                         break;
                     case CREDENTIAL_SECURITY_FACTORIES:
                         for (String credentialSecurityFactory : reader.getListAttributeValue(i)) {
@@ -275,6 +282,7 @@ class AuthenticationFactoryParser {
                 AuthenticationFactoryDefinitions.BASE_PRE_REALM_NAME_REWRITER.marshallAsAttribute(currentMechConfig, writer);
                 AuthenticationFactoryDefinitions.BASE_POST_REALM_NAME_REWRITER.marshallAsAttribute(currentMechConfig, writer);
                 AuthenticationFactoryDefinitions.BASE_FINAL_NAME_REWRITER.marshallAsAttribute(currentMechConfig, writer);
+                AuthenticationFactoryDefinitions.BASE_REALM_MAPPER.marshallAsAttribute(currentMechConfig, writer);
                 AuthenticationFactoryDefinitions.BASE_CREDENTIAL_SECURITY_FACTORIES.getAttributeMarshaller()
                     .marshallAsAttribute(AuthenticationFactoryDefinitions.BASE_CREDENTIAL_SECURITY_FACTORIES, currentMechConfig, false, writer);
                 if (currentMechConfig.hasDefined(MECHANISM_REALM_CONFIGURATIONS)) {
@@ -284,6 +292,7 @@ class AuthenticationFactoryParser {
                         AuthenticationFactoryDefinitions.BASE_PRE_REALM_NAME_REWRITER.marshallAsAttribute(currentMechRealmConfig, writer);
                         AuthenticationFactoryDefinitions.BASE_POST_REALM_NAME_REWRITER.marshallAsAttribute(currentMechRealmConfig, writer);
                         AuthenticationFactoryDefinitions.BASE_FINAL_NAME_REWRITER.marshallAsAttribute(currentMechRealmConfig, writer);
+                        AuthenticationFactoryDefinitions.BASE_REALM_MAPPER.marshallAsAttribute(currentMechRealmConfig, writer);
                         writer.writeEndElement();
                     }
                 }
