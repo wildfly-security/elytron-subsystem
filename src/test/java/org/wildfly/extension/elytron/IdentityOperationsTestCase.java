@@ -30,6 +30,7 @@ import org.jboss.as.subsystem.test.KernelServices;
 import org.jboss.as.subsystem.test.KernelServicesBuilder;
 import org.jboss.as.subsystem.test.SubsystemOperations;
 import org.jboss.dmr.ModelNode;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.wildfly.extension.elytron.IdentityResourceDefinition.AuthenticatorOperationHandler;
 import org.wildfly.security.authz.RoleDecoder;
@@ -111,6 +112,7 @@ public class IdentityOperationsTestCase extends AbstractSubsystemTest {
     }
 
     @Test
+    @Ignore("See https://github.com/wildfly-security/elytron-subsystem/issues/139")
     public void testReadSecurityDomainIdentity() throws Exception {
         KernelServices services = createKernelServicesBuilder(null)
                 .setSubsystemXmlResource("identity-management.xml")
