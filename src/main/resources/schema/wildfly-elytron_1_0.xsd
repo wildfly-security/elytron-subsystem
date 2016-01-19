@@ -1639,7 +1639,7 @@
              <xs:element name="aggregate-http-server-factory" type="aggregateHttpServerFactoryType" minOccurs="0" />
              <xs:element name="configurable-http-server-factory" type="configurableHttpServerFactoryType" minOccurs="0" />
              <xs:element name="provider-http-server-factory" type="providerHttpServerFactoryType" minOccurs="0" />
-             <xs:element name="service-loader-htt-server-factory" type="serviceLoaderHttpServerFactoryType" minOccurs="0" />
+             <xs:element name="service-loader-http-server-factory" type="serviceLoaderHttpServerFactoryType" minOccurs="0" />
          </xs:choice>
      </xs:complexType>
 
@@ -1777,7 +1777,7 @@
     <xs:complexType name="providerHttpServerFactoryType">
         <xs:annotation>
             <xs:documentation>
-                A HTTP server factory definition that searches an array of Provider instances for all availabel HTTP server factories.
+                A HTTP server factory definition that searches an array of Provider instances for all available HTTP server factories.
             </xs:documentation>
         </xs:annotation>
         <xs:complexContent>
