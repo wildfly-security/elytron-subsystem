@@ -1777,7 +1777,7 @@
     <xs:complexType name="providerHttpServerFactoryType">
         <xs:annotation>
             <xs:documentation>
-                A HTTP server factory definition that searches an array of Provider instances for all availabel HTTP server factories.
+                A HTTP server factory definition that searches an array of Provider instances for all available HTTP server factories.
             </xs:documentation>
         </xs:annotation>
         <xs:complexContent>
