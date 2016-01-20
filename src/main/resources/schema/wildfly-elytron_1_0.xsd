@@ -29,7 +29,7 @@
     <xs:element name="subsystem" type="subsystemType"/>
 
     <xs:complexType name="subsystemType">
-        <xs:sequence>
+        <xs:all>
             <xs:element name="security-properties" type="securityPropertiesType" minOccurs="0" />
             <xs:element name="provider-loaders" type="providerLoadersType" minOccurs="0" />
             <xs:element name="security-domains" type="securityDomainsType" minOccurs="0" />
@@ -38,7 +38,7 @@
             <xs:element name="http" type="httpType" minOccurs="0" />    
             <xs:element name="sasl" type="saslType" minOccurs="0" />
             <xs:element name="tls" type="tlsType" minOccurs="0" />
-        </xs:sequence>
+        </xs:all>
     </xs:complexType>
 
     <!--
@@ -411,14 +411,14 @@
             </xs:documentation>
         </xs:annotation>
         <xs:choice minOccurs="1">
-            <xs:sequence>
+            <xs:all>
                 <xs:element name="clear-password-mapper" type="clearPasswordMapperType" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="bcrypt-mapper" type="bcryptMapperType" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="simple-digest-mapper" type="simpleDigestMapperType" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="salted-simple-digest-mapper" type="saltedSimpleDigestMapperType" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="scram-mapper" type="scramMapperType" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="attribute-mapping" type="jdbcAttributeMappingType" minOccurs="0" maxOccurs="1"/>
-            </xs:sequence>
+            </xs:all>
         </xs:choice>
         <xs:attribute name="sql" type="xs:string" use="required">
             <xs:annotation>
@@ -596,7 +596,7 @@
         </xs:annotation>
         <xs:complexContent>
             <xs:extension base="realmType">
-                <xs:sequence>
+                <xs:all>
                     <xs:element name="users-properties" type="basicFileType">
                         <xs:annotation>
                             <xs:documentation>
@@ -611,7 +611,7 @@
                             </xs:documentation>
                         </xs:annotation>
                     </xs:element>
-                </xs:sequence>
+                </xs:all>
                 <xs:attribute name="plain-text" type="xs:boolean" default="false">
                     <xs:annotation>
                         <xs:documentation>
@@ -640,10 +640,10 @@
         </xs:annotation>
         <xs:complexContent>
             <xs:extension base="realmType">
-                <xs:sequence>
+                <xs:all>
                     <xs:element name="dir-context" type="dirContextType" minOccurs="1" maxOccurs="1" nillable="false"/>
                     <xs:element name="identity-mapping" type="identityMappingType" minOccurs="1" maxOccurs="1" nillable="false"/>
-                </xs:sequence>
+                </xs:all>
                 <xs:attribute name="direct-verification" type="xs:boolean" use="optional" default="false">
                     <xs:annotation>
                         <xs:documentation>
@@ -664,7 +664,7 @@
         </xs:annotation>
         <xs:complexContent>
             <xs:extension base="realmType">
-                <xs:sequence>
+                <xs:all>
                     <xs:element name="file" type="basicFileType" minOccurs="1" maxOccurs="1">
                         <xs:annotation>
                             <xs:documentation>
@@ -673,7 +673,7 @@
                         </xs:annotation>
                     </xs:element>
                     <xs:element name="name-rewriter" type="nameRewriterRefType" minOccurs="0" maxOccurs="1"/>
-                </xs:sequence>
+                </xs:all>
                 <xs:attribute name="levels" type="xs:int" default="2">
                     <xs:annotation>
                         <xs:documentation>
@@ -1918,7 +1918,7 @@
         </xs:annotation>
         <xs:complexContent>
             <xs:extension base="saslServerFactoryType">
-                <xs:sequence>
+                <xs:all>
                     <xs:element name="filters" minOccurs="0">
                         <xs:annotation>
                             <xs:documentation>
@@ -1989,7 +1989,7 @@
                             </xs:sequence>
                         </xs:complexType>
                     </xs:element>
-                </xs:sequence>
+                </xs:all>
                 <xs:attribute name="sasl-server-factory" type="xs:string" use="required">
                     <xs:annotation>
                         <xs:documentation>
