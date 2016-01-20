@@ -218,7 +218,7 @@
             </xs:documentation>
         </xs:annotation>
         <xs:sequence>
-            <xs:element name="realm" type="realmRefType" minOccurs="1" maxOccurs="unbounded" />
+            <xs:element name="realm" type="realmRefType" maxOccurs="unbounded" />
         </xs:sequence>
         <xs:attribute name="name" type="xs:string" use="required" />
         <xs:attribute name="default-realm" type="xs:string" use="required">
@@ -398,7 +398,7 @@
         <xs:complexContent>
             <xs:extension base="realmType">
                 <xs:sequence>
-                    <xs:element name="principal-query" type="authenticationQueryType" minOccurs="1" maxOccurs="unbounded"/>
+                    <xs:element name="principal-query" type="authenticationQueryType" maxOccurs="unbounded"/>
                 </xs:sequence>
             </xs:extension>
         </xs:complexContent>
@@ -411,14 +411,14 @@
             </xs:documentation>
         </xs:annotation>
         <xs:choice minOccurs="1">
-            <xs:all>
-                <xs:element name="clear-password-mapper" type="clearPasswordMapperType" minOccurs="0" maxOccurs="1"/>
-                <xs:element name="bcrypt-mapper" type="bcryptMapperType" minOccurs="0" maxOccurs="1"/>
-                <xs:element name="simple-digest-mapper" type="simpleDigestMapperType" minOccurs="0" maxOccurs="1"/>
-                <xs:element name="salted-simple-digest-mapper" type="saltedSimpleDigestMapperType" minOccurs="0" maxOccurs="1"/>
-                <xs:element name="scram-mapper" type="scramMapperType" minOccurs="0" maxOccurs="1"/>
-                <xs:element name="attribute-mapping" type="jdbcAttributeMappingType" minOccurs="0" maxOccurs="1"/>
-            </xs:all>
+            <xs:sequence>
+                <xs:element name="clear-password-mapper" type="clearPasswordMapperType" minOccurs="0"/>
+                <xs:element name="bcrypt-mapper" type="bcryptMapperType" minOccurs="0"/>
+                <xs:element name="simple-digest-mapper" type="simpleDigestMapperType" minOccurs="0"/>
+                <xs:element name="salted-simple-digest-mapper" type="saltedSimpleDigestMapperType" minOccurs="0"/>
+                <xs:element name="scram-mapper" type="scramMapperType" minOccurs="0"/>
+                <xs:element name="attribute-mapping" type="jdbcAttributeMappingType" minOccurs="0"/>
+            </xs:sequence>
         </xs:choice>
         <xs:attribute name="sql" type="xs:string" use="required">
             <xs:annotation>
@@ -438,7 +438,7 @@
 
     <xs:complexType name="jdbcAttributeMappingType">
         <xs:sequence>
-            <xs:element name="attribute" type="jdbcAttributeType" minOccurs="1" maxOccurs="unbounded" />
+            <xs:element name="attribute" type="jdbcAttributeType" maxOccurs="unbounded" />
         </xs:sequence>
     </xs:complexType>
 
@@ -641,13 +641,13 @@
         <xs:complexContent>
             <xs:extension base="realmType">
                 <xs:all>
-                    <xs:element name="dir-context" type="dirContextType" minOccurs="1" maxOccurs="1" nillable="false"/>
-                    <xs:element name="identity-mapping" type="identityMappingType" minOccurs="1" maxOccurs="1" nillable="false"/>
+                    <xs:element name="dir-context" type="dirContextType" nillable="false"/>
+                    <xs:element name="identity-mapping" type="identityMappingType" nillable="false"/>
                 </xs:all>
                 <xs:attribute name="direct-verification" type="xs:boolean" use="optional" default="false">
                     <xs:annotation>
                         <xs:documentation>
-                            Should this realm instance support verification of credentials by directly connectint to LDAP as the account being authenticated.
+                            Should this realm instance support verification of credentials by directly connecting to LDAP as the account being authenticated.
                         </xs:documentation>
                     </xs:annotation>
                 </xs:attribute>
@@ -665,14 +665,14 @@
         <xs:complexContent>
             <xs:extension base="realmType">
                 <xs:all>
-                    <xs:element name="file" type="basicFileType" minOccurs="1" maxOccurs="1">
+                    <xs:element name="file" type="basicFileType">
                         <xs:annotation>
                             <xs:documentation>
                                 The location of the file to use to handle the security realm.
                             </xs:documentation>
                         </xs:annotation>
                     </xs:element>
-                    <xs:element name="name-rewriter" type="nameRewriterRefType" minOccurs="0" maxOccurs="1"/>
+                    <xs:element name="name-rewriter" type="nameRewriterRefType" minOccurs="0"/>
                 </xs:all>
                 <xs:attribute name="levels" type="xs:int" default="2">
                     <xs:annotation>
