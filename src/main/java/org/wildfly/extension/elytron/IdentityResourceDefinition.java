@@ -135,7 +135,7 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
                 String principalName = PathAddress.pathAddress(operation.get(ModelDescriptionConstants.ADDRESS)).getLastElement().getValue();
 
                 try {
-                    ModifiableRealmIdentity identity = modifiableRealm.getRealmIdentityForUpdate(principalName);
+                    ModifiableRealmIdentity identity = modifiableRealm.getRealmIdentityForUpdate(principalName, null, null);
 
                     if (identity.exists()) {
                         throw new OperationFailedException("Identity with name [" + principalName + "] already exists.");
@@ -161,7 +161,7 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
                 String principalName = PathAddress.pathAddress(operation1.get(ModelDescriptionConstants.ADDRESS)).getLastElement().getValue();
 
                 try {
-                    ModifiableRealmIdentity realmIdentity = modifiableRealm.getRealmIdentityForUpdate(principalName);
+                    ModifiableRealmIdentity realmIdentity = modifiableRealm.getRealmIdentityForUpdate(principalName, null, null);
 
                     if (!realmIdentity.exists()) {
                         throw new OperationFailedException("Identity with name [" + principalName + "] not found.");
@@ -632,7 +632,7 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
         String principalName = currentAddress.getLastElement().getValue();
 
         try {
-            ModifiableRealmIdentity realmIdentity = modifiableRealm.getRealmIdentityForUpdate(principalName);
+            ModifiableRealmIdentity realmIdentity = modifiableRealm.getRealmIdentityForUpdate(principalName, null, null);
 
             if (!realmIdentity.exists()) {
                 throw new OperationFailedException("Identity [" + principalName + "] not found.");
