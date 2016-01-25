@@ -196,7 +196,7 @@ class SaslServerDefinitions {
 
     static ResourceDefinition getConfigurableSaslServerFactoryDefinition() {
         AttributeDefinition[] attributes = new AttributeDefinition[] { SASL_SERVER_FACTORY, SERVER_NAME, PROTOCOL, PROPERTIES, CONFIGURED_FILTERS };
-        AbstractAddStepHandler add = new SaslServerAddHander(attributes) {
+        AbstractAddStepHandler add = new SaslServerAddHandler(attributes) {
 
             @Override
             protected ServiceBuilder<SaslServerFactory> installService(OperationContext context,
@@ -268,8 +268,8 @@ class SaslServerDefinitions {
         return wrap(new SaslServerResourceDefinition(ElytronDescriptionConstants.CONFIGURABLE_SASL_SERVER_FACTORY, add, attributes), SaslServerDefinitions::getSaslServerAvailableMechanisms);
     }
 
-    static ResourceDefinition getProviderSaslServerFactoryDefintion() {
-        AbstractAddStepHandler add = new SaslServerAddHander(PROVIDER_LOADER) {
+    static ResourceDefinition getProviderSaslServerFactoryDefinition() {
+        AbstractAddStepHandler add = new SaslServerAddHandler(PROVIDER_LOADER) {
 
             @Override
             protected ServiceBuilder<SaslServerFactory> installService(OperationContext context,
@@ -299,7 +299,7 @@ class SaslServerDefinitions {
     }
 
     static ResourceDefinition getServiceLoaderSaslServerFactoryDefinition() {
-        AbstractAddStepHandler add = new SaslServerAddHander(MODULE, SLOT) {
+        AbstractAddStepHandler add = new SaslServerAddHandler(MODULE, SLOT) {
 
             @Override
             protected ValueSupplier<SaslServerFactory> getValueSupplier(OperationContext context, ModelNode model)
@@ -327,7 +327,7 @@ class SaslServerDefinitions {
 
     static ResourceDefinition getMechanismProviderFilteringSaslServerFactory() {
         AttributeDefinition[] attributes = new AttributeDefinition[] { SASL_SERVER_FACTORY, ENABLING, MECH_PROVIDER_FILTERS };
-        AbstractAddStepHandler add = new SaslServerAddHander(attributes) {
+        AbstractAddStepHandler add = new SaslServerAddHandler(attributes) {
 
             @Override
             protected ServiceBuilder<SaslServerFactory> installService(OperationContext context,
@@ -437,10 +437,9 @@ class SaslServerDefinitions {
 
     }
 
-    private static class SaslServerAddHander extends BaseAddHandler {
+    private static class SaslServerAddHandler extends BaseAddHandler {
 
-
-        private SaslServerAddHander(AttributeDefinition ... attributes) {
+        private SaslServerAddHandler(AttributeDefinition ... attributes) {
             super(SASL_SERVER_FACTORY_RUNTIME_CAPABILITY, attributes);
         }
 

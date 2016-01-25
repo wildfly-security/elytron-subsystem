@@ -135,7 +135,7 @@ class FileSystemRealmDefinition extends SimpleResourceDefinition {
             final int levels = LEVELS.resolveModelAttribute(context, model).asInt();
 
             final String path = PATH.resolveModelAttribute(context, model).asString();
-            final String relativeTo = RELATIVE_TO.resolveModelAttribute(context, model).asString();
+            final String relativeTo = asStringIfDefined(context, RELATIVE_TO, model);
 
             final InjectedValue<PathManager> pathManagerInjector = new InjectedValue<>();
             final InjectedValue<NameRewriter> nameRewriterInjector = new InjectedValue<>();
@@ -148,7 +148,7 @@ class FileSystemRealmDefinition extends SimpleResourceDefinition {
                         @Override
                         public SecurityRealm get() throws StartException {
                             pathResolver = pathResolver();
-                            Path rootPath = pathResolver.path(path).relativeTo(relativeTo, pathManagerInjector.getValue()).resolve().toPath();
+                            Path rootPath = pathResolver.path(path).relativeTo(relativeTo, pathManagerInjector.getOptionalValue()).resolve().toPath();
 
                             NameRewriter nameRewriter = nameRewriterInjector.getOptionalValue();
 
