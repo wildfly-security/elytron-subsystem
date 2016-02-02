@@ -505,8 +505,8 @@ class SaslServerDefinitions {
         static String[] names() {
             NamePredicate[] namePredicates = NamePredicate.values();
             String[] names = new String[namePredicates.length];
-            for (int i=0;i<namePredicates.length;i++) {
-                names[i] = namePredicates.toString();
+            for (int i = 0; i < namePredicates.length; i++) {
+                names[i] = namePredicates[i].toString();
             }
 
             return names;
