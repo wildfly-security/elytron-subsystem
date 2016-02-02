@@ -183,6 +183,7 @@ class DomainService implements Service<SecurityDomain> {
             if (realmDependency.roleMapper != null) {
                 realmBuilder.setRoleMapper(roleMappers.get(realmDependency.roleMapper).getValue());
             }
+            realmBuilder.build();
         }
 
         securityDomain = builder.build();
