@@ -23,7 +23,9 @@ import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_CAPABILI
 import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
 import static org.wildfly.extension.elytron.FileAttributeDefinitions.pathName;
+import static org.wildfly.extension.elytron.FileAttributeDefinitions.pathResolver;
 
+import java.nio.file.Path;
 import java.security.KeyStore;
 
 import org.jboss.as.controller.AbstractAddStepHandler;
@@ -48,6 +50,10 @@ import org.jboss.dmr.ModelType;
 import org.jboss.msc.service.ServiceBuilder;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.ServiceTarget;
+import org.jboss.msc.service.StartException;
+import org.jboss.msc.value.InjectedValue;
+import org.wildfly.extension.elytron.FileAttributeDefinitions.PathResolver;
+import org.wildfly.security.auth.provider.FileSystemSecurityRealm;
 import org.wildfly.security.auth.server.NameRewriter;
 import org.wildfly.security.auth.server.SecurityRealm;
 
@@ -124,22 +130,52 @@ class FileSystemRealmDefinition extends SimpleResourceDefinition {
             ServiceTarget serviceTarget = context.getServiceTarget();
             RuntimeCapability<Void> runtimeCapability = SECURITY_REALM_RUNTIME_CAPABILITY.fromBaseCapability(context.getCurrentAddressValue());
             ServiceName realmName = runtimeCapability.getCapabilityServiceName(SecurityRealm.class);
-            int levels = LEVELS.resolveModelAttribute(context, model).asInt();
-
-            String path = PATH.resolveModelAttribute(context, model).asString();
-            String relativeTo = RELATIVE_TO.resolveModelAttribute(context, model).asString();
             String nameRewriter = asStringIfDefined(context, NAME_REWRITER, model);
 
-            FileSystemRealmService fileSystemRealmService = new FileSystemRealmService(levels, path , relativeTo);
+            final int levels = LEVELS.resolveModelAttribute(context, model).asInt();
+
+            final String path = PATH.resolveModelAttribute(context, model).asString();
+            final String relativeTo = RELATIVE_TO.resolveModelAttribute(context, model).asString();
+
+            final InjectedValue<PathManager> pathManagerInjector = new InjectedValue<>();
+            final InjectedValue<NameRewriter> nameRewriterInjector = new InjectedValue<>();
+
+            TrivialService<SecurityRealm> fileSystemRealmService = new TrivialService<>(
+                    new TrivialService.ValueSupplier<SecurityRealm>() {
+
+                        private PathResolver pathResolver;
+
+                        @Override
+                        public SecurityRealm get() throws StartException {
+                            pathResolver = pathResolver();
+                            Path rootPath = pathResolver.path(path).relativeTo(relativeTo, pathManagerInjector.getValue()).resolve().toPath();
+
+                            NameRewriter nameRewriter = nameRewriterInjector.getOptionalValue();
+
+                            return nameRewriter != null ?
+                                    new FileSystemSecurityRealm(rootPath, nameRewriter, levels) :
+                                    new FileSystemSecurityRealm(rootPath, levels);
+                        }
+
+                        @Override
+                        public void dispose() {
+                            if (pathResolver != null) {
+                                pathResolver.clear();
+                                pathResolver = null;
+                            }
+                        }
+
+                    });
+
             ServiceBuilder<SecurityRealm> serviceBuilder = serviceTarget.addService(realmName, fileSystemRealmService);
             if (relativeTo != null) {
-                serviceBuilder.addDependency(PathManagerService.SERVICE_NAME, PathManager.class, fileSystemRealmService.getPathManagerInjector());
+                serviceBuilder.addDependency(PathManagerService.SERVICE_NAME, PathManager.class, pathManagerInjector);
                 serviceBuilder.addDependency(pathName(relativeTo));
             }
             if (nameRewriter != null) {
                 String nameRewriteCapability = RuntimeCapability.buildDynamicCapabilityName(NAME_REWRITER_CAPABILITY, nameRewriter);
                 ServiceName nameRewriterServiceName = context.getCapabilityServiceName(nameRewriteCapability, NameRewriter.class);
-                serviceBuilder.addDependency(nameRewriterServiceName, NameRewriter.class, fileSystemRealmService.getNameRewriterInjector());
+                serviceBuilder.addDependency(nameRewriterServiceName, NameRewriter.class, nameRewriterInjector);
             }
             serviceBuilder.install();
         }

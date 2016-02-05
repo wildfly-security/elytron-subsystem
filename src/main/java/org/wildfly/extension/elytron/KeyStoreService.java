@@ -18,6 +18,7 @@
 
 package org.wildfly.extension.elytron;
 
+import static org.wildfly.extension.elytron.FileAttributeDefinitions.pathResolver;
 import static org.wildfly.extension.elytron.ProviderUtil.identifyProvider;
 import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
 
@@ -35,17 +36,14 @@ import java.security.Security;
 import java.security.cert.CertificateException;
 
 import org.jboss.as.controller.OperationFailedException;
-import org.jboss.as.controller.services.path.PathEntry;
 import org.jboss.as.controller.services.path.PathManager;
-import org.jboss.as.controller.services.path.PathManager.Callback.Handle;
-import org.jboss.as.controller.services.path.PathManager.Event;
-import org.jboss.as.controller.services.path.PathManager.PathEventContext;
 import org.jboss.msc.inject.Injector;
 import org.jboss.msc.service.Service;
 import org.jboss.msc.service.StartContext;
 import org.jboss.msc.service.StartException;
 import org.jboss.msc.service.StopContext;
 import org.jboss.msc.value.InjectedValue;
+import org.wildfly.extension.elytron.FileAttributeDefinitions.PathResolver;
 import org.wildfly.security.keystore.AtomicLoadKeyStore;
 import org.wildfly.security.keystore.ModifyTrackingKeyStore;
 import org.wildfly.security.keystore.UnmodifiableKeyStore;
@@ -67,8 +65,8 @@ class KeyStoreService implements Service<KeyStore> {
     private final InjectedValue<PathManager> pathManager = new InjectedValue<PathManager>();
     private final InjectedValue<Provider[]> providers = new InjectedValue<Provider[]>();
 
+    private PathResolver pathResolver;
     private File resolvedPath;
-    private Handle callbackHandle;
 
     private volatile long synched;
     private volatile AtomicLoadKeyStore keyStore = null;
@@ -101,7 +99,12 @@ class KeyStoreService implements Service<KeyStore> {
         try {
             AtomicLoadKeyStore keyStore = AtomicLoadKeyStore.newInstance(type, resolveProvider());
             if (path != null) {
-                resolveFileLocation();
+                pathResolver = pathResolver();
+                pathResolver.path(path);
+                if (relativeTo != null) {
+                    pathResolver.relativeTo(relativeTo, pathManager.getValue());
+                }
+                resolvedPath = pathResolver.resolve();
             }
 
             synched = System.currentTimeMillis();
@@ -126,29 +129,6 @@ class KeyStoreService implements Service<KeyStore> {
         return identified;
     }
 
-    private void resolveFileLocation() {
-        if (relativeTo != null) {
-            PathManager pathManager = this.pathManager.getValue();
-            resolvedPath = new File(pathManager.resolveRelativePathEntry(path, relativeTo));
-            callbackHandle = pathManager.registerCallback(relativeTo, new org.jboss.as.controller.services.path.PathManager.Callback() {
-
-                @Override
-                public void pathModelEvent(PathEventContext eventContext, String name) {
-                    if (eventContext.isResourceServiceRestartAllowed() == false) {
-                        eventContext.reloadRequired();
-                    }
-                }
-
-                @Override
-                public void pathEvent(Event event, PathEntry pathEntry) {
-                    // Service dependencies should trigger a stop and start.
-                }
-            }, Event.REMOVED, Event.UPDATED);
-        } else {
-            resolvedPath = new File(path);
-        }
-    }
-
     private AtomicLoadKeyStore.LoadKey load(AtomicLoadKeyStore keyStore) throws GeneralSecurityException, IOException {
         try (InputStream is = resolvedPath != null ? new FileInputStream(resolvedPath) : null) {
             return keyStore.revertibleLoad(is, password);
@@ -158,8 +138,9 @@ class KeyStoreService implements Service<KeyStore> {
     @Override
     public void stop(StopContext stopContext) {
         keyStore = null;
-        if (callbackHandle != null) {
-            callbackHandle.remove();
+        if (pathResolver != null) {
+            pathResolver.clear();
+            pathResolver = null;
         }
     }
 
