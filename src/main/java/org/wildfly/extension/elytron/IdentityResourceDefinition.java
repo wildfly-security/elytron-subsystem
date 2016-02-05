@@ -138,12 +138,12 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
                     ModifiableRealmIdentity identity = modifiableRealm.getRealmIdentityForUpdate(principalName, null, null);
 
                     if (identity.exists()) {
-                        throw new OperationFailedException("Identity with name [" + principalName + "] already exists.");
+                        throw ROOT_LOGGER.identityAlreadyExists(principalName);
                     }
 
                     identity.create();
                 } catch (RealmUnavailableException e) {
-                    throw new OperationFailedException("Could not create identity with name [" + principalName + "].", e);
+                    throw ROOT_LOGGER.couldNotCreateIdentity(principalName, e);
                 }
             }, OperationContext.Stage.RUNTIME);
         }
@@ -164,12 +164,12 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
                     ModifiableRealmIdentity realmIdentity = modifiableRealm.getRealmIdentityForUpdate(principalName, null, null);
 
                     if (!realmIdentity.exists()) {
-                        throw new OperationFailedException("Identity with name [" + principalName + "] not found.");
+                        throw new OperationFailedException(ROOT_LOGGER.identityNotFound(principalName));
                     }
 
                     realmIdentity.delete();
                 } catch (RealmUnavailableException e) {
-                    throw new OperationFailedException("Could not delete identity with name [" + principalName + "].", e);
+                    throw ROOT_LOGGER.couldNotCreateIdentity(principalName, e);
                 }
             }, OperationContext.Stage.RUNTIME);
         }
@@ -203,12 +203,12 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
                     authenticationContext.setAuthenticationName(principalName);
 
                     if (!authenticationContext.exists()) {
-                        parentContext.getFailureDescription().add("Identity with name [" + principalName + "] not found.");
+                        parentContext.getFailureDescription().add(ROOT_LOGGER.identityNotFound(principalName));
                         return;
                     }
 
                     if (!authenticationContext.authorize(principalName)) {
-                        parentContext.getFailureDescription().add("Identity with name [" + principalName + "] not authorized.");
+                        parentContext.getFailureDescription().add(ROOT_LOGGER.identityNotAuthorized(principalName));
                         return;
                     }
 
@@ -236,7 +236,7 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
 
                     parentContext.completeStep(NOOP_RESULT_HANDLER);
                 } catch (RealmUnavailableException e) {
-                    throw new OperationFailedException("Could not read identity [" + principalName + "] from security domain [" + domainServiceName + "].", e);
+                    throw ROOT_LOGGER.couldNotReadIdentity(principalName, domainServiceName, e);
                 }
             }, OperationContext.Stage.RUNTIME);
         }
@@ -259,7 +259,7 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
 
                 try {
                     if (!realmIdentity.exists()) {
-                        parentContext.getFailureDescription().add("Identity with name [" + principalName + "] not found.");
+                        parentContext.getFailureDescription().add(ROOT_LOGGER.identityNotFound(principalName));
                         return;
                     }
                     AuthorizationIdentity identity = realmIdentity.getAuthorizationIdentity();
@@ -288,14 +288,14 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
                         } else if (password instanceof DigestPassword) {
                             passwordType = ElytronDescriptionConstants.DIGEST;
                         } else {
-                            throw new RuntimeException("Unsupported password type [" + password.getClass() + "].");
+                            throw ROOT_LOGGER.unsupportedPasswordType(password.getClass());
                         }
                         credentialsNode.add(passwordType);
                     });
 
                     parentContext.completeStep(NOOP_RESULT_HANDLER);
                 } catch (RealmUnavailableException e) {
-                    throw new OperationFailedException("Could not read identity with name [" + principalName + "].", e);
+                    throw ROOT_LOGGER.couldNotReadIdentity(principalName, e);
                 }
             }, OperationContext.Stage.RUNTIME);
         }
@@ -329,7 +329,7 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
                 try {
                     authorizationIdentity = realmIdentity.getAuthorizationIdentity();
                 } catch (RealmUnavailableException e) {
-                    throw new OperationFailedException("Failed to obtain the authorization identity.", e);
+                    throw ROOT_LOGGER.couldNotObtainAuthorizationIdentity(e);
                 }
 
                 try {
@@ -339,7 +339,7 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
 
                     realmIdentity.setAttributes(attributes);
                 } catch (RealmUnavailableException e) {
-                    throw new OperationFailedException("Failed to add attribute.", e);
+                    throw ROOT_LOGGER.couldNotAddAttribute(e);
                 }
 
                 parentContext.completeStep(NOOP_RESULT_HANDLER);
@@ -376,7 +376,7 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
                 try {
                     authorizationIdentity = realmIdentity.getAuthorizationIdentity();
                 } catch (RealmUnavailableException e) {
-                    throw new OperationFailedException("Failed to obtain the authorization identity.", e);
+                    throw ROOT_LOGGER.couldNotObtainAuthorizationIdentity(e);
                 }
 
                 try {
@@ -395,7 +395,7 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
 
                     realmIdentity.setAttributes(attributes);
                 } catch (RealmUnavailableException e) {
-                    throw new OperationFailedException("Failed to remove attribute.", e);
+                    throw ROOT_LOGGER.couldNotRemoveAttribute(e);
                 }
 
                 parentContext.completeStep(NOOP_RESULT_HANDLER);
@@ -555,7 +555,7 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
                 try {
                     realmIdentity.setCredentials(Collections.singleton( new PasswordCredential(createPassword(parentContext, principalName, passwordProperty))));
                 } catch (NoSuchAlgorithmException | InvalidKeySpecException | RealmUnavailableException e) {
-                    throw new OperationFailedException("Could not create password.", e);
+                    throw ROOT_LOGGER.couldNotCreatePassword(e);
                 }
                 parentContext.completeStep(NOOP_RESULT_HANDLER);
             }, OperationContext.Stage.RUNTIME);
@@ -590,7 +590,7 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
                 DigestPasswordAlgorithmSpec dpas = new DigestPasswordAlgorithmSpec(principalName, realm);
                 passwordSpec = new EncryptablePasswordSpec(password.toCharArray(), dpas);
             } else {
-                throw new OperationFailedException("Unexpected password type [" + passwordType + "].");
+                throw ROOT_LOGGER.unexpectedPasswordType(passwordType);
             }
 
             return PasswordFactory.getInstance(algorithm).generatePassword(passwordSpec);
@@ -635,12 +635,12 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
             ModifiableRealmIdentity realmIdentity = modifiableRealm.getRealmIdentityForUpdate(principalName, null, null);
 
             if (!realmIdentity.exists()) {
-                throw new OperationFailedException("Identity [" + principalName + "] not found.");
+                throw new OperationFailedException(ROOT_LOGGER.identityNotFound(principalName));
             }
 
             return realmIdentity;
         } catch (RealmUnavailableException e) {
-            throw new OperationFailedException("Could not obtain identity [" + principalName + "].");
+            throw ROOT_LOGGER.couldNotReadIdentity(principalName, e);
         }
     }
 

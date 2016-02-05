@@ -196,4 +196,50 @@ public interface ElytronSubsystemMessages extends BasicLogger {
 
     @Message(id = 17, value = "Security realm [%s] is not modifiable.")
     OperationFailedException realmNotModifiable(ServiceName serviceName);
+
+    /*
+     * Identity Resource Messages - 1000
+     */
+
+    @Message(id = 1000, value = "Identity with name [%s] already exists.")
+    OperationFailedException identityAlreadyExists(final String principalName);
+
+    @Message(id = 1001, value = "Could not create identity with name [%s].")
+    OperationFailedException couldNotCreateIdentity(final String principalName, @Cause Exception cause);
+
+    @Message(id = 1002, value = "Identity with name [%s] not found.")
+    String identityNotFound(final String principalName);
+
+    @Message(id = 1003, value = "Could not delete identity with name [%s].")
+    OperationFailedException couldNotDeleteIdentity(final String principalName, @Cause Exception cause);
+
+    @Message(id = 1004, value = "Identity with name [%s] not authorized.")
+    String identityNotAuthorized(final String principalName);
+
+    @Message(id = 1005, value = "Could not read identity [%s] from security domain [%s].")
+    OperationFailedException couldNotReadIdentity(final String principalName, final ServiceName domainServiceName, @Cause Exception cause);
+
+    @Message(id = 1006, value = "Unsupported password type [%s].")
+    RuntimeException unsupportedPasswordType(final Class passwordType);
+
+    @Message(id = 1007, value = "Could not read identity with name [%s].")
+    OperationFailedException couldNotReadIdentity(final String principalName, @Cause Exception cause);
+
+    @Message(id = 1008, value = "Failed to obtain the authorization identity.")
+    OperationFailedException couldNotObtainAuthorizationIdentity(@Cause Exception cause);
+
+    @Message(id = 1009, value = "Failed to add attribute.")
+    OperationFailedException couldNotAddAttribute(@Cause Exception cause);
+
+    @Message(id = 1010, value = "Failed to remove attribute.")
+    OperationFailedException couldNotRemoveAttribute(@Cause Exception cause);
+
+    @Message(id = 1011, value = "Could not create password.")
+    OperationFailedException couldNotCreatePassword(@Cause Exception cause);
+
+    @Message(id = 1012, value = "Unexpected password type [%s].")
+    OperationFailedException unexpectedPasswordType(final String passwordType);
+
+
+
 }
