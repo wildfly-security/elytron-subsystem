@@ -46,7 +46,9 @@ import org.jboss.msc.service.StartContext;
 import org.jboss.msc.service.StartException;
 import org.jboss.msc.service.StopContext;
 import org.jboss.msc.value.InjectedValue;
+import org.wildfly.security.keystore.AliasFilter;
 import org.wildfly.security.keystore.AtomicLoadKeyStore;
+import org.wildfly.security.keystore.FilteringKeyStore;
 import org.wildfly.security.keystore.ModifyTrackingKeyStore;
 import org.wildfly.security.keystore.UnmodifiableKeyStore;
 
@@ -63,6 +65,7 @@ class KeyStoreService implements Service<KeyStore> {
     private final String path;
     private final String relativeTo;
     private final boolean required;
+    private final String aliasFilter;
 
     private final InjectedValue<PathManager> pathManager = new InjectedValue<PathManager>();
     private final InjectedValue<Provider[]> providers = new InjectedValue<Provider[]>();
@@ -75,21 +78,22 @@ class KeyStoreService implements Service<KeyStore> {
     private volatile ModifyTrackingKeyStore trackingKeyStore = null;
     private volatile KeyStore unmodifiableKeyStore = null;
 
-    private KeyStoreService(String provider, String type, char[] password, String relativeTo, String path, boolean required) {
+    private KeyStoreService(String provider, String type, char[] password, String relativeTo, String path, boolean required, String aliasFilter) {
         this.provider = provider;
         this.type = type;
         this.password = password != null ? password.clone() : null;
         this.relativeTo = relativeTo;
         this.path = path;
         this.required = required;
+        this.aliasFilter = aliasFilter;
     }
 
-    static KeyStoreService createFileLessKeyStoreService(String provider, String type, char[] password) {
-        return new KeyStoreService(provider, type, password, null, null, false);
+    static KeyStoreService createFileLessKeyStoreService(String provider, String type, char[] password, String aliasFilter) {
+        return new KeyStoreService(provider, type, password, null, null, false, aliasFilter);
     }
 
-    static KeyStoreService createFileBasedKeyStoreService(String provider, String type, char[] password, String relativeTo, String path, boolean required) {
-        return new KeyStoreService(provider, type, password, relativeTo, path, required);
+    static KeyStoreService createFileBasedKeyStoreService(String provider, String type, char[] password, String relativeTo, String path, boolean required, String aliasFilter) {
+        return new KeyStoreService(provider, type, password, relativeTo, path, required, aliasFilter);
     }
 
     /*
@@ -110,8 +114,9 @@ class KeyStoreService implements Service<KeyStore> {
             }
 
             this.keyStore = keyStore;
-            this.trackingKeyStore = ModifyTrackingKeyStore.modifyTrackingKeyStore(keyStore);
-            this.unmodifiableKeyStore = UnmodifiableKeyStore.unmodifiableKeyStore(keyStore);
+            KeyStore intermediate = aliasFilter != null ? FilteringKeyStore.filteringKeyStore(keyStore, AliasFilter.fromString(aliasFilter)) :  keyStore;
+            this.trackingKeyStore = ModifyTrackingKeyStore.modifyTrackingKeyStore(intermediate);
+            this.unmodifiableKeyStore = UnmodifiableKeyStore.unmodifiableKeyStore(intermediate);
         } catch (GeneralSecurityException | IOException e) {
             throw ROOT_LOGGER.unableToStartService(e);
         }

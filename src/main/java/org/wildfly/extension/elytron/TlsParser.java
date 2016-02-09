@@ -28,6 +28,7 @@ import static org.jboss.as.controller.parsing.ParseUtils.requireNoAttributes;
 import static org.jboss.as.controller.parsing.ParseUtils.requireNoContent;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedAttribute;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedElement;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ALIAS_FILTER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.FILE;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEYSTORE;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME;
@@ -105,6 +106,9 @@ class TlsParser {
                     case PASSWORD:
                         KeyStoreDefinition.PASSWORD.parseAndSetParameter(value, addKeyStore, reader);
                         break;
+                    case ALIAS_FILTER:
+                        KeyStoreDefinition.ALIAS_FILTER.parseAndSetParameter(value, addKeyStore, reader);
+                        break;
                     default:
                         throw unexpectedAttribute(reader, i);
                 }
@@ -169,6 +173,7 @@ class TlsParser {
         KeyStoreDefinition.PROVIDER.marshallAsAttribute(keyStore, writer);
         KeyStoreDefinition.PROVIDER_LOADER.marshallAsAttribute(keyStore, writer);
         KeyStoreDefinition.PASSWORD.marshallAsAttribute(keyStore, writer);
+        KeyStoreDefinition.ALIAS_FILTER.marshallAsAttribute(keyStore, writer);
 
         if (keyStore.hasDefined(PATH)) {
             writer.writeStartElement(FILE);

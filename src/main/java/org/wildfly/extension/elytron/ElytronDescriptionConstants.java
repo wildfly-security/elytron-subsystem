@@ -35,6 +35,7 @@ interface ElytronDescriptionConstants {
     String AGGREGATE_ROLE_MAPPER = "aggregate-role-mapper";
     String AGGREGATE_SASL_SERVER_FACTORY = "aggregate-sasl-server-factory";
     String ALIAS = "alias";
+    String ALIAS_FILTER = "alias-filter";
     String ALGORITHM = "algorithm";
     String AND = "and";
     String AS_RDN = "as-rdn";

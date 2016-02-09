@@ -122,6 +122,12 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
         .build();
 
+    static final SimpleAttributeDefinition ALIAS_FILTER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ALIAS_FILTER, ModelType.STRING, true)
+        .setAllowExpression(true)
+        .setMinSize(1)
+        .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+        .build();
+
     // Resource Resolver
 
     static final StandardResourceDescriptionResolver RESOURCE_RESOLVER = ElytronExtension.getResourceDescriptionResolver(ElytronDescriptionConstants.KEYSTORE);
@@ -148,7 +154,7 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
     static final SimpleOperationDefinition STORE = new SimpleOperationDefinitionBuilder(ElytronDescriptionConstants.STORE, RESOURCE_RESOLVER)
         .build();
 
-    private static final AttributeDefinition[] CONFIG_ATTRIBUTES = new AttributeDefinition[] { TYPE, PROVIDER, PASSWORD, PATH, RELATIVE_TO, PROVIDER_LOADER, REQUIRED };
+    private static final AttributeDefinition[] CONFIG_ATTRIBUTES = new AttributeDefinition[] { TYPE, PROVIDER, PASSWORD, PATH, RELATIVE_TO, PROVIDER_LOADER, REQUIRED, ALIAS_FILTER };
 
     private static final KeyStoreAddHandler ADD = new KeyStoreAddHandler();
     private static final OperationStepHandler REMOVE = new SingleCapabilityServiceRemoveHandler<KeyStore>(ADD, KEY_STORE_RUNTIME_CAPABILITY, KeyStore.class);
@@ -257,15 +263,16 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
             String path = asStringIfDefined(context, PATH, model);
             String relativeTo = null;
             boolean required;
+            String aliasFilter = asStringIfDefined(context, ALIAS_FILTER, model);
 
             final KeyStoreService keyStoreService;
             if (path != null) {
                 relativeTo = asStringIfDefined(context, RELATIVE_TO, model);
                 required = REQUIRED.resolveModelAttribute(context, model).asBoolean();
 
-                keyStoreService = KeyStoreService.createFileBasedKeyStoreService(provider, type, passwordArray, relativeTo, path, required);
+                keyStoreService = KeyStoreService.createFileBasedKeyStoreService(provider, type, passwordArray, relativeTo, path, required, aliasFilter);
             } else {
-                keyStoreService = KeyStoreService.createFileLessKeyStoreService(provider, type, passwordArray);
+                keyStoreService = KeyStoreService.createFileLessKeyStoreService(provider, type, passwordArray, aliasFilter);
             }
 
             ServiceTarget serviceTarget = context.getServiceTarget();
