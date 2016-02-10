@@ -21,6 +21,7 @@ package org.wildfly.extension.elytron;
 import java.security.KeyStore;
 import java.security.Provider;
 
+import javax.net.ssl.KeyManager;
 import javax.security.sasl.SaslServerFactory;
 
 import org.jboss.as.controller.capability.RuntimeCapability;
@@ -62,6 +63,12 @@ class Capabilities {
     static final RuntimeCapability<Void> HTTP_SERVER_FACTORY_RUNTIME_CAPABILITY =  RuntimeCapability
         .Builder.of(HTTP_SERVER_FACTORY_CAPABILITY, true, HttpServerAuthenticationMechanismFactory.class)
         .build();
+
+    static final String KEY_MANAGERS_CAPABILITY = CAPABILITY_BASE + "key-managers";
+
+    static final RuntimeCapability<Void> KEY_MANAGERS_RUNTIME_CAPABILITY =  RuntimeCapability
+            .Builder.of(KEY_MANAGERS_CAPABILITY, true, KeyManager[].class)
+            .build();
 
     static final String KEYSTORE_CAPABILITY = CAPABILITY_BASE + "keystore";
 

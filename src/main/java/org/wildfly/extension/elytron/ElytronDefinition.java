@@ -142,6 +142,8 @@ class ElytronDefinition extends SimpleResourceDefinition {
 
         // TLS Building Blocks
         resourceRegistration.registerSubModel(new KeyStoreDefinition());
+        resourceRegistration.registerSubModel(SSLDefinitions.getKeyManagerDefinition());
+
     }
 
     static ServiceBuilder<?> commonDependencies(ServiceBuilder<?> serviceBuilder) {

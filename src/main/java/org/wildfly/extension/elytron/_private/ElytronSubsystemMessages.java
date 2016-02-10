@@ -196,4 +196,15 @@ public interface ElytronSubsystemMessages extends BasicLogger {
 
     @Message(id = 17, value = "Security realm [%s] is not modifiable.")
     OperationFailedException realmNotModifiable(ServiceName serviceName);
+
+    /**
+     * A {@link StartException} where a Key or Trust manager factory can not be created for a specific algorithm.
+     *
+     * @param type the type of manager factory being created.
+     * @param algorithm the requested algorithm.
+     * @return The {@link StartException} for the error.
+     */
+    @Message(id = 18, value = "Unable to create %s for algorithm '%s'.")
+    StartException unableToCreateManagerFactory(final String type, final String algorithm);
+
 }

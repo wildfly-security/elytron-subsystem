@@ -131,6 +131,7 @@ interface ElytronDescriptionConstants {
     String JOINER = "joiner";
 
     String KEY = "key";
+    String KEY_MANAGERS = "key-managers";
     String KEYSTORE = "keystore";
     String KEYSTORE_REALM = "keystore-realm";
     String KEYSTORES = "keystores";
