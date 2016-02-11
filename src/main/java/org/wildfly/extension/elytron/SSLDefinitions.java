@@ -22,6 +22,8 @@ import static org.wildfly.extension.elytron.Capabilities.KEYSTORE_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.KEY_MANAGERS_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.KEY_MANAGERS_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.PROVIDERS_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.TRUST_MANAGERS_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.TRUST_MANAGERS_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.ElytronExtension.ELYTRON_1_0_0;
 import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
 import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
@@ -34,6 +36,8 @@ import java.security.UnrecoverableKeyException;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
 
 import org.jboss.as.controller.AbstractAddStepHandler;
 import org.jboss.as.controller.AttributeDefinition;
@@ -145,6 +149,71 @@ class SSLDefinitions {
         };
 
         return new TrivialResourceDefinition<>(ElytronDescriptionConstants.KEY_MANAGERS, KEY_MANAGERS_RUNTIME_CAPABILITY, KeyManager[].class, add, attributes);
+
+    }
+
+    static ResourceDefinition getTrustManagerDefinition() {
+        final SimpleAttributeDefinition providerLoaderDefinition = setCapabilityReference(PROVIDERS_CAPABILITY, TRUST_MANAGERS_CAPABILITY, PROVIDER_LOADER);
+        final SimpleAttributeDefinition keystoreDefinition = setCapabilityReference(KEYSTORE_CAPABILITY, TRUST_MANAGERS_CAPABILITY, KEYSTORE);
+
+        AttributeDefinition[] attributes = new AttributeDefinition[] { ALGORITHM, providerLoaderDefinition, keystoreDefinition };
+
+        AbstractAddStepHandler add = new TrivialAddHandler<TrustManager[]>(TRUST_MANAGERS_RUNTIME_CAPABILITY, TrustManager[].class, attributes) {
+
+            @Override
+            protected ValueSupplier<TrustManager[]> getValueSupplier(ServiceBuilder<TrustManager[]> serviceBuilder, OperationContext context, ModelNode model) throws OperationFailedException {
+                final String algorithm = ALGORITHM.resolveModelAttribute(context, model).asString();
+
+                String providerLoader = asStringIfDefined(context, providerLoaderDefinition, model);
+                final InjectedValue<Provider[]> providersInjector = new InjectedValue<>();
+                if (providerLoader != null) {
+                    serviceBuilder.addDependency(context.getCapabilityServiceName(
+                            buildDynamicCapabilityName(PROVIDERS_CAPABILITY, providerLoader), Provider[].class),
+                            Provider[].class, providersInjector);
+                }
+
+                String keyStore = asStringIfDefined(context, keystoreDefinition, model);
+                final InjectedValue<KeyStore> keyStoreInjector = new InjectedValue<>();
+                if (keyStore != null) {
+                    serviceBuilder.addDependency(context.getCapabilityServiceName(
+                            buildDynamicCapabilityName(PROVIDERS_CAPABILITY, providerLoader), Provider[].class),
+                            Provider[].class, providersInjector);
+                }
+
+                return () -> {
+                    Provider[] providers = providersInjector.getOptionalValue();
+                    TrustManagerFactory trustManagerFactory = null;
+                    if (providers != null) {
+                        for (Provider current : providers) {
+                            try {
+                                // TODO - We could check the Services within each Provider to check there is one of the required type/algorithm
+                                // However the same loop would need to remain as it is still possible a specific provider can't create it.
+                                trustManagerFactory = TrustManagerFactory.getInstance(algorithm, current);
+                                break;
+                            } catch (NoSuchAlgorithmException ignored) {
+                            }
+                        }
+                        throw ROOT_LOGGER.unableToCreateManagerFactory(TrustManagerFactory.class.getSimpleName(), algorithm);
+                    } else {
+                        try {
+                            trustManagerFactory = TrustManagerFactory.getInstance(algorithm);
+                        } catch (NoSuchAlgorithmException e) {
+                            throw new StartException(e);
+                        }
+                    }
+
+                    try {
+                        trustManagerFactory.init(keyStoreInjector.getOptionalValue());
+                    } catch (KeyStoreException e) {
+                        throw new StartException(e);
+                    }
+
+                    return trustManagerFactory.getTrustManagers();
+                };
+            }
+        };
+
+        return new TrivialResourceDefinition<>(ElytronDescriptionConstants.TRUST_MANAGERS, TRUST_MANAGERS_RUNTIME_CAPABILITY, TrustManager[].class, add, attributes);
 
     }
 

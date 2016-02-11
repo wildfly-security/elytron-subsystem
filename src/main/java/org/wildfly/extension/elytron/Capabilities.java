@@ -22,6 +22,7 @@ import java.security.KeyStore;
 import java.security.Provider;
 
 import javax.net.ssl.KeyManager;
+import javax.net.ssl.TrustManager;
 import javax.security.sasl.SaslServerFactory;
 
 import org.jboss.as.controller.capability.RuntimeCapability;
@@ -148,6 +149,12 @@ class Capabilities {
     static final RuntimeCapability<Void> SECURITY_REALM_RUNTIME_CAPABILITY = RuntimeCapability
         .Builder.of(SECURITY_REALM_CAPABILITY, true, SecurityRealm.class)
         .build();
+
+    static final String TRUST_MANAGERS_CAPABILITY = CAPABILITY_BASE + "trust-managers";
+
+    static final RuntimeCapability<Void> TRUST_MANAGERS_RUNTIME_CAPABILITY =  RuntimeCapability
+            .Builder.of(TRUST_MANAGERS_CAPABILITY, true, TrustManager[].class)
+            .build();
 
     /**
      * Requirements, capabilities from other subsystems.

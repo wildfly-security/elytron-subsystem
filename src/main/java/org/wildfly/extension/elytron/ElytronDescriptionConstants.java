@@ -267,6 +267,7 @@ interface ElytronDescriptionConstants {
 
     String TLS = "tls";
     String TO = "to";
+    String TRUST_MANAGERS = "trust-managers";
     String TYPE = "type";
 
     String URL = "url";
