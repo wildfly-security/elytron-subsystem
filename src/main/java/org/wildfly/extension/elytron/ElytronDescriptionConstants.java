@@ -132,6 +132,7 @@ interface ElytronDescriptionConstants {
     String JOINER = "joiner";
 
     String KEY = "key";
+    String KEY_MANAGER = "key-manager";
     String KEY_MANAGERS = "key-managers";
     String KEYSTORE = "keystore";
     String KEYSTORE_REALM = "keystore-realm";
@@ -247,6 +248,7 @@ interface ElytronDescriptionConstants {
     String SERVER_NAME = "server-name";
     String SERIAL_NUMBER = "serial-number";
     String SERVER_SSL_CONTEXT = "server-ssl-context";
+    String SERVER_SSL_CONTEXTS = "server-ssl-contexts";
     String SET_PASSWORD = "set-password";
     String SERVICE = "service";
     String SERVICE_LOADER_HTTP_SERVER_FACTORY = "service-loader-http-server-factory";
@@ -271,6 +273,7 @@ interface ElytronDescriptionConstants {
 
     String TLS = "tls";
     String TO = "to";
+    String TRUST_MANAGER = "trust-manager";
     String TRUST_MANAGERS = "trust-managers";
     String TYPE = "type";
 

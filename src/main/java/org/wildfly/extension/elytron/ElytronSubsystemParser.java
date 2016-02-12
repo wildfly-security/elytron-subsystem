@@ -32,8 +32,6 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CLASS_NA
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CONFIGURATION;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.HTTP;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEY;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEYSTORE;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEYSTORES;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MAPPERS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MODULE;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME;
@@ -122,7 +120,7 @@ class ElytronSubsystemParser implements XMLElementReader<List<ModelNode>>, XMLEl
                     saslParser.readSasl(parentAddress, reader, operations);
                     break;
                 case TLS:
-                    readTls(parentAddress, reader, operations);
+                    tlsParser.readTls(parentAddress, reader, operations);
                     break;
                 default:
                     throw unexpectedElement(reader);
@@ -196,21 +194,6 @@ class ElytronSubsystemParser implements XMLElementReader<List<ModelNode>>, XMLEl
             String localName = reader.getLocalName();
             if (SECURITY_DOMAIN.equals(localName)) {
                 domainParser.readDomain(parentAddress, reader, operations);
-            } else {
-                throw unexpectedElement(reader);
-            }
-        }
-    }
-
-    private void readTls(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations) throws XMLStreamException {
-        requireNoAttributes(reader);
-        boolean keyStoresFound = false;
-        while(reader.hasNext() && reader.nextTag() != END_ELEMENT) {
-            verifyNamespace(reader);
-            String localName = reader.getLocalName();
-            if (KEYSTORES.equals(localName) && keyStoresFound == false) {
-                keyStoresFound = true;
-                tlsParser.readKeyStores(parentAddress, reader, operations);
             } else {
                 throw unexpectedElement(reader);
             }
@@ -381,24 +364,7 @@ class ElytronSubsystemParser implements XMLElementReader<List<ModelNode>>, XMLEl
         mapperParser.writeMappers(model, writer);
         httpParser.writeHttp(model, writer);
         saslParser.writeSasl(model, writer);
-
-        boolean hasTlsContent = false;
-        boolean hasKeyStore = model.hasDefined(KEYSTORE);
-        hasTlsContent = hasTlsContent || hasKeyStore;
-
-        if (hasTlsContent) {
-            writer.writeStartElement(TLS);
-            if (hasKeyStore) {
-                writer.writeStartElement(KEYSTORES);
-                ModelNode keyStores = model.require(KEYSTORE);
-                for (String name : keyStores.keys()) {
-                    ModelNode keyStore = keyStores.require(name);
-                    tlsParser.writeKeyStore(name, keyStore, writer);
-                }
-                writer.writeEndElement();
-            }
-            writer.writeEndElement();
-        }
+        tlsParser.writeTLS(model, writer);
 
         writer.writeEndElement();
     }

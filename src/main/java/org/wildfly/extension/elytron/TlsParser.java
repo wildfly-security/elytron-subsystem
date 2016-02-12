@@ -28,16 +28,29 @@ import static org.jboss.as.controller.parsing.ParseUtils.requireNoAttributes;
 import static org.jboss.as.controller.parsing.ParseUtils.requireNoContent;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedAttribute;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedElement;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ALGORITHM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ALIAS_FILTER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CIPHER_SUITE_FILTER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.FILE;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEYSTORE;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEYSTORES;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEY_MANAGER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEY_MANAGERS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PASSWORD;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PATH;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROTOCOLS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDER_LOADER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.RELATIVE_TO;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REQUIRED;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REQUIRE_CLIENT_AUTH;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SECURITY_DOMAIN;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SERVER_SSL_CONTEXT;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SERVER_SSL_CONTEXTS;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.TLS;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.TRUST_MANAGER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.TRUST_MANAGERS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.TYPE;
 import static org.wildfly.extension.elytron.ElytronSubsystemParser.verifyNamespace;
 
@@ -59,11 +72,220 @@ import org.jboss.staxmapper.XMLExtendedStreamWriter;
  */
 class TlsParser {
 
-    /*
-     * KeyStores
-     */
+    void readTls(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations) throws XMLStreamException {
+        requireNoAttributes(reader);
+        boolean keyManagersFound = false;
+        boolean keyStoresFound = false;
+        boolean trustManagersFound = false;
+        boolean serverSSLContextsFound = false;
 
-    void readKeyStores(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations) throws XMLStreamException {
+        while(reader.hasNext() && reader.nextTag() != END_ELEMENT) {
+            verifyNamespace(reader);
+            String localName = reader.getLocalName();
+            if (KEY_MANAGERS.equals(localName) && keyManagersFound == false) {
+                keyManagersFound = true;
+                readKeyManagers(parentAddress, reader, operations);
+            } else if (KEYSTORES.equals(localName) && keyStoresFound == false) {
+                keyStoresFound = true;
+                readKeyStores(parentAddress, reader, operations);
+            } else if (TRUST_MANAGERS.equals(localName) && trustManagersFound == false) {
+                trustManagersFound = true;
+                readTrustManagers(parentAddress, reader, operations);
+            } else if (SERVER_SSL_CONTEXTS.equals(localName) && serverSSLContextsFound == false) {
+                serverSSLContextsFound = true;
+                readServerSSLContexts(parentAddress, reader, operations);
+            } else {
+                throw unexpectedElement(reader);
+            }
+        }
+    }
+
+    private void readKeyManagers(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations) throws XMLStreamException {
+        requireNoAttributes(reader);
+        while(reader.hasNext() && reader.nextTag() != END_ELEMENT) {
+            verifyNamespace(reader);
+            String localName = reader.getLocalName();
+            if (KEY_MANAGER.equals(localName)) {
+                readKeyManager(parentAddress, reader, operations);
+            } else {
+                throw unexpectedElement(reader);
+            }
+        }
+    }
+
+    private void readKeyManager(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> list) throws XMLStreamException {
+        ModelNode addKeyManager = new ModelNode();
+        addKeyManager.get(OP).set(ADD);
+        Set<String> requiredAttributes = new HashSet<String>(Arrays.asList(new String[] { NAME, ALGORITHM }));
+        String name = null;
+
+        final int count = reader.getAttributeCount();
+        for (int i = 0; i < count; i++) {
+            final String value = reader.getAttributeValue(i);
+            if (!isNoNamespaceAttribute(reader, i)) {
+                throw unexpectedAttribute(reader, i);
+            } else {
+                String attribute = reader.getAttributeLocalName(i);
+                requiredAttributes.remove(attribute);
+                switch (attribute) {
+                    case NAME:
+                        name = value;
+                        break;
+                    case ALGORITHM:
+                        SSLDefinitions.ALGORITHM.parseAndSetParameter(value, addKeyManager, reader);
+                        break;
+                    case KEYSTORE:
+                        SSLDefinitions.KEYSTORE.parseAndSetParameter(value, addKeyManager, reader);
+                        break;
+                    case PROVIDER:
+                        SSLDefinitions.PROVIDER_LOADER.parseAndSetParameter(value, addKeyManager, reader);
+                        break;
+                    case PASSWORD:
+                        SSLDefinitions.PASSWORD.parseAndSetParameter(value, addKeyManager, reader);
+                        break;
+                    default:
+                        throw unexpectedAttribute(reader, i);
+                }
+            }
+        }
+
+        if (requiredAttributes.isEmpty() == false) {
+            throw missingRequired(reader, requiredAttributes);
+        }
+
+        addKeyManager.get(OP_ADDR).set(parentAddress).add(KEY_MANAGER, name);
+        list.add(addKeyManager);
+
+        requireNoContent(reader);
+    }
+
+    private void readTrustManagers(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations) throws XMLStreamException {
+        requireNoAttributes(reader);
+        while(reader.hasNext() && reader.nextTag() != END_ELEMENT) {
+            verifyNamespace(reader);
+            String localName = reader.getLocalName();
+            if (TRUST_MANAGER.equals(localName)) {
+                readTrustManager(parentAddress, reader, operations);
+            } else {
+                throw unexpectedElement(reader);
+            }
+        }
+    }
+
+    private void readTrustManager(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> list) throws XMLStreamException {
+        ModelNode addKeyManager = new ModelNode();
+        addKeyManager.get(OP).set(ADD);
+        Set<String> requiredAttributes = new HashSet<String>(Arrays.asList(new String[] { NAME, ALGORITHM }));
+        String name = null;
+
+        final int count = reader.getAttributeCount();
+        for (int i = 0; i < count; i++) {
+            final String value = reader.getAttributeValue(i);
+            if (!isNoNamespaceAttribute(reader, i)) {
+                throw unexpectedAttribute(reader, i);
+            } else {
+                String attribute = reader.getAttributeLocalName(i);
+                requiredAttributes.remove(attribute);
+                switch (attribute) {
+                    case NAME:
+                        name = value;
+                        break;
+                    case ALGORITHM:
+                        SSLDefinitions.ALGORITHM.parseAndSetParameter(value, addKeyManager, reader);
+                        break;
+                    case KEYSTORE:
+                        SSLDefinitions.KEYSTORE.parseAndSetParameter(value, addKeyManager, reader);
+                        break;
+                    case PROVIDER:
+                        SSLDefinitions.PROVIDER_LOADER.parseAndSetParameter(value, addKeyManager, reader);
+                        break;
+                    default:
+                        throw unexpectedAttribute(reader, i);
+                }
+            }
+        }
+
+        if (requiredAttributes.isEmpty() == false) {
+            throw missingRequired(reader, requiredAttributes);
+        }
+
+        addKeyManager.get(OP_ADDR).set(parentAddress).add(TRUST_MANAGER, name);
+        list.add(addKeyManager);
+
+        requireNoContent(reader);
+    }
+
+    private void readServerSSLContexts(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations) throws XMLStreamException {
+        requireNoAttributes(reader);
+        while(reader.hasNext() && reader.nextTag() != END_ELEMENT) {
+            verifyNamespace(reader);
+            String localName = reader.getLocalName();
+            if (SERVER_SSL_CONTEXT.equals(localName)) {
+                readServerSSLContext(parentAddress, reader, operations);
+            } else {
+                throw unexpectedElement(reader);
+            }
+        }
+    }
+
+    private void readServerSSLContext(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> list) throws XMLStreamException {
+        ModelNode addServerSSLContext = new ModelNode();
+        addServerSSLContext.get(OP).set(ADD);
+        Set<String> requiredAttributes = new HashSet<String>(Arrays.asList(new String[] { NAME }));
+        String name = null;
+
+        final int count = reader.getAttributeCount();
+        for (int i = 0; i < count; i++) {
+            final String value = reader.getAttributeValue(i);
+            if (!isNoNamespaceAttribute(reader, i)) {
+                throw unexpectedAttribute(reader, i);
+            } else {
+                String attribute = reader.getAttributeLocalName(i);
+                requiredAttributes.remove(attribute);
+                switch (attribute) {
+                    case NAME:
+                        name = value;
+                        break;
+                    case SECURITY_DOMAIN:
+                        SSLDefinitions.SECURITY_DOMAIN.parseAndSetParameter(value, addServerSSLContext, reader);
+                        break;
+                    case CIPHER_SUITE_FILTER:
+                        SSLDefinitions.CIPHER_SUITE_FILTER.parseAndSetParameter(value, addServerSSLContext, reader);
+                        break;
+                    case PROTOCOLS:
+                        for (String protocol : reader.getListAttributeValue(i)) {
+                            SSLDefinitions.PROTOCOLS.parseAndAddParameterElement(protocol, addServerSSLContext, reader);
+                        }
+                        break;
+                    case REQUIRE_CLIENT_AUTH:
+                        SSLDefinitions.REQUIRE_CLIENT_AUTH.parseAndSetParameter(value, addServerSSLContext, reader);
+                        break;
+                    case KEY_MANAGERS:
+                        SSLDefinitions.KEY_MANAGERS.parseAndSetParameter(value, addServerSSLContext, reader);
+                        break;
+                    case TRUST_MANAGERS:
+                        SSLDefinitions.TRUST_MANAGERS.parseAndSetParameter(value, addServerSSLContext, reader);
+                        break;
+                    case PROVIDER:
+                        SSLDefinitions.PROVIDER_LOADER.parseAndSetParameter(value, addServerSSLContext, reader);
+                        break;
+                    default:
+                        throw unexpectedAttribute(reader, i);
+                }
+            }
+        }
+
+        if (requiredAttributes.isEmpty() == false) {
+            throw missingRequired(reader, requiredAttributes);
+        }
+
+        addServerSSLContext.get(OP_ADDR).set(parentAddress).add(TRUST_MANAGER, name);
+        list.add(addServerSSLContext);
+
+        requireNoContent(reader);
+    }
+
+    private void readKeyStores(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations) throws XMLStreamException {
         requireNoAttributes(reader);
         while(reader.hasNext() && reader.nextTag() != END_ELEMENT) {
             verifyNamespace(reader);
@@ -166,23 +388,132 @@ class TlsParser {
         requireNoContent(reader);
     }
 
-    void writeKeyStore(String name, ModelNode keyStore, XMLExtendedStreamWriter writer) throws XMLStreamException {
-        writer.writeStartElement(KEYSTORE);
-        writer.writeAttribute(NAME, name);
-        KeyStoreDefinition.TYPE.marshallAsAttribute(keyStore, writer);
-        KeyStoreDefinition.PROVIDER.marshallAsAttribute(keyStore, writer);
-        KeyStoreDefinition.PROVIDER_LOADER.marshallAsAttribute(keyStore, writer);
-        KeyStoreDefinition.PASSWORD.marshallAsAttribute(keyStore, writer);
-        KeyStoreDefinition.ALIAS_FILTER.marshallAsAttribute(keyStore, writer);
+    private void startTLS(boolean started, XMLExtendedStreamWriter writer) throws XMLStreamException {
+        if (started == false) {
+            writer.writeStartElement(TLS);
+        }
+    }
 
-        if (keyStore.hasDefined(PATH)) {
-            writer.writeStartElement(FILE);
-            FileAttributeDefinitions.RELATIVE_TO.marshallAsAttribute(keyStore, writer);
-            FileAttributeDefinitions.PATH.marshallAsAttribute(keyStore, writer);
-            KeyStoreDefinition.REQUIRED.marshallAsAttribute(keyStore, writer);
+    void writeTLS(ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
+        boolean tlsStarted = false;
 
+        tlsStarted = tlsStarted | writeKeyStores(tlsStarted, subsystem, writer);
+        tlsStarted = tlsStarted | writeKeyManagers(tlsStarted, subsystem, writer);
+        tlsStarted = tlsStarted | writeTrustManagers(tlsStarted, subsystem, writer);
+        tlsStarted = tlsStarted | writeServerSSLContext(tlsStarted, subsystem, writer);
+
+        if (tlsStarted) {
             writer.writeEndElement();
         }
-        writer.writeEndElement();
     }
+
+    private boolean writeKeyManagers(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
+        if (subsystem.hasDefined(KEY_MANAGER)) {
+            startTLS(started, writer);
+            writer.writeStartElement(KEY_MANAGERS);
+            ModelNode keyManagers = subsystem.require(KEY_MANAGER);
+            for (String name : keyManagers.keys()) {
+                ModelNode keyManager = keyManagers.require(name);
+                writer.writeStartElement(KEY_MANAGER);
+                writer.writeAttribute(NAME, name);
+                SSLDefinitions.ALGORITHM.marshallAsAttribute(keyManager, writer);
+                SSLDefinitions.KEYSTORE.marshallAsAttribute(keyManager, writer);
+                SSLDefinitions.PROVIDER_LOADER.marshallAsAttribute(keyManager, writer);
+                SSLDefinitions.PASSWORD.marshallAsAttribute(keyManager, writer);
+
+                writer.writeEndElement();
+            }
+
+            writer.writeEndElement();
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean writeTrustManagers(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
+        if (subsystem.hasDefined(TRUST_MANAGER)) {
+            startTLS(started, writer);
+            writer.writeStartElement(TRUST_MANAGERS);
+            ModelNode trustManagers = subsystem.require(TRUST_MANAGER);
+            for (String name : trustManagers.keys()) {
+                ModelNode trustManager = trustManagers.require(name);
+                writer.writeStartElement(TRUST_MANAGER);
+                writer.writeAttribute(NAME, name);
+                SSLDefinitions.ALGORITHM.marshallAsAttribute(trustManager, writer);
+                SSLDefinitions.KEYSTORE.marshallAsAttribute(trustManager, writer);
+                SSLDefinitions.PROVIDER_LOADER.marshallAsAttribute(trustManager, writer);
+
+                writer.writeEndElement();
+            }
+
+            writer.writeEndElement();
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean writeServerSSLContext(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
+        if (subsystem.hasDefined(SERVER_SSL_CONTEXT)) {
+            startTLS(started, writer);
+            writer.writeStartElement(SERVER_SSL_CONTEXTS);
+            ModelNode serverSSLContexts = subsystem.require(SERVER_SSL_CONTEXT);
+
+            for (String name : serverSSLContexts.keys()) {
+                ModelNode serverSSLContext = serverSSLContexts.require(name);
+                writer.writeStartElement(SERVER_SSL_CONTEXT);
+                writer.writeAttribute(NAME, name);
+                SSLDefinitions.SECURITY_DOMAIN.marshallAsAttribute(serverSSLContext, writer);
+                SSLDefinitions.CIPHER_SUITE_FILTER.marshallAsAttribute(serverSSLContext, writer);
+                SSLDefinitions.PROTOCOLS.getAttributeMarshaller().marshallAsAttribute(SSLDefinitions.PROTOCOLS, serverSSLContext, false, writer);
+                SSLDefinitions.REQUIRE_CLIENT_AUTH.marshallAsAttribute(serverSSLContext, writer);
+                SSLDefinitions.KEY_MANAGERS.marshallAsAttribute(serverSSLContext, writer);
+                SSLDefinitions.TRUST_MANAGERS.marshallAsAttribute(serverSSLContext, writer);
+                SSLDefinitions.PROVIDER_LOADER.marshallAsAttribute(serverSSLContext, writer);
+
+                writer.writeEndElement();
+            }
+
+            writer.writeEndElement();
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean writeKeyStores(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
+        if (subsystem.hasDefined(KEYSTORE)) {
+            startTLS(started, writer);
+            writer.writeStartElement(KEYSTORES);
+            ModelNode keystores = subsystem.require(KEYSTORE);
+            for (String name : keystores.keys()) {
+                ModelNode keyStore = keystores.require(name);
+                writer.writeStartElement(KEYSTORE);
+                writer.writeAttribute(NAME, name);
+                KeyStoreDefinition.TYPE.marshallAsAttribute(keyStore, writer);
+                KeyStoreDefinition.PROVIDER.marshallAsAttribute(keyStore, writer);
+                KeyStoreDefinition.PROVIDER_LOADER.marshallAsAttribute(keyStore, writer);
+                KeyStoreDefinition.PASSWORD.marshallAsAttribute(keyStore, writer);
+                KeyStoreDefinition.ALIAS_FILTER.marshallAsAttribute(keyStore, writer);
+
+                if (keyStore.hasDefined(PATH)) {
+                    writer.writeStartElement(FILE);
+                    FileAttributeDefinitions.RELATIVE_TO.marshallAsAttribute(keyStore, writer);
+                    FileAttributeDefinitions.PATH.marshallAsAttribute(keyStore, writer);
+                    KeyStoreDefinition.REQUIRED.marshallAsAttribute(keyStore, writer);
+
+                    writer.writeEndElement();
+                }
+                writer.writeEndElement();
+            }
+
+            writer.writeEndElement();
+            return true;
+        }
+
+        return false;
+    }
+
+
 }
