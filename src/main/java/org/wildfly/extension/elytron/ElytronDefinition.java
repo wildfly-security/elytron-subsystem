@@ -144,7 +144,7 @@ class ElytronDefinition extends SimpleResourceDefinition {
         resourceRegistration.registerSubModel(new KeyStoreDefinition());
         resourceRegistration.registerSubModel(SSLDefinitions.getKeyManagerDefinition());
         resourceRegistration.registerSubModel(SSLDefinitions.getTrustManagerDefinition());
-
+        resourceRegistration.registerSubModel(SSLDefinitions.getServerSSLContextBuilder());
     }
 
     static ServiceBuilder<?> commonDependencies(ServiceBuilder<?> serviceBuilder) {

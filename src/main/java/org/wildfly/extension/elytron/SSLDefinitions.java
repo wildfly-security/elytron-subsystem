@@ -22,22 +22,33 @@ import static org.wildfly.extension.elytron.Capabilities.KEYSTORE_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.KEY_MANAGERS_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.KEY_MANAGERS_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.PROVIDERS_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.SECURITY_DOMAIN_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.SSL_CONTEXT_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.SSL_CONTEXT_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.TRUST_MANAGERS_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.TRUST_MANAGERS_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.ElytronExtension.ELYTRON_1_0_0;
+import static org.wildfly.extension.elytron.ElytronExtension.allowedValues;
 import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
 import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
 
+import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.Provider;
 import java.security.UnrecoverableKeyException;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509ExtendedKeyManager;
+import javax.net.ssl.X509ExtendedTrustManager;
 
 import org.jboss.as.controller.AbstractAddStepHandler;
 import org.jboss.as.controller.AttributeDefinition;
@@ -46,6 +57,8 @@ import org.jboss.as.controller.OperationFailedException;
 import org.jboss.as.controller.ResourceDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
+import org.jboss.as.controller.StringListAttributeDefinition;
+import org.jboss.as.controller.operations.validation.EnumValidator;
 import org.jboss.as.controller.registry.AttributeAccess;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
@@ -53,6 +66,11 @@ import org.jboss.msc.service.ServiceBuilder;
 import org.jboss.msc.service.StartException;
 import org.jboss.msc.value.InjectedValue;
 import org.wildfly.extension.elytron.TrivialService.ValueSupplier;
+import org.wildfly.security.auth.server.SecurityDomain;
+import org.wildfly.security.ssl.CipherSuiteSelector;
+import org.wildfly.security.ssl.Protocol;
+import org.wildfly.security.ssl.ProtocolSelector;
+import org.wildfly.security.ssl.ServerSSLContextBuilder;
 
 /**
  * Definitions for resources used to configure SSLContexts.
@@ -84,6 +102,48 @@ class SSLDefinitions {
             .setMinSize(1)
             .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
             .setDeprecated(ELYTRON_1_0_0) // Deprecate immediately as to be supplied by the vault.
+            .build();
+
+    static final SimpleAttributeDefinition SECURITY_DOMAIN = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.SECURITY_DOMAIN, ModelType.STRING, true)
+            .setAllowExpression(true)
+            .setMinSize(1)
+            .setCapabilityReference(SECURITY_DOMAIN_CAPABILITY, SSL_CONTEXT_CAPABILITY, true)
+            .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+            .build();
+
+    static final SimpleAttributeDefinition CIPHER_SUITE_FILTER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.CIPHER_SUITE_FILTER, ModelType.STRING, true)
+            .setAllowExpression(true)
+            .setMinSize(1)
+            .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+            .build();
+
+    static final StringListAttributeDefinition PROTOCOLS = new StringListAttributeDefinition.Builder(ElytronDescriptionConstants.PROTOCOLS)
+            .setAllowExpression(true)
+            .setMinSize(1)
+            .setAllowedValues(allowedValues(Protocol.values()))
+            .setValidator(new EnumValidator<>(Protocol.class, false, true))
+            .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+            .build();
+
+    static final SimpleAttributeDefinition REQUIRE_CLIENT_AUTH = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.REQUIRE_CLIENT_AUTH, ModelType.BOOLEAN, true)
+            .setAllowExpression(true)
+            .setDefaultValue(new ModelNode(false))
+            .setMinSize(1)
+            .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+            .build();
+
+    static final SimpleAttributeDefinition KEY_MANAGERS = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.KEY_MANAGERS, ModelType.STRING, true)
+            .setAllowExpression(true)
+            .setMinSize(1)
+            .setCapabilityReference(KEY_MANAGERS_CAPABILITY, SSL_CONTEXT_CAPABILITY, true)
+            .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+            .build();
+
+    static final SimpleAttributeDefinition TRUST_MANAGERS = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.TRUST_MANAGERS, ModelType.STRING, true)
+            .setAllowExpression(true)
+            .setMinSize(1)
+            .setCapabilityReference(TRUST_MANAGERS_CAPABILITY, SSL_CONTEXT_CAPABILITY, true)
+            .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
             .build();
 
     static ResourceDefinition getKeyManagerDefinition() {
@@ -215,6 +275,124 @@ class SSLDefinitions {
 
         return new TrivialResourceDefinition<>(ElytronDescriptionConstants.TRUST_MANAGERS, TRUST_MANAGERS_RUNTIME_CAPABILITY, TrustManager[].class, add, attributes);
 
+    }
+
+    static ResourceDefinition getServerSSLContextBuilder() {
+        final SimpleAttributeDefinition providerLoaderDefinition = setCapabilityReference(PROVIDERS_CAPABILITY, SSL_CONTEXT_CAPABILITY, PROVIDER_LOADER);
+
+        AttributeDefinition[] attributes = new AttributeDefinition[] { SECURITY_DOMAIN, CIPHER_SUITE_FILTER, PROTOCOLS, REQUIRE_CLIENT_AUTH, KEY_MANAGERS, TRUST_MANAGERS, providerLoaderDefinition };
+
+        AbstractAddStepHandler add = new TrivialAddHandler<SSLContext>(SSL_CONTEXT_RUNTIME_CAPABILITY, SSLContext.class, attributes) {
+
+            @Override
+            protected ValueSupplier<SSLContext> getValueSupplier(ServiceBuilder<SSLContext> serviceBuilder, OperationContext context, ModelNode model) throws OperationFailedException {
+                String securityDomain = asStringIfDefined(context, SECURITY_DOMAIN, model);
+                String keyManagers = asStringIfDefined(context, KEY_MANAGERS, model);
+                String trustManagers = asStringIfDefined(context, TRUST_MANAGERS, model);
+                String providerLoaders = asStringIfDefined(context, providerLoaderDefinition, model);
+
+                final List<String> protocols = PROTOCOLS.unwrap(context, model);
+                final String cipherSuiteFilter = asStringIfDefined(context, CIPHER_SUITE_FILTER, model);
+                final boolean requireClientAuth = REQUIRE_CLIENT_AUTH.resolveModelAttribute(context, model).asBoolean();
+
+                final InjectedValue<SecurityDomain> securityDomainInjector = new InjectedValue<>();
+                final InjectedValue<KeyManager[]> keyManagersInjector = new InjectedValue<>();
+                final InjectedValue<TrustManager[]> trustManagersInjector = new InjectedValue<>();
+                final InjectedValue<Provider[]> providersInjector = new InjectedValue<>();
+
+                if (securityDomain != null) {
+                    serviceBuilder.addDependency(context.getCapabilityServiceName(
+                            buildDynamicCapabilityName(SECURITY_DOMAIN_CAPABILITY, securityDomain), SecurityDomain.class),
+                            SecurityDomain.class, securityDomainInjector);
+                }
+
+                if (keyManagers != null) {
+                    serviceBuilder.addDependency(context.getCapabilityServiceName(
+                            buildDynamicCapabilityName(KEY_MANAGERS_CAPABILITY, keyManagers), KeyManager[].class),
+                            KeyManager[].class, keyManagersInjector);
+                }
+
+                if (trustManagers != null) {
+                    serviceBuilder.addDependency(context.getCapabilityServiceName(
+                            buildDynamicCapabilityName(TRUST_MANAGERS_CAPABILITY, trustManagers), TrustManager[].class),
+                            TrustManager[].class, trustManagersInjector);
+                }
+
+                if (providerLoaders != null) {
+                    serviceBuilder.addDependency(context.getCapabilityServiceName(
+                            buildDynamicCapabilityName(PROVIDERS_CAPABILITY, providerLoaders), Provider[].class),
+                            Provider[].class, providersInjector);
+                }
+
+                return () -> {
+                    SecurityDomain securityDomainRef = securityDomainInjector.getOptionalValue();
+                    X509ExtendedKeyManager keyManager = getX509KeyManager(keyManagersInjector.getOptionalValue());
+                    X509ExtendedTrustManager trustManager = getX509TrustManager(trustManagersInjector.getOptionalValue());
+                    Provider[] providersRef = providersInjector.getOptionalValue();
+
+                    ServerSSLContextBuilder builder = new ServerSSLContextBuilder();
+                    if (securityDomainRef != null) {
+                        builder.setSecurityDomain(securityDomainRef);
+                    }
+                    if (keyManager != null) {
+                        builder.setKeyManager(keyManager);
+                    }
+                    if (trustManager != null) {
+                        builder.setTrustManager(trustManager);
+                    }
+                    if (providersRef != null) {
+                        builder.setProviderSupplier(() -> providersRef);
+                    }
+
+                    if (cipherSuiteFilter != null) {
+                        builder.setCipherSuiteSelector(CipherSuiteSelector.fromString(cipherSuiteFilter));
+                    }
+
+                    if (protocols.isEmpty() == false) {
+                        builder.setProtocolSelector(ProtocolSelector.empty()
+                                .add(EnumSet.copyOf(protocols.stream().map(Protocol::valueOf).collect(Collectors.toList()))));
+                    }
+
+                    try {
+                        return builder.build().create();
+                    } catch (GeneralSecurityException e) {
+                        throw new StartException(e);
+                    }
+                };
+            }
+
+        };
+
+
+        return new TrivialResourceDefinition<>(ElytronDescriptionConstants.SERVER_SSL_CONTEXT, SSL_CONTEXT_RUNTIME_CAPABILITY, SSLContext.class, add, attributes);
+    }
+
+    private static X509ExtendedKeyManager getX509KeyManager(KeyManager[] keyManagers) throws StartException {
+        if (keyManagers == null) {
+            return null;
+        }
+
+        for (KeyManager current : keyManagers) {
+            if (current instanceof X509ExtendedKeyManager) {
+                return (X509ExtendedKeyManager) current;
+            }
+        }
+
+        throw ROOT_LOGGER.noTypeFound(X509ExtendedKeyManager.class.getSimpleName());
+    }
+
+    private static X509ExtendedTrustManager getX509TrustManager(TrustManager[] trustManagers) throws StartException {
+        if (trustManagers == null) {
+            return null;
+        }
+
+        for (TrustManager current : trustManagers) {
+            if (current instanceof X509ExtendedTrustManager) {
+                return (X509ExtendedTrustManager) current;
+            }
+        }
+
+        throw ROOT_LOGGER.noTypeFound(X509ExtendedTrustManager.class.getSimpleName());
     }
 
     private static SimpleAttributeDefinition setCapabilityReference(String referencedCapability, String dependentCapability, SimpleAttributeDefinition attribute) {

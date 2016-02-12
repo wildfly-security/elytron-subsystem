@@ -207,4 +207,13 @@ public interface ElytronSubsystemMessages extends BasicLogger {
     @Message(id = 18, value = "Unable to create %s for algorithm '%s'.")
     StartException unableToCreateManagerFactory(final String type, final String algorithm);
 
+    /**
+     * A {@link StartException} where a specific type can not be found in an injected value.
+     *
+     * @param type the type required.
+     * @return The {@link StartException} for the error.
+     */
+    @Message(id = 19, value = "No '%s' found in injected value.")
+    StartException noTypeFound(final String type);
+
 }

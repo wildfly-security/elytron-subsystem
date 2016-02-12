@@ -55,6 +55,7 @@ interface ElytronDescriptionConstants {
     String CERTIFICATE_CHAIN = "certificate-chain";
     String CERTIFICATES = "certificates";
     String CHAINED_NAME_REWRITER = "chained-name-rewriter";
+    String CIPHER_SUITE_FILTER = "cipher-suite-filter";
     String CLASS_LOADING = "class-loading";
     String CLASS_NAME = "class-name";
     String CLASS_NAMES = "class-names";
@@ -194,6 +195,7 @@ interface ElytronDescriptionConstants {
     String PROPERTY = "property";
     String PROPERTY_LIST = "property-list";
     String PROTOCOL = "protocol";
+    String PROTOCOLS = "protocols";
     String PROVIDER = "provider";
     String PROVIDER_HTTP_SERVER_FACTORY = "provider-http-server-factory";
     String PROVIDER_LOADER = "provider-loader";
@@ -219,6 +221,7 @@ interface ElytronDescriptionConstants {
     String REMOVE_ATTRIBUTE = "remove-attribute";
     String REPLACE_ALL = "replace-all";
     String REPLACEMENT = "replacement";
+    String REQUIRE_CLIENT_AUTH = "require-client-auth";
     String REQUIRED = "required";
     String RIGHT = "right";
     String ROLE_DECODER = "role-decoder";
@@ -243,6 +246,7 @@ interface ElytronDescriptionConstants {
     String SECURITY_REALMS = "security-realms";
     String SERVER_NAME = "server-name";
     String SERIAL_NUMBER = "serial-number";
+    String SERVER_SSL_CONTEXT = "server-ssl-context";
     String SET_PASSWORD = "set-password";
     String SERVICE = "service";
     String SERVICE_LOADER_HTTP_SERVER_FACTORY = "service-loader-http-server-factory";

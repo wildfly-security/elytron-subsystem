@@ -22,6 +22,7 @@ import java.security.KeyStore;
 import java.security.Provider;
 
 import javax.net.ssl.KeyManager;
+import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.security.sasl.SaslServerFactory;
 
@@ -148,6 +149,12 @@ class Capabilities {
 
     static final RuntimeCapability<Void> SECURITY_REALM_RUNTIME_CAPABILITY = RuntimeCapability
         .Builder.of(SECURITY_REALM_CAPABILITY, true, SecurityRealm.class)
+        .build();
+
+    static final String SSL_CONTEXT_CAPABILITY = CAPABILITY_BASE + "ssl-context";
+
+    static final RuntimeCapability<Void> SSL_CONTEXT_RUNTIME_CAPABILITY = RuntimeCapability
+        .Builder.of(SSL_CONTEXT_CAPABILITY, true, SSLContext.class)
         .build();
 
     static final String TRUST_MANAGERS_CAPABILITY = CAPABILITY_BASE + "trust-managers";
