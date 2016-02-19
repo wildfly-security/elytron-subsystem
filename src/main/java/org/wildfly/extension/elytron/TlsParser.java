@@ -153,7 +153,7 @@ class TlsParser {
             throw missingRequired(reader, requiredAttributes);
         }
 
-        addKeyManager.get(OP_ADDR).set(parentAddress).add(KEY_MANAGER, name);
+        addKeyManager.get(OP_ADDR).set(parentAddress).add(KEY_MANAGERS, name);
         list.add(addKeyManager);
 
         requireNoContent(reader);
@@ -209,7 +209,7 @@ class TlsParser {
             throw missingRequired(reader, requiredAttributes);
         }
 
-        addKeyManager.get(OP_ADDR).set(parentAddress).add(TRUST_MANAGER, name);
+        addKeyManager.get(OP_ADDR).set(parentAddress).add(TRUST_MANAGERS, name);
         list.add(addKeyManager);
 
         requireNoContent(reader);
@@ -279,7 +279,7 @@ class TlsParser {
             throw missingRequired(reader, requiredAttributes);
         }
 
-        addServerSSLContext.get(OP_ADDR).set(parentAddress).add(TRUST_MANAGER, name);
+        addServerSSLContext.get(OP_ADDR).set(parentAddress).add(SERVER_SSL_CONTEXT, name);
         list.add(addServerSSLContext);
 
         requireNoContent(reader);
@@ -408,10 +408,10 @@ class TlsParser {
     }
 
     private boolean writeKeyManagers(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
-        if (subsystem.hasDefined(KEY_MANAGER)) {
+        if (subsystem.hasDefined(KEY_MANAGERS)) {
             startTLS(started, writer);
             writer.writeStartElement(KEY_MANAGERS);
-            ModelNode keyManagers = subsystem.require(KEY_MANAGER);
+            ModelNode keyManagers = subsystem.require(KEY_MANAGERS);
             for (String name : keyManagers.keys()) {
                 ModelNode keyManager = keyManagers.require(name);
                 writer.writeStartElement(KEY_MANAGER);
@@ -432,10 +432,10 @@ class TlsParser {
     }
 
     private boolean writeTrustManagers(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
-        if (subsystem.hasDefined(TRUST_MANAGER)) {
+        if (subsystem.hasDefined(TRUST_MANAGERS)) {
             startTLS(started, writer);
             writer.writeStartElement(TRUST_MANAGERS);
-            ModelNode trustManagers = subsystem.require(TRUST_MANAGER);
+            ModelNode trustManagers = subsystem.require(TRUST_MANAGERS);
             for (String name : trustManagers.keys()) {
                 ModelNode trustManager = trustManagers.require(name);
                 writer.writeStartElement(TRUST_MANAGER);

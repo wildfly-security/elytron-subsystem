@@ -13,5 +13,14 @@
             </keystore>
             <keystore name="Custom_PKCS_11" type="PKCS#11" provider="SunPKCS#11" provider-loader="custom-loader" password="password" />
         </keystores>
+        <key-managers>
+            <key-manager name="serverKey" algorithm="SunX509" keystore="jks_store" password="password" />
+        </key-managers>
+        <trust-managers>
+            <trust-manager name="serverTrust" algorithm="SunX509" keystore="jks_store" />
+        </trust-managers>
+        <server-ssl-contexts>
+            <server-ssl-context name="server" protocols="TLSv1_2" key-managers="serverKey" trust-managers="serverTrust" />
+        </server-ssl-contexts>
     </tls>
 </subsystem>
