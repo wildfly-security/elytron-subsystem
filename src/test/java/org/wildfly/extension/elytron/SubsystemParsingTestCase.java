@@ -146,8 +146,8 @@ public class SubsystemParsingTestCase extends AbstractSubsystemTest {
     }
 
     @Test
-    public void testParseAndMarshalModel_KeyStore() throws Exception {
-        testParseAndMarshalModel("keystore.xml");
+    public void testParseAndMarshalModel_TLS() throws Exception {
+        testParseAndMarshalModel("tls.xml");
     }
 
     @Test
