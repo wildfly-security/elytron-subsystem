@@ -197,6 +197,25 @@ public interface ElytronSubsystemMessages extends BasicLogger {
     @Message(id = 17, value = "Security realm [%s] is not modifiable.")
     OperationFailedException realmNotModifiable(ServiceName serviceName);
 
+    /**
+     * A {@link StartException} where a Key or Trust manager factory can not be created for a specific algorithm.
+     *
+     * @param type the type of manager factory being created.
+     * @param algorithm the requested algorithm.
+     * @return The {@link StartException} for the error.
+     */
+    @Message(id = 18, value = "Unable to create %s for algorithm '%s'.")
+    StartException unableToCreateManagerFactory(final String type, final String algorithm);
+
+    /**
+     * A {@link StartException} where a specific type can not be found in an injected value.
+     *
+     * @param type the type required.
+     * @return The {@link StartException} for the error.
+     */
+    @Message(id = 19, value = "No '%s' found in injected value.")
+    StartException noTypeFound(final String type);
+
     /*
      * Identity Resource Messages - 1000
      */
@@ -239,7 +258,6 @@ public interface ElytronSubsystemMessages extends BasicLogger {
 
     @Message(id = 1012, value = "Unexpected password type [%s].")
     OperationFailedException unexpectedPasswordType(final String passwordType);
-
 
 
 }

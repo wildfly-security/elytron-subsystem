@@ -139,4 +139,13 @@ public class ElytronExtension implements Extension {
         return -1;
     }
 
+    static String[] allowedValues(Object[] values) {
+        String[] response = new String[values.length];
+        for (int i = 0; i < values.length; i++) {
+            response[i] = values[i].toString();
+        }
+
+        return response;
+    }
+
 }

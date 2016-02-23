@@ -35,6 +35,7 @@ interface ElytronDescriptionConstants {
     String AGGREGATE_ROLE_MAPPER = "aggregate-role-mapper";
     String AGGREGATE_SASL_SERVER_FACTORY = "aggregate-sasl-server-factory";
     String ALIAS = "alias";
+    String ALIAS_FILTER = "alias-filter";
     String ALGORITHM = "algorithm";
     String AND = "and";
     String AS_RDN = "as-rdn";
@@ -54,6 +55,7 @@ interface ElytronDescriptionConstants {
     String CERTIFICATE_CHAIN = "certificate-chain";
     String CERTIFICATES = "certificates";
     String CHAINED_NAME_REWRITER = "chained-name-rewriter";
+    String CIPHER_SUITE_FILTER = "cipher-suite-filter";
     String CLASS_LOADING = "class-loading";
     String CLASS_NAME = "class-name";
     String CLASS_NAMES = "class-names";
@@ -130,6 +132,8 @@ interface ElytronDescriptionConstants {
     String JOINER = "joiner";
 
     String KEY = "key";
+    String KEY_MANAGER = "key-manager";
+    String KEY_MANAGERS = "key-managers";
     String KEYSTORE = "keystore";
     String KEYSTORE_REALM = "keystore-realm";
     String KEYSTORES = "keystores";
@@ -192,6 +196,7 @@ interface ElytronDescriptionConstants {
     String PROPERTY = "property";
     String PROPERTY_LIST = "property-list";
     String PROTOCOL = "protocol";
+    String PROTOCOLS = "protocols";
     String PROVIDER = "provider";
     String PROVIDER_HTTP_SERVER_FACTORY = "provider-http-server-factory";
     String PROVIDER_LOADER = "provider-loader";
@@ -217,6 +222,7 @@ interface ElytronDescriptionConstants {
     String REMOVE_ATTRIBUTE = "remove-attribute";
     String REPLACE_ALL = "replace-all";
     String REPLACEMENT = "replacement";
+    String REQUIRE_CLIENT_AUTH = "require-client-auth";
     String REQUIRED = "required";
     String RIGHT = "right";
     String ROLE_DECODER = "role-decoder";
@@ -241,6 +247,8 @@ interface ElytronDescriptionConstants {
     String SECURITY_REALMS = "security-realms";
     String SERVER_NAME = "server-name";
     String SERIAL_NUMBER = "serial-number";
+    String SERVER_SSL_CONTEXT = "server-ssl-context";
+    String SERVER_SSL_CONTEXTS = "server-ssl-contexts";
     String SET_PASSWORD = "set-password";
     String SERVICE = "service";
     String SERVICE_LOADER_HTTP_SERVER_FACTORY = "service-loader-http-server-factory";
@@ -265,6 +273,8 @@ interface ElytronDescriptionConstants {
 
     String TLS = "tls";
     String TO = "to";
+    String TRUST_MANAGER = "trust-manager";
+    String TRUST_MANAGERS = "trust-managers";
     String TYPE = "type";
 
     String URL = "url";

@@ -21,6 +21,9 @@ package org.wildfly.extension.elytron;
 import java.security.KeyStore;
 import java.security.Provider;
 
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
 import javax.security.sasl.SaslServerFactory;
 
 import org.jboss.as.controller.capability.RuntimeCapability;
@@ -62,6 +65,12 @@ class Capabilities {
     static final RuntimeCapability<Void> HTTP_SERVER_FACTORY_RUNTIME_CAPABILITY =  RuntimeCapability
         .Builder.of(HTTP_SERVER_FACTORY_CAPABILITY, true, HttpServerAuthenticationMechanismFactory.class)
         .build();
+
+    static final String KEY_MANAGERS_CAPABILITY = CAPABILITY_BASE + "key-managers";
+
+    static final RuntimeCapability<Void> KEY_MANAGERS_RUNTIME_CAPABILITY =  RuntimeCapability
+            .Builder.of(KEY_MANAGERS_CAPABILITY, true, KeyManager[].class)
+            .build();
 
     static final String KEYSTORE_CAPABILITY = CAPABILITY_BASE + "keystore";
 
@@ -141,6 +150,18 @@ class Capabilities {
     static final RuntimeCapability<Void> SECURITY_REALM_RUNTIME_CAPABILITY = RuntimeCapability
         .Builder.of(SECURITY_REALM_CAPABILITY, true, SecurityRealm.class)
         .build();
+
+    static final String SSL_CONTEXT_CAPABILITY = CAPABILITY_BASE + "ssl-context";
+
+    static final RuntimeCapability<Void> SSL_CONTEXT_RUNTIME_CAPABILITY = RuntimeCapability
+        .Builder.of(SSL_CONTEXT_CAPABILITY, true, SSLContext.class)
+        .build();
+
+    static final String TRUST_MANAGERS_CAPABILITY = CAPABILITY_BASE + "trust-managers";
+
+    static final RuntimeCapability<Void> TRUST_MANAGERS_RUNTIME_CAPABILITY =  RuntimeCapability
+            .Builder.of(TRUST_MANAGERS_CAPABILITY, true, TrustManager[].class)
+            .build();
 
     /**
      * Requirements, capabilities from other subsystems.
