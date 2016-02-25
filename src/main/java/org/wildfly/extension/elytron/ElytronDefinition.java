@@ -147,7 +147,7 @@ class ElytronDefinition extends SimpleResourceDefinition {
         resourceRegistration.registerSubModel(SSLDefinitions.getServerSSLContextBuilder());
     }
 
-    static ServiceBuilder<?> commonDependencies(ServiceBuilder<?> serviceBuilder) {
+    static <T> ServiceBuilder<T>  commonDependencies(ServiceBuilder<T> serviceBuilder) {
         serviceBuilder.addDependencies(SecurityPropertyService.SERVICE_NAME);
         serviceBuilder.addDependencies(CoreService.SERVICE_NAME);
         return serviceBuilder;

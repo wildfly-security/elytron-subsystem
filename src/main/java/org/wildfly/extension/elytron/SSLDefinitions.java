@@ -30,6 +30,7 @@ import static org.wildfly.extension.elytron.Capabilities.TRUST_MANAGERS_RUNTIME_
 import static org.wildfly.extension.elytron.ElytronExtension.ELYTRON_1_0_0;
 import static org.wildfly.extension.elytron.ElytronExtension.allowedValues;
 import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
+import static org.wildfly.extension.elytron.ElytronExtension.getRequiredService;
 import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
 
 import java.security.GeneralSecurityException;
@@ -38,6 +39,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.Provider;
 import java.security.UnrecoverableKeyException;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -51,18 +53,25 @@ import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509ExtendedTrustManager;
 
 import org.jboss.as.controller.AbstractAddStepHandler;
+import org.jboss.as.controller.AbstractRuntimeOnlyHandler;
 import org.jboss.as.controller.AttributeDefinition;
 import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
+import org.jboss.as.controller.PathAddress;
 import org.jboss.as.controller.ResourceDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
 import org.jboss.as.controller.StringListAttributeDefinition;
 import org.jboss.as.controller.operations.validation.EnumValidator;
 import org.jboss.as.controller.registry.AttributeAccess;
+import org.jboss.as.controller.registry.ManagementResourceRegistration;
+import org.jboss.as.controller.registry.Resource;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
 import org.jboss.msc.service.ServiceBuilder;
+import org.jboss.msc.service.ServiceController;
+import org.jboss.msc.service.ServiceController.State;
+import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.StartException;
 import org.jboss.msc.value.InjectedValue;
 import org.wildfly.extension.elytron.TrivialService.ValueSupplier;
@@ -78,6 +87,8 @@ import org.wildfly.security.ssl.ServerSSLContextBuilder;
  * @author <a href="mailto:darran.lofthouse@jboss.com">Darran Lofthouse</a>
  */
 class SSLDefinitions {
+
+    static final ServiceUtil<SSLContext> SERVER_SSL_CONTEXT = ServiceUtil.newInstance(SSL_CONTEXT_RUNTIME_CAPABILITY, ElytronDescriptionConstants.SERVER_SSL_CONTEXT, SSLContext.class);
 
     static final SimpleAttributeDefinition ALGORITHM = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ALGORITHM, ModelType.STRING, false)
             .setAllowExpression(true)
@@ -145,6 +156,15 @@ class SSLDefinitions {
             .setCapabilityReference(TRUST_MANAGERS_CAPABILITY, SSL_CONTEXT_CAPABILITY, true)
             .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
             .build();
+
+    /*
+     * Runtime Attributes
+     */
+
+    private static SimpleAttributeDefinition ACTIVE_SESSION_COUNT = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ACTIVE_SESSION_COUNT, ModelType.INT)
+            .setStorageRuntime()
+            .build();
+
 
     static ResourceDefinition getKeyManagerDefinition() {
         final SimpleAttributeDefinition providerLoaderDefinition = setCapabilityReference(PROVIDERS_CAPABILITY, KEY_MANAGERS_CAPABILITY, PROVIDER_LOADER);
@@ -359,12 +379,48 @@ class SSLDefinitions {
                         throw new StartException(e);
                     }
                 };
+
+            }
+
+            @Override
+            protected void installedForResource(ServiceController<SSLContext> serviceController, Resource resource) {
+                assert resource instanceof SSLContextResource;
+                ((SSLContextResource)resource).setSSLContextServiceController(serviceController);
+            }
+
+            @Override
+            protected Resource createResource(OperationContext context) {
+                SSLContextResource resource = new SSLContextResource(Resource.Factory.create());
+                context.addResource(PathAddress.EMPTY_ADDRESS, resource);
+
+                return resource;
             }
 
         };
 
+        return new TrivialResourceDefinition<SSLContext>(ElytronDescriptionConstants.SERVER_SSL_CONTEXT, SSL_CONTEXT_RUNTIME_CAPABILITY, SSLContext.class, add, attributes) {
 
-        return new TrivialResourceDefinition<>(ElytronDescriptionConstants.SERVER_SSL_CONTEXT, SSL_CONTEXT_RUNTIME_CAPABILITY, SSLContext.class, add, attributes);
+            @Override
+            public void registerAttributes(ManagementResourceRegistration resourceRegistration) {
+                super.registerAttributes(resourceRegistration);
+
+                resourceRegistration.registerReadOnlyAttribute(ACTIVE_SESSION_COUNT, new SSLContextRuntimeHandler() {
+
+                    @Override
+                    protected void performRuntime(ModelNode result, ModelNode operation, SSLContext sslContext) throws OperationFailedException {
+                        result.set(Collections.list(sslContext.getServerSessionContext().getIds()).stream().mapToInt( (byte[] b)-> 1).sum());
+                    }
+                });
+            }
+
+            @Override
+            public void registerChildren(ManagementResourceRegistration resourceRegistration) {
+                super.registerChildren(resourceRegistration);
+
+                resourceRegistration.registerSubModel(new SSLSessionDefinition());
+            }
+
+        };
     }
 
     private static X509ExtendedKeyManager getX509KeyManager(KeyManager[] keyManagers) throws StartException {
@@ -401,5 +457,22 @@ class SSLDefinitions {
                 .build();
     }
 
+    abstract static class SSLContextRuntimeHandler extends AbstractRuntimeOnlyHandler {
+
+        @Override
+        protected void executeRuntimeStep(OperationContext context, ModelNode operation) throws OperationFailedException {
+            ServiceName serverSSLContextName = SERVER_SSL_CONTEXT.serviceName(operation);
+
+            ServiceController<SSLContext> serviceContainer = getRequiredService(context.getServiceRegistry(false), serverSSLContextName, SSLContext.class);
+            State serviceState;
+            if ((serviceState = serviceContainer.getState()) != State.UP) {
+                    throw ROOT_LOGGER.requiredServiceNotUp(serverSSLContextName, serviceState);
+            }
+
+            performRuntime(context.getResult(), operation, serviceContainer.getService().getValue());
+        }
+
+        protected abstract void performRuntime(ModelNode result, ModelNode operation, SSLContext sslContext) throws OperationFailedException;
+    }
 
 }

@@ -109,9 +109,11 @@ class CertificateChainAttributeDefintions {
         .setStorageRuntime()
         .build();
 
-    static final ObjectListAttributeDefinition CERTIFICATE_CHAIN = new ObjectListAttributeDefinition.Builder(ElytronDescriptionConstants.CERTIFICATE_CHAIN, CERTIFICATE)
-        .setStorageRuntime()
-        .build();
+    static ObjectListAttributeDefinition getNamedCertificateList(final String name) {
+        return new ObjectListAttributeDefinition.Builder(name, CERTIFICATE)
+                .setStorageRuntime()
+                .build();
+    }
 
     static void writeCertificate(final ModelNode certificateModel, final Certificate certificate) throws CertificateEncodingException, NoSuchAlgorithmException {
         certificateModel.get(ElytronDescriptionConstants.TYPE).set(certificate.getType());
@@ -159,18 +161,20 @@ class CertificateChainAttributeDefintions {
     }
 
     /**
-     * Populate the supplied response with the model representation of the certificate chain.
+     * Populate the supplied response with the model representation of the certificates.
      *
      * @param result the response to populate.
-     * @param certificateChain the certificate chain to add to the response.
+     * @param certificates the certificates to add to the response.
      * @throws CertificateEncodingException
      * @throws NoSuchAlgorithmException
      */
-    static void writeCertificateChain(final ModelNode result, final Certificate[] certificateChain) throws CertificateEncodingException, NoSuchAlgorithmException {
-        for (Certificate current : certificateChain) {
-            ModelNode certificate = new ModelNode();
-            writeCertificate(certificate, current);
-            result.add(certificate);
+    static void writeCertificates(final ModelNode result, final Certificate[] certificates) throws CertificateEncodingException, NoSuchAlgorithmException {
+        if (certificates != null) {
+            for (Certificate current : certificates) {
+                ModelNode certificate = new ModelNode();
+                writeCertificate(certificate, current);
+                result.add(certificate);
+            }
         }
     }
 

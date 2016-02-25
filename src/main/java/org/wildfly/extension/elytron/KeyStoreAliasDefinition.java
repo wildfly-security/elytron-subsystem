@@ -20,9 +20,9 @@ package org.wildfly.extension.elytron;
 
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP_ADDR;
 import static org.wildfly.extension.elytron.CertificateChainAttributeDefintions.CERTIFICATE;
-import static org.wildfly.extension.elytron.CertificateChainAttributeDefintions.CERTIFICATE_CHAIN;
+import static org.wildfly.extension.elytron.CertificateChainAttributeDefintions.getNamedCertificateList;
 import static org.wildfly.extension.elytron.CertificateChainAttributeDefintions.writeCertificate;
-import static org.wildfly.extension.elytron.CertificateChainAttributeDefintions.writeCertificateChain;
+import static org.wildfly.extension.elytron.CertificateChainAttributeDefintions.writeCertificates;
 import static org.wildfly.extension.elytron.KeyStoreDefinition.ISO_8601_FORMAT;
 import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
 
@@ -149,7 +149,7 @@ class KeyStoreAliasDefinition extends SimpleResourceDefinition {
             }
         });
 
-        resourceRegistration.registerReadOnlyAttribute(CERTIFICATE_CHAIN, new KeyStoreRuntimeOnlyHandler(false) {
+        resourceRegistration.registerReadOnlyAttribute(getNamedCertificateList(ElytronDescriptionConstants.CERTIFICATE_CHAIN), new KeyStoreRuntimeOnlyHandler(false) {
 
             @Override
             protected void performRuntime(ModelNode result, ModelNode operation, KeyStoreService keyStoreService) throws OperationFailedException {
@@ -159,11 +159,11 @@ class KeyStoreAliasDefinition extends SimpleResourceDefinition {
                 try {
                     Certificate[] chain = keyStore.getCertificateChain(alias);
                     if (chain != null) {
-                        writeCertificateChain(result, chain);
+                        writeCertificates(result, chain);
                     }
 
                 } catch (KeyStoreException | CertificateEncodingException | NoSuchAlgorithmException | RuntimeException e) {
-                    ROOT_LOGGER.tracef(e, "Unable to populate %s", CERTIFICATE_CHAIN);
+                    ROOT_LOGGER.tracef(e, "Unable to populate %s", ElytronDescriptionConstants.CERTIFICATE_CHAIN);
                     return;
                 }
             }

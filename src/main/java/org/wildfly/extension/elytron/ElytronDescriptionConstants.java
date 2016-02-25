@@ -25,6 +25,7 @@ package org.wildfly.extension.elytron;
  */
 interface ElytronDescriptionConstants {
 
+    String ACTIVE_SESSION_COUNT = "active-session-count";
     String ADD_ATTRIBUTE = "add-attribute";
     String ADD_PREFIX_ROLE_MAPPER = "add-prefix-role-mapper";
     String ADD_SUFFIX_ROLE_MAPPER = "add-suffix-role-mapper";
@@ -38,6 +39,7 @@ interface ElytronDescriptionConstants {
     String ALIAS_FILTER = "alias-filter";
     String ALGORITHM = "algorithm";
     String AND = "and";
+    String APPLICATION_BUFFER_SIZE = "application-buffer-size";
     String AS_RDN = "as-rdn";
     String ATTRIBUTE = "attribute";
     String ATTRIBUTE_MAPPING = "attribute-mapping";
@@ -55,6 +57,7 @@ interface ElytronDescriptionConstants {
     String CERTIFICATE_CHAIN = "certificate-chain";
     String CERTIFICATES = "certificates";
     String CHAINED_NAME_REWRITER = "chained-name-rewriter";
+    String CIPHER_SUITE = "cipher-suite";
     String CIPHER_SUITE_FILTER = "cipher-suite-filter";
     String CLASS_LOADING = "class-loading";
     String CLASS_NAME = "class-name";
@@ -71,6 +74,7 @@ interface ElytronDescriptionConstants {
     String CONSTANT_ROLE_MAPPER = "constant-role-mapper";
     String CORE_SERVICE = "core-service";
     String CREATION_DATE = "creation-date";
+    String CREATION_TIME = "creation-time";
     String CREDENTIAL = "credential";
     String CREDENTIAL_NAME = "credential-name";
     String CREDENTIAL_SECURITY_FACTORIES = "credential-security-factories";
@@ -138,6 +142,7 @@ interface ElytronDescriptionConstants {
     String KEYSTORE_REALM = "keystore-realm";
     String KEYSTORES = "keystores";
 
+    String LAST_ACCESSED_TIME = "last-accessed-time";
     String LDAP_REALM = "ldap-realm";
     String LEFT = "left";
     String LESS_THAN = "less-than";
@@ -146,6 +151,8 @@ interface ElytronDescriptionConstants {
     String LOAD_SERVICES = "load-services";
     String LOADED_PROVIDER = "loaded-provider";
     String LOADED_PROVIDERS = "loaded-providers";
+    String LOCAL_CERTIFICATES = "local-certificates";
+    String LOCAL_PRINCIPAL = "local-principal";
     String LOGICAL_OPERATION = "logical-operation";
     String LOGICAL_ROLE_MAPPER = "logical-role-mapper";
 
@@ -175,11 +182,16 @@ interface ElytronDescriptionConstants {
     String OID = "oid";
     String OR = "or";
 
+    String PACKET_BUFFER_SIZE = "packet-buffer-size";
     String PATH = "path";
     String PASSWORD = "password";
     String PASSWORD_INDEX = "password-index";
     String PATTERN = "pattern";
     String PATTERN_FILTER = "pattern-filter";
+    String PEER_CERTIFICATES = "peer-certificates";
+    String PEER_HOST = "peer-host";
+    String PEER_PORT = "peer-port";
+    String PEER_PRINCIPAL = "peer-principal";
     String PERMISSION_MAPPER = "permission-mapper";
     String PERMISSIONS = "permissions";
     String PLAIN_TEXT = "plain-text";
@@ -263,6 +275,7 @@ interface ElytronDescriptionConstants {
     String SIZE = "size";
     String SLOT = "slot";
     String SQL = "sql";
+    String SSL_SESSION = "ssl-session";
     String STATE = "state";
     String STORE = "store";
     String SUBJECT = "subject";
@@ -281,6 +294,7 @@ interface ElytronDescriptionConstants {
     String USE_RECURSIVE_SEARCH = "use-recursive-search";
     String USERS_PROPERTIES = "users-properties";
 
+    String VALID = "valid";
     String VALUE = "value";
     String VERSION = "version";
     String VERSION_COMPARISON = "version-comparison";

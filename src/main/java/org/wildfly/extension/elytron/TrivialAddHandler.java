@@ -26,13 +26,16 @@ import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
 import org.jboss.as.controller.OperationStepHandler;
 import org.jboss.as.controller.capability.RuntimeCapability;
+import org.jboss.as.controller.registry.Resource;
 import org.jboss.dmr.ModelNode;
 import org.jboss.msc.service.Service;
 import org.jboss.msc.service.ServiceBuilder;
+import org.jboss.msc.service.ServiceController;
 import org.jboss.msc.service.ServiceController.Mode;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.ServiceTarget;
 import org.wildfly.extension.elytron.TrivialService.ValueSupplier;
+
 
 /**
  * A trivial {@link OperationStepHandler} for adding a {@link Service} for a resource.
@@ -57,7 +60,7 @@ abstract class TrivialAddHandler<T> extends BaseAddHandler {
     }
 
     @Override
-    protected final void performRuntime(OperationContext context, ModelNode operation, ModelNode model)
+    protected final void performRuntime(OperationContext context, ModelNode operation, Resource resource)
             throws OperationFailedException {
         RuntimeCapability<?> runtimeCapability = this.runtimeCapability.fromBaseCapability(context.getCurrentAddressValue());
         ServiceName serviceName = runtimeCapability.getCapabilityServiceName(serviceType);
@@ -66,12 +69,14 @@ abstract class TrivialAddHandler<T> extends BaseAddHandler {
         TrivialService<T> trivialService = new TrivialService<T>();
 
         ServiceBuilder<T> serviceBuilder = serviceTarget.addService(serviceName, trivialService);
-        trivialService.setValueSupplier(getValueSupplier(serviceBuilder, context, model));
+        trivialService.setValueSupplier(getValueSupplier(serviceBuilder, context, resource.getModel()));
 
-        commonDependencies(serviceBuilder)
-            .setInitialMode(initialMode)
-            .install();
+        installedForResource(commonDependencies(serviceBuilder)
+                .setInitialMode(initialMode)
+                .install(), resource);
     }
+
+    protected void installedForResource(ServiceController<T> serviceController, Resource resource) {}
 
     protected abstract ValueSupplier<T> getValueSupplier(ServiceBuilder<T> serviceBuilder, OperationContext context, ModelNode model) throws OperationFailedException;
 
