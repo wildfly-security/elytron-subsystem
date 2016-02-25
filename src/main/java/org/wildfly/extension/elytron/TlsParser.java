@@ -37,6 +37,8 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEYSTORE
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEY_MANAGER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEY_MANAGERS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MAXIMUM_SESSION_CACHE_SIZE;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SESSION_TIMEOUT;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PASSWORD;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PATH;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROTOCOLS;
@@ -260,6 +262,12 @@ class TlsParser {
                     case REQUIRE_CLIENT_AUTH:
                         SSLDefinitions.REQUIRE_CLIENT_AUTH.parseAndSetParameter(value, addServerSSLContext, reader);
                         break;
+                    case MAXIMUM_SESSION_CACHE_SIZE:
+                        SSLDefinitions.MAXIMUM_SESSION_CACHE_SIZE.parseAndSetParameter(value, addServerSSLContext, reader);
+                        break;
+                    case SESSION_TIMEOUT:
+                        SSLDefinitions.SESSION_TIMEOUT.parseAndSetParameter(value, addServerSSLContext, reader);
+                        break;
                     case KEY_MANAGERS:
                         SSLDefinitions.KEY_MANAGERS.parseAndSetParameter(value, addServerSSLContext, reader);
                         break;
@@ -468,6 +476,8 @@ class TlsParser {
                 SSLDefinitions.CIPHER_SUITE_FILTER.marshallAsAttribute(serverSSLContext, writer);
                 SSLDefinitions.PROTOCOLS.getAttributeMarshaller().marshallAsAttribute(SSLDefinitions.PROTOCOLS, serverSSLContext, false, writer);
                 SSLDefinitions.REQUIRE_CLIENT_AUTH.marshallAsAttribute(serverSSLContext, writer);
+                SSLDefinitions.MAXIMUM_SESSION_CACHE_SIZE.marshallAsAttribute(serverSSLContext, writer);
+                SSLDefinitions.SESSION_TIMEOUT.marshallAsAttribute(serverSSLContext, writer);
                 SSLDefinitions.KEY_MANAGERS.marshallAsAttribute(serverSSLContext, writer);
                 SSLDefinitions.TRUST_MANAGERS.marshallAsAttribute(serverSSLContext, writer);
                 SSLDefinitions.PROVIDER_LOADER.marshallAsAttribute(serverSSLContext, writer);

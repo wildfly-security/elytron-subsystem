@@ -2364,6 +2364,20 @@
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
+        <xs:attribute name="maximum-session-cache-size" type="xs:int" default="0">
+            <xs:annotation>
+                <xs:documentation>
+                    The maximum number of SSL sessions in the cache.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="session-timeout" type="xs:int" default="0">
+            <xs:annotation>
+                <xs:documentation>
+                    The timeout for SSL sessions.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
         <xs:attribute name="key-managers" type="xs:string" use="optional">
             <xs:annotation>
                 <xs:documentation>

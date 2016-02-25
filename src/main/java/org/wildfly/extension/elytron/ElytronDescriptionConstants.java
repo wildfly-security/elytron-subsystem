@@ -153,6 +153,7 @@ interface ElytronDescriptionConstants {
     String MAPPERS = "mappers";
     String MATCH = "match";
     String MAXIMUM_SEGMENTS = "maximum-segments";
+    String MAXIMUM_SESSION_CACHE_SIZE = "maximum-session-cache-size";
     String MECHANISM = "mechanism";
     String MECHANISM_CONFIGURATION = "mechanism-configuration";
     String MECHANISM_CONFIGURATIONS = "mechanism-configurations";
@@ -249,6 +250,7 @@ interface ElytronDescriptionConstants {
     String SERIAL_NUMBER = "serial-number";
     String SERVER_SSL_CONTEXT = "server-ssl-context";
     String SERVER_SSL_CONTEXTS = "server-ssl-contexts";
+    String SESSION_TIMEOUT = "session-timeout";
     String SET_PASSWORD = "set-password";
     String SERVICE = "service";
     String SERVICE_LOADER_HTTP_SERVER_FACTORY = "service-loader-http-server-factory";

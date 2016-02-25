@@ -20,7 +20,7 @@
             <trust-manager name="serverTrust" algorithm="SunX509" keystore="jks_store" />
         </trust-managers>
         <server-ssl-contexts>
-            <server-ssl-context name="server" protocols="TLSv1_2" key-managers="serverKey" trust-managers="serverTrust" />
+            <server-ssl-context name="server" protocols="TLSv1_2" require-client-auth="true" maximum-session-cache-size="10" session-timeout="120" key-managers="serverKey" trust-managers="serverTrust" />
         </server-ssl-contexts>
     </tls>
 </subsystem>
