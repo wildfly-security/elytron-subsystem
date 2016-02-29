@@ -40,7 +40,10 @@ import org.jboss.as.controller.PathAddress;
 import org.jboss.as.controller.PathElement;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
+import org.jboss.as.controller.SimpleOperationDefinition;
+import org.jboss.as.controller.SimpleOperationDefinitionBuilder;
 import org.jboss.as.controller.SimpleResourceDefinition;
+import org.jboss.as.controller.descriptions.ResourceDescriptionResolver;
 import org.jboss.as.controller.registry.ManagementResourceRegistration;
 import org.jboss.as.controller.registry.OperationEntry;
 import org.jboss.dmr.ModelNode;
@@ -98,9 +101,14 @@ public class SSLSessionDefinition extends SimpleResourceDefinition {
             .setStorageRuntime()
             .build();
 
+    private static final ResourceDescriptionResolver RESOURCE_DESCRIPTION_RESOLVER = ElytronExtension.getResourceDescriptionResolver(ElytronDescriptionConstants.SERVER_SSL_CONTEXT, ElytronDescriptionConstants.SSL_SESSION);
+
+
+    private static final SimpleOperationDefinition INVALIDATE = new SimpleOperationDefinitionBuilder(ElytronDescriptionConstants.INVALIDATE, RESOURCE_DESCRIPTION_RESOLVER)
+            .build();
+
     SSLSessionDefinition() {
-        super(new Parameters(PathElement.pathElement(ElytronDescriptionConstants.SSL_SESSION),
-                ElytronExtension.getResourceDescriptionResolver(ElytronDescriptionConstants.SERVER_SSL_CONTEXT, ElytronDescriptionConstants.SSL_SESSION))
+        super(new Parameters(PathElement.pathElement(ElytronDescriptionConstants.SSL_SESSION), RESOURCE_DESCRIPTION_RESOLVER)
             .setAddRestartLevel(OperationEntry.Flag.RESTART_NONE)
             .setRemoveRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
             .setRuntime());
@@ -147,6 +155,12 @@ public class SSLSessionDefinition extends SimpleResourceDefinition {
         }));
         resourceRegistration.registerReadOnlyAttribute(PROTOCOL, new SSLSessionRuntimeHandler((ModelNode r, SSLSession s) -> r.set(s.getProtocol())));
         resourceRegistration.registerReadOnlyAttribute(VALID, new SSLSessionRuntimeHandler((ModelNode r, SSLSession s) -> r.set(s.isValid())));
+    }
+
+    @Override
+    public void registerOperations(ManagementResourceRegistration resourceRegistration) {
+        super.registerOperations(resourceRegistration);
+        resourceRegistration.registerOperationHandler(INVALIDATE, new SSLSessionRuntimeHandler((ModelNode r, SSLSession s) -> s.invalidate()));
     }
 
     static class SSLSessionRuntimeHandler extends SSLDefinitions.SSLContextRuntimeHandler {

@@ -128,6 +128,7 @@ interface ElytronDescriptionConstants {
     String IMPLEMENTATION = "implementation";
     String INDEX = "index";
     String INFO = "info";
+    String INVALIDATE = "invalidate";
     String ISSUER = "issuer";
     String ITERATION_COUNT = "iteration-count";
     String ITERATION_COUNT_INDEX = "iteration-count-index";
