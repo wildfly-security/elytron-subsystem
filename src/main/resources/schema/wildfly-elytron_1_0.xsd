@@ -2357,10 +2357,27 @@
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
-        <xs:attribute name="require-client-auth" type="xs:boolean" default="false">
+        <xs:attribute name="want-client-auth" type="xs:boolean" default="false">
             <xs:annotation>
                 <xs:documentation>
-                    Does this SSLContext actually require client authentication?
+                    Configure the SSLContext to want client authentication - if a security domain is referenced this is automatically interpreted as true.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="need-client-auth" type="xs:boolean" default="false">
+            <xs:annotation>
+                <xs:documentation>
+                    Configure the SSLContext to need client authentication.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="authentication-optional" type="xs:boolean" default="false">
+            <xs:annotation>
+                <xs:documentation>
+                    Allow for an SSLSession to still be established even if client authentication based on the supplied certificate is not successful.
+                    
+                    This does not bypass the underlying trust manager check but it does allow the connection to be established so another authentication 
+                    mechanism can be used.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>

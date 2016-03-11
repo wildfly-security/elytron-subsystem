@@ -46,7 +46,9 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDER
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDER_LOADER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.RELATIVE_TO;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REQUIRED;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REQUIRE_CLIENT_AUTH;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.WANT_CLIENT_AUTH;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NEED_CLIENT_AUTH;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AUTHENTICATION_OPTIONAL;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SECURITY_DOMAIN;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SERVER_SSL_CONTEXT;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SERVER_SSL_CONTEXTS;
@@ -259,8 +261,14 @@ class TlsParser {
                             SSLDefinitions.PROTOCOLS.parseAndAddParameterElement(protocol, addServerSSLContext, reader);
                         }
                         break;
-                    case REQUIRE_CLIENT_AUTH:
-                        SSLDefinitions.REQUIRE_CLIENT_AUTH.parseAndSetParameter(value, addServerSSLContext, reader);
+                    case WANT_CLIENT_AUTH:
+                        SSLDefinitions.WANT_CLIENT_AUTH.parseAndSetParameter(value, addServerSSLContext, reader);
+                        break;
+                    case NEED_CLIENT_AUTH:
+                        SSLDefinitions.NEED_CLIENT_AUTH.parseAndSetParameter(value, addServerSSLContext, reader);
+                        break;
+                    case AUTHENTICATION_OPTIONAL:
+                        SSLDefinitions.AUTHENTICATION_OPTIONAL.parseAndSetParameter(value, addServerSSLContext, reader);
                         break;
                     case MAXIMUM_SESSION_CACHE_SIZE:
                         SSLDefinitions.MAXIMUM_SESSION_CACHE_SIZE.parseAndSetParameter(value, addServerSSLContext, reader);
@@ -475,7 +483,9 @@ class TlsParser {
                 SSLDefinitions.SECURITY_DOMAIN.marshallAsAttribute(serverSSLContext, writer);
                 SSLDefinitions.CIPHER_SUITE_FILTER.marshallAsAttribute(serverSSLContext, writer);
                 SSLDefinitions.PROTOCOLS.getAttributeMarshaller().marshallAsAttribute(SSLDefinitions.PROTOCOLS, serverSSLContext, false, writer);
-                SSLDefinitions.REQUIRE_CLIENT_AUTH.marshallAsAttribute(serverSSLContext, writer);
+                SSLDefinitions.WANT_CLIENT_AUTH.marshallAsAttribute(serverSSLContext, writer);
+                SSLDefinitions.NEED_CLIENT_AUTH.marshallAsAttribute(serverSSLContext, writer);
+                SSLDefinitions.AUTHENTICATION_OPTIONAL.marshallAsAttribute(serverSSLContext, writer);
                 SSLDefinitions.MAXIMUM_SESSION_CACHE_SIZE.marshallAsAttribute(serverSSLContext, writer);
                 SSLDefinitions.SESSION_TIMEOUT.marshallAsAttribute(serverSSLContext, writer);
                 SSLDefinitions.KEY_MANAGERS.marshallAsAttribute(serverSSLContext, writer);

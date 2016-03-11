@@ -45,6 +45,7 @@ interface ElytronDescriptionConstants {
     String ATTRIBUTE_MAPPING = "attribute-mapping";
     String ATTRIBUTES = "attributes";
     String AUTHENTICATION_LEVEL = "authentication-level";
+    String AUTHENTICATION_OPTIONAL = "authentication-optional";
     String AUTHENTICATION_QUERY = "authentication-query";
     String AUTHENTICATION_REALM = "authentication-realm";
     String AUTHORIZATION_REALM = "authorization-realm";
@@ -178,6 +179,7 @@ interface ElytronDescriptionConstants {
     String NAME = "name";
     String NAME_REWRITER = "name-rewriter";
     String NAME_REWRITERS = "name-rewriters";
+    String NEED_CLIENT_AUTH = "need-client-auth";
     String NOT_AFTER = "not-after";
     String NOT_BEFORE = "not-before";
 
@@ -236,7 +238,6 @@ interface ElytronDescriptionConstants {
     String REMOVE_ATTRIBUTE = "remove-attribute";
     String REPLACE_ALL = "replace-all";
     String REPLACEMENT = "replacement";
-    String REQUIRE_CLIENT_AUTH = "require-client-auth";
     String REQUIRED = "required";
     String RIGHT = "right";
     String ROLE_DECODER = "role-decoder";
@@ -302,6 +303,7 @@ interface ElytronDescriptionConstants {
     String VERSION = "version";
     String VERSION_COMPARISON = "version-comparison";
 
+    String WANT_CLIENT_AUTH = "want-client-auth";
     String WATCH = "watch";
 
     String X500_ATTRIBUTE_PRINCIPAL_DECODER = "x500-attribute-principal-decoder";

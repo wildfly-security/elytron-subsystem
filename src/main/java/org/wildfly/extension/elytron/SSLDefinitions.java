@@ -136,7 +136,21 @@ class SSLDefinitions {
             .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
             .build();
 
-    static final SimpleAttributeDefinition REQUIRE_CLIENT_AUTH = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.REQUIRE_CLIENT_AUTH, ModelType.BOOLEAN, true)
+    static final SimpleAttributeDefinition WANT_CLIENT_AUTH = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.WANT_CLIENT_AUTH, ModelType.BOOLEAN, true)
+            .setAllowExpression(true)
+            .setDefaultValue(new ModelNode(false))
+            .setMinSize(1)
+            .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+            .build();
+
+    static final SimpleAttributeDefinition NEED_CLIENT_AUTH = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.NEED_CLIENT_AUTH, ModelType.BOOLEAN, true)
+            .setAllowExpression(true)
+            .setDefaultValue(new ModelNode(false))
+            .setMinSize(1)
+            .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+            .build();
+
+    static final SimpleAttributeDefinition AUTHENTICATION_OPTIONAL = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.AUTHENTICATION_OPTIONAL, ModelType.BOOLEAN, true)
             .setAllowExpression(true)
             .setDefaultValue(new ModelNode(false))
             .setMinSize(1)
@@ -312,7 +326,7 @@ class SSLDefinitions {
     static ResourceDefinition getServerSSLContextBuilder() {
         final SimpleAttributeDefinition providerLoaderDefinition = setCapabilityReference(PROVIDERS_CAPABILITY, SSL_CONTEXT_CAPABILITY, PROVIDER_LOADER);
 
-        AttributeDefinition[] attributes = new AttributeDefinition[] { SECURITY_DOMAIN, CIPHER_SUITE_FILTER, PROTOCOLS, REQUIRE_CLIENT_AUTH,
+        AttributeDefinition[] attributes = new AttributeDefinition[] { SECURITY_DOMAIN, CIPHER_SUITE_FILTER, PROTOCOLS, WANT_CLIENT_AUTH, NEED_CLIENT_AUTH, AUTHENTICATION_OPTIONAL,
                 MAXIMUM_SESSION_CACHE_SIZE, SESSION_TIMEOUT, KEY_MANAGERS, TRUST_MANAGERS, providerLoaderDefinition };
 
         AbstractAddStepHandler add = new TrivialAddHandler<SSLContext>(SSL_CONTEXT_RUNTIME_CAPABILITY, SSLContext.class, attributes) {
@@ -326,7 +340,9 @@ class SSLDefinitions {
 
                 final List<String> protocols = PROTOCOLS.unwrap(context, model);
                 final String cipherSuiteFilter = asStringIfDefined(context, CIPHER_SUITE_FILTER, model);
-                final boolean requireClientAuth = REQUIRE_CLIENT_AUTH.resolveModelAttribute(context, model).asBoolean();
+                final boolean wantClientAuth = WANT_CLIENT_AUTH.resolveModelAttribute(context, model).asBoolean();
+                final boolean needClientAuth = NEED_CLIENT_AUTH.resolveModelAttribute(context, model).asBoolean();
+                final boolean authenticationOptional = AUTHENTICATION_OPTIONAL.resolveModelAttribute(context, model).asBoolean();
                 final int maximumSessionCacheSize = MAXIMUM_SESSION_CACHE_SIZE.resolveModelAttribute(context, model).asInt();
                 final int sessionTimeout = SESSION_TIMEOUT.resolveModelAttribute(context, model).asInt();
 
@@ -388,7 +404,9 @@ class SSLDefinitions {
                                 .add(EnumSet.copyOf(protocols.stream().map(Protocol::valueOf).collect(Collectors.toList()))));
                     }
 
-                    builder.setRequireClientAuth(requireClientAuth)
+                    builder.setWantClientAuth(wantClientAuth)
+                        .setNeedClientAuth(needClientAuth)
+                        .setAuthenticationOptional(authenticationOptional)
                         .setSessionCacheSize(maximumSessionCacheSize)
                         .setSessionTimeout(sessionTimeout);
 
