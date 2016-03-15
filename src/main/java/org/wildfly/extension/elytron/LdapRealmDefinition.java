@@ -47,11 +47,11 @@ import org.jboss.msc.service.ServiceBuilder;
 import org.jboss.msc.service.ServiceController;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.ServiceTarget;
-import org.wildfly.security.auth.provider.ldap.AttributeMapping;
-import org.wildfly.security.auth.provider.ldap.DirContextFactory;
-import org.wildfly.security.auth.provider.ldap.LdapSecurityRealmBuilder;
-import org.wildfly.security.auth.provider.ldap.LdapSecurityRealmBuilder.IdentityMappingBuilder;
-import org.wildfly.security.auth.provider.ldap.SimpleDirContextFactoryBuilder;
+import org.wildfly.security.auth.realm.ldap.AttributeMapping;
+import org.wildfly.security.auth.realm.ldap.DirContextFactory;
+import org.wildfly.security.auth.realm.ldap.LdapSecurityRealmBuilder;
+import org.wildfly.security.auth.realm.ldap.SimpleDirContextFactoryBuilder;
+import org.wildfly.security.auth.realm.ldap.LdapSecurityRealmBuilder.IdentityMappingBuilder;
 import org.wildfly.security.auth.server.SecurityRealm;
 
 /**

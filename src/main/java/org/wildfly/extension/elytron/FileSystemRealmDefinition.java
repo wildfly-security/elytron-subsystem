@@ -53,7 +53,7 @@ import org.jboss.msc.service.ServiceTarget;
 import org.jboss.msc.service.StartException;
 import org.jboss.msc.value.InjectedValue;
 import org.wildfly.extension.elytron.FileAttributeDefinitions.PathResolver;
-import org.wildfly.security.auth.provider.FileSystemSecurityRealm;
+import org.wildfly.security.auth.realm.FileSystemSecurityRealm;
 import org.wildfly.security.auth.server.NameRewriter;
 import org.wildfly.security.auth.server.SecurityRealm;
 

@@ -48,7 +48,7 @@ import org.jboss.msc.service.ServiceController.Mode;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.ServiceTarget;
 import org.jboss.msc.value.InjectedValue;
-import org.wildfly.security.auth.provider.KeyStoreBackedSecurityRealm;
+import org.wildfly.security.auth.realm.KeyStoreBackedSecurityRealm;
 import org.wildfly.security.auth.server.SecurityRealm;
 
 

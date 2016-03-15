@@ -53,7 +53,7 @@ import org.jboss.msc.service.ServiceBuilder;
 import org.jboss.msc.service.StartException;
 import org.jboss.msc.value.InjectedValue;
 import org.wildfly.extension.elytron.TrivialService.ValueSupplier;
-import org.wildfly.security.auth.provider.LegacyPropertiesSecurityRealm;
+import org.wildfly.security.auth.realm.LegacyPropertiesSecurityRealm;
 import org.wildfly.security.auth.server.SecurityRealm;
 
 /**
