@@ -24,7 +24,6 @@ import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 import java.util.function.BinaryOperator;
 
 import org.jboss.as.controller.AbstractAddStepHandler;
@@ -52,9 +51,8 @@ import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.ServiceTarget;
 import org.jboss.msc.value.InjectedValue;
 import org.wildfly.extension.elytron.TrivialService.ValueSupplier;
-import org.wildfly.security.authz.AddPrefixRoleMapper;
-import org.wildfly.security.authz.AddSuffixRoleMapper;
 import org.wildfly.security.authz.RoleMapper;
+import org.wildfly.security.authz.Roles;
 
 /**
  * Container class for the RoleMapping definitions.
@@ -117,7 +115,8 @@ class RoleMapperDefinitions {
             @Override
             protected ValueSupplier<RoleMapper> getValueSupplier(OperationContext context, ModelNode model) throws OperationFailedException {
                 final String suffix = SUFFIX.resolveModelAttribute(context, model).asString();
-                return () -> new AddSuffixRoleMapper(suffix);
+
+                return () -> (Roles r) -> r.addSuffix(suffix);
             }
 
         };
@@ -131,7 +130,8 @@ class RoleMapperDefinitions {
             @Override
             protected ValueSupplier<RoleMapper> getValueSupplier(OperationContext context, ModelNode model) throws OperationFailedException {
                 final String prefix = PREFIX.resolveModelAttribute(context, model).asString();
-                return () -> new AddPrefixRoleMapper(prefix);
+
+                return () -> (Roles r) -> r.addPrefix(prefix);
             }
 
         };
@@ -180,9 +180,9 @@ class RoleMapperDefinitions {
             @Override
             protected ValueSupplier<RoleMapper> getValueSupplier(OperationContext context, ModelNode model) throws OperationFailedException {
                 List<String> rolesList = ROLES.unwrap(context, model);
-                final Set<String> roles = new HashSet<>(rolesList);
+                final Roles roles = Roles.fromSet(new HashSet<>(rolesList));
 
-                return () -> RoleMapper.constant(roles);
+                return () -> (Roles r) -> roles;
             }
         };
 
