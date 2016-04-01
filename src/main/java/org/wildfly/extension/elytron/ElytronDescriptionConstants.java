@@ -197,7 +197,6 @@ interface ElytronDescriptionConstants {
     String PEER_PORT = "peer-port";
     String PEER_PRINCIPAL = "peer-principal";
     String PERMISSION_MAPPER = "permission-mapper";
-    String PERMISSIONS = "permissions";
     String PLAIN_TEXT = "plain-text";
     String POST_REALM_NAME_REWRITER = "post-realm-name-rewriter";
     String PRE_REALM_NAME_REWRITER = "pre-realm-name-rewriter";

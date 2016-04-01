@@ -25,11 +25,9 @@ import static org.wildfly.extension.elytron.ElytronExtension.getRequiredService;
 import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
 
 import java.security.NoSuchAlgorithmException;
-import java.security.Permission;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Enumeration;
 import java.util.List;
 
 import org.jboss.as.controller.AttributeDefinition;
@@ -226,13 +224,6 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
 
                     ModelNode rolesNode = result.get(ElytronDescriptionConstants.ROLES);
                     identity.getRoles().forEach(roleName -> rolesNode.add(roleName));
-
-                    ModelNode permissionsNode = result.get(ElytronDescriptionConstants.PERMISSIONS).setEmptyList();
-                    Enumeration<Permission> permissions = identity.getPermissions().elements();
-
-                    while (permissions.hasMoreElements()) {
-                        permissionsNode.add(permissions.nextElement().toString());
-                    }
 
                     parentContext.completeStep(NOOP_RESULT_HANDLER);
                 } catch (RealmUnavailableException e) {
@@ -763,7 +754,6 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
 
                         context.getResult().add("Principal [" + principalName + "] successfully authenticated.");
                         context.getResult().add("Roles are " + authorizedIdentity.getRoles() + ".");
-                        context.getResult().add("Permissions are [" + authorizedIdentity.getPermissions() + "].");
                     } else {
                         authenticationContext.fail();
                         addFailureDescription("Invalid credentials for Principal [" + principalName + "].", context);
