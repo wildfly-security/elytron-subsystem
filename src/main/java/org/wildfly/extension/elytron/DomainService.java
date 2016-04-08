@@ -18,19 +18,29 @@
 
 package org.wildfly.extension.elytron;
 
+import static org.wildfly.extension.elytron.Capabilities.SECURITY_DOMAIN_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 import org.jboss.as.controller.OperationFailedException;
 import org.jboss.msc.inject.Injector;
 import org.jboss.msc.service.Service;
+import org.jboss.msc.service.ServiceBuilder;
+import org.jboss.msc.service.ServiceController;
+import org.jboss.msc.service.ServiceName;
+import org.jboss.msc.service.ServiceTarget;
 import org.jboss.msc.service.StartContext;
 import org.jboss.msc.service.StartException;
 import org.jboss.msc.service.StopContext;
 import org.jboss.msc.value.InjectedValue;
+import org.wildfly.common.Assert;
 import org.wildfly.security.auth.server.NameRewriter;
 import org.wildfly.security.auth.server.PrincipalDecoder;
 import org.wildfly.security.auth.server.RealmMapper;
@@ -53,6 +63,7 @@ class DomainService implements Service<SecurityDomain> {
 
     private final String name;
     private final String defaultRealm;
+    private final List<String> trustedSecurityDomainsList;
     private String preRealmNameRewriter;
     private String postRealmNameRewriter;
     private String roleMapper;
@@ -64,10 +75,12 @@ class DomainService implements Service<SecurityDomain> {
     private final InjectedValue<PrincipalDecoder> principalDecoderInjector = new InjectedValue<>();
     private final InjectedValue<RealmMapper> realmMapperInjector = new InjectedValue<>();
     private final InjectedValue<PermissionMapper> permissionMapperInjector = new InjectedValue<>();
+    private final HashSet<SecurityDomain> trustedSecurityDomains = new HashSet<>();
 
-    DomainService(final String name, final String defaultRealm) {
+    DomainService(final String name, final String defaultRealm, final List<String> trustedSecurityDomainsList) {
         this.name = name;
         this.defaultRealm = defaultRealm;
+        this.trustedSecurityDomainsList = trustedSecurityDomainsList;
     }
 
     RealmDependency createRealmDependency(final String realmName) throws OperationFailedException {
@@ -186,7 +199,22 @@ class DomainService implements Service<SecurityDomain> {
             realmBuilder.build();
         }
 
+        builder.setTrustedSecurityDomainPredicate(trustedSecurityDomains::contains);
+
         securityDomain = builder.build();
+
+        // Populate the set of trusted security domains
+        final ServiceTarget serviceTarget = context.getChildTarget();
+        final TrustedSecurityDomainsService trustedSecurityDomainsService = new TrustedSecurityDomainsService(trustedSecurityDomains);
+        final ServiceName trustedSecurityDomainsServiceName = SECURITY_DOMAIN_RUNTIME_CAPABILITY.getCapabilityServiceName(name).append(ElytronDescriptionConstants.TRUSTED_SECURITY_DOMAINS);
+        final ServiceBuilder<SecurityDomain> serviceBuilder = serviceTarget
+                .addService(trustedSecurityDomainsServiceName, trustedSecurityDomainsService)
+                .setInitialMode(ServiceController.Mode.ACTIVE);
+        for (String trustedSecurityDomain : trustedSecurityDomainsList) {
+            final ServiceName domainServiceName = SECURITY_DOMAIN_RUNTIME_CAPABILITY.getCapabilityServiceName(trustedSecurityDomain);
+            serviceBuilder.addDependency(domainServiceName, SecurityDomain.class, trustedSecurityDomainsService.createTrustedSecurityDomainInjector());
+        }
+        serviceBuilder.install();
     }
 
     @Override
@@ -228,5 +256,38 @@ class DomainService implements Service<SecurityDomain> {
             return createRoleMapperInjector(name);
         }
 
+    }
+
+    private static class TrustedSecurityDomainsService<Void> implements Service<Void> {
+        private final List<InjectedValue<SecurityDomain>> trustedSecurityDomainInjectors = new ArrayList<>();
+        private HashSet<SecurityDomain> trustedSecurityDomains;
+
+        private TrustedSecurityDomainsService(final HashSet<SecurityDomain> trustedSecurityDomains) {
+            Assert.checkNotNullParam("trustedSecurityDomains", trustedSecurityDomains);
+            this.trustedSecurityDomains = trustedSecurityDomains;
+        }
+
+        @Override
+        public void start(StartContext context) throws StartException {
+            trustedSecurityDomains.addAll(trustedSecurityDomainInjectors.stream()
+                    .map(InjectedValue<SecurityDomain>::getValue)
+                    .collect(Collectors.toCollection(HashSet::new)));
+        }
+
+        @Override
+        public void stop(StopContext context) {
+            trustedSecurityDomains = null;
+        }
+
+        @Override
+        public Void getValue() throws IllegalStateException, IllegalArgumentException {
+            return null;
+        }
+
+        Injector<SecurityDomain> createTrustedSecurityDomainInjector() {
+            InjectedValue<SecurityDomain> injectedValue = new InjectedValue<>();
+            trustedSecurityDomainInjectors.add(injectedValue);
+            return injectedValue;
+        }
     }
 }

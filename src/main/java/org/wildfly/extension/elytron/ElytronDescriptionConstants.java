@@ -291,6 +291,7 @@ interface ElytronDescriptionConstants {
     String TO = "to";
     String TRUST_MANAGER = "trust-manager";
     String TRUST_MANAGERS = "trust-managers";
+    String TRUSTED_SECURITY_DOMAINS = "trusted-security-domains";
     String TYPE = "type";
 
     String URL = "url";

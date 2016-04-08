@@ -47,6 +47,7 @@ import org.jboss.as.controller.RestartParentWriteAttributeHandler;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
 import org.jboss.as.controller.SimpleResourceDefinition;
+import org.jboss.as.controller.StringListAttributeDefinition;
 import org.jboss.as.controller.capability.RuntimeCapability;
 import org.jboss.as.controller.registry.AttributeAccess;
 import org.jboss.as.controller.registry.ManagementResourceRegistration;
@@ -154,8 +155,15 @@ class DomainDefinition extends SimpleResourceDefinition {
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
         .build();
 
+    static final StringListAttributeDefinition TRUSTED_SECURITY_DOMAINS = new StringListAttributeDefinition.Builder(ElytronDescriptionConstants.TRUSTED_SECURITY_DOMAINS)
+            .setAllowNull(true)
+            .setMinSize(1)
+            .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+            .setCapabilityReference(SECURITY_DOMAIN_CAPABILITY, SECURITY_DOMAIN_CAPABILITY, true)
+            .build();
+
     private static final AttributeDefinition[] ATTRIBUTES =
-            new AttributeDefinition[] { PRE_REALM_NAME_REWRITER, POST_REALM_NAME_REWRITER, PRINCIPAL_DECODER, REALM_MAPPER, ROLE_MAPPER, PERMISSION_MAPPER, DEFAULT_REALM, REALMS };
+            new AttributeDefinition[] { PRE_REALM_NAME_REWRITER, POST_REALM_NAME_REWRITER, PRINCIPAL_DECODER, REALM_MAPPER, ROLE_MAPPER, PERMISSION_MAPPER, DEFAULT_REALM, REALMS, TRUSTED_SECURITY_DOMAINS };
 
     private static final DomainAddHandler ADD = new DomainAddHandler();
     private static final OperationStepHandler REMOVE = new SingleCapabilityServiceRemoveHandler<SecurityDomain>(ADD, SECURITY_DOMAIN_RUNTIME_CAPABILITY, SecurityDomain.class);
@@ -199,6 +207,7 @@ class DomainDefinition extends SimpleResourceDefinition {
 
         String defaultRealm = DomainDefinition.DEFAULT_REALM.resolveModelAttribute(context, model).asString();
         List<ModelNode> realms = REALMS.resolveModelAttribute(context, model).asList();
+        List<String> trustedSecurityDomains = TRUSTED_SECURITY_DOMAINS.unwrap(context, model);
 
         String preRealmNameRewriter = asStringIfDefined(context, PRE_REALM_NAME_REWRITER, model);
         String postRealmNameRewriter = asStringIfDefined(context, POST_REALM_NAME_REWRITER, model);
@@ -207,7 +216,7 @@ class DomainDefinition extends SimpleResourceDefinition {
         String realmMapper = asStringIfDefined(context, REALM_MAPPER, model);
         String roleMapper = asStringIfDefined(context, ROLE_MAPPER, model);
 
-        DomainService domain = new DomainService(simpleName, defaultRealm);
+        DomainService domain = new DomainService(simpleName, defaultRealm, trustedSecurityDomains);
 
         ServiceBuilder<SecurityDomain> domainBuilder = serviceTarget.addService(domainName, domain)
                 .setInitialMode(Mode.ACTIVE);

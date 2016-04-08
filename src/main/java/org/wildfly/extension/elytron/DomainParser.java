@@ -40,6 +40,7 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REALM_MA
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ROLE_DECODER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ROLE_MAPPER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SECURITY_DOMAIN;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.TRUSTED_SECURITY_DOMAINS;
 import static org.wildfly.extension.elytron.ElytronSubsystemParser.verifyNamespace;
 
 import java.util.Arrays;
@@ -101,6 +102,11 @@ class DomainParser {
                         break;
                     case ROLE_MAPPER:
                         DomainDefinition.ROLE_MAPPER.parseAndSetParameter(value, addDomain, reader);
+                        break;
+                    case TRUSTED_SECURITY_DOMAINS:
+                        for (String trustedSecurityDomain : reader.getListAttributeValue(i)) {
+                            DomainDefinition.TRUSTED_SECURITY_DOMAINS.parseAndAddParameterElement(trustedSecurityDomain, addDomain, reader);
+                        }
                         break;
                     default:
                         throw unexpectedAttribute(reader, i);
@@ -185,6 +191,7 @@ class DomainParser {
         DomainDefinition.PRINCIPAL_DECODER.marshallAsAttribute(domain, writer);
         DomainDefinition.REALM_MAPPER.marshallAsAttribute(domain, writer);
         DomainDefinition.ROLE_MAPPER.marshallAsAttribute(domain, writer);
+        DomainDefinition.TRUSTED_SECURITY_DOMAINS.getAttributeMarshaller().marshallAsAttribute(DomainDefinition.TRUSTED_SECURITY_DOMAINS, domain, false, writer);
 
         List<ModelNode> realms = domain.get(REALMS).asList();
 
