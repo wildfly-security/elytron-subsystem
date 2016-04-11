@@ -17,7 +17,6 @@
  */
 package org.wildfly.extension.elytron;
 
-import java.io.File;
 import org.jboss.as.controller.ObjectTypeAttributeDefinition;
 import org.jboss.as.controller.PathAddress;
 import org.jboss.as.controller.PathElement;
@@ -25,7 +24,6 @@ import org.jboss.as.controller.SimpleOperationDefinition;
 import org.jboss.as.controller.descriptions.ModelDescriptionConstants;
 import org.jboss.as.subsystem.test.AbstractSubsystemTest;
 import org.jboss.as.subsystem.test.AdditionalInitialization;
-import org.jboss.as.subsystem.test.ControllerInitializer;
 import org.jboss.as.subsystem.test.KernelServices;
 import org.jboss.as.subsystem.test.KernelServicesBuilder;
 import org.jboss.as.subsystem.test.SubsystemOperations;
@@ -38,14 +36,6 @@ import org.wildfly.security.password.interfaces.BCryptPassword;
 import org.wildfly.security.password.interfaces.DigestPassword;
 import org.wildfly.security.password.interfaces.SaltedSimpleDigestPassword;
 import org.wildfly.security.password.interfaces.SimpleDigestPassword;
-
-import java.io.IOException;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
 import org.wildfly.security.password.util.PasswordUtil;
 
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.FAILED;
@@ -519,36 +509,5 @@ public class IdentityOperationsTestCase extends AbstractSubsystemTest {
 
     private PathAddress getSecurityRealmAddress(String securityRealm) {
         return PathAddress.pathAddress(ElytronExtension.SUBSYSTEM_PATH, PathElement.pathElement(ElytronDescriptionConstants.FILESYSTEM_REALM, securityRealm));
-    }
-
-    class TestEnvironment extends AdditionalInitialization {
-
-        @Override
-        protected ControllerInitializer createControllerInitializer() {
-            ControllerInitializer initializer = new ControllerInitializer();
-
-            try {
-                Path rootPath = Files.walkFileTree(Files.createDirectories(Paths.get(getClass().getResource(File.separator).toURI())
-                        .resolve("filesystem-realm")), new SimpleFileVisitor<Path>() {
-                    @Override
-                    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                        Files.delete(file);
-                        return FileVisitResult.CONTINUE;
-                    }
-
-                    @Override
-                    public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-                        Files.delete(dir);
-                        return FileVisitResult.CONTINUE;
-                    }
-                });
-
-                initializer.addPath("jboss.server.config.dir", rootPath.toAbsolutePath().toString(), null);
-            } catch (Exception e) {
-                throw new RuntimeException("Could not create test config directory.", e);
-            }
-
-            return initializer;
-        }
     }
 }

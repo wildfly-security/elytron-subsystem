@@ -46,7 +46,7 @@ public class KeyStoresTestCase extends AbstractSubsystemTest {
     }
 
     private KernelServices services = null;
-    private String resources = KeyStoresTestCase.class.getResource("/org/wildfly/extension/elytron").getFile();
+    private String resources = KeyStoresTestCase.class.getResource(".").getFile();
 
     private ModelNode assertSuccess(ModelNode response) {
         if (!response.get(OUTCOME).asString().equals(SUCCESS)) {
@@ -57,18 +57,7 @@ public class KeyStoresTestCase extends AbstractSubsystemTest {
 
     @Before
     public void init() throws Exception {
-        String subsystemXml =
-                "<subsystem xmlns=\"" + ElytronExtension.NAMESPACE + "\">\n" +
-                        "    <tls>\n" +
-                        "        <keystores>\n" +
-                        "            <keystore name=\"MyKeyStore\" type=\"JKS\" password=\"123456\">\n" +
-                        "                <file path=\"" + resources + "/testingCaJks.keystore\"/>\n" +
-                        "            </keystore>\n" +
-                        "        </keystores>\n" +
-                        "    </tls>\n" +
-                        "</subsystem>\n";
-
-        services = super.createKernelServicesBuilder(null).setSubsystemXml(subsystemXml).build();
+        services = super.createKernelServicesBuilder(new TestEnvironment()).setSubsystemXmlResource("tls-test.xml").build();
         if (!services.isSuccessfulBoot()) {
             Assert.fail(services.getBootError().toString());
         }
@@ -76,35 +65,35 @@ public class KeyStoresTestCase extends AbstractSubsystemTest {
 
     @Test
     public void testKeystoreService() throws Exception {
-        ServiceName serviceName = Capabilities.KEY_STORE_RUNTIME_CAPABILITY.getCapabilityServiceName("MyKeyStore");
+        ServiceName serviceName = Capabilities.KEY_STORE_RUNTIME_CAPABILITY.getCapabilityServiceName("FireflyKeystore");
         KeyStore keyStore = (KeyStore) services.getContainer().getService(serviceName).getValue();
         Assert.assertNotNull(keyStore);
 
-        Assert.assertTrue(keyStore.containsAlias("testingserver"));
-        Assert.assertTrue(keyStore.isKeyEntry("testingserver"));
-        Assert.assertEquals(2, keyStore.getCertificateChain("testingserver").length);
-        Certificate cert = keyStore.getCertificate("testingserver");
+        Assert.assertTrue(keyStore.containsAlias("firefly"));
+        Assert.assertTrue(keyStore.isKeyEntry("firefly"));
+        Assert.assertEquals(2, keyStore.getCertificateChain("firefly").length); // has CA in chain
+        Certificate cert = keyStore.getCertificate("firefly");
         Assert.assertNotNull(cert);
-        Assert.assertEquals("testingserver", keyStore.getCertificateAlias(cert));
+        Assert.assertEquals("firefly", keyStore.getCertificateAlias(cert));
 
-        Assert.assertTrue(keyStore.containsAlias("testingca"));
-        Assert.assertTrue(keyStore.isCertificateEntry("testingca"));
-        Certificate certCa = keyStore.getCertificate("testingca");
+        Assert.assertTrue(keyStore.containsAlias("ca"));
+        Assert.assertTrue(keyStore.isCertificateEntry("ca"));
+        Certificate certCa = keyStore.getCertificate("ca");
         Assert.assertNotNull(certCa);
-        Assert.assertEquals("testingca", keyStore.getCertificateAlias(certCa));
+        Assert.assertEquals("ca", keyStore.getCertificateAlias(certCa));
     }
 
     @Test
     public void testKeystoreCli() throws Exception {
-        Files.copy(Paths.get(resources, "testingCaJks.keystore"), Paths.get(resources, "testingCaJks2.keystore"), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+        Files.copy(Paths.get(resources, "firefly.keystore"), Paths.get(resources, "firefly-copy.keystore"), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
 
         ModelNode operation = new ModelNode(); // add keystore
         operation.get(ClientConstants.OPERATION_HEADERS).get("allow-resource-service-restart").set(Boolean.TRUE);
         operation.get(ClientConstants.OP_ADDR).add("subsystem","elytron").add("keystore","ModifiedKeyStore");
         operation.get(ClientConstants.OP).set(ClientConstants.ADD);
-        operation.get(ElytronDescriptionConstants.PATH).set(resources + "/testingCaJks2.keystore");
+        operation.get(ElytronDescriptionConstants.PATH).set(resources + "/firefly-copy.keystore");
         operation.get(ElytronDescriptionConstants.TYPE).set("JKS");
-        operation.get(ElytronDescriptionConstants.PASSWORD).set("123456");
+        operation.get(ElytronDescriptionConstants.PASSWORD).set("Elytron");
         assertSuccess(services.executeOperation(operation));
 
         operation = new ModelNode();
@@ -116,7 +105,7 @@ public class KeyStoresTestCase extends AbstractSubsystemTest {
 
         operation = new ModelNode();
         operation.get(ClientConstants.OPERATION_HEADERS).get("allow-resource-service-restart").set(Boolean.TRUE);
-        operation.get(ClientConstants.OP_ADDR).add("subsystem","elytron").add("keystore","ModifiedKeyStore").add("alias","testingca");
+        operation.get(ClientConstants.OP_ADDR).add("subsystem","elytron").add("keystore","ModifiedKeyStore").add("alias","ca");
         operation.get(ClientConstants.OP).set(ClientConstants.REMOVE_OPERATION);
         assertSuccess(services.executeOperation(operation));
 

@@ -6,7 +6,7 @@
     </security-domains>
     <security-realms>
         <filesystem-realm name="FileSystemRealm">
-            <file path="filesystem-realm-data" relative-to="jboss.server.config.dir"/>
+            <file path="filesystem-realm-empty" relative-to="jboss.server.config.dir"/>
         </filesystem-realm>
     </security-realms>
 </subsystem>

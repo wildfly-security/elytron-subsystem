@@ -282,8 +282,8 @@ class SSLDefinitions {
                 final InjectedValue<KeyStore> keyStoreInjector = new InjectedValue<>();
                 if (keyStore != null) {
                     serviceBuilder.addDependency(context.getCapabilityServiceName(
-                            buildDynamicCapabilityName(PROVIDERS_CAPABILITY, providerLoader), Provider[].class),
-                            Provider[].class, providersInjector);
+                            buildDynamicCapabilityName(KEYSTORE_CAPABILITY, keyStore), KeyStore.class),
+                            KeyStore.class, keyStoreInjector);
                 }
 
                 return () -> {
