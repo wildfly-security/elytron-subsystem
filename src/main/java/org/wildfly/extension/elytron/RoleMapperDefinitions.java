@@ -110,7 +110,7 @@ class RoleMapperDefinitions {
     }
 
     static ResourceDefinition getAddSuffixRoleMapperDefinition() {
-        AbstractAddStepHandler add = new RoleMapperAddHander(SUFFIX) {
+        AbstractAddStepHandler add = new RoleMapperAddHandler(SUFFIX) {
 
             @Override
             protected ValueSupplier<RoleMapper> getValueSupplier(OperationContext context, ModelNode model) throws OperationFailedException {
@@ -125,7 +125,7 @@ class RoleMapperDefinitions {
     }
 
     static ResourceDefinition getAddPrefixRoleMapperDefinition() {
-        AbstractAddStepHandler add = new RoleMapperAddHander(PREFIX) {
+        AbstractAddStepHandler add = new RoleMapperAddHandler(PREFIX) {
 
             @Override
             protected ValueSupplier<RoleMapper> getValueSupplier(OperationContext context, ModelNode model) throws OperationFailedException {
@@ -141,10 +141,10 @@ class RoleMapperDefinitions {
 
     static ResourceDefinition getLogicalRoleMapperDefinition() {
         AttributeDefinition[] attributes = new AttributeDefinition[] { LOGICAL_OPERATION, LEFT, RIGHT };
-        AbstractAddStepHandler add = new RoleMapperAddHander(attributes) {
+        AbstractAddStepHandler add = new RoleMapperAddHandler(attributes) {
 
             /* (non-Javadoc)
-             * @see org.wildfly.extension.elytron.RoleMapperDefinitions.RoleMapperAddHander#installService(org.jboss.as.controller.OperationContext, org.jboss.msc.service.ServiceName, org.jboss.dmr.ModelNode)
+             * @see org.wildfly.extension.elytron.RoleMapperDefinitions.RoleMapperAddHandler#installService(org.jboss.as.controller.OperationContext, org.jboss.msc.service.ServiceName, org.jboss.dmr.ModelNode)
              */
             @Override
             protected ServiceBuilder<RoleMapper> installService(OperationContext context, ServiceName roleMapperName,
@@ -175,7 +175,7 @@ class RoleMapperDefinitions {
     }
 
     static ResourceDefinition getConstantRoleMapperDefinition() {
-        AbstractAddStepHandler add = new RoleMapperAddHander(ROLES) {
+        AbstractAddStepHandler add = new RoleMapperAddHandler(ROLES) {
 
             @Override
             protected ValueSupplier<RoleMapper> getValueSupplier(OperationContext context, ModelNode model) throws OperationFailedException {
@@ -222,10 +222,10 @@ class RoleMapperDefinitions {
 
     }
 
-    private static class RoleMapperAddHander extends BaseAddHandler {
+    private static class RoleMapperAddHandler extends BaseAddHandler {
 
 
-        private RoleMapperAddHander(AttributeDefinition ... attributes) {
+        private RoleMapperAddHandler(AttributeDefinition ... attributes) {
             super(ROLE_MAPPER_RUNTIME_CAPABILITY, attributes);
         }
 

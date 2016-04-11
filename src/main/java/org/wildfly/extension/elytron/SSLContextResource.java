@@ -137,11 +137,11 @@ class SSLContextResource extends DelegatingResource {
      *
      * @return The {@link SSLContext} represented by this {@link Resource} or {@code null} if it is not currently available.
      */
-    static SSLContext getSSLContext(ServiceController<SSLContext> sslContexyServiceController) {
-        if (sslContexyServiceController == null || sslContexyServiceController.getState() != State.UP) {
+    static SSLContext getSSLContext(ServiceController<SSLContext> sslContextServiceController) {
+        if (sslContextServiceController == null || sslContextServiceController.getState() != State.UP) {
             return null;
         } else {
-            return sslContexyServiceController.getValue();
+            return sslContextServiceController.getValue();
         }
     }
 

@@ -167,7 +167,7 @@ class ProviderLoaderService implements Service<Provider[]> {
                 for (int j = i - 1; j > 0; j--) {
                     Security.removeProvider(providers[j].getName());
                 }
-                throw ROOT_LOGGER.providerAlreadyRegisteres(providers[i].getName());
+                throw ROOT_LOGGER.providerAlreadyRegistered(providers[i].getName());
             }
         }
     }

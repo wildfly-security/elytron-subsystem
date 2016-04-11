@@ -82,7 +82,7 @@ class PrincipalDecoderDefinitions {
 
     static ResourceDefinition getX500AttributePrincipalDecoder() {
         AttributeDefinition[] attributes = new AttributeDefinition[] { OID, JOINER, MAXIMUM_SEGMENTS };
-        AbstractAddStepHandler add = new PrincipalDecoderAddHander(attributes) {
+        AbstractAddStepHandler add = new PrincipalDecoderAddHandler(attributes) {
 
             @Override
             protected ValueSupplier<PrincipalDecoder> getValueSupplier(OperationContext context, ModelNode model) throws OperationFailedException {
@@ -130,10 +130,10 @@ class PrincipalDecoderDefinitions {
 
     }
 
-    private static class PrincipalDecoderAddHander extends BaseAddHandler {
+    private static class PrincipalDecoderAddHandler extends BaseAddHandler {
 
 
-        private PrincipalDecoderAddHander(AttributeDefinition ... attributes) {
+        private PrincipalDecoderAddHandler(AttributeDefinition ... attributes) {
             super(PRINCIPAL_DECODER_RUNTIME_CAPABILITY, attributes);
         }
 

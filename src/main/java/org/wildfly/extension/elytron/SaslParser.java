@@ -650,7 +650,7 @@ class SaslParser {
     void writeSasl(ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         boolean saslStarted = false;
 
-        saslStarted = saslStarted | authenticationFactoryParser.writeSaslServerAuthenticationonfiguration(saslStarted, subsystem, writer, b -> startSasl(b, writer));
+        saslStarted = saslStarted | authenticationFactoryParser.writeSaslServerAuthenticationConfiguration(saslStarted, subsystem, writer, b -> startSasl(b, writer));
         saslStarted = saslStarted | writeAggregateSaslServerFactory(saslStarted, subsystem, writer);
         saslStarted = saslStarted | writeConfigurableSaslServerFactory(saslStarted, subsystem, writer);
         saslStarted = saslStarted | writeMechanismProviderFilteringSaslServerFactory(saslStarted, subsystem, writer);

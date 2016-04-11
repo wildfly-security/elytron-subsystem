@@ -112,8 +112,8 @@ public class ElytronExtension implements Extension {
         return (ServiceController<T>) controller;
     }
 
-    static String asStringIfDefined(OperationContext context, SimpleAttributeDefinition attributeDefintion, ModelNode model) throws OperationFailedException {
-        ModelNode value = attributeDefintion.resolveModelAttribute(context, model);
+    static String asStringIfDefined(OperationContext context, SimpleAttributeDefinition attributeDefinition, ModelNode model) throws OperationFailedException {
+        ModelNode value = attributeDefinition.resolveModelAttribute(context, model);
         if (value.isDefined()) {
             return value.asString();
         }
@@ -121,8 +121,8 @@ public class ElytronExtension implements Extension {
         return null;
     }
 
-    static Double asDoubleIfDefined(OperationContext context, SimpleAttributeDefinition attributeDefintion, ModelNode model) throws OperationFailedException {
-        ModelNode value = attributeDefintion.resolveModelAttribute(context, model);
+    static Double asDoubleIfDefined(OperationContext context, SimpleAttributeDefinition attributeDefinition, ModelNode model) throws OperationFailedException {
+        ModelNode value = attributeDefinition.resolveModelAttribute(context, model);
         if (value.isDefined()) {
             return value.asDouble();
         }
@@ -130,8 +130,8 @@ public class ElytronExtension implements Extension {
         return null;
     }
 
-    static int asIntIfDefined(OperationContext context, SimpleAttributeDefinition attributeDefintion, ModelNode model) throws OperationFailedException {
-        ModelNode value = attributeDefintion.resolveModelAttribute(context, model);
+    static int asIntIfDefined(OperationContext context, SimpleAttributeDefinition attributeDefinition, ModelNode model) throws OperationFailedException {
+        ModelNode value = attributeDefinition.resolveModelAttribute(context, model);
         if (value.isDefined()) {
             return value.asInt();
         }

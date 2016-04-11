@@ -35,6 +35,8 @@ import org.jboss.msc.service.ServiceController.State;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.StartException;
 import org.wildfly.extension.elytron.Configurable;
+import org.wildfly.security.auth.server.SecurityDomain;
+import org.wildfly.security.auth.server.SecurityRealm;
 
 /**
  * Messages for the Elytron subsystem.
@@ -143,7 +145,7 @@ public interface ElytronSubsystemMessages extends BasicLogger {
      * @return The {@link StartException} for the error.
      */
     @Message(id = 11, value = "A Provider is already registered for '%s'")
-    StartException providerAlreadyRegisteres(String name);
+    StartException providerAlreadyRegistered(String name);
 
     /**
      * A {@link StartException} where a service can not identify a suitable {@link Provider}

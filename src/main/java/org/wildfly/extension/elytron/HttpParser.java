@@ -34,7 +34,7 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ENABLING
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.FILTER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.FILTERS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.HTTP;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.HTTP_SERVER_AUTHENITCATION;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.HTTP_SERVER_AUTHENTICATION;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.HTTP_SERVER_FACTORIES;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.HTTP_SERVER_FACTORY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEY;
@@ -77,7 +77,7 @@ class HttpParser {
             verifyNamespace(reader);
             String localName = reader.getLocalName();
             switch (localName) {
-                case HTTP_SERVER_AUTHENITCATION:
+                case HTTP_SERVER_AUTHENTICATION:
                     authenticationFactoryParser.readHttpServerAuthenticationElement(parentAddress, reader, operations);
                     break;
                 case AGGREGATE_HTTP_SERVER_FACTORY:
@@ -129,7 +129,7 @@ class HttpParser {
 
         operations.add(addOperation);
 
-        ListAttributeDefinition httpServerFactories = HttpServerDefinitions.getRawAggregateHttpServerFactoryDefintion().getReferencesAttribute();
+        ListAttributeDefinition httpServerFactories = HttpServerDefinitions.getRawAggregateHttpServerFactoryDefinition().getReferencesAttribute();
         while (reader.hasNext() && reader.nextTag() != END_ELEMENT) {
             verifyNamespace(reader);
             String localName = reader.getLocalName();

@@ -112,11 +112,11 @@ class HttpServerDefinitions {
             ElytronDescriptionConstants.AGGREGATE_HTTP_SERVER_FACTORY, ElytronDescriptionConstants.HTTP_SERVER_FACTORIES, HTTP_SERVER_FACTORY_RUNTIME_CAPABILITY,
             (HttpServerAuthenticationMechanismFactory[] n) -> new AggregateServerMechanismFactory(n));
 
-    static AggregateComponentDefinition<HttpServerAuthenticationMechanismFactory> getRawAggregateHttpServerFactoryDefintion() {
+    static AggregateComponentDefinition<HttpServerAuthenticationMechanismFactory> getRawAggregateHttpServerFactoryDefinition() {
         return AGGREGATE_HTTP_SERVER_FACTORY;
     }
 
-    static ResourceDefinition getAggregateHttpServerFactoryDefintion() {
+    static ResourceDefinition getAggregateHttpServerFactoryDefinition() {
         return wrapFactory(AGGREGATE_HTTP_SERVER_FACTORY);
     }
 

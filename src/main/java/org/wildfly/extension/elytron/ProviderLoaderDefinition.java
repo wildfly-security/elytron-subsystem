@@ -200,8 +200,8 @@ class ProviderLoaderDefinition extends SimpleResourceDefinition {
         }
     }
 
-    private static String[] asStringArrayIfDefined(OperationContext context, StringListAttributeDefinition attributeDefintion, ModelNode model) throws OperationFailedException {
-        ModelNode resolved = attributeDefintion.resolveModelAttribute(context, model);
+    private static String[] asStringArrayIfDefined(OperationContext context, StringListAttributeDefinition attributeDefinition, ModelNode model) throws OperationFailedException {
+        ModelNode resolved = attributeDefinition.resolveModelAttribute(context, model);
         if (resolved.isDefined()) {
             List<ModelNode> values = resolved.asList();
             String[] response = new String[values.size()];

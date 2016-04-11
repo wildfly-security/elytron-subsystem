@@ -128,7 +128,7 @@ class ElytronDefinition extends SimpleResourceDefinition {
         resourceRegistration.registerSubModel(RoleMapperDefinitions.getLogicalRoleMapperDefinition());
 
         // HTTP Mechanisms
-        resourceRegistration.registerSubModel(HttpServerDefinitions.getAggregateHttpServerFactoryDefintion());
+        resourceRegistration.registerSubModel(HttpServerDefinitions.getAggregateHttpServerFactoryDefinition());
         resourceRegistration.registerSubModel(HttpServerDefinitions.getConfigurableHttpServerFactoryDefinition());
         resourceRegistration.registerSubModel(HttpServerDefinitions.getProviderHttpServerFactoryDefinition());
         resourceRegistration.registerSubModel(HttpServerDefinitions.getServiceLoaderServerFactoryDefinition());

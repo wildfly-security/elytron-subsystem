@@ -151,11 +151,11 @@ class AuthenticationFactoryDefinitions {
                 .setCapabilityReference(REALM_MAPPER_CAPABILITY, forCapability, true)
                 .build();
 
-        ObjectTypeAttributeDefinition mechanismRealmConfguration = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.MECHANISM_REALM_CONFIGURATION, REALM_NAME, preRealmNameRewriterAttribute, postRealmNameRewriterAttribute, finalNameRewriterAttribute, realmMapperAttribute)
+        ObjectTypeAttributeDefinition mechanismRealmConfiguration = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.MECHANISM_REALM_CONFIGURATION, REALM_NAME, preRealmNameRewriterAttribute, postRealmNameRewriterAttribute, finalNameRewriterAttribute, realmMapperAttribute)
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
 
-        ObjectListAttributeDefinition mechanismRealmConfigurations = new ObjectListAttributeDefinition.Builder(ElytronDescriptionConstants.MECHANISM_REALM_CONFIGURATIONS, mechanismRealmConfguration)
+        ObjectListAttributeDefinition mechanismRealmConfigurations = new ObjectListAttributeDefinition.Builder(ElytronDescriptionConstants.MECHANISM_REALM_CONFIGURATIONS, mechanismRealmConfiguration)
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
 
@@ -329,7 +329,7 @@ class AuthenticationFactoryDefinitions {
             }
         };
 
-        return wrap(new TrivialResourceDefinition<>(ElytronDescriptionConstants.HTTP_SERVER_AUTHENITCATION, HTTP_SERVER_AUTHENTICATION_RUNTIME_CAPABILITY,
+        return wrap(new TrivialResourceDefinition<>(ElytronDescriptionConstants.HTTP_SERVER_AUTHENTICATION, HTTP_SERVER_AUTHENTICATION_RUNTIME_CAPABILITY,
                 HttpAuthenticationFactory.class, add, attributes), AuthenticationFactoryDefinitions::getAvailableHttpMechanisms);
     }
 

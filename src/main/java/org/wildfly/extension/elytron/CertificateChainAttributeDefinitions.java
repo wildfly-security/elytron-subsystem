@@ -43,7 +43,7 @@ import org.wildfly.security.util.ByteIterator;
  *
  * @author <a href="mailto:darran.lofthouse@jboss.com">Darran Lofthouse</a>
  */
-class CertificateChainAttributeDefintions {
+class CertificateChainAttributeDefinitions {
 
     private static final String SHA_1 = "SHA-1";
 

@@ -100,7 +100,7 @@ class PropertiesRealmDefinition extends TrivialResourceDefinition<SecurityRealm>
             final String groupsPath;
             final String groupsRelativeTo;
             final boolean plainText = PLAIN_TEXT.resolveModelAttribute(context, model).asBoolean();
-            final String groupsAttribue = GROUPS_ATTRIBUTE.resolveModelAttribute(context, model).asString();
+            final String groupsAttribute = GROUPS_ATTRIBUTE.resolveModelAttribute(context, model).asString();
 
             ModelNode usersProperties = USERS_PROPERTIES.resolveModelAttribute(context, model);
             usersPath = asStringIfDefined(context, PATH, usersProperties);
@@ -115,10 +115,10 @@ class PropertiesRealmDefinition extends TrivialResourceDefinition<SecurityRealm>
                 groupsRelativeTo = null;
             }
 
-            final InjectedValue<PathManager> pathManagerjector = new InjectedValue<PathManager>();
+            final InjectedValue<PathManager> pathManagerInjector = new InjectedValue<PathManager>();
 
             if (usersRelativeTo != null || groupsRelativeTo != null) {
-                serviceBuilder.addDependency(PathManagerService.SERVICE_NAME, PathManager.class, pathManagerjector);
+                serviceBuilder.addDependency(PathManagerService.SERVICE_NAME, PathManager.class, pathManagerInjector);
                 if (usersRelativeTo != null) {
                     serviceBuilder.addDependency(pathName(usersRelativeTo));
                 }
@@ -142,7 +142,7 @@ class PropertiesRealmDefinition extends TrivialResourceDefinition<SecurityRealm>
                                 .setPasswordsStream(usersInputStream)
                                 .setGroupsStream(groupsInputStream)
                                 .setPlainText(plainText)
-                                .setGroupsAttribute(groupsAttribue)
+                                .setGroupsAttribute(groupsAttribute)
                                 .build();
 
                     } catch (IOException e) {
@@ -158,7 +158,7 @@ class PropertiesRealmDefinition extends TrivialResourceDefinition<SecurityRealm>
                 private File resolveFileLocation(String path, String relativeTo) {
                     final File resolvedPath;
                     if (relativeTo != null) {
-                        PathManager pathManager =  pathManagerjector.getValue();
+                        PathManager pathManager =  pathManagerInjector.getValue();
                         resolvedPath = new File(pathManager.resolveRelativePathEntry(path, relativeTo));
                         Handle callbackHandle = pathManager.registerCallback(relativeTo, new org.jboss.as.controller.services.path.PathManager.Callback() {
 

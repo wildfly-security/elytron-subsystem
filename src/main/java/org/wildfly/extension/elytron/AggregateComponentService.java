@@ -54,12 +54,12 @@ class AggregateComponentService<T> implements Service<T> {
     @SuppressWarnings("unchecked")
     @Override
     public void start(StartContext context) throws StartException {
-        ArrayList<T> toAggreagte = new ArrayList<T>(injections.size());
+        ArrayList<T> toAggregate = new ArrayList<T>(injections.size());
         for (InjectedValue<T> current : injections) {
-            toAggreagte.add(current.getValue());
+            toAggregate.add(current.getValue());
         }
 
-        aggregation = aggregator.apply(toAggreagte.toArray((T[])Array.newInstance(aggregationType, toAggreagte.size())));
+        aggregation = aggregator.apply(toAggregate.toArray((T[])Array.newInstance(aggregationType, toAggregate.size())));
     }
 
     /**

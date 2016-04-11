@@ -31,7 +31,7 @@ import org.jboss.as.controller.registry.ManagementResourceRegistration;
 import org.jboss.dmr.ModelNode;
 
 /**
- * A {@link ResourceDefintion} to wrap an existing resource and add a runtime attribute to return the available authentication mechanisms.
+ * A {@link ResourceDefinition} to wrap an existing resource and add a runtime attribute to return the available authentication mechanisms.
  *
  * @author <a href="mailto:darran.lofthouse@jboss.com">Darran Lofthouse</a>
  */

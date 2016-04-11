@@ -29,7 +29,7 @@ import static org.jboss.as.controller.parsing.ParseUtils.unexpectedAttribute;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedElement;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CREDENTIAL_SECURITY_FACTORIES;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.FINAL_NAME_REWRITER;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.HTTP_SERVER_AUTHENITCATION;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.HTTP_SERVER_AUTHENTICATION;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.HTTP_SERVER_FACTORY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MECHANISM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MECHANISM_CONFIGURATION;
@@ -221,7 +221,7 @@ class AuthenticationFactoryParser {
             throw missingRequired(reader, requiredAttributes);
         }
 
-        addOperation.get(OP_ADDR).set(parentAddress).add(HTTP_SERVER_AUTHENITCATION, name);
+        addOperation.get(OP_ADDR).set(parentAddress).add(HTTP_SERVER_AUTHENTICATION, name);
 
         attemptReadMechanismConfigurationElement(addOperation, reader);
 
@@ -303,12 +303,12 @@ class AuthenticationFactoryParser {
     }
 
     boolean writeHttpServerAuthentication(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer, WrapperWriter wrapperWriter) throws XMLStreamException {
-        if (subsystem.hasDefined(HTTP_SERVER_AUTHENITCATION)) {
+        if (subsystem.hasDefined(HTTP_SERVER_AUTHENTICATION)) {
             wrapperWriter.start(started);
-            ModelNode securityDomainHttpConfiguration = subsystem.require(HTTP_SERVER_AUTHENITCATION);
+            ModelNode securityDomainHttpConfiguration = subsystem.require(HTTP_SERVER_AUTHENTICATION);
             for (String name : securityDomainHttpConfiguration.keys()) {
                 ModelNode configuration = securityDomainHttpConfiguration.require(name);
-                writer.writeStartElement(HTTP_SERVER_AUTHENITCATION);
+                writer.writeStartElement(HTTP_SERVER_AUTHENTICATION);
                 writer.writeAttribute(NAME, name);
                 AuthenticationFactoryDefinitions.HTTP_SERVER_FACTORY.marshallAsAttribute(configuration, writer);
                 AuthenticationFactoryDefinitions.BASE_SECURITY_DOMAIN_REF.marshallAsAttribute(configuration, writer);
@@ -321,7 +321,7 @@ class AuthenticationFactoryParser {
         return false;
     }
 
-    boolean writeSaslServerAuthenticationonfiguration(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer, WrapperWriter wrapperWriter) throws XMLStreamException {
+    boolean writeSaslServerAuthenticationConfiguration(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer, WrapperWriter wrapperWriter) throws XMLStreamException {
         if (subsystem.hasDefined(SASL_SERVER_AUTHENTICATION)) {
             wrapperWriter.start(started);
             ModelNode securityDomainSaslConfigurationInstances = subsystem.require(SASL_SERVER_AUTHENTICATION);

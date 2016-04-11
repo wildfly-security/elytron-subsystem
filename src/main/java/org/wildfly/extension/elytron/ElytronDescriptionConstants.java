@@ -120,7 +120,7 @@ interface ElytronDescriptionConstants {
     String GROUPS_PROPERTIES = "groups-properties";
 
     String HTTP = "http";
-    String HTTP_SERVER_AUTHENITCATION = "http-server-authentication";
+    String HTTP_SERVER_AUTHENTICATION = "http-server-authentication";
     String HTTP_SERVER_FACTORY = "http-server-factory";
     String HTTP_SERVER_FACTORIES = "http-server-factories";
 
