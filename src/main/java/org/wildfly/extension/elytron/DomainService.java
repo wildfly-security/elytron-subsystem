@@ -152,7 +152,7 @@ class DomainService implements Service<SecurityDomain> {
         }
         PrincipalDecoder principalDecoder = principalDecoderInjector.getOptionalValue();
         if (principalDecoder != null) {
-            builder.setPrincipalDecoder(principalDecoder);
+            builder.setPrincipalDecoder(PrincipalDecoder.aggregate(principalDecoder, PrincipalDecoder.DEFAULT));
         }
         RealmMapper realmMapper = realmMapperInjector.getOptionalValue();
         if (realmMapper != null) {
