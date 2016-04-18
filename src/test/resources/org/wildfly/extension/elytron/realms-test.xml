@@ -1,0 +1,11 @@
+<!-- for needs of RealmsTestCase -->
+<subsystem xmlns="urn:wildfly:elytron:1.0">
+    <security-realms>
+        <properties-realm name="TestingPropertyRealm1">
+            <users-properties path="testingrealm1-users.properties" relative-to="jboss.server.config.dir" />
+        </properties-realm>
+        <filesystem-realm name="FilesystemRealm" levels="2">
+            <file path="filesystem-realm" relative-to="jboss.server.config.dir" />
+        </filesystem-realm>
+    </security-realms>
+</subsystem>

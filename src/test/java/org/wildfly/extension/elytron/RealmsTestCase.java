@@ -50,22 +50,12 @@ public class RealmsTestCase extends AbstractSubsystemTest {
     /* Test properties-realm */
     @Test
     public void testPropertyRealm() throws Exception {
-        String propertiesFile = RealmsTestCase.class.getResource("/org/wildfly/extension/elytron/testingrealm1-users.properties").getFile();
-
-        String subsystemXml =
-                "<subsystem xmlns=\"" + ElytronExtension.NAMESPACE + "\">\n" +
-                "    <security-realms>\n" +
-                "        <properties-realm name=\"MyRealm\">\n" +
-                "            <users-properties path=\"" + propertiesFile + "\" />\n" +
-                "        </properties-realm>\n" +
-                "    </security-realms>\n" +
-                "</subsystem>\n";
-        KernelServices services = super.createKernelServicesBuilder(null).setSubsystemXml(subsystemXml).build();
+        KernelServices services = super.createKernelServicesBuilder(new TestEnvironment()).setSubsystemXmlResource("realms-test.xml").build();
         if (!services.isSuccessfulBoot()) {
             Assert.fail(services.getBootError().toString());
         }
 
-        ServiceName serviceName = Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY.getCapabilityServiceName("MyRealm");
+        ServiceName serviceName = Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY.getCapabilityServiceName("TestingPropertyRealm1");
         SecurityRealm securityRealm = (SecurityRealm) services.getContainer().getService(serviceName).getValue();
         Assert.assertNotNull(securityRealm);
 
@@ -74,30 +64,24 @@ public class RealmsTestCase extends AbstractSubsystemTest {
         Assert.assertTrue(identity1.verifyEvidence(new PasswordGuessEvidence("password1".toCharArray())));
         Assert.assertFalse(identity1.verifyEvidence(new PasswordGuessEvidence("password2".toCharArray())));
 
-        RealmIdentity identity2 = securityRealm.getRealmIdentity("user9", null, null);
-        Assert.assertFalse(identity2.exists());
-        Assert.assertFalse(identity2.verifyEvidence(new PasswordGuessEvidence("password9".toCharArray())));
+        RealmIdentity identity2 = securityRealm.getRealmIdentity("user2", null, null);
+        Assert.assertTrue(identity2.exists());
+        Assert.assertTrue(identity2.verifyEvidence(new PasswordGuessEvidence("password2".toCharArray())));
+
+        RealmIdentity identity9 = securityRealm.getRealmIdentity("user9", null, null);
+        Assert.assertFalse(identity9.exists());
+        Assert.assertFalse(identity9.verifyEvidence(new PasswordGuessEvidence("password9".toCharArray())));
     }
 
     /* Test filesystem-realm with existing filesystem from resources, without relative-to */
     @Test
     public void testFilesystemRealm() throws Exception {
-        String filesystemFile = RealmsTestCase.class.getResource("/org/wildfly/extension/elytron/filesystem-realm").getFile();
-
-        String subsystemXml =
-                "<subsystem xmlns=\"" + ElytronExtension.NAMESPACE + "\">" +
-                "    <security-realms>" +
-                "        <filesystem-realm name=\"MyRealm\" levels=\"2\">" +
-                "            <file path=\"" + filesystemFile + "/\" />" +
-                "        </filesystem-realm>" +
-                "    </security-realms>" +
-                "</subsystem>";
-        KernelServices services = super.createKernelServicesBuilder(null).setSubsystemXml(subsystemXml).build();
+        KernelServices services = super.createKernelServicesBuilder(new TestEnvironment()).setSubsystemXmlResource("realms-test.xml").build();
         if (!services.isSuccessfulBoot()) {
             Assert.fail(services.getBootError().toString());
         }
 
-        ServiceName serviceName = Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY.getCapabilityServiceName("MyRealm");
+        ServiceName serviceName = Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY.getCapabilityServiceName("FilesystemRealm");
         ModifiableSecurityRealm securityRealm = (ModifiableSecurityRealm) services.getContainer().getService(serviceName).getValue();
         Assert.assertNotNull(securityRealm);
 

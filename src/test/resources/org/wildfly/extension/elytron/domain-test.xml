@@ -1,0 +1,35 @@
+<!-- for needs of DomainTestCase -->
+<subsystem xmlns="urn:wildfly:elytron:1.0">
+    <security-domains>
+        <security-domain name="MyDomain" default-realm="FileRealm" realm-mapper="MyRealmMapper" permission-mapper="MyPermissionMapper"  pre-realm-name-rewriter="NameRewriterXY" post-realm-name-rewriter="NameRewriterYU">
+            <realm name="FileRealm" role-decoder="MyRoleDecoder" role-mapper="MyRoleMapper"/>
+            <realm name="PropRealm" name-rewriter="NameRewriterRealmRemover"/>
+        </security-domain>
+        <security-domain name="X500Domain" default-realm="FileRealm" principal-decoder="MyX500PrincipalDecoder">
+            <realm name="FileRealm"/>
+        </security-domain>
+    </security-domains>
+    <security-realms>
+        <filesystem-realm name="FileRealm" levels="2">
+            <file path="filesystem-realm" relative-to="jboss.server.config.dir" />
+        </filesystem-realm>
+        <properties-realm name="PropRealm">
+            <users-properties path="testingrealm1-users.properties" relative-to="jboss.server.config.dir" />
+        </properties-realm>
+    </security-realms>
+    <mappers>
+        <regex-name-rewriter name="NameRewriterXY" pattern="x(.*)" replacement="y$1"/>
+        <regex-name-rewriter name="NameRewriterYU" pattern="y(.*)" replacement="u$1"/>
+        <regex-name-rewriter name="NameRewriterRealmRemover" pattern="(.*)@.*" replacement="$1"/>
+        <simple-regex-realm-mapper name="MyRealmMapper" pattern=".*@(.*)"/>
+        <simple-role-decoder name="MyRoleDecoder" attribute="roles"/>
+        <add-prefix-role-mapper name="RolePrefixer" prefix="prefix"/>
+        <add-suffix-role-mapper name="RoleSuffixer" suffix="suffix"/>
+        <aggregate-role-mapper name="MyRoleMapper">
+            <role-mapper name="RolePrefixer"/>
+            <role-mapper name="RoleSuffixer"/>
+        </aggregate-role-mapper>
+        <custom-permission-mapper name="MyPermissionMapper" class-name="org.wildfly.extension.elytron.DomainTestCase$MyPermissionMapper"/>
+        <x500-attribute-principal-decoder name="MyX500PrincipalDecoder" oid="2.5.4.3" joiner="," maximum-segments="6" />
+    </mappers>
+</subsystem>

@@ -1,0 +1,29 @@
+<!-- for needs of TlsTestCase -->
+<subsystem xmlns="urn:wildfly:elytron:1.0">
+    <security-domains>
+        <security-domain name="MyDomain" default-realm="MyRealm" permission-mapper="PermMapper">
+            <realm name="MyRealm"/>
+        </security-domain>
+    </security-domains>
+    <security-realms>
+        <filesystem-realm name="MyRealm" levels="2">
+            <file path="filesystem-realm" relative-to="jboss.server.config.dir" />
+        </filesystem-realm>
+    </security-realms>
+    <mappers>
+        <custom-permission-mapper name="PermMapper" class-name="org.wildfly.extension.elytron.SaslTestCase$PermMapper"/>
+    </mappers>
+    <sasl>
+        <provider-sasl-server-factory name="MySaslServer"/>
+        <sasl-server-authentication name="MySaslAuth" security-domain="MyDomain" sasl-server-factory="MySaslServer">
+            <mechanism-configuration>
+                <mechanism mechanism-name="PLAIN">
+                    <mechanism-realm realm-name="TestingRealm1"/>
+                </mechanism>
+                <mechanism mechanism-name="DIGEST">
+                    <mechanism-realm realm-name="TestingRealm1"/>
+                </mechanism>
+            </mechanism-configuration>
+        </sasl-server-authentication>
+    </sasl>
+</subsystem>

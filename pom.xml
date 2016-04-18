@@ -49,6 +49,7 @@
         <version.org.wildfly.common>1.1.0.Final</version.org.wildfly.common>
         <version.com.puppycrawl.tools.checkstyle>6.0</version.com.puppycrawl.tools.checkstyle>
         <version.junit>4.11</version.junit>
+        <version.jmockit>1.10</version.jmockit>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <module.name>org.wildfly.elytron</module.name>
         
@@ -348,6 +349,12 @@
             <artifactId>junit</artifactId>
             <scope>test</scope>
             <version>${version.junit}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jmockit</groupId>
+            <artifactId>jmockit</artifactId>
+            <version>${version.jmockit}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>
