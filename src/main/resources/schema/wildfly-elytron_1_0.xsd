@@ -270,6 +270,13 @@
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
+        <xs:attribute name="trusted-security-domains" type="stringListType" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    A list of references to security domains that are trusted by this security domain.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
     </xs:complexType>
 
     <xs:complexType name="realmRefType">
