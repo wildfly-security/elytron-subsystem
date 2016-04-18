@@ -1,12 +1,15 @@
 <!-- for needs of DomainTestCase -->
 <subsystem xmlns="urn:wildfly:elytron:1.0">
     <security-domains>
-        <security-domain name="MyDomain" default-realm="FileRealm" realm-mapper="MyRealmMapper" permission-mapper="MyPermissionMapper"  pre-realm-name-rewriter="NameRewriterXY" post-realm-name-rewriter="NameRewriterYU">
+        <security-domain name="MyDomain" default-realm="FileRealm" realm-mapper="MyRealmMapper" permission-mapper="MyPermissionMapper"  pre-realm-name-rewriter="NameRewriterXY" post-realm-name-rewriter="NameRewriterYU" trusted-security-domains="AnotherDomain">
             <realm name="FileRealm" role-decoder="MyRoleDecoder" role-mapper="MyRoleMapper"/>
             <realm name="PropRealm" name-rewriter="NameRewriterRealmRemover"/>
         </security-domain>
         <security-domain name="X500Domain" default-realm="FileRealm" principal-decoder="MyX500PrincipalDecoder">
             <realm name="FileRealm"/>
+        </security-domain>
+        <security-domain name="AnotherDomain" default-realm="PropRealm" permission-mapper="LoginPermissionMapper" trusted-security-domains="MyDomain">
+            <realm name="PropRealm"/>
         </security-domain>
     </security-domains>
     <security-realms>
@@ -30,6 +33,7 @@
             <role-mapper name="RoleSuffixer"/>
         </aggregate-role-mapper>
         <custom-permission-mapper name="MyPermissionMapper" class-name="org.wildfly.extension.elytron.DomainTestCase$MyPermissionMapper"/>
+        <custom-permission-mapper name="LoginPermissionMapper" class-name="org.wildfly.extension.elytron.DomainTestCase$LoginPermissionMapper"/>
         <x500-attribute-principal-decoder name="MyX500PrincipalDecoder" oid="2.5.4.3" joiner="," maximum-segments="6" />
     </mappers>
 </subsystem>

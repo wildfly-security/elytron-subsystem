@@ -24,6 +24,7 @@ import org.jboss.msc.service.ServiceName;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.wildfly.security.auth.permission.LoginPermission;
 import org.wildfly.security.auth.principal.NamePrincipal;
 import org.wildfly.security.auth.server.MechanismConfiguration;
 import org.wildfly.security.auth.server.MechanismRealmConfiguration;
@@ -32,6 +33,7 @@ import org.wildfly.security.auth.server.SecurityIdentity;
 import org.wildfly.security.auth.server.ServerAuthenticationContext;
 import org.wildfly.security.authz.PermissionMapper;
 import org.wildfly.security.authz.Roles;
+import org.wildfly.security.evidence.SecurityIdentityEvidence;
 import org.wildfly.security.permission.PermissionVerifier;
 
 import javax.security.auth.x500.X500Principal;
@@ -130,6 +132,32 @@ public class DomainTestCase extends AbstractSubsystemTest {
 
     }
 
+    @Test
+    public void testTrustedSecurityDomains() throws Exception {
+        init();
+        ServiceName serviceName = Capabilities.SECURITY_DOMAIN_RUNTIME_CAPABILITY.getCapabilityServiceName("MyDomain");
+        SecurityDomain myDomain = (SecurityDomain) services.getContainer().getService(serviceName).getValue();
+        Assert.assertNotNull(myDomain);
+
+        serviceName = Capabilities.SECURITY_DOMAIN_RUNTIME_CAPABILITY.getCapabilityServiceName("X500Domain");
+        SecurityDomain x500Domain = (SecurityDomain) services.getContainer().getService(serviceName).getValue();
+        Assert.assertNotNull(x500Domain);
+
+        serviceName = Capabilities.SECURITY_DOMAIN_RUNTIME_CAPABILITY.getCapabilityServiceName("AnotherDomain");
+        SecurityDomain anotherDomain = (SecurityDomain) services.getContainer().getService(serviceName).getValue();
+        Assert.assertNotNull(anotherDomain);
+
+        SecurityIdentity establishedIdentity = getIdentityFromDomain(myDomain, "firstUser");
+        ServerAuthenticationContext authenticationContext = anotherDomain.createNewAuthenticationContext();
+        // AnotherDomain trusts MyDomain
+        Assert.assertTrue(authenticationContext.verifyEvidence(new SecurityIdentityEvidence(establishedIdentity)));
+
+        establishedIdentity = getIdentityFromDomain(anotherDomain, "firstUser");
+        authenticationContext = x500Domain.createNewAuthenticationContext();
+        // X500Domain does not trust AnotherDomain
+        Assert.assertFalse(authenticationContext.verifyEvidence(new SecurityIdentityEvidence(establishedIdentity)));
+    }
+
     public static class MyPermissionMapper implements PermissionMapper {
         @Override
         public PermissionVerifier mapPermissions(Principal principal, Roles roles) {
@@ -137,4 +165,17 @@ public class DomainTestCase extends AbstractSubsystemTest {
         }
     }
 
+    public static class LoginPermissionMapper implements PermissionMapper {
+        @Override
+        public PermissionVerifier mapPermissions(Principal principal, Roles roles) {
+            return PermissionVerifier.from(new LoginPermission());
+        }
+    }
+
+    private SecurityIdentity getIdentityFromDomain(final SecurityDomain securityDomain, final String userName) throws Exception {
+        final ServerAuthenticationContext authenticationContext = securityDomain.createNewAuthenticationContext();
+        authenticationContext.setAuthenticationName(userName);
+        authenticationContext.succeed();
+        return authenticationContext.getAuthorizedIdentity();
+    }
 }
