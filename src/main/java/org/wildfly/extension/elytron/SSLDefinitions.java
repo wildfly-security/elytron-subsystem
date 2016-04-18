@@ -79,7 +79,7 @@ import org.wildfly.security.auth.server.SecurityDomain;
 import org.wildfly.security.ssl.CipherSuiteSelector;
 import org.wildfly.security.ssl.Protocol;
 import org.wildfly.security.ssl.ProtocolSelector;
-import org.wildfly.security.ssl.ServerSSLContextBuilder;
+import org.wildfly.security.ssl.SSLContextBuilder;
 
 /**
  * Definitions for resources used to configure SSLContexts.
@@ -381,7 +381,7 @@ class SSLDefinitions {
                     X509ExtendedTrustManager trustManager = getX509TrustManager(trustManagersInjector.getOptionalValue());
                     Provider[] providersRef = providersInjector.getOptionalValue();
 
-                    ServerSSLContextBuilder builder = new ServerSSLContextBuilder();
+                    SSLContextBuilder builder = new SSLContextBuilder();
                     if (securityDomainRef != null) {
                         builder.setSecurityDomain(securityDomainRef);
                     }
