@@ -38,6 +38,7 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ATTRIBUT
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CHAINED_NAME_REWRITER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CONSTANT;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CONSTANT_NAME_REWRITER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CONSTANT_PRINCIPAL_DECODER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CONSTANT_ROLE_MAPPER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CUSTOM_NAME_REWRITER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CUSTOM_PERMISSION_MAPPER;
@@ -137,6 +138,9 @@ class MapperParser {
                 // Principal Decoders
                 case AGGREGATE_PRINCIPAL_DECODER:
                     readAggregatePrincipalDecoderElement(parentAddress, reader, operations);
+                    break;
+                case CONSTANT_PRINCIPAL_DECODER:
+                    readConstantPrincipalDecoderElement(parentAddress, reader, operations);
                     break;
                 case CUSTOM_PRINCIPAL_DECODER:
                     readCustomComponent(CUSTOM_PRINCIPAL_DECODER, parentAddress, reader, operations);
@@ -469,6 +473,44 @@ class MapperParser {
 
             requireNoContent(reader);
         }
+    }
+
+    private void readConstantPrincipalDecoderElement(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations)
+            throws XMLStreamException {
+        ModelNode addPrincipalDecoder = new ModelNode();
+        addPrincipalDecoder.get(OP).set(ADD);
+
+        Set<String> requiredAttributes = new HashSet<>(Arrays.asList(new String[] { NAME, CONSTANT }));
+
+        String name = null;
+        final int count = reader.getAttributeCount();
+        for (int i = 0; i < count; i++) {
+            final String value = reader.getAttributeValue(i);
+            if (! isNoNamespaceAttribute(reader, i)) {
+                throw unexpectedAttribute(reader, i);
+            } else {
+                String attribute = reader.getAttributeLocalName(i);
+                requiredAttributes.remove(attribute);
+                switch (attribute) {
+                    case NAME:
+                        name = value;
+                        break;
+                    case CONSTANT:
+                        PrincipalDecoderDefinitions.CONSTANT.parseAndSetParameter(value, addPrincipalDecoder, reader);
+                        break;
+                    default:
+                        throw unexpectedAttribute(reader, i);
+                }
+            }
+        }
+
+        if (requiredAttributes.isEmpty() == false) {
+            throw missingRequired(reader, requiredAttributes);
+        }
+
+        addPrincipalDecoder.get(OP_ADDR).set(parentAddress).add(CONSTANT_PRINCIPAL_DECODER, name);
+        operations.add(addPrincipalDecoder);
+        requireNoContent(reader);
     }
 
     private void readX500AttributePrincipalDecoderElement(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations)
@@ -1096,6 +1138,22 @@ class MapperParser {
         return false;
     }
 
+    private boolean writeConstantPrincipalDecoders(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
+        if (subsystem.hasDefined(CONSTANT_PRINCIPAL_DECODER)) {
+            startMappers(started, writer);
+            ModelNode principalDecoders = subsystem.require(CONSTANT_PRINCIPAL_DECODER);
+            for (String name : principalDecoders.keys()) {
+                ModelNode principalDecoder = principalDecoders.require(name);
+                writer.writeStartElement(CONSTANT_PRINCIPAL_DECODER);
+                writer.writeAttribute(NAME, name);
+                PrincipalDecoderDefinitions.CONSTANT.marshallAsAttribute(principalDecoder, writer);
+                writer.writeEndElement();
+            }
+            return true;
+        }
+        return false;
+    }
+
     private boolean writeCustomPrincipalDecoders(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (subsystem.hasDefined(CUSTOM_PRINCIPAL_DECODER)) {
             startMappers(started, writer);
@@ -1367,6 +1425,7 @@ class MapperParser {
         mappersStarted = mappersStarted | writeCustomPermissionMappers(mappersStarted, subsystem, writer);
 
         mappersStarted = mappersStarted | writeAggregatePrincipalDecoders(mappersStarted, subsystem, writer);
+        mappersStarted = mappersStarted | writeConstantPrincipalDecoders(mappersStarted, subsystem, writer);
         mappersStarted = mappersStarted | writeCustomPrincipalDecoders(mappersStarted, subsystem, writer);
         mappersStarted = mappersStarted | writeX500AttributePrincipalDecoders(mappersStarted, subsystem, writer);
 

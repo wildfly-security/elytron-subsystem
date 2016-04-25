@@ -85,11 +85,32 @@ class PrincipalDecoderDefinitions {
             .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
             .build();
 
+    static final SimpleAttributeDefinition CONSTANT = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.CONSTANT, ModelType.STRING, false)
+            .setAllowExpression(true)
+            .setMinSize(1)
+            .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+            .build();
+
     private static final AggregateComponentDefinition<PrincipalDecoder> AGGREGATE_PRINCIPAL_DECODER = AggregateComponentDefinition.create(PrincipalDecoder.class,
             ElytronDescriptionConstants.AGGREGATE_PRINCIPAL_DECODER, PRINCIPAL_DECODERS, PRINCIPAL_DECODER_RUNTIME_CAPABILITY, PrincipalDecoder::aggregate);
 
     static AggregateComponentDefinition<PrincipalDecoder> getAggregatePrincipalDecoderDefinition() {
         return AGGREGATE_PRINCIPAL_DECODER;
+    }
+
+    static ResourceDefinition getConstantPrincipalDecoder() {
+        AttributeDefinition[] attributes = new AttributeDefinition[] { CONSTANT };
+        AbstractAddStepHandler add = new PrincipalDecoderAddHandler(attributes) {
+
+            @Override
+            protected ValueSupplier<PrincipalDecoder> getValueSupplier(OperationContext context, ModelNode model) throws OperationFailedException {
+                final String constant = CONSTANT.resolveModelAttribute(context, model).asString();
+                return () -> PrincipalDecoder.constant(constant);
+            }
+
+        };
+
+        return new PrincipalDecoderResourceDefinition(ElytronDescriptionConstants.CONSTANT_PRINCIPAL_DECODER, add, attributes);
     }
 
     static ResourceDefinition getX500AttributePrincipalDecoder() {

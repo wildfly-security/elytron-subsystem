@@ -842,6 +842,7 @@
             <xs:element name="regex-name-rewriter" type="regexNameRewriterType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="regex-name-validating-rewriter" type="regexNameValidatingRewriter" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="aggregate-principal-decoder" type="aggregatePrincipalDecoderType" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="constant-principal-decoder" type="constantPrincipalDecoderType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="custom-principal-decoder" type="customPrincipalDecoderType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="x500-attribute-principal-decoder" type="x500AttributePrincipalDecoderType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="custom-permission-mapper" type="customPermissionMapperType" minOccurs="0" maxOccurs="unbounded" />
@@ -1116,6 +1117,25 @@
             </xs:documentation>
         </xs:annotation>
         <xs:attribute name="name" type="xs:string" use="required" />
+    </xs:complexType>
+
+    <xs:complexType name="constantPrincipalDecoderType">
+        <xs:annotation>
+            <xs:documentation>
+                A PrincipalDecoder that always returns the same constant.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="principalDecoderType">
+                <xs:attribute name="constant" type="xs:string" use="required">
+                    <xs:annotation>
+                        <xs:documentation>
+                            The constant value that will always be returned by this PrincipalDecoder.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+            </xs:extension>
+        </xs:complexContent>
     </xs:complexType>
 
     <xs:complexType name="x500AttributePrincipalDecoderType">

@@ -20,6 +20,7 @@
             <principal-decoder name="CustomPrincipalDecoderOne" />
             <principal-decoder name="CustomPrincipalDecoderTwo" />
         </aggregate-principal-decoder>
+        <constant-principal-decoder name="ConstantPrincipalDecoder" constant="constant" />
         <custom-principal-decoder name="CustomPrincipalDecoderOne" class-name="org.wildfly.elytron.CustomPrincipalDecoder" module="i.j" slot="k" />
         <custom-principal-decoder name="CustomPrincipalDecoderTwo" class-name="org.wildfly.elytron.CustomPrincipalDecoder" module="i.j" slot="k" />
         <x500-attribute-principal-decoder name="X500PrincipalDecoderOne" oid="2.5.4.3" joiner="," maximum-segments="6" />
