@@ -67,11 +67,23 @@ class PrincipalDecoderDefinitions {
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
         .build();
 
+    static final SimpleAttributeDefinition START_SEGMENT = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.START_SEGMENT, ModelType.INT, true)
+            .setAllowExpression(true)
+            .setDefaultValue(new ModelNode(0))
+            .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+            .build();
+
     static final SimpleAttributeDefinition MAXIMUM_SEGMENTS = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.MAXIMUM_SEGMENTS, ModelType.INT, true)
         .setAllowExpression(true)
         .setDefaultValue(new ModelNode(Integer.MAX_VALUE))
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
         .build();
+
+    static final SimpleAttributeDefinition REVERSE = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.REVERSE, ModelType.BOOLEAN, true)
+            .setAllowExpression(true)
+            .setDefaultValue(new ModelNode(false))
+            .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+            .build();
 
     private static final AggregateComponentDefinition<PrincipalDecoder> AGGREGATE_PRINCIPAL_DECODER = AggregateComponentDefinition.create(PrincipalDecoder.class,
             ElytronDescriptionConstants.AGGREGATE_PRINCIPAL_DECODER, PRINCIPAL_DECODERS, PRINCIPAL_DECODER_RUNTIME_CAPABILITY, PrincipalDecoder::aggregate);
@@ -81,15 +93,17 @@ class PrincipalDecoderDefinitions {
     }
 
     static ResourceDefinition getX500AttributePrincipalDecoder() {
-        AttributeDefinition[] attributes = new AttributeDefinition[] { OID, JOINER, MAXIMUM_SEGMENTS };
+        AttributeDefinition[] attributes = new AttributeDefinition[] { OID, JOINER, START_SEGMENT, MAXIMUM_SEGMENTS, REVERSE };
         AbstractAddStepHandler add = new PrincipalDecoderAddHandler(attributes) {
 
             @Override
             protected ValueSupplier<PrincipalDecoder> getValueSupplier(OperationContext context, ModelNode model) throws OperationFailedException {
                 final String oid = OID.resolveModelAttribute(context, model).asString();
                 final String joiner = JOINER.resolveModelAttribute(context, model).asString();
+                final int startSegment = START_SEGMENT.resolveModelAttribute(context, model).asInt();
                 final int maximumSegments = MAXIMUM_SEGMENTS.resolveModelAttribute(context, model).asInt();
-                return () -> new X500AttributePrincipalDecoder(oid, joiner, maximumSegments);
+                final boolean reverse = REVERSE.resolveModelAttribute(context, model).asBoolean();
+                return () -> new X500AttributePrincipalDecoder(oid, joiner, startSegment, maximumSegments, reverse);
             }
 
         };

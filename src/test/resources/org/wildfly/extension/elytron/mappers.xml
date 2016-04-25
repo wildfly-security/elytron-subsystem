@@ -22,7 +22,8 @@
         </aggregate-principal-decoder>
         <custom-principal-decoder name="CustomPrincipalDecoderOne" class-name="org.wildfly.elytron.CustomPrincipalDecoder" module="i.j" slot="k" />
         <custom-principal-decoder name="CustomPrincipalDecoderTwo" class-name="org.wildfly.elytron.CustomPrincipalDecoder" module="i.j" slot="k" />
-        <x500-attribute-principal-decoder name="X500PrincipalDecoder" oid="cn" joiner="," maximum-segments="6" />
+        <x500-attribute-principal-decoder name="X500PrincipalDecoderOne" oid="2.5.4.3" joiner="," maximum-segments="6" />
+        <x500-attribute-principal-decoder name="X500PrincipalDecoderTwo" oid="2.5.4.3" joiner="." start-segment="2" maximum-segments="6" reverse="true" />
         
         <custom-realm-mapper name="CustomRealmOne" class-name="org.wildfly.elytron.CustomRealmMapper" module="c.d" slot="e" />
         <simple-regex-realm-mapper name="SimpleOne" pattern=".?" delegate-realm-mapper="CustomRealmOne" />

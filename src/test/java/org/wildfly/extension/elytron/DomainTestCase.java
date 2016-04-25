@@ -131,6 +131,10 @@ public class DomainTestCase extends AbstractSubsystemTest {
 
         Assert.assertTrue(domain.mapPrincipal(new X500Principal("cn=firstUser,ou=group")).exists());
 
+        serviceName = Capabilities.SECURITY_DOMAIN_RUNTIME_CAPABILITY.getCapabilityServiceName("X500DomainTwo");
+        domain = (SecurityDomain) services.getContainer().getService(serviceName).getValue();
+        Assert.assertNotNull(domain);
+        Assert.assertTrue(domain.mapPrincipal(new X500Principal("dc=com,dc=redhat,dc=example,ou=group,cn=First User,cn=firstUser,cn=User,cn=Users")).exists());
     }
 
     @Test

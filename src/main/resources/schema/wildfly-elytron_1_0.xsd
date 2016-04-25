@@ -1140,10 +1140,24 @@
                         </xs:documentation>
                     </xs:annotation>
                 </xs:attribute>
+                <xs:attribute name="start-segment" type="xs:int" default="0">
+                    <xs:annotation>
+                        <xs:documentation>
+                            The 0-based starting occurrence of the attribute to map.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
                 <xs:attribute name="maximum-segments" type="xs:int" default=" 2147483647">
                     <xs:annotation>
                         <xs:documentation>
                             The maximum number of occurences of the attribute to map.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+                <xs:attribute name="reverse" type="xs:boolean" default="false">
+                    <xs:annotation>
+                        <xs:documentation>
+                            When set to true, the attribute values will be processed and returned in reverse order.
                         </xs:documentation>
                     </xs:annotation>
                 </xs:attribute>

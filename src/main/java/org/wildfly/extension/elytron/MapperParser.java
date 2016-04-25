@@ -70,12 +70,14 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REGEX_NA
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REGEX_NAME_VALIDATING_REWRITER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REPLACEMENT;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REPLACE_ALL;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REVERSE;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.RIGHT;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ROLES;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ROLE_MAPPER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ROLE_MAPPERS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SIMPLE_REGEX_REALM_MAPPER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SIMPLE_ROLE_DECODER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.START_SEGMENT;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SUFFIX;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.TO;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.X500_ATTRIBUTE_PRINCIPAL_DECODER;
@@ -496,8 +498,14 @@ class MapperParser {
                     case JOINER:
                         PrincipalDecoderDefinitions.JOINER.parseAndSetParameter(value, addPrincipalDecoder, reader);
                         break;
+                    case START_SEGMENT:
+                        PrincipalDecoderDefinitions.START_SEGMENT.parseAndSetParameter(value, addPrincipalDecoder, reader);
+                        break;
                     case MAXIMUM_SEGMENTS:
                         PrincipalDecoderDefinitions.MAXIMUM_SEGMENTS.parseAndSetParameter(value, addPrincipalDecoder, reader);
+                        break;
+                    case REVERSE:
+                        PrincipalDecoderDefinitions.REVERSE.parseAndSetParameter(value, addPrincipalDecoder, reader);
                         break;
                     default:
                         throw unexpectedAttribute(reader, i);
@@ -1114,7 +1122,9 @@ class MapperParser {
                 writer.writeAttribute(NAME, name);
                 PrincipalDecoderDefinitions.OID.marshallAsAttribute(principalDecoder, writer);
                 PrincipalDecoderDefinitions.JOINER.marshallAsAttribute(principalDecoder, writer);
+                PrincipalDecoderDefinitions.START_SEGMENT.marshallAsAttribute(principalDecoder, writer);
                 PrincipalDecoderDefinitions.MAXIMUM_SEGMENTS.marshallAsAttribute(principalDecoder, writer);
+                PrincipalDecoderDefinitions.REVERSE.marshallAsAttribute(principalDecoder, writer);
                 writer.writeEndElement();
             }
 

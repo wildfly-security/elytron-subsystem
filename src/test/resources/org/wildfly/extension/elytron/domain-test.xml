@@ -8,6 +8,9 @@
         <security-domain name="X500Domain" default-realm="FileRealm" principal-decoder="MyX500PrincipalDecoder">
             <realm name="FileRealm"/>
         </security-domain>
+        <security-domain name="X500DomainTwo" default-realm="FileRealm" principal-decoder="MyX500PrincipalDecoderTwo">
+            <realm name="FileRealm"/>
+        </security-domain>
         <security-domain name="AnotherDomain" default-realm="PropRealm" permission-mapper="LoginPermissionMapper" trusted-security-domains="MyDomain">
             <realm name="PropRealm"/>
         </security-domain>
@@ -35,5 +38,6 @@
         <custom-permission-mapper name="MyPermissionMapper" class-name="org.wildfly.extension.elytron.DomainTestCase$MyPermissionMapper"/>
         <custom-permission-mapper name="LoginPermissionMapper" class-name="org.wildfly.extension.elytron.DomainTestCase$LoginPermissionMapper"/>
         <x500-attribute-principal-decoder name="MyX500PrincipalDecoder" oid="2.5.4.3" joiner="," maximum-segments="6" />
+        <x500-attribute-principal-decoder name="MyX500PrincipalDecoderTwo" oid="2.5.4.3" joiner="," start-segment="2" maximum-segments="1" reverse="true" />
     </mappers>
 </subsystem>

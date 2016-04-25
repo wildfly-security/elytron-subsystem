@@ -238,6 +238,7 @@ interface ElytronDescriptionConstants {
     String REPLACE_ALL = "replace-all";
     String REPLACEMENT = "replacement";
     String REQUIRED = "required";
+    String REVERSE = "reverse";
     String RIGHT = "right";
     String ROLE_DECODER = "role-decoder";
     String ROLE_MAPPER = "role-mapper";
@@ -279,6 +280,7 @@ interface ElytronDescriptionConstants {
     String SLOT = "slot";
     String SQL = "sql";
     String SSL_SESSION = "ssl-session";
+    String START_SEGMENT = "start-segment";
     String STATE = "state";
     String STORE = "store";
     String SUBJECT = "subject";
