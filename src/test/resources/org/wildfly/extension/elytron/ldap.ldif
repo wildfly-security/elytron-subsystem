@@ -1,0 +1,39 @@
+version: 1
+
+dn: dc=elytron,dc=wildfly,dc=org
+objectclass: top
+objectclass: domain
+dc: elytron
+
+dn: uid=server,dc=elytron,dc=wildfly,dc=org
+objectClass: top
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: organizationalPerson
+cn: server
+sn: server
+uid: server
+userPassword:: c2VydmVyUGFzc3dvcmQ=
+# Password serverPassword
+
+dn: uid=plainUser,dc=elytron,dc=wildfly,dc=org
+objectClass: top
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: organizationalPerson
+cn: plainUserCn
+sn: plainUserSn
+uid: plainUser
+userPassword:: cGxhaW5QYXNzd29yZA==
+# Password plainPassword
+
+dn: ou=Finance,dc=elytron,dc=wildfly,dc=org
+objectclass: top
+objectclass: organizationalUnit
+ou: Finance
+
+dn: cn=Manager,ou=Finance,dc=elytron,dc=wildfly,dc=org
+objectClass: top
+objectClass: groupOfNames
+cn: Manager
+member: uid=userWithRdnAttribute,dc=elytron,dc=wildfly,dc=org

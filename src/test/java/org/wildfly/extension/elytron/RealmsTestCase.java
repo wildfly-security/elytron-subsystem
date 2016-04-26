@@ -96,6 +96,24 @@ public class RealmsTestCase extends AbstractSubsystemTest {
         testModifiability(securityRealm, currentCount + 1);
     }
 
+    @Test
+    public void testLdapRealm() throws Exception {
+        TestEnvironment.startLdapService();
+        KernelServices services = super.createKernelServicesBuilder(new TestEnvironment()).setSubsystemXmlResource("realms-test.xml").build();
+        if (!services.isSuccessfulBoot()) {
+            Assert.fail(services.getBootError().toString());
+        }
+
+        ServiceName serviceName = Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY.getCapabilityServiceName("LdapRealm");
+        ModifiableSecurityRealm securityRealm = (ModifiableSecurityRealm) services.getContainer().getService(serviceName).getValue();
+        Assert.assertNotNull(securityRealm);
+
+        RealmIdentity identity1 = securityRealm.getRealmIdentity("plainUser", null, null);
+        Assert.assertTrue(identity1.exists());
+
+        //testModifiability(securityRealm, 3); // TODO
+    }
+
     private void testModifiability(ModifiableSecurityRealm securityRealm, int expectedCount) throws Exception {
         // create identity
         ModifiableRealmIdentity identity1 = securityRealm.getRealmIdentityForUpdate(fromName("createdUser"));
