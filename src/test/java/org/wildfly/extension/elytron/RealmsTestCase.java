@@ -90,7 +90,10 @@ public class RealmsTestCase extends AbstractSubsystemTest {
         RealmIdentity identity1 = securityRealm.getRealmIdentity(fromName("firstUser"));
         Assert.assertTrue(identity1.exists());
 
-        testModifiability(securityRealm, 3);
+        int currentCount = getRealmIdentityCount(securityRealm);
+        Assert.assertTrue(currentCount > 0);
+        // expectedCount = currentCount + 1 for the new identity that will be created
+        testModifiability(securityRealm, currentCount + 1);
     }
 
     private void testModifiability(ModifiableSecurityRealm securityRealm, int expectedCount) throws Exception {
@@ -111,6 +114,15 @@ public class RealmsTestCase extends AbstractSubsystemTest {
         Assert.assertTrue(identity2.verifyEvidence(new PasswordGuessEvidence("createdPassword".toCharArray())));
 
         // iterate (include created identity)
+        int count = getRealmIdentityCount(securityRealm);
+        Assert.assertEquals(expectedCount, count);
+
+        // delete identity
+        identity1.delete();
+        Assert.assertFalse(identity1.exists());
+    }
+
+    private int getRealmIdentityCount(final ModifiableSecurityRealm securityRealm) throws Exception {
         int count = 0;
         Iterator<ModifiableRealmIdentity> it = securityRealm.getRealmIdentityIterator();
         while (it.hasNext()) {
@@ -118,11 +130,7 @@ public class RealmsTestCase extends AbstractSubsystemTest {
             Assert.assertTrue(identity.exists());
             count++;
         }
-        Assert.assertEquals(expectedCount, count);
-
-        // delete identity
-        identity1.delete();
-        Assert.assertFalse(identity1.exists());
+        return count;
     }
 
 }

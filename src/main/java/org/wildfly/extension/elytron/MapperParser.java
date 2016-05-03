@@ -36,6 +36,7 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AGGREGAT
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AGGREGATE_ROLE_MAPPER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ATTRIBUTE;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CHAINED_NAME_REWRITER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CONCATENATING_PRINCIPAL_DECODER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CONSTANT;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CONSTANT_NAME_REWRITER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CONSTANT_PRINCIPAL_DECODER;
@@ -138,6 +139,9 @@ class MapperParser {
                 // Principal Decoders
                 case AGGREGATE_PRINCIPAL_DECODER:
                     readAggregatePrincipalDecoderElement(parentAddress, reader, operations);
+                    break;
+                case CONCATENATING_PRINCIPAL_DECODER:
+                    readConcatenatingPrincipalDecoderElement(parentAddress, reader, operations);
                     break;
                 case CONSTANT_PRINCIPAL_DECODER:
                     readConstantPrincipalDecoderElement(parentAddress, reader, operations);
@@ -471,6 +475,59 @@ class MapperParser {
 
             principalDecoders.parseAndAddParameterElement(principalDecoderName, addNameRewriter, reader);
 
+            requireNoContent(reader);
+        }
+    }
+
+    private void readConcatenatingPrincipalDecoderElement(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations)
+            throws XMLStreamException {
+        ModelNode addPrincipalDecoder = new ModelNode();
+        addPrincipalDecoder.get(OP).set(ADD);
+
+        Set<String> requiredAttributes = new HashSet<>(Arrays.asList(new String[] { NAME, JOINER }));
+
+        String name = null;
+
+        final int count = reader.getAttributeCount();
+        for (int i = 0; i < count; i++) {
+            final String value = reader.getAttributeValue(i);
+            if (! isNoNamespaceAttribute(reader, i)) {
+                throw unexpectedAttribute(reader, i);
+            } else {
+                String attribute = reader.getAttributeLocalName(i);
+                requiredAttributes.remove(attribute);
+                switch (attribute) {
+                    case NAME:
+                        name = value;
+                        break;
+                    case JOINER:
+                        PrincipalDecoderDefinitions.JOINER.parseAndSetParameter(value, addPrincipalDecoder, reader);
+                        break;
+                    default:
+                        throw unexpectedAttribute(reader, i);
+                }
+            }
+        }
+
+        if (requiredAttributes.isEmpty() == false) {
+            throw missingRequired(reader, requiredAttributes);
+        }
+
+        addPrincipalDecoder.get(OP_ADDR).set(parentAddress).add(CONCATENATING_PRINCIPAL_DECODER, name);
+
+        operations.add(addPrincipalDecoder);
+
+        ListAttributeDefinition principalDecoders = PrincipalDecoderDefinitions.PRINCIPAL_DECODERS;
+        while (reader.hasNext() && reader.nextTag() != END_ELEMENT) {
+            verifyNamespace(reader);
+            String localName = reader.getLocalName();
+            if (PRINCIPAL_DECODER.equals(localName) == false) {
+                throw unexpectedElement(reader);
+            }
+
+            requireSingleAttribute(reader, NAME);
+            String principalDecoderName = reader.getAttributeValue(0);
+            principalDecoders.parseAndAddParameterElement(principalDecoderName, addPrincipalDecoder, reader);
             requireNoContent(reader);
         }
     }
@@ -1138,6 +1195,30 @@ class MapperParser {
         return false;
     }
 
+    private boolean writeConcatenatingPrincipalDecoders(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
+        if (subsystem.hasDefined(CONCATENATING_PRINCIPAL_DECODER)) {
+            startMappers(started, writer);
+            ModelNode principalDecoders = subsystem.require(CONCATENATING_PRINCIPAL_DECODER);
+            for (String name : principalDecoders.keys()) {
+                ModelNode principalDecoder = principalDecoders.require(name);
+                writer.writeStartElement(CONCATENATING_PRINCIPAL_DECODER);
+                writer.writeAttribute(NAME, name);
+                PrincipalDecoderDefinitions.JOINER.marshallAsAttribute(principalDecoder, writer);
+
+                List<ModelNode> principalDecoderReferences = principalDecoder.get(PRINCIPAL_DECODERS).asList();
+                for (ModelNode currentReference : principalDecoderReferences) {
+                    writer.writeStartElement(PRINCIPAL_DECODER);
+                    writer.writeAttribute(NAME, currentReference.asString());
+                    writer.writeEndElement();
+                }
+
+                writer.writeEndElement();
+            }
+            return true;
+        }
+        return false;
+    }
+
     private boolean writeConstantPrincipalDecoders(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (subsystem.hasDefined(CONSTANT_PRINCIPAL_DECODER)) {
             startMappers(started, writer);
@@ -1425,6 +1506,7 @@ class MapperParser {
         mappersStarted = mappersStarted | writeCustomPermissionMappers(mappersStarted, subsystem, writer);
 
         mappersStarted = mappersStarted | writeAggregatePrincipalDecoders(mappersStarted, subsystem, writer);
+        mappersStarted = mappersStarted | writeConcatenatingPrincipalDecoders(mappersStarted, subsystem, writer);
         mappersStarted = mappersStarted | writeConstantPrincipalDecoders(mappersStarted, subsystem, writer);
         mappersStarted = mappersStarted | writeCustomPrincipalDecoders(mappersStarted, subsystem, writer);
         mappersStarted = mappersStarted | writeX500AttributePrincipalDecoders(mappersStarted, subsystem, writer);

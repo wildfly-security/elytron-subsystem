@@ -842,6 +842,7 @@
             <xs:element name="regex-name-rewriter" type="regexNameRewriterType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="regex-name-validating-rewriter" type="regexNameValidatingRewriter" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="aggregate-principal-decoder" type="aggregatePrincipalDecoderType" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="concatenating-principal-decoder" type="concatenatingPrincipalDecoderType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="constant-principal-decoder" type="constantPrincipalDecoderType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="custom-principal-decoder" type="customPrincipalDecoderType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="x500-attribute-principal-decoder" type="x500AttributePrincipalDecoderType" minOccurs="0" maxOccurs="unbounded" />
@@ -1117,6 +1118,28 @@
             </xs:documentation>
         </xs:annotation>
         <xs:attribute name="name" type="xs:string" use="required" />
+    </xs:complexType>
+
+    <xs:complexType name="concatenatingPrincipalDecoderType">
+        <xs:annotation>
+            <xs:documentation>
+                A PrincipalDecoder definition that is actually a concatenation of other PrincipalDecoders.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="principalDecoderType">
+                <xs:sequence>
+                    <xs:element name="principal-decoder" type="principalDecoderRefType" minOccurs="2" maxOccurs="unbounded"/>
+                </xs:sequence>
+                <xs:attribute name="joiner" type="xs:string" use="required">
+                    <xs:annotation>
+                        <xs:documentation>
+                            The string to use to join the results of the other PrincipalDecoders.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+            </xs:extension>
+        </xs:complexContent>
     </xs:complexType>
 
     <xs:complexType name="constantPrincipalDecoderType">

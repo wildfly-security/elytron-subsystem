@@ -20,6 +20,15 @@
             <principal-decoder name="CustomPrincipalDecoderOne" />
             <principal-decoder name="CustomPrincipalDecoderTwo" />
         </aggregate-principal-decoder>
+        <concatenating-principal-decoder name="ConcatenatingPrincipalDecoder" joiner=",">
+            <principal-decoder name="AggregatePrincipalDecoder" />
+            <principal-decoder name="X500PrincipalDecoderOne" />
+            <principal-decoder name="CustomPrincipalDecoderOne" />
+        </concatenating-principal-decoder>
+        <concatenating-principal-decoder name="ConcatenatingPrincipalDecoderTwo" joiner=",">
+            <principal-decoder name="ConcatenatingPrincipalDecoder" />
+            <principal-decoder name="ConstantPrincipalDecoder" />
+        </concatenating-principal-decoder>
         <constant-principal-decoder name="ConstantPrincipalDecoder" constant="constant" />
         <custom-principal-decoder name="CustomPrincipalDecoderOne" class-name="org.wildfly.elytron.CustomPrincipalDecoder" module="i.j" slot="k" />
         <custom-principal-decoder name="CustomPrincipalDecoderTwo" class-name="org.wildfly.elytron.CustomPrincipalDecoder" module="i.j" slot="k" />

@@ -19,7 +19,9 @@ package org.wildfly.extension.elytron;
 
 import static org.wildfly.extension.elytron.Capabilities.PRINCIPAL_DECODER_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PRINCIPAL_DECODERS;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import org.jboss.as.controller.AbstractAddStepHandler;
 import org.jboss.as.controller.AttributeDefinition;
@@ -32,6 +34,7 @@ import org.jboss.as.controller.RestartParentWriteAttributeHandler;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
 import org.jboss.as.controller.SimpleResourceDefinition;
+import org.jboss.as.controller.StringListAttributeDefinition;
 import org.jboss.as.controller.capability.RuntimeCapability;
 import org.jboss.as.controller.registry.AttributeAccess;
 import org.jboss.as.controller.registry.ManagementResourceRegistration;
@@ -42,6 +45,7 @@ import org.jboss.msc.service.ServiceBuilder;
 import org.jboss.msc.service.ServiceController.Mode;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.ServiceTarget;
+import org.jboss.msc.value.InjectedValue;
 import org.wildfly.extension.elytron.TrivialService.ValueSupplier;
 import org.wildfly.security.auth.server.PrincipalDecoder;
 import org.wildfly.security.x500.X500AttributePrincipalDecoder;
@@ -91,8 +95,15 @@ class PrincipalDecoderDefinitions {
             .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
             .build();
 
+    static final StringListAttributeDefinition PRINCIPAL_DECODERS = new StringListAttributeDefinition.Builder(ElytronDescriptionConstants.PRINCIPAL_DECODERS)
+            .setMinSize(2)
+            .setAllowExpression(true)
+            .setAllowNull(false)
+            .setCapabilityReference(PRINCIPAL_DECODER_RUNTIME_CAPABILITY.getName(), PRINCIPAL_DECODER_RUNTIME_CAPABILITY.getName(), true)
+            .build();
+
     private static final AggregateComponentDefinition<PrincipalDecoder> AGGREGATE_PRINCIPAL_DECODER = AggregateComponentDefinition.create(PrincipalDecoder.class,
-            ElytronDescriptionConstants.AGGREGATE_PRINCIPAL_DECODER, PRINCIPAL_DECODERS, PRINCIPAL_DECODER_RUNTIME_CAPABILITY, PrincipalDecoder::aggregate);
+            ElytronDescriptionConstants.AGGREGATE_PRINCIPAL_DECODER, ElytronDescriptionConstants.PRINCIPAL_DECODERS, PRINCIPAL_DECODER_RUNTIME_CAPABILITY, PrincipalDecoder::aggregate);
 
     static AggregateComponentDefinition<PrincipalDecoder> getAggregatePrincipalDecoderDefinition() {
         return AGGREGATE_PRINCIPAL_DECODER;
@@ -130,6 +141,39 @@ class PrincipalDecoderDefinitions {
         };
 
         return new PrincipalDecoderResourceDefinition(ElytronDescriptionConstants.X500_ATTRIBUTE_PRINCIPAL_DECODER, add, attributes);
+    }
+
+    static ResourceDefinition getConcatenatingPrincipalDecoder() {
+        AttributeDefinition[] attributes = new AttributeDefinition[] { JOINER, PRINCIPAL_DECODERS };
+        AbstractAddStepHandler add = new TrivialAddHandler<PrincipalDecoder>(PRINCIPAL_DECODER_RUNTIME_CAPABILITY, PrincipalDecoder.class, Mode.LAZY, attributes) {
+
+            @Override
+            protected ValueSupplier<PrincipalDecoder> getValueSupplier(ServiceBuilder<PrincipalDecoder> serviceBuilder,
+                                                                       OperationContext context, ModelNode model) throws OperationFailedException {
+                final String joiner = JOINER.resolveModelAttribute(context, model).asString();
+                final List<String> decoders = PRINCIPAL_DECODERS.unwrap(context, model);
+
+                final List<InjectedValue<PrincipalDecoder>> principalDecoderInjectors = new ArrayList<>();
+                final String baseCapabilityName = PRINCIPAL_DECODER_RUNTIME_CAPABILITY.getName();
+                for (String decoder : decoders) {
+                    InjectedValue<PrincipalDecoder> principalDecoderInjector = new InjectedValue<>();
+                    String runtimeCapabilityName = RuntimeCapability.buildDynamicCapabilityName(baseCapabilityName, decoder);
+                    ServiceName decoderServiceName = context.getCapabilityServiceName(runtimeCapabilityName, PrincipalDecoder.class);
+                    serviceBuilder.addDependency(decoderServiceName, PrincipalDecoder.class, principalDecoderInjector);
+                    principalDecoderInjectors.add(principalDecoderInjector);
+                }
+                return () -> {
+                    final ArrayList<PrincipalDecoder> principalDecoders = new ArrayList<>(principalDecoderInjectors.size());
+                    for (InjectedValue<PrincipalDecoder> current : principalDecoderInjectors) {
+                        principalDecoders.add(current.getValue());
+                    }
+                    return PrincipalDecoder.concatenating(joiner, principalDecoders.toArray(new PrincipalDecoder[principalDecoders.size()]));
+                };
+            }
+
+        };
+
+        return new PrincipalDecoderResourceDefinition(ElytronDescriptionConstants.CONCATENATING_PRINCIPAL_DECODER, add, attributes);
     }
 
     private static class PrincipalDecoderResourceDefinition extends SimpleResourceDefinition {
