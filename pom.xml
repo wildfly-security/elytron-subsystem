@@ -16,7 +16,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-  
+
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
@@ -50,9 +50,16 @@
         <version.com.puppycrawl.tools.checkstyle>6.0</version.com.puppycrawl.tools.checkstyle>
         <version.junit>4.11</version.junit>
         <version.jmockit>1.10</version.jmockit>
+        <version.wildfly.extension.plugin>0.7.0</version.wildfly.extension.plugin>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <module.name>org.wildfly.elytron</module.name>
-        
+        <module.name>org.wildfly.extension.elytron</module.name>
+
+        <wildfly.core.home>${project.build.directory}/wildfly-core</wildfly.core.home>
+        <wildfly.extension.plugin.templates>${basedir}/src/main/resources/subsystem-templates</wildfly.extension.plugin.templates>
+        <subsystem.template>elytron-empty.xml</subsystem.template>
+        <module.elytron.web.undertow-server.version>org.wildfly.security.elytron-web:undertow-server:1.0.0.Alpha7-SNAPSHOT</module.elytron.web.undertow-server.version>
+        <module.elytron.version>org.wildfly.security:wildfly-elytron:${version.elytron}</module.elytron.version>
+
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
@@ -62,7 +69,7 @@
         <developerConnection>scm:git:https://github.com/wildfly-security/elytron-subsystem.git</developerConnection>
         <url>https://github.com/wildfly-security/elytron-subsystem</url>
     </scm>
-    
+
     <licenses>
         <license>
             <name>Apache 2</name>
@@ -110,9 +117,9 @@
             </plugin>
 
             <plugin>
-                <!-- 
+                <!--
                     This may not be retained, depends on how modules will be handled after the core split of WildFly.
-                 -->            
+                 -->
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-antrun-plugin</artifactId>
                 <inherited>false</inherited>
@@ -137,9 +144,33 @@
                                 <property name="module.dir" value="target/module/${module.path}/main" />
 
                                 <copy file="src/main/resources/module/main/module.xml" tofile="${module.dir}/module.xml" />
+                                <replace file="${module.dir}/module.xml" token="${" value="@" />
+                                <replace file="${module.dir}/module.xml" token="}" value="@" />
+                                <replace file="${module.dir}/module.xml" token="@org.wildfly.security:elytron-subsystem@" value="${project.groupId}:${project.artifactId}:${project.version}" />
+
+                                <!-- elytron module zip file -->
+                                <delete dir="target/module-elytron" />
+                                <copy file="src/main/resources/subsystem-templates/elytron-main.xml" tofile="target/module-elytron/org/wildfly/security/elytron/main/module.xml" />
+                                <replace file="target/module-elytron/org/wildfly/security/elytron/main/module.xml" token="@elytron@" value="${module.elytron.version}" />
+
+                                <!-- elytron-web module zip file -->
+                                <delete dir="target/module-elytron-web" />
+                                <copy file="src/main/resources/subsystem-templates/elytron-web-main.xml" tofile="target/module-elytron-web/org/wildfly/security/elytron-web/undertow-server/main/module.xml" />
+                                <replace file="target/module-elytron-web/org/wildfly/security/elytron-web/undertow-server/main/module.xml" token="@undertow-server@" value="${module.elytron.web.undertow-server.version}" />
+
+                                <!-- create zip file with all modules necessary for elytron subsystem and not present in wildfly-core -->
+                                <zip destfile="target/module.zip">
+                                    <fileset dir="target/module"/>
+                                    <fileset dir="target/module-elytron"/>
+                                    <fileset dir="target/module-elytron-web"/>
+                                </zip>
+
+                                <!-- replace module.xml with original after zip took modified version -->
+                                <copy file="src/main/resources/module/main/module.xml" tofile="${module.dir}/module.xml" />
                                 <copy file="target/${project.artifactId}.jar" todir="${module.dir}" />
 
                                 <echo>Module ${module.name} has been created in the target/module directory. Copy to your WildFly installation.</echo>
+                                <echo>One can also use profile -Pinstall2wildfly-core to let wildfly-extension plugin do the installation. See the profile configuration for more information.</echo>
                             </target>
                         </configuration>
                     </execution>
@@ -357,4 +388,37 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+    <profiles>
+        <profile>
+            <id>install2wildfly-core</id>
+            <build>
+                <plugins>
+                    <!-- WildFly Extension
+                         This will create working configuration of WildFly Core by installing Elytron extension on it.
+                    -->
+                    <plugin>
+                        <groupId>org.wildfly.plugins</groupId>
+                        <artifactId>wildfly-extension-maven-plugin</artifactId>
+                        <version>${version.wildfly.extension.plugin}</version>
+                        <configuration>
+                            <moduleZip>${project.build.directory}/module.zip</moduleZip>
+                            <jbossHome>${wildfly.core.home}</jbossHome>
+                            <serverConfig>standalone/configuration/standalone.xml</serverConfig>
+                            <subsystem>${wildfly.extension.plugin.templates}/${subsystem.template}</subsystem>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>install-dist</id>
+                                <phase>install</phase>
+                                <goals>
+                                    <goal>deploy</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
