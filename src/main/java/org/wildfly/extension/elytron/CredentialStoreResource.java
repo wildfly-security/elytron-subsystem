@@ -173,6 +173,7 @@ class CredentialStoreResource extends DelegatingResource {
     @Override
     public Resource clone() {
         CredentialStoreResource credentialStoreResource = new CredentialStoreResource(super.clone());
+        credentialStoreResource.setCredentialStoreServiceController(credentialStoreServiceController);
         return credentialStoreResource;
     }
 
