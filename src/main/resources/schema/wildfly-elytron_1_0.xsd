@@ -1204,6 +1204,13 @@
                         </xs:documentation>
                     </xs:annotation>
                 </xs:attribute>
+                <xs:attribute name="required-oids" type="stringListType">
+                    <xs:annotation>
+                        <xs:documentation>
+                            The OIDs of the attributes that must be present in the principal.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
             </xs:extension>
         </xs:complexContent>
     </xs:complexType>

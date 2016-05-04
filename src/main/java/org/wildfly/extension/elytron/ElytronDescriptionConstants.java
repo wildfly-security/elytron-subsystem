@@ -240,6 +240,7 @@ interface ElytronDescriptionConstants {
     String REPLACE_ALL = "replace-all";
     String REPLACEMENT = "replacement";
     String REQUIRED = "required";
+    String REQUIRED_OIDS = "required-oids";
     String REVERSE = "reverse";
     String RIGHT = "right";
     String ROLE_DECODER = "role-decoder";

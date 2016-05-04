@@ -89,6 +89,12 @@ class PrincipalDecoderDefinitions {
             .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
             .build();
 
+    static final StringListAttributeDefinition REQUIRED_OIDS = new StringListAttributeDefinition.Builder(ElytronDescriptionConstants.REQUIRED_OIDS)
+            .setAllowNull(true)
+            .setMinSize(1)
+            .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+            .build();
+
     static final SimpleAttributeDefinition CONSTANT = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.CONSTANT, ModelType.STRING, false)
             .setAllowExpression(true)
             .setMinSize(1)
@@ -125,7 +131,7 @@ class PrincipalDecoderDefinitions {
     }
 
     static ResourceDefinition getX500AttributePrincipalDecoder() {
-        AttributeDefinition[] attributes = new AttributeDefinition[] { OID, JOINER, START_SEGMENT, MAXIMUM_SEGMENTS, REVERSE };
+        AttributeDefinition[] attributes = new AttributeDefinition[] { OID, JOINER, START_SEGMENT, MAXIMUM_SEGMENTS, REVERSE, REQUIRED_OIDS };
         AbstractAddStepHandler add = new PrincipalDecoderAddHandler(attributes) {
 
             @Override
@@ -135,7 +141,8 @@ class PrincipalDecoderDefinitions {
                 final int startSegment = START_SEGMENT.resolveModelAttribute(context, model).asInt();
                 final int maximumSegments = MAXIMUM_SEGMENTS.resolveModelAttribute(context, model).asInt();
                 final boolean reverse = REVERSE.resolveModelAttribute(context, model).asBoolean();
-                return () -> new X500AttributePrincipalDecoder(oid, joiner, startSegment, maximumSegments, reverse);
+                final List<String> requiredOids = REQUIRED_OIDS.unwrap(context, model);
+                return () -> new X500AttributePrincipalDecoder(oid, joiner, startSegment, maximumSegments, reverse, requiredOids.toArray(new String[requiredOids.size()]));
             }
 
         };

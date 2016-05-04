@@ -72,6 +72,7 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REGEX_NA
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REGEX_NAME_VALIDATING_REWRITER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REPLACEMENT;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REPLACE_ALL;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REQUIRED_OIDS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REVERSE;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.RIGHT;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ROLES;
@@ -605,6 +606,11 @@ class MapperParser {
                         break;
                     case REVERSE:
                         PrincipalDecoderDefinitions.REVERSE.parseAndSetParameter(value, addPrincipalDecoder, reader);
+                        break;
+                    case REQUIRED_OIDS:
+                        for (String requiredOid : reader.getListAttributeValue(i)) {
+                            PrincipalDecoderDefinitions.REQUIRED_OIDS.parseAndAddParameterElement(requiredOid, addPrincipalDecoder, reader);
+                        }
                         break;
                     default:
                         throw unexpectedAttribute(reader, i);
@@ -1264,6 +1270,7 @@ class MapperParser {
                 PrincipalDecoderDefinitions.START_SEGMENT.marshallAsAttribute(principalDecoder, writer);
                 PrincipalDecoderDefinitions.MAXIMUM_SEGMENTS.marshallAsAttribute(principalDecoder, writer);
                 PrincipalDecoderDefinitions.REVERSE.marshallAsAttribute(principalDecoder, writer);
+                PrincipalDecoderDefinitions.REQUIRED_OIDS.getAttributeMarshaller().marshallAsAttribute(PrincipalDecoderDefinitions.REQUIRED_OIDS, principalDecoder, false, writer);
                 writer.writeEndElement();
             }
 
