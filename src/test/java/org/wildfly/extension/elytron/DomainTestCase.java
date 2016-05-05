@@ -70,6 +70,7 @@ public class DomainTestCase extends AbstractSubsystemTest {
         ServerAuthenticationContext context = domain.createNewAuthenticationContext();
         context.setAuthenticationName("firstUser"); // from FileRealm
         Assert.assertTrue(context.exists());
+        context.authorize();
         context.succeed();
         SecurityIdentity identity = context.getAuthorizedIdentity();
         Assert.assertEquals("John", identity.getAttributes().get("firstName").get(0));
@@ -101,6 +102,7 @@ public class DomainTestCase extends AbstractSubsystemTest {
         context.setMechanismRealmName("PropRealm");
         context.setAuthenticationName("xser1@PropRealm");
         Assert.assertTrue(context.exists());
+        context.authorize();
         context.succeed();
         SecurityIdentity identity = context.getAuthorizedIdentity();
         Assert.assertEquals("yser1@PropRealm", identity.getPrincipal().getName()); // after pre-realm-name-rewriter only
@@ -161,7 +163,8 @@ public class DomainTestCase extends AbstractSubsystemTest {
     public static class MyPermissionMapper implements PermissionMapper {
         @Override
         public PermissionVerifier mapPermissions(Principal principal, Roles roles) {
-            return permission -> roles.contains("prefixAdminsuffix") && permission.getActions().equals("read");
+            return PermissionVerifier.from(new LoginPermission())
+                    .or(permission -> roles.contains("prefixAdminsuffix") && permission.getActions().equals("read"));
         }
     }
 

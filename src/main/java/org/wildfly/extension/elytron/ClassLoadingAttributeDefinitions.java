@@ -63,7 +63,7 @@ class ClassLoadingAttributeDefinitions {
             current = current.getModule(mi);
         }
 
-        return current.getClassLoader();
+        return current != null ? current.getClassLoader() : ClassLoadingAttributeDefinitions.class.getClassLoader();
     }
 
 }

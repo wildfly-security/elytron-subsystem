@@ -17,6 +17,22 @@
  */
 package org.wildfly.extension.elytron;
 
+import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.FAILED;
+import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OUTCOME;
+import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.RESULT;
+import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.SUCCESS;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ALGORITHM;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ATTRIBUTES;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.IDENTITY;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REALM;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ROLES;
+
+import java.security.Principal;
+
 import org.jboss.as.controller.ObjectTypeAttributeDefinition;
 import org.jboss.as.controller.PathAddress;
 import org.jboss.as.controller.PathElement;
@@ -31,26 +47,16 @@ import org.jboss.dmr.ModelNode;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.wildfly.extension.elytron.IdentityResourceDefinition.AuthenticatorOperationHandler;
+import org.wildfly.security.auth.permission.LoginPermission;
+import org.wildfly.security.authz.PermissionMapper;
 import org.wildfly.security.authz.RoleDecoder;
+import org.wildfly.security.authz.Roles;
 import org.wildfly.security.password.interfaces.BCryptPassword;
 import org.wildfly.security.password.interfaces.DigestPassword;
 import org.wildfly.security.password.interfaces.SaltedSimpleDigestPassword;
 import org.wildfly.security.password.interfaces.SimpleDigestPassword;
 import org.wildfly.security.password.util.PasswordUtil;
-
-import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.FAILED;
-import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OUTCOME;
-import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.RESULT;
-import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.SUCCESS;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ALGORITHM;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ATTRIBUTES;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.IDENTITY;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REALM;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ROLES;
+import org.wildfly.security.permission.PermissionVerifier;
 
 /**
  * @author <a href="mailto:psilva@redhat.com">Pedro Igor</a>
@@ -509,5 +515,12 @@ public class IdentityOperationsTestCase extends AbstractSubsystemTest {
 
     private PathAddress getSecurityRealmAddress(String securityRealm) {
         return PathAddress.pathAddress(ElytronExtension.SUBSYSTEM_PATH, PathElement.pathElement(ElytronDescriptionConstants.FILESYSTEM_REALM, securityRealm));
+    }
+
+    public static class LoginPermissionMapper implements PermissionMapper {
+        @Override
+        public PermissionVerifier mapPermissions(Principal principal, Roles roles) {
+            return PermissionVerifier.from(new LoginPermission());
+        }
     }
 }

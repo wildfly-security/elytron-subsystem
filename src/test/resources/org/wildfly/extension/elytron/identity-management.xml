@@ -1,6 +1,6 @@
 <subsystem xmlns="urn:wildfly:elytron:1.0">
     <security-domains>
-        <security-domain name="FileSystemDomain" default-realm="FileSystemRealm">
+        <security-domain name="FileSystemDomain" default-realm="FileSystemRealm" permission-mapper="LoginPermissionMapper">
             <realm name="FileSystemRealm" />
         </security-domain>
     </security-domains>
@@ -9,4 +9,7 @@
             <file path="filesystem-realm-empty" relative-to="jboss.server.config.dir"/>
         </filesystem-realm>
     </security-realms>
+    <mappers>
+        <custom-permission-mapper name="LoginPermissionMapper" class-name="org.wildfly.extension.elytron.IdentityOperationsTestCase$LoginPermissionMapper"/>
+    </mappers>
 </subsystem>

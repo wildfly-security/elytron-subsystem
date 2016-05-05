@@ -744,6 +744,7 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
 
                     // for now, only clear passwords. we can provide an enum with different types later. if necessary.
                     if (authenticationContext.verifyEvidence(new PasswordGuessEvidence(password.toCharArray()))) {
+                        authenticationContext.authorize();
                         authenticationContext.succeed();
 
                         SecurityIdentity authorizedIdentity = authenticationContext.getAuthorizedIdentity();
