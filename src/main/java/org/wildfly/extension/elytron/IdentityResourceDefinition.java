@@ -23,6 +23,7 @@ import static org.wildfly.extension.elytron.Capabilities.SECURITY_DOMAIN_RUNTIME
 import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.ElytronExtension.getRequiredService;
 import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
+import static org.wildfly.security.auth.server.IdentityLocator.fromName;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
@@ -133,7 +134,7 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
                 String principalName = PathAddress.pathAddress(operation.get(ModelDescriptionConstants.ADDRESS)).getLastElement().getValue();
 
                 try {
-                    ModifiableRealmIdentity identity = modifiableRealm.getRealmIdentityForUpdate(principalName, null, null);
+                    ModifiableRealmIdentity identity = modifiableRealm.getRealmIdentityForUpdate(fromName(principalName));
 
                     if (identity.exists()) {
                         throw ROOT_LOGGER.identityAlreadyExists(principalName);
@@ -159,7 +160,7 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
                 String principalName = PathAddress.pathAddress(operation1.get(ModelDescriptionConstants.ADDRESS)).getLastElement().getValue();
 
                 try {
-                    ModifiableRealmIdentity realmIdentity = modifiableRealm.getRealmIdentityForUpdate(principalName, null, null);
+                    ModifiableRealmIdentity realmIdentity = modifiableRealm.getRealmIdentityForUpdate(fromName(principalName));
 
                     if (!realmIdentity.exists()) {
                         throw new OperationFailedException(ROOT_LOGGER.identityNotFound(principalName));
@@ -623,7 +624,7 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
         String principalName = currentAddress.getLastElement().getValue();
 
         try {
-            ModifiableRealmIdentity realmIdentity = modifiableRealm.getRealmIdentityForUpdate(principalName, null, null);
+            ModifiableRealmIdentity realmIdentity = modifiableRealm.getRealmIdentityForUpdate(fromName(principalName));
 
             if (!realmIdentity.exists()) {
                 throw new OperationFailedException(ROOT_LOGGER.identityNotFound(principalName));

@@ -17,6 +17,13 @@
  */
 package org.wildfly.extension.elytron;
 
+import static org.wildfly.security.auth.server.IdentityLocator.fromName;
+
+import java.security.spec.KeySpec;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+
 import org.jboss.as.subsystem.test.AbstractSubsystemTest;
 import org.jboss.as.subsystem.test.KernelServices;
 import org.jboss.msc.service.ServiceName;
@@ -32,11 +39,6 @@ import org.wildfly.security.evidence.PasswordGuessEvidence;
 import org.wildfly.security.password.PasswordFactory;
 import org.wildfly.security.password.interfaces.ClearPassword;
 import org.wildfly.security.password.spec.ClearPasswordSpec;
-
-import java.security.spec.KeySpec;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
 
 /**
  * @author <a href="mailto:jkalina@redhat.com">Jan Kalina</a>
@@ -59,16 +61,16 @@ public class RealmsTestCase extends AbstractSubsystemTest {
         SecurityRealm securityRealm = (SecurityRealm) services.getContainer().getService(serviceName).getValue();
         Assert.assertNotNull(securityRealm);
 
-        RealmIdentity identity1 = securityRealm.getRealmIdentity("user1", null, null);
+        RealmIdentity identity1 = securityRealm.getRealmIdentity(fromName("user1"));
         Assert.assertTrue(identity1.exists());
         Assert.assertTrue(identity1.verifyEvidence(new PasswordGuessEvidence("password1".toCharArray())));
         Assert.assertFalse(identity1.verifyEvidence(new PasswordGuessEvidence("password2".toCharArray())));
 
-        RealmIdentity identity2 = securityRealm.getRealmIdentity("user2", null, null);
+        RealmIdentity identity2 = securityRealm.getRealmIdentity(fromName("user2"));
         Assert.assertTrue(identity2.exists());
         Assert.assertTrue(identity2.verifyEvidence(new PasswordGuessEvidence("password2".toCharArray())));
 
-        RealmIdentity identity9 = securityRealm.getRealmIdentity("user9", null, null);
+        RealmIdentity identity9 = securityRealm.getRealmIdentity(fromName("user9"));
         Assert.assertFalse(identity9.exists());
         Assert.assertFalse(identity9.verifyEvidence(new PasswordGuessEvidence("password9".toCharArray())));
     }
@@ -85,7 +87,7 @@ public class RealmsTestCase extends AbstractSubsystemTest {
         ModifiableSecurityRealm securityRealm = (ModifiableSecurityRealm) services.getContainer().getService(serviceName).getValue();
         Assert.assertNotNull(securityRealm);
 
-        RealmIdentity identity1 = securityRealm.getRealmIdentity("firstUser", null, null);
+        RealmIdentity identity1 = securityRealm.getRealmIdentity(fromName("firstUser"));
         Assert.assertTrue(identity1.exists());
 
         testModifiability(securityRealm, 3);
@@ -93,7 +95,7 @@ public class RealmsTestCase extends AbstractSubsystemTest {
 
     private void testModifiability(ModifiableSecurityRealm securityRealm, int expectedCount) throws Exception {
         // create identity
-        ModifiableRealmIdentity identity1 = securityRealm.getRealmIdentityForUpdate("createdUser", null, null);
+        ModifiableRealmIdentity identity1 = securityRealm.getRealmIdentityForUpdate(fromName("createdUser"));
         Assert.assertFalse(identity1.exists());
         identity1.create();
         Assert.assertTrue(identity1.exists());
@@ -104,7 +106,7 @@ public class RealmsTestCase extends AbstractSubsystemTest {
         identity1.setCredentials(creds);
 
         // read created identity
-        ModifiableRealmIdentity identity2 = securityRealm.getRealmIdentityForUpdate("createdUser", null, null);
+        ModifiableRealmIdentity identity2 = securityRealm.getRealmIdentityForUpdate(fromName("createdUser"));
         Assert.assertTrue(identity2.exists());
         Assert.assertTrue(identity2.verifyEvidence(new PasswordGuessEvidence("createdPassword".toCharArray())));
 

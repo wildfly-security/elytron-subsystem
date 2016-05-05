@@ -33,7 +33,6 @@ import org.wildfly.security.auth.server.SecurityIdentity;
 import org.wildfly.security.auth.server.ServerAuthenticationContext;
 import org.wildfly.security.authz.PermissionMapper;
 import org.wildfly.security.authz.Roles;
-import org.wildfly.security.evidence.SecurityIdentityEvidence;
 import org.wildfly.security.permission.PermissionVerifier;
 
 import javax.security.auth.x500.X500Principal;
@@ -149,13 +148,14 @@ public class DomainTestCase extends AbstractSubsystemTest {
 
         SecurityIdentity establishedIdentity = getIdentityFromDomain(myDomain, "firstUser");
         ServerAuthenticationContext authenticationContext = anotherDomain.createNewAuthenticationContext();
+
         // AnotherDomain trusts MyDomain
-        Assert.assertTrue(authenticationContext.verifyEvidence(new SecurityIdentityEvidence(establishedIdentity)));
+        Assert.assertTrue(authenticationContext.importIdentity(establishedIdentity));
 
         establishedIdentity = getIdentityFromDomain(anotherDomain, "firstUser");
         authenticationContext = x500Domain.createNewAuthenticationContext();
         // X500Domain does not trust AnotherDomain
-        Assert.assertFalse(authenticationContext.verifyEvidence(new SecurityIdentityEvidence(establishedIdentity)));
+        Assert.assertFalse(authenticationContext.importIdentity(establishedIdentity));
     }
 
     public static class MyPermissionMapper implements PermissionMapper {
@@ -175,6 +175,7 @@ public class DomainTestCase extends AbstractSubsystemTest {
     private SecurityIdentity getIdentityFromDomain(final SecurityDomain securityDomain, final String userName) throws Exception {
         final ServerAuthenticationContext authenticationContext = securityDomain.createNewAuthenticationContext();
         authenticationContext.setAuthenticationName(userName);
+        authenticationContext.authorize();
         authenticationContext.succeed();
         return authenticationContext.getAuthorizedIdentity();
     }
