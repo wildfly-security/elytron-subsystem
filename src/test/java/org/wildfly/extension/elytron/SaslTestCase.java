@@ -29,6 +29,7 @@ import org.wildfly.security.auth.callback.ChannelBindingCallback;
 import org.wildfly.security.auth.callback.CredentialCallback;
 import org.wildfly.security.auth.permission.LoginPermission;
 import org.wildfly.security.auth.server.SaslAuthenticationFactory;
+import org.wildfly.security.authz.PermissionMappable;
 import org.wildfly.security.authz.PermissionMapper;
 import org.wildfly.security.authz.Roles;
 import org.wildfly.security.credential.PasswordCredential;
@@ -51,7 +52,6 @@ import javax.security.sasl.SaslClient;
 import javax.security.sasl.SaslException;
 import javax.security.sasl.SaslServer;
 import javax.security.sasl.SaslServerFactory;
-import java.security.Principal;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -189,7 +189,7 @@ public class SaslTestCase extends AbstractSubsystemTest {
 
     public static class PermMapper implements PermissionMapper {
         @Override
-        public PermissionVerifier mapPermissions(Principal principal, Roles roles) {
+        public PermissionVerifier mapPermissions(PermissionMappable permissionMappable, Roles roles) {
             return permission -> permission instanceof LoginPermission;
         }
     }

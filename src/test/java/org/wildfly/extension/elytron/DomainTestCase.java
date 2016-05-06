@@ -31,13 +31,13 @@ import org.wildfly.security.auth.server.MechanismRealmConfiguration;
 import org.wildfly.security.auth.server.SecurityDomain;
 import org.wildfly.security.auth.server.SecurityIdentity;
 import org.wildfly.security.auth.server.ServerAuthenticationContext;
+import org.wildfly.security.authz.PermissionMappable;
 import org.wildfly.security.authz.PermissionMapper;
 import org.wildfly.security.authz.Roles;
 import org.wildfly.security.permission.PermissionVerifier;
 
 import javax.security.auth.x500.X500Principal;
 import java.io.FilePermission;
-import java.security.Principal;
 
 
 /**
@@ -162,7 +162,7 @@ public class DomainTestCase extends AbstractSubsystemTest {
 
     public static class MyPermissionMapper implements PermissionMapper {
         @Override
-        public PermissionVerifier mapPermissions(Principal principal, Roles roles) {
+        public PermissionVerifier mapPermissions(PermissionMappable permissionMappable, Roles roles) {
             return PermissionVerifier.from(new LoginPermission())
                     .or(permission -> roles.contains("prefixAdminsuffix") && permission.getActions().equals("read"));
         }
@@ -170,7 +170,7 @@ public class DomainTestCase extends AbstractSubsystemTest {
 
     public static class LoginPermissionMapper implements PermissionMapper {
         @Override
-        public PermissionVerifier mapPermissions(Principal principal, Roles roles) {
+        public PermissionVerifier mapPermissions(PermissionMappable permissionMappable, Roles roles) {
             return PermissionVerifier.from(new LoginPermission());
         }
     }

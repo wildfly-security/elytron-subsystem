@@ -31,8 +31,6 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ROLES;
 
-import java.security.Principal;
-
 import org.jboss.as.controller.ObjectTypeAttributeDefinition;
 import org.jboss.as.controller.PathAddress;
 import org.jboss.as.controller.PathElement;
@@ -48,6 +46,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.wildfly.extension.elytron.IdentityResourceDefinition.AuthenticatorOperationHandler;
 import org.wildfly.security.auth.permission.LoginPermission;
+import org.wildfly.security.authz.PermissionMappable;
 import org.wildfly.security.authz.PermissionMapper;
 import org.wildfly.security.authz.RoleDecoder;
 import org.wildfly.security.authz.Roles;
@@ -518,8 +517,9 @@ public class IdentityOperationsTestCase extends AbstractSubsystemTest {
     }
 
     public static class LoginPermissionMapper implements PermissionMapper {
+
         @Override
-        public PermissionVerifier mapPermissions(Principal principal, Roles roles) {
+        public PermissionVerifier mapPermissions(PermissionMappable permissionMappable, Roles roles) {
             return PermissionVerifier.from(new LoginPermission());
         }
     }
