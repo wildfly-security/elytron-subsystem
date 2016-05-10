@@ -847,6 +847,7 @@
             <xs:element name="custom-principal-decoder" type="customPrincipalDecoderType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="x500-attribute-principal-decoder" type="x500AttributePrincipalDecoderType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="custom-permission-mapper" type="customPermissionMapperType" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="logical-permission-mapper" type="logicalPermissionMapperType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="custom-realm-mapper" type="customRealmMapperType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="simple-regex-realm-mapper" type="simpleRegexRealmMapperType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="mapped-regex-realm-mapper" type="mappedRegexRealmMapperType" minOccurs="0" maxOccurs="unbounded" />
@@ -1025,35 +1026,93 @@
         <xs:attribute name="name" type="xs:string" use="required" />
     </xs:complexType>
 
+    <xs:complexType name="permissionMapperType" abstract="true">
+        <xs:annotation>
+            <xs:documentation>
+                Base type for all PermissionMapper definitions.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="name" type="xs:string" use="required">
+            <xs:annotation>
+                <xs:documentation>
+                    The unique name for the PermissionMapper, note names used for PermissionMappers must be unique
+                    across the whole context.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:complexType>
+    
     <xs:complexType name="customPermissionMapperType">
         <xs:annotation>
             <xs:documentation>
                 Generic definition for a custom PermissionMapper implementation.
             </xs:documentation>
         </xs:annotation>
-        <xs:sequence>
-            <xs:element name="configuration" type="customComponentConfiguration"
-                minOccurs="0">
-                <xs:annotation>
-                    <xs:documentation>
-                        The configuration to apply to the RoleMapper implementation.
+        <xs:complexContent>
+            <xs:extension base="permissionMapperType">
+                <xs:sequence>
+                    <xs:element name="configuration"
+                        type="customComponentConfiguration" minOccurs="0">
+                        <xs:annotation>
+                            <xs:documentation>
+                                The configuration to apply to the PermissionMapper implementation.
 
-                        Note: If configuration is supplied the RoleMapper MUST implement the
-                        Configurable interface.
-                    </xs:documentation>
-                </xs:annotation>
-            </xs:element>
-        </xs:sequence>
-        <xs:attribute name="name" type="xs:string" use="required">
-            <xs:annotation>
-                <xs:documentation>
-                    The unique name for the PrincipalDecoder, note names used for
-                    PrincipalDecoders must be unique across the whole context.
-                </xs:documentation>
-            </xs:annotation>
-        </xs:attribute>
-        <xs:attributeGroup ref="customComponentAttributes" />
+                                Note: If configuration is supplied the PermissionMapper MUST implement the Configurable interface.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+                <xs:attributeGroup ref="customComponentAttributes" />
+            </xs:extension>
+        </xs:complexContent>
     </xs:complexType>
+
+    <xs:complexType name="logicalPermissionMapperType">
+        <xs:annotation>
+            <xs:documentation>
+                A PermissionMapper definition for a PermissionMapper that performs a logical operation using two referenced PermissionMappers.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="permissionMapperType">
+                <xs:attribute name="logical-operation" type="logicalPermissionMappingsType" use="required">
+                    <xs:annotation>
+                        <xs:documentation>
+                            The logicial operation to perform using the two referenced PermissionMappers.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+                <xs:attribute name="left" type="xs:string" use="required">
+                    <xs:annotation>
+                        <xs:documentation>
+                            Reference to the PermissionMapper to use to the left of the operation.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+                <xs:attribute name="right" type="xs:string" use="required">
+                    <xs:annotation>
+                        <xs:documentation>
+                            Reference to the PermissionMapper to use to the right of the operation.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:simpleType name="logicalPermissionMappingsType">
+        <xs:annotation>
+            <xs:documentation>
+                The supported set of logical operations.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="and" />
+            <xs:enumeration value="or" />
+            <xs:enumeration value="xor" />
+            <xs:enumeration value="unless" />
+        </xs:restriction>
+    </xs:simpleType>
 
     <xs:complexType name="principalDecoderType" abstract="true">
         <xs:annotation>
@@ -1524,7 +1583,7 @@
         </xs:annotation>
         <xs:complexContent>
             <xs:extension base="roleMapperType">
-                <xs:attribute name="logical-operation" type="logicalOperationType" use="required">
+                <xs:attribute name="logical-operation" type="logicalRoleMappingType" use="required">
                     <xs:annotation>
                         <xs:documentation>
                             The logicial operation to perform using the two referenced RoleMappers.
@@ -1549,7 +1608,7 @@
         </xs:complexContent>
     </xs:complexType>
 
-    <xs:simpleType name="logicalOperationType">
+    <xs:simpleType name="logicalRoleMappingsType">
         <xs:annotation>
             <xs:documentation>
                 The supported set of logical operations.

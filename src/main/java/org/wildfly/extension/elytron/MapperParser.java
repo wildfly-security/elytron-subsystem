@@ -53,6 +53,7 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.FROM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.JOINER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.LEFT;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.LOGICAL_OPERATION;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.LOGICAL_PERMISSION_MAPPER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.LOGICAL_ROLE_MAPPER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MAPPED_REGEX_REALM_MAPPER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MAPPERS;
@@ -136,6 +137,9 @@ class MapperParser {
                 // Permission Mapper
                 case CUSTOM_PERMISSION_MAPPER:
                     readCustomComponent(CUSTOM_PERMISSION_MAPPER, parentAddress, reader, operations);
+                    break;
+                case LOGICAL_PERMISSION_MAPPER:
+                    readLogicalPermissionMapper(parentAddress, reader, operations);
                     break;
                 // Principal Decoders
                 case AGGREGATE_PRINCIPAL_DECODER:
@@ -429,6 +433,52 @@ class MapperParser {
 
         requireNoContent(reader);
     }
+
+    private void readLogicalPermissionMapper(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations) throws XMLStreamException {
+        ModelNode addPermissionMapper = new ModelNode();
+        addPermissionMapper.get(OP).set(ADD);
+
+        Set<String> requiredAttributes = new HashSet<String>(Arrays.asList(new String[] { NAME, LOGICAL_OPERATION, LEFT, RIGHT }));
+
+        String name = null;
+
+        final int count = reader.getAttributeCount();
+        for (int i = 0; i < count; i++) {
+            final String value = reader.getAttributeValue(i);
+            if (!isNoNamespaceAttribute(reader, i)) {
+                throw unexpectedAttribute(reader, i);
+            } else {
+                String attribute = reader.getAttributeLocalName(i);
+                requiredAttributes.remove(attribute);
+                switch (attribute) {
+                    case NAME:
+                        name = value;
+                        break;
+                    case LOGICAL_OPERATION:
+                        PermissionMapperDefinitions.LOGICAL_OPERATION.parseAndSetParameter(value, addPermissionMapper, reader);
+                        break;
+                    case LEFT:
+                        PermissionMapperDefinitions.LEFT.parseAndSetParameter(value, addPermissionMapper, reader);
+                        break;
+                    case RIGHT:
+                        PermissionMapperDefinitions.RIGHT.parseAndSetParameter(value, addPermissionMapper, reader);
+                        break;
+                    default:
+                        throw unexpectedAttribute(reader, i);
+                }
+            }
+        }
+
+        if (requiredAttributes.isEmpty() == false) {
+            throw missingRequired(reader, requiredAttributes);
+        }
+
+        requireNoContent(reader);
+
+        addPermissionMapper.get(OP_ADDR).set(parentAddress).add(LOGICAL_PERMISSION_MAPPER, name);
+        operations.add(addPermissionMapper);
+    }
+
 
     private void readAggregatePrincipalDecoderElement(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations)
             throws XMLStreamException {
@@ -1176,6 +1226,26 @@ class MapperParser {
         return false;
     }
 
+    private boolean writeLogicalPermissionMappers(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
+        if (subsystem.hasDefined(LOGICAL_PERMISSION_MAPPER)) {
+            startMappers(started, writer);
+            ModelNode permissionMappers = subsystem.require(LOGICAL_PERMISSION_MAPPER);
+            for (String name : permissionMappers.keys()) {
+                ModelNode permissionMapper = permissionMappers.require(name);
+                writer.writeStartElement(LOGICAL_PERMISSION_MAPPER);
+                writer.writeAttribute(NAME, name);
+                PermissionMapperDefinitions.LOGICAL_OPERATION.marshallAsAttribute(permissionMapper, writer);
+                PermissionMapperDefinitions.LEFT.marshallAsAttribute(permissionMapper, writer);
+                PermissionMapperDefinitions.RIGHT.marshallAsAttribute(permissionMapper, writer);
+                writer.writeEndElement();
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
     private boolean writeAggregatePrincipalDecoders(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (subsystem.hasDefined(AGGREGATE_PRINCIPAL_DECODER)) {
             startMappers(started, writer);
@@ -1511,6 +1581,7 @@ class MapperParser {
         mappersStarted = mappersStarted | writeRegexNameValidatingRewriters(mappersStarted, subsystem, writer);
 
         mappersStarted = mappersStarted | writeCustomPermissionMappers(mappersStarted, subsystem, writer);
+        mappersStarted = mappersStarted | writeLogicalPermissionMappers(mappersStarted, subsystem, writer);
 
         mappersStarted = mappersStarted | writeAggregatePrincipalDecoders(mappersStarted, subsystem, writer);
         mappersStarted = mappersStarted | writeConcatenatingPrincipalDecoders(mappersStarted, subsystem, writer);

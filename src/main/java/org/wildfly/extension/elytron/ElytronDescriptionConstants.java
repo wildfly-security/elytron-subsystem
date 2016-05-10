@@ -158,6 +158,7 @@ interface ElytronDescriptionConstants {
     String LOCAL_CERTIFICATES = "local-certificates";
     String LOCAL_PRINCIPAL = "local-principal";
     String LOGICAL_OPERATION = "logical-operation";
+    String LOGICAL_PERMISSION_MAPPER = "logical-permission-mapper";
     String LOGICAL_ROLE_MAPPER = "logical-role-mapper";
 
     String MAPPED_REGEX_REALM_MAPPER = "mapped-regex-realm-mapper";
@@ -299,6 +300,7 @@ interface ElytronDescriptionConstants {
     String TRUSTED_SECURITY_DOMAINS = "trusted-security-domains";
     String TYPE = "type";
 
+    String UNLESS = "unless";
     String URL = "url";
     String USE_RECURSIVE_SEARCH = "use-recursive-search";
     String USERS_PROPERTIES = "users-properties";

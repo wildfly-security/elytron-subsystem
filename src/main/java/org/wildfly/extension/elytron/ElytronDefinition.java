@@ -101,8 +101,9 @@ class ElytronDefinition extends SimpleResourceDefinition {
         resourceRegistration.registerSubModel(NameRewriterDefinitions.getRegexNameRewriterDefinition());
         resourceRegistration.registerSubModel(NameRewriterDefinitions.getRegexNameValidatingRewriterDefinition());
 
-        // Permission Mapper
+        // Permission Mappers
         resourceRegistration.registerSubModel(new CustomComponentDefinition<PermissionMapper>(PermissionMapper.class, PERMISSION_MAPPER_RUNTIME_CAPABILITY, ElytronDescriptionConstants.CUSTOM_PERMISSION_MAPPER));
+        resourceRegistration.registerSubModel(PermissionMapperDefinitions.getLogicalPermissionMapper());
 
         // Principal Decoders
         resourceRegistration.registerSubModel(PrincipalDecoderDefinitions.getAggregatePrincipalDecoderDefinition());
