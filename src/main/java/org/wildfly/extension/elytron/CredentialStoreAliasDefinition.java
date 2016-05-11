@@ -19,6 +19,7 @@
 package org.wildfly.extension.elytron;
 
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP_ADDR;
+import static org.wildfly.extension.elytron.CredentialStoreResourceDefinition.CREDENTIAL_STORE_CLIENT_UTIL;
 import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
 import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
 
@@ -60,7 +61,7 @@ import org.wildfly.security.password.interfaces.ClearPassword;
 import org.wildfly.security.password.spec.ClearPasswordSpec;
 
 /**
- * A {@link ResourceDefinition} for an vault entry stored in vault.
+ * A {@link ResourceDefinition} for an entry stored in credential store.
  *
  * @author <a href="mailto:pskopek@redhat.com">Peter Skopek</a>
  */
@@ -140,24 +141,6 @@ class CredentialStoreAliasDefinition extends SimpleResourceDefinition {
         return aliasName;
     }
 
-    static String credentialStoreName(ModelNode operation) {
-        String csName = null;
-        PathAddress pa = PathAddress.pathAddress(operation.require(OP_ADDR)).getParent();
-        for (int i = pa.size() - 1; i > 0; i--) {
-            PathElement pe = pa.getElement(i);
-            if (ElytronDescriptionConstants.CREDENTIAL_STORE.equals(pe.getKey())) {
-                csName = pe.getValue();
-                break;
-            }
-        }
-
-        if (csName == null) {
-            throw ROOT_LOGGER.operationAddressMissingKey(ElytronDescriptionConstants.NAME);
-        }
-
-        return csName;
-    }
-
     private static class AddHandler extends AbstractAddStepHandler {
 
         AddHandler() {
@@ -167,11 +150,10 @@ class CredentialStoreAliasDefinition extends SimpleResourceDefinition {
         @Override
         protected void performRuntime(OperationContext context, ModelNode operation, Resource resource) throws OperationFailedException {
             String alias = alias(operation);
-            String credentialStoreName = credentialStoreName(operation);
             String secretValue = asStringIfDefined(context, SECRET_VALUE, resource.getModel());
             String entryType = asStringIfDefined(context, ENTRY_TYPE, resource.getModel());
 
-            ServiceName credentialStoreServiceName = ServiceName.of(CredentialStoreResourceDefinition.CREDENTIAL_STORE_BASE_SERVICE_NAME, credentialStoreName);
+            ServiceName credentialStoreServiceName = CREDENTIAL_STORE_CLIENT_UTIL.serviceName(operation);
             @SuppressWarnings("unchecked")
             ServiceController<CredentialStoreClient> serviceContainer = (ServiceController<CredentialStoreClient>) context.getServiceRegistry(false).getRequiredService(credentialStoreServiceName);
             CredentialStoreClient credentialStoreClient = ((CredentialStoreService) serviceContainer.getService()).getValue();
@@ -180,6 +162,7 @@ class CredentialStoreAliasDefinition extends SimpleResourceDefinition {
                 if (entryType == null || ClearPassword.ALGORITHM_CLEAR.equals(entryType)) {
                     credentialStore.store(alias, createCredentialFromPassword(secretValue.toCharArray()));
                 } else {
+                    String credentialStoreName = CredentialStoreResourceDefinition.credentialStoreName(operation);
                     throw ROOT_LOGGER.credentialStoreEntryTypeNotSupported(credentialStoreName, entryType);
                 }
             } catch (CredentialStoreException | UnsupportedCredentialTypeException e) {

@@ -19,11 +19,14 @@
   -->
 
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:jd="urn:jboss:domain:5.0"
             targetNamespace="urn:wildfly:elytron:1.0"
             xmlns="urn:wildfly:elytron:1.0"
             elementFormDefault="qualified"
             attributeFormDefault="unqualified"
             version="1.0">
+
+    <xs:import namespace="urn:jboss:domain:5.0"/>
 
     <!-- The subsystem root element -->
     <xs:element name="subsystem" type="subsystemType"/>
@@ -3243,6 +3246,14 @@
                 <xs:annotation>
                     <xs:documentation>
                         The location of the file to use to initialise the KeyStore instance.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="credential-reference" type="jd:credentialReferenceType" minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>
+                        The credential reference to credential store or clear text (password)
+                        to use to initialize or load the KeyStore.
                     </xs:documentation>
                 </xs:annotation>
             </xs:element>

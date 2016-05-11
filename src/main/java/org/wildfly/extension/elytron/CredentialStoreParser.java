@@ -24,7 +24,6 @@ import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP_
 import static org.jboss.as.controller.parsing.ParseUtils.isNoNamespaceAttribute;
 import static org.jboss.as.controller.parsing.ParseUtils.missingRequired;
 import static org.jboss.as.controller.parsing.ParseUtils.requireNoAttributes;
-import static org.jboss.as.controller.parsing.ParseUtils.requireNoContent;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedAttribute;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedElement;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CREDENTIAL_STORE;
@@ -77,7 +76,7 @@ class CredentialStoreParser {
         ModelNode addCredentialStore = new ModelNode();
         addCredentialStore.get(OP).set(ADD);
 
-        Set<String> requiredAttributes = new HashSet<>(Arrays.asList(new String[] { NAME, URI }));
+        Set<String> requiredAttributes = new HashSet<>(Arrays.asList(new String[] {NAME}));
         String name = null;
 
         final int count = reader.getAttributeCount();
@@ -91,9 +90,6 @@ class CredentialStoreParser {
                 switch (attribute) {
                     case NAME:
                         name = value;
-                        break;
-                    case URI:
-                        CredentialStoreResourceDefinition.URI.parseAndSetParameter(value, addCredentialStore, reader);
                         break;
                     case TYPE:
                         CredentialStoreResourceDefinition.TYPE.parseAndSetParameter(value, addCredentialStore, reader);
@@ -118,7 +114,16 @@ class CredentialStoreParser {
 
         addCredentialStore.get(OP_ADDR).set(parentAddress).add(CREDENTIAL_STORE, name);
 
-        requireNoContent(reader);
+        while(reader.hasNext() && reader.nextTag() != END_ELEMENT) {
+            verifyNamespace(reader);
+            String localName = reader.getLocalName();
+            String value = reader.getElementText();
+            if (URI.equals(localName)) {
+                CredentialStoreResourceDefinition.URI.parseAndSetParameter(value, addCredentialStore, reader);
+            } else {
+                throw unexpectedElement(reader);
+            }
+        }
 
         operations.add(addCredentialStore);
     }
@@ -132,11 +137,11 @@ class CredentialStoreParser {
                 ModelNode credentialStoreModelNode = credentialStores.require(name);
                 writer.writeStartElement(CREDENTIAL_STORE);
                 writer.writeAttribute(NAME, name);
-                CredentialStoreResourceDefinition.URI.marshallAsAttribute(credentialStoreModelNode, writer);
                 CredentialStoreResourceDefinition.TYPE.marshallAsAttribute(credentialStoreModelNode, writer);
                 CredentialStoreResourceDefinition.PROVIDER.marshallAsAttribute(credentialStoreModelNode, writer);
                 CredentialStoreResourceDefinition.PROVIDER_LOADER.marshallAsAttribute(credentialStoreModelNode, writer);
                 CredentialStoreResourceDefinition.RELATIVE_TO.marshallAsAttribute(credentialStoreModelNode, writer);
+                CredentialStoreResourceDefinition.URI.marshallAsElement(credentialStoreModelNode, writer);
                 writer.writeEndElement();
             }
 

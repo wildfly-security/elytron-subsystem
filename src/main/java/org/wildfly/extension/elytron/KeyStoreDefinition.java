@@ -19,14 +19,13 @@
 package org.wildfly.extension.elytron;
 
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP;
-import static org.wildfly.extension.elytron.Capabilities.KEY_STORE_CAPABILITY;
+import static org.jboss.as.controller.security.CredentialReference.credentialReferencePartAsStringIfDefined;
 import static org.wildfly.extension.elytron.Capabilities.CREDENTIAL_STORE_CLIENT_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.CREDENTIAL_STORE_CLIENT_RUNTIME_CAPABILITY;
-import static org.wildfly.extension.elytron.Capabilities.KEYSTORE_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.KEY_STORE_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.KEY_STORE_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.PROVIDERS_CAPABILITY;
 import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
-import static org.wildfly.extension.elytron.ElytronExtension.ELYTRON_1_0_0;
 import static org.wildfly.extension.elytron.ElytronExtension.ISO_8601_FORMAT;
 import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
 import static org.wildfly.extension.elytron.ElytronExtension.getRequiredService;
@@ -40,7 +39,6 @@ import static org.wildfly.extension.elytron.ServiceStateDefinition.STATE;
 import static org.wildfly.extension.elytron.ServiceStateDefinition.populateResponse;
 import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
 
-import java.net.URISyntaxException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.Provider;
@@ -49,6 +47,7 @@ import java.util.Date;
 
 import org.jboss.as.controller.AbstractRuntimeOnlyHandler;
 import org.jboss.as.controller.AttributeDefinition;
+import org.jboss.as.controller.ObjectTypeAttributeDefinition;
 import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationContext.RollbackHandler;
 import org.jboss.as.controller.OperationFailedException;
@@ -68,8 +67,8 @@ import org.jboss.as.controller.registry.AttributeAccess;
 import org.jboss.as.controller.registry.ManagementResourceRegistration;
 import org.jboss.as.controller.registry.OperationEntry;
 import org.jboss.as.controller.registry.Resource;
+import org.jboss.as.controller.security.CredentialReference;
 import org.jboss.as.controller.security.CredentialStoreClient;
-import org.jboss.as.controller.security.CredentialStoreURIParser;
 import org.jboss.as.controller.services.path.PathManager;
 import org.jboss.as.controller.services.path.PathManagerService;
 import org.jboss.dmr.ModelNode;
@@ -114,12 +113,7 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
         .setCapabilityReference(PROVIDERS_CAPABILITY, KEY_STORE_CAPABILITY, true)
         .build();
 
-    static final SimpleAttributeDefinition PASSWORD = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PASSWORD, ModelType.STRING, true)
-        .setAllowExpression(true)
-        .setMinSize(1)
-        .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
-        .setDeprecated(ELYTRON_1_0_0) // Deprecate immediately as to be supplied by the vault.
-        .build();
+    static final ObjectTypeAttributeDefinition CREDENTIAL_REFERENCE = CredentialReference.getAttributeDefinition();
 
     static final SimpleAttributeDefinition REQUIRED = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.REQUIRED, ModelType.BOOLEAN, true)
         .setDefaultValue(new ModelNode(false))
@@ -161,7 +155,7 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
     static final SimpleOperationDefinition STORE = new SimpleOperationDefinitionBuilder(ElytronDescriptionConstants.STORE, RESOURCE_RESOLVER)
         .build();
 
-    private static final AttributeDefinition[] CONFIG_ATTRIBUTES = new AttributeDefinition[] { TYPE, PROVIDER, PROVIDER_LOADER, PASSWORD, PATH, RELATIVE_TO, REQUIRED, ALIAS_FILTER };
+    private static final AttributeDefinition[] CONFIG_ATTRIBUTES = new AttributeDefinition[] { TYPE, PROVIDER, CREDENTIAL_REFERENCE, PASSWORD, PATH, RELATIVE_TO, REQUIRED, ALIAS_FILTER };
 
     private static final KeyStoreAddHandler ADD = new KeyStoreAddHandler();
     private static final OperationStepHandler REMOVE = new TrivialCapabilityServiceRemoveHandler(ADD, KEY_STORE_RUNTIME_CAPABILITY);
@@ -255,29 +249,12 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
             super(KEY_STORE_RUNTIME_CAPABILITY, CONFIG_ATTRIBUTES);
         }
 
-        private void injectCredentialStoreClient(ServiceBuilder<?> serviceBuilder, SimpleAttributeDefinition attribute, OperationContext context, ModelNode model, Injector<CredentialStoreClient> injector) throws OperationFailedException {
-            String password = asStringIfDefined(context, attribute, model);
-            if (password == null) {
-                throw ROOT_LOGGER.passwordCredentialIsNotDefined(attribute.getName());
-            }
-            if (password.startsWith(CredentialStoreURIParser.VAULT_SCHEME + ":")) {
-                CredentialStoreURIParser vaultURIParser = null;
-                String alias = null;
-                try {
-                    vaultURIParser = new CredentialStoreURIParser(password);
-                    alias = vaultURIParser.getAttribute();
-                    if (alias == null) {
-                        throw ROOT_LOGGER.credentialAliasNotSpecifiedInUriReference(password);
-                    }
-                } catch (URISyntaxException e) {
-                    throw new OperationFailedException(e);
-                }
-                String credentialStoreClientCapabilityName = RuntimeCapability.buildDynamicCapabilityName(CREDENTIAL_STORE_CLIENT_CAPABILITY, alias);
-                ServiceName credentialServiceClientServiceName = context.getCapabilityServiceName(credentialStoreClientCapabilityName, CredentialStoreClient.class);
-
-                CREDENTIAL_STORE_CLIENT_SERVICE_UTIL.addInjection(serviceBuilder, injector, credentialServiceClientServiceName);
-            } else {
-                injector.inject(CredentialStoreClient.createTrivial(password.toCharArray()));
+        private void injectCredentialStoreClient(ServiceBuilder<?> serviceBuilder, OperationContext context, CredentialReference credentialReference, Injector<CredentialStoreClient> injector) throws OperationFailedException {
+            if (credentialReference.getSecret() == null) {
+                // use credential store service
+                String credentialStoreClientCapabilityName = RuntimeCapability.buildDynamicCapabilityName(CREDENTIAL_STORE_CLIENT_CAPABILITY, credentialReference.getCredentialStoreName());
+                ServiceName credentialStoreClientServiceName = context.getCapabilityServiceName(credentialStoreClientCapabilityName, CredentialStoreClient.class);
+                CREDENTIAL_STORE_CLIENT_SERVICE_UTIL.addInjection(serviceBuilder, injector, credentialStoreClientServiceName);
             }
         }
 
@@ -287,21 +264,31 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
             String providerLoader = asStringIfDefined(context, PROVIDER_LOADER, model);
             String provider = asStringIfDefined(context, PROVIDER, model);
             String type = TYPE.resolveModelAttribute(context, model).asString();
-            String password = asStringIfDefined(context, PASSWORD, model);
-            char[] passwordArray = password != null ? password.toCharArray() : null;
             String path = asStringIfDefined(context, PATH, model);
             String relativeTo = null;
             boolean required;
             String aliasFilter = asStringIfDefined(context, ALIAS_FILTER, model);
+
+            String credentialStoreName = credentialReferencePartAsStringIfDefined(context, CREDENTIAL_REFERENCE, model, CredentialReference.STORE);
+            String credentialAlias = credentialReferencePartAsStringIfDefined(context, CREDENTIAL_REFERENCE, model, CredentialReference.ALIAS);
+            String credentialType = credentialReferencePartAsStringIfDefined(context, CREDENTIAL_REFERENCE, model, CredentialReference.TYPE);
+            String secret = credentialReferencePartAsStringIfDefined(context, CREDENTIAL_REFERENCE, model, CredentialReference.CLEAR_TEXT);
+
+            CredentialReference credentialReference = null;
+            if (credentialStoreName != null && !credentialStoreName.isEmpty()) {
+                credentialReference = CredentialReference.createCredentialReference(credentialStoreName, credentialAlias, credentialType);
+            } else {
+                credentialReference = CredentialReference.createCredentialReference(secret != null ? secret.toCharArray() : null);
+            }
 
             final KeyStoreService keyStoreService;
             if (path != null) {
                 relativeTo = asStringIfDefined(context, RELATIVE_TO, model);
                 required = REQUIRED.resolveModelAttribute(context, model).asBoolean();
 
-                keyStoreService = KeyStoreService.createFileBasedKeyStoreService(provider, type, passwordArray, relativeTo, path, required, aliasFilter);
+                keyStoreService = KeyStoreService.createFileBasedKeyStoreService(provider, type, relativeTo, path, required, aliasFilter, credentialReference);
             } else {
-                keyStoreService = KeyStoreService.createFileLessKeyStoreService(provider, type, passwordArray, aliasFilter);
+                keyStoreService = KeyStoreService.createFileLessKeyStoreService(provider, type, aliasFilter, credentialReference);
             }
 
             ServiceTarget serviceTarget = context.getServiceTarget();
@@ -321,7 +308,7 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
                 PROVIDER_LOADER_SERVICE_UTIL.addInjection(serviceBuilder, keyStoreService.getProvidersInjector(), providerLoaderServiceName);
             }
 
-            injectCredentialStoreClient(serviceBuilder, PASSWORD, context, model, keyStoreService.getCredentialStoreClientInjector());
+            injectCredentialStoreClient(serviceBuilder, context, credentialReference, keyStoreService.getCredentialStoreClientInjector());
 
             commonDependencies(serviceBuilder);
             ServiceController<KeyStore> serviceController = serviceBuilder.install();

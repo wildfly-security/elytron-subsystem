@@ -73,11 +73,11 @@ class CredentialStoreService implements Service<CredentialStoreClient> {
 
     static CredentialStoreService createCredentialStoreService(String name, String uri, String type, String provider, String relativeTo) throws CredentialStoreException {
         try {
-            CredentialStoreURIParser vaultURIParser = new CredentialStoreURIParser(uri);
-            String nameToSet = name != null ? name : vaultURIParser.getName(); // once we specify name, the name from uri is ignored
-            Map<String, String> credentialStoreAttributes = vaultURIParser.getOptionsMap();
+            CredentialStoreURIParser credentialStoreURIParser = new CredentialStoreURIParser(uri);
+            String nameToSet = name != null ? name : credentialStoreURIParser.getName(); // once we specify name, the name from uri is ignored
+            Map<String, String> credentialStoreAttributes = credentialStoreURIParser.getOptionsMap();
             credentialStoreAttributes.put(ElytronDescriptionConstants.CREDENTIAL_STORE_NAME, nameToSet);
-            String storageFile = vaultURIParser.getVaultStore();
+            String storageFile = credentialStoreURIParser.getStorageFile();
             if (storageFile != null) {
                 credentialStoreAttributes.put(ElytronDescriptionConstants.CREDENTIAL_STORE_FILE, storageFile);
             }
@@ -111,7 +111,7 @@ class CredentialStoreService implements Service<CredentialStoreClient> {
 
     @Override
     public CredentialStoreClient getValue() {
-        return new CredentialStoreClient(name, credentialStore);
+        return new CredentialStoreClient(credentialStore, name, null);
     }
 
     private void resolveFileLocation() {

@@ -76,7 +76,6 @@ import org.wildfly.security.credential.store.CredentialStoreException;
 final class CredentialStoreResourceDefinition extends SimpleResourceDefinition {
 
     static final ServiceUtil<CredentialStoreClient> CREDENTIAL_STORE_CLIENT_UTIL = ServiceUtil.newInstance(CREDENTIAL_STORE_CLIENT_RUNTIME_CAPABILITY, ElytronDescriptionConstants.CREDENTIAL_STORE, CredentialStoreClient.class);
-    static final String CREDENTIAL_STORE_BASE_SERVICE_NAME = "org.wildfly.security.credential.store";
 
     static final SimpleAttributeDefinition URI = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.URI, ModelType.STRING, false)
             .setAttributeGroup(ElytronDescriptionConstants.IMPLEMENTATION)
@@ -196,7 +195,7 @@ final class CredentialStoreResourceDefinition extends SimpleResourceDefinition {
             } catch (CredentialStoreException e) {
                 throw new OperationFailedException(e);
             }
-            ServiceName credentialStoreServiceName = ServiceName.of(CREDENTIAL_STORE_BASE_SERVICE_NAME, name);
+            ServiceName credentialStoreServiceName = CREDENTIAL_STORE_CLIENT_UTIL.serviceName(operation);
             ServiceBuilder<CredentialStoreClient> credentialStoreServiceBuilder = serviceTarget.addService(credentialStoreServiceName, csService)
                     .setInitialMode(Mode.ACTIVE);
 
@@ -273,21 +272,7 @@ final class CredentialStoreResourceDefinition extends SimpleResourceDefinition {
 
         @Override
         protected void executeRuntimeStep(OperationContext context, ModelNode operation) throws OperationFailedException {
-            /*
-            ServiceName vaultServiceName = CREDENTIAL_STORE_CLIENT_UTIL.serviceName(operation);
-            @SuppressWarnings("unchecked")
-            ServiceController<CredentialStoreClient> serviceContainer = (ServiceController<CredentialStoreClient>) context.getServiceRegistry(writeAccess).getRequiredService(vaultServiceName);
-            State serviceState;
-            if ((serviceState = serviceContainer.getState()) != State.UP) {
-                if (serviceMustBeUp) {
-                    throw ROOT_LOGGER.requiredServiceNotUp(vaultServiceName, serviceState);
-                }
-                return;
-            }
-            */
-            String credentialStoreName = CredentialStoreAliasDefinition.credentialStoreName(operation);
-            ServiceName credentialStoreServiceName = ServiceName.of(CredentialStoreResourceDefinition.CREDENTIAL_STORE_BASE_SERVICE_NAME, credentialStoreName);
-
+            ServiceName credentialStoreServiceName = CREDENTIAL_STORE_CLIENT_UTIL.serviceName(operation);
             ServiceController<CredentialStoreClient> credentialStoreServiceController = (ServiceController<CredentialStoreClient>) context.getServiceRegistry(writeAccess).getRequiredService(credentialStoreServiceName);
             State serviceState;
             if ((serviceState = credentialStoreServiceController.getState()) != State.UP) {

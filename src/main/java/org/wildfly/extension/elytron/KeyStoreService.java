@@ -36,6 +36,7 @@ import java.security.Security;
 import java.security.cert.CertificateException;
 
 import org.jboss.as.controller.OperationFailedException;
+import org.jboss.as.controller.security.CredentialReference;
 import org.jboss.as.controller.security.CredentialStoreClient;
 import org.jboss.as.controller.services.path.PathManager;
 import org.jboss.msc.inject.Injector;
@@ -60,11 +61,11 @@ class KeyStoreService implements ModifiableKeyStoreService {
 
     private final String provider;
     private final String type;
-    private final char[] password;
     private final String path;
     private final String relativeTo;
     private final boolean required;
     private final String aliasFilter;
+    private final CredentialReference credentialReference;
 
     private final InjectedValue<PathManager> pathManager = new InjectedValue<>();
     private final InjectedValue<Provider[]> providers = new InjectedValue<>();
@@ -78,22 +79,22 @@ class KeyStoreService implements ModifiableKeyStoreService {
     private volatile ModifyTrackingKeyStore trackingKeyStore = null;
     private volatile KeyStore unmodifiableKeyStore = null;
 
-    private KeyStoreService(String provider, String type, char[] password, String relativeTo, String path, boolean required, String aliasFilter) {
+    private KeyStoreService(String provider, String type, String relativeTo, String path, boolean required, String aliasFilter, CredentialReference credentialReference) {
         this.provider = provider;
         this.type = type;
-        this.password = password != null ? password.clone() : null;
         this.relativeTo = relativeTo;
         this.path = path;
         this.required = required;
         this.aliasFilter = aliasFilter;
+        this.credentialReference = credentialReference;
     }
 
-    static KeyStoreService createFileLessKeyStoreService(String provider, String type, char[] password, String aliasFilter) {
-        return new KeyStoreService(provider, type, password, null, null, false, aliasFilter);
+    static KeyStoreService createFileLessKeyStoreService(String provider, String type, String aliasFilter, CredentialReference credentialReference) {
+        return new KeyStoreService(provider, type, null, null, false, aliasFilter, credentialReference);
     }
 
-    static KeyStoreService createFileBasedKeyStoreService(String provider, String type, char[] password, String relativeTo, String path, boolean required, String aliasFilter) {
-        return new KeyStoreService(provider, type, password, relativeTo, path, required, aliasFilter);
+    static KeyStoreService createFileBasedKeyStoreService(String provider, String type, String relativeTo, String path, boolean required, String aliasFilter, CredentialReference credentialReference) {
+        return new KeyStoreService(provider, type, relativeTo, path, required, aliasFilter, credentialReference);
     }
 
     /*
@@ -111,6 +112,12 @@ class KeyStoreService implements ModifiableKeyStoreService {
                     pathResolver.relativeTo(relativeTo, pathManager.getValue());
                 }
                 resolvedPath = pathResolver.resolve();
+            }
+
+            try {
+                CredentialReference.reinjectCredentialStoreClient(injectedCredentialStoreClient, credentialReference);
+            } catch (ClassNotFoundException e) {
+                throw ROOT_LOGGER.unableToStartService(e);
             }
 
             synched = System.currentTimeMillis();
@@ -218,7 +225,7 @@ class KeyStoreService implements ModifiableKeyStoreService {
 
     private char[] resolvePassword() {
         CredentialStoreClient credentialStoreClient = injectedCredentialStoreClient.getValue();
-        return credentialStoreClient.getSecret(password);
+        return credentialStoreClient.getSecret();
     }
 
     class LoadKey {

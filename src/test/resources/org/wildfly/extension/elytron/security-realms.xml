@@ -1,11 +1,13 @@
 <subsystem xmlns="urn:wildfly:elytron:1.0">
     <tls>
         <key-stores>
-            <key-store name="KeyStoreOne" type="jks" password="password">
+            <key-store name="KeyStoreOne" type="jks">
                 <file relative-to="jboss.server.config.dir" path="keystore.jks" required="true" />
+                <credential-reference clear-text="password"/>
             </key-store>
-            <key-store name="KeyStoreTwo" type="jks" password="password">
+            <key-store name="KeyStoreTwo" type="jks">
                 <file relative-to="jboss.server.config.dir" path="keystore.jks" required="true" />
+                <credential-reference clear-text="password"/>
             </key-store>
         </key-stores>
     </tls>
