@@ -118,7 +118,8 @@ class RealmMapperDefinitions {
                 .setAddHandler(ADD)
                 .setRemoveHandler(REMOVE)
                 .setAddRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
-                .setRemoveRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES));
+                .setRemoveRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
+                .setCapabilities(REALM_MAPPER_RUNTIME_CAPABILITY));
         }
 
         @Override
@@ -127,11 +128,6 @@ class RealmMapperDefinitions {
             for (AttributeDefinition current : ATTRIBUTES) {
                 resourceRegistration.registerReadWriteAttribute(current, null, write);
             }
-        }
-
-        @Override
-        public void registerCapabilities(ManagementResourceRegistration resourceRegistration) {
-            resourceRegistration.registerCapability(REALM_MAPPER_RUNTIME_CAPABILITY);
         }
 
     }
@@ -192,7 +188,8 @@ class RealmMapperDefinitions {
                 .setAddHandler(ADD)
                 .setRemoveHandler(REMOVE)
                 .setAddRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
-                .setRemoveRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES));
+                .setRemoveRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
+                .setCapabilities(REALM_MAPPER_RUNTIME_CAPABILITY));
         }
 
         @Override
@@ -201,11 +198,6 @@ class RealmMapperDefinitions {
             for (AttributeDefinition current : ATTRIBUTES) {
                 resourceRegistration.registerReadWriteAttribute(current, null, write);
             }
-        }
-
-        @Override
-        public void registerCapabilities(ManagementResourceRegistration resourceRegistration) {
-            resourceRegistration.registerCapability(REALM_MAPPER_RUNTIME_CAPABILITY);
         }
 
     }

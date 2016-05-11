@@ -164,7 +164,8 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
             .setAddHandler(ADD)
             .setRemoveHandler(REMOVE)
             .setAddRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
-            .setRemoveRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES));
+            .setRemoveRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
+            .setCapabilities(KEY_STORE_RUNTIME_CAPABILITY));
     }
 
     @Override
@@ -222,11 +223,6 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
                 populateProvider(result, keyStoreService.getValue().getProvider(), false);
             }
         });
-    }
-
-    @Override
-    public void registerCapabilities(ManagementResourceRegistration resourceRegistration) {
-        resourceRegistration.registerCapability(KEY_STORE_RUNTIME_CAPABILITY);
     }
 
     @Override

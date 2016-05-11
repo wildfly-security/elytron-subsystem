@@ -47,7 +47,8 @@ class TrivialResourceDefinition<T> extends SimpleResourceDefinition {
             .setAddHandler(add)
             .setRemoveHandler(new SingleCapabilityServiceRemoveHandler<T>(add, runtimeCapability, serviceType))
             .setAddRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
-            .setRemoveRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES));
+            .setRemoveRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
+            .setCapabilities(runtimeCapability));
 
         this.pathKey = pathKey;
         this.runtimeCapability = runtimeCapability;
@@ -63,11 +64,6 @@ class TrivialResourceDefinition<T> extends SimpleResourceDefinition {
                  resourceRegistration.registerReadWriteAttribute(current, null, write);
              }
          }
-    }
-
-    @Override
-    public void registerCapabilities(ManagementResourceRegistration resourceRegistration) {
-        resourceRegistration.registerCapability(runtimeCapability);
     }
 
     private class WriteAttributeHandler extends RestartParentWriteAttributeHandler {

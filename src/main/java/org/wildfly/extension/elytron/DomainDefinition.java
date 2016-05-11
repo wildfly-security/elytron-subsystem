@@ -166,7 +166,8 @@ class DomainDefinition extends SimpleResourceDefinition {
             .setAddHandler(ADD)
             .setRemoveHandler(REMOVE)
             .setAddRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
-            .setRemoveRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES));
+            .setRemoveRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
+            .setCapabilities(SECURITY_DOMAIN_RUNTIME_CAPABILITY));
     }
 
     @Override
@@ -174,11 +175,6 @@ class DomainDefinition extends SimpleResourceDefinition {
         for (AttributeDefinition current : ATTRIBUTES) {
             resourceRegistration.registerReadWriteAttribute(current, null, WRITE);
         }
-    }
-
-    @Override
-    public void registerCapabilities(ManagementResourceRegistration resourceRegistration) {
-        resourceRegistration.registerCapability(SECURITY_DOMAIN_RUNTIME_CAPABILITY);
     }
 
     @Override

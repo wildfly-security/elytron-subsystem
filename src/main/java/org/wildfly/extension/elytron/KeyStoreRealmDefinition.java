@@ -75,17 +75,13 @@ class KeyStoreRealmDefinition extends SimpleResourceDefinition {
             .setAddHandler(ADD)
             .setRemoveHandler(REMOVE)
             .setAddRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
-            .setRemoveRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES));
+            .setRemoveRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
+            .setCapabilities(SECURITY_REALM_RUNTIME_CAPABILITY));
     }
 
     @Override
     public void registerAttributes(ManagementResourceRegistration resourceRegistration) {
         resourceRegistration.registerReadWriteAttribute(KEYSTORE, null, new WriteAttributeHandler());
-    }
-
-    @Override
-    public void registerCapabilities(ManagementResourceRegistration resourceRegistration) {
-        resourceRegistration.registerCapability(SECURITY_REALM_RUNTIME_CAPABILITY);
     }
 
     private static class RealmAddHandler extends BaseAddHandler {

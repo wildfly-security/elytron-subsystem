@@ -198,7 +198,8 @@ class RoleMapperDefinitions {
                 .setAddHandler(add)
                 .setRemoveHandler(new SingleCapabilityServiceRemoveHandler<RoleMapper>(add, ROLE_MAPPER_RUNTIME_CAPABILITY, RoleMapper.class))
                 .setAddRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
-                .setRemoveRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES));
+                .setRemoveRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
+                .setCapabilities(ROLE_MAPPER_RUNTIME_CAPABILITY));
             this.pathKey = pathKey;
             this.attributes = attributes;
         }
@@ -211,11 +212,6 @@ class RoleMapperDefinitions {
                      resourceRegistration.registerReadWriteAttribute(current, null, write);
                  }
              }
-        }
-
-        @Override
-        public void registerCapabilities(ManagementResourceRegistration resourceRegistration) {
-            resourceRegistration.registerCapability(ROLE_MAPPER_RUNTIME_CAPABILITY);
         }
 
     }

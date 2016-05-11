@@ -100,7 +100,8 @@ class ProviderLoaderDefinition extends SimpleResourceDefinition {
         super(new Parameters(PathElement.pathElement(ElytronDescriptionConstants.PROVIDER_LOADER), RESOLVER)
                 .setRemoveHandler(REMOVE)
                 .setAddRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
-                .setRemoveRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES));
+                .setRemoveRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
+                .setCapabilities(PROVIDERS_RUNTIME_CAPABILITY));
     }
 
     @Override
@@ -109,11 +110,6 @@ class ProviderLoaderDefinition extends SimpleResourceDefinition {
 
         resourceRegistration.registerReadOnlyAttribute(INDEXED_PROVIDERS, new ProvidersAttributeHandler());
         resourceRegistration.registerReadOnlyAttribute(LOADED_PROVIDERS, new LoadedProvidersAttributeHandler());
-    }
-
-    @Override
-    public void registerCapabilities(ManagementResourceRegistration resourceRegistration) {
-        resourceRegistration.registerCapability(PROVIDERS_RUNTIME_CAPABILITY);
     }
 
     @Override

@@ -412,7 +412,8 @@ class SaslServerDefinitions {
                 .setAddHandler(add)
                 .setRemoveHandler(new SingleCapabilityServiceRemoveHandler<SaslServerFactory>(add, SASL_SERVER_FACTORY_RUNTIME_CAPABILITY, SaslServerFactory.class))
                 .setAddRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
-                .setRemoveRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES));
+                .setRemoveRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
+                .setCapabilities(SASL_SERVER_FACTORY_RUNTIME_CAPABILITY));
             this.pathKey = pathKey;
             this.attributes = attributes;
         }
@@ -425,11 +426,6 @@ class SaslServerDefinitions {
                      resourceRegistration.registerReadWriteAttribute(current, null, write);
                  }
              }
-        }
-
-        @Override
-        public void registerCapabilities(ManagementResourceRegistration resourceRegistration) {
-            resourceRegistration.registerCapability(SASL_SERVER_FACTORY_RUNTIME_CAPABILITY);
         }
 
     }

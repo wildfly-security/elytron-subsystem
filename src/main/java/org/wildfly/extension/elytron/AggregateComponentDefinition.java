@@ -52,7 +52,6 @@ class AggregateComponentDefinition<T> extends SimpleResourceDefinition {
 
     private final ListAttributeDefinition aggregateReferences;
     private final OperationStepHandler attributeWriteHandler;
-    private final RuntimeCapability<?> runtimeCapability;
 
     private AggregateComponentDefinition(Class<T> classType, String pathKey, OperationStepHandler addHandler, OperationStepHandler removeHandler,
             ListAttributeDefinition aggregateReferences, OperationStepHandler attributeWriteHandler, RuntimeCapability<?> runtimeCapability) {
@@ -60,11 +59,11 @@ class AggregateComponentDefinition<T> extends SimpleResourceDefinition {
             .setAddHandler(addHandler)
             .setRemoveHandler(removeHandler)
             .setAddRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
-            .setRemoveRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES));
+            .setRemoveRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
+            .setCapabilities(runtimeCapability));
 
         this.aggregateReferences = aggregateReferences;
         this.attributeWriteHandler = attributeWriteHandler;
-        this.runtimeCapability = runtimeCapability;
     }
 
     ListAttributeDefinition getReferencesAttribute() {
@@ -77,14 +76,6 @@ class AggregateComponentDefinition<T> extends SimpleResourceDefinition {
     @Override
     public void registerAttributes(ManagementResourceRegistration resourceRegistration) {
         resourceRegistration.registerReadWriteAttribute(aggregateReferences, null, attributeWriteHandler);
-    }
-
-    /**
-     * @see org.jboss.as.controller.SimpleResourceDefinition#registerCapabilities(org.jboss.as.controller.registry.ManagementResourceRegistration)
-     */
-    @Override
-    public void registerCapabilities(ManagementResourceRegistration resourceRegistration) {
-        resourceRegistration.registerCapability(runtimeCapability);
     }
 
     static <T> AggregateComponentDefinition<T> create(Class<T> aggregationType, String componentName, String referencesName, RuntimeCapability<?> runtimeCapability, Function<T[], T> aggregator) {

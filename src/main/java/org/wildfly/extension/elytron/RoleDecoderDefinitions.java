@@ -75,17 +75,13 @@ class RoleDecoderDefinitions {
                 .setAddHandler(ADD)
                 .setRemoveHandler(REMOVE)
                 .setAddRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
-                .setRemoveRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES));
+                .setRemoveRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
+                .setCapabilities(ROLE_DECODER_RUNTIME_CAPABILITY));
         }
 
         @Override
         public void registerAttributes(ManagementResourceRegistration resourceRegistration) {
             resourceRegistration.registerReadWriteAttribute(ATTRIBUTE, null, new WriteAttributeHandler(ElytronDescriptionConstants.SIMPLE_ROLE_DECODER, ATTRIBUTE));
-        }
-
-        @Override
-        public void registerCapabilities(ManagementResourceRegistration resourceRegistration) {
-            resourceRegistration.registerCapability(ROLE_DECODER_RUNTIME_CAPABILITY);
         }
 
     }

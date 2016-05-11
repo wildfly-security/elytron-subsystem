@@ -133,7 +133,8 @@ class NameRewriterDefinitions {
                 .setAddHandler(ADD)
                 .setRemoveHandler(REMOVE)
                 .setAddRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
-                .setRemoveRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES));
+                .setRemoveRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
+                .setCapabilities(NAME_REWRITER_RUNTIME_CAPABILITY));
         }
 
         @Override
@@ -142,11 +143,6 @@ class NameRewriterDefinitions {
             for (AttributeDefinition current : ATTRIBUTES) {
                 resourceRegistration.registerReadWriteAttribute(current, null, write);
             }
-        }
-
-        @Override
-        public void registerCapabilities(ManagementResourceRegistration resourceRegistration) {
-            resourceRegistration.registerCapability(NAME_REWRITER_RUNTIME_CAPABILITY);
         }
 
     }
@@ -176,7 +172,8 @@ class NameRewriterDefinitions {
                 .setAddHandler(ADD)
                 .setRemoveHandler(REMOVE)
                 .setAddRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
-                .setRemoveRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES));
+                .setRemoveRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
+                .setCapabilities(NAME_REWRITER_RUNTIME_CAPABILITY));
         }
 
         @Override
@@ -187,10 +184,6 @@ class NameRewriterDefinitions {
             }
         }
 
-        @Override
-        public void registerCapabilities(ManagementResourceRegistration resourceRegistration) {
-            resourceRegistration.registerCapability(NAME_REWRITER_RUNTIME_CAPABILITY);
-        }
     }
 
     private static class ConstantNameRewriterDefinition extends SimpleResourceDefinition {
@@ -214,17 +207,13 @@ class NameRewriterDefinitions {
                 .setAddHandler(ADD)
                 .setRemoveHandler(REMOVE)
                 .setAddRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
-                .setRemoveRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES));
+                .setRemoveRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
+                .setCapabilities(NAME_REWRITER_RUNTIME_CAPABILITY));
         }
 
         @Override
         public void registerAttributes(ManagementResourceRegistration resourceRegistration) {
                 resourceRegistration.registerReadWriteAttribute(CONSTANT, null, new WriteAttributeHandler(ElytronDescriptionConstants.CONSTANT_NAME_REWRITER, CONSTANT) );
-        }
-
-        @Override
-        public void registerCapabilities(ManagementResourceRegistration resourceRegistration) {
-            resourceRegistration.registerCapability(NAME_REWRITER_RUNTIME_CAPABILITY);
         }
 
     }

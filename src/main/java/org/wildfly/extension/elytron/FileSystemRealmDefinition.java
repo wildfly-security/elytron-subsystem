@@ -102,7 +102,8 @@ class FileSystemRealmDefinition extends SimpleResourceDefinition {
             .setAddHandler(ADD)
             .setRemoveHandler(REMOVE)
             .setAddRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
-            .setRemoveRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES));
+            .setRemoveRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
+            .setCapabilities(SECURITY_REALM_RUNTIME_CAPABILITY));
     }
 
     @Override
@@ -111,11 +112,6 @@ class FileSystemRealmDefinition extends SimpleResourceDefinition {
         for (AttributeDefinition attr : ATTRIBUTES) {
             resourceRegistration.registerReadWriteAttribute(attr, null, handler);
         }
-    }
-
-    @Override
-    public void registerCapabilities(ManagementResourceRegistration resourceRegistration) {
-        resourceRegistration.registerCapability(SECURITY_REALM_RUNTIME_CAPABILITY);
     }
 
     private static class RealmAddHandler extends BaseAddHandler {

@@ -97,7 +97,8 @@ class CustomComponentDefinition<T> extends SimpleResourceDefinition {
     CustomComponentDefinition(Class<T> serviceType, RuntimeCapability<Void> runtimeCapability, String pathKey) {
         super(addAddRemoveHandlers(new Parameters(PathElement.pathElement(pathKey), ElytronExtension.getResourceDescriptionResolver(pathKey))
             .setAddRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
-            .setRemoveRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES), runtimeCapability, serviceType));
+            .setRemoveRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
+            .setCapabilities(runtimeCapability), runtimeCapability, serviceType));
 
         this.serviceType = serviceType;
         this.runtimeCapability = runtimeCapability;
@@ -120,11 +121,6 @@ class CustomComponentDefinition<T> extends SimpleResourceDefinition {
         for (AttributeDefinition current : ATTRIBUTES) {
             resourceRegistration.registerReadWriteAttribute(current, null, writeHandler);
         }
-    }
-
-    @Override
-    public void registerCapabilities(ManagementResourceRegistration resourceRegistration) {
-        resourceRegistration.registerCapability(runtimeCapability);
     }
 
     private static class ComponentAddHandler<T> extends BaseAddHandler {

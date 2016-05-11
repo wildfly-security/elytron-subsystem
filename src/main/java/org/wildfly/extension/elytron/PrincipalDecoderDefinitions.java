@@ -193,7 +193,8 @@ class PrincipalDecoderDefinitions {
                 .setAddHandler(add)
                 .setRemoveHandler(new SingleCapabilityServiceRemoveHandler<PrincipalDecoder>(add, PRINCIPAL_DECODER_RUNTIME_CAPABILITY, PrincipalDecoder.class))
                 .setAddRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
-                .setRemoveRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES));
+                .setRemoveRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
+                .setCapabilities(PRINCIPAL_DECODER_RUNTIME_CAPABILITY));
             this.pathKey = pathKey;
             this.attributes = attributes;
         }
@@ -206,11 +207,6 @@ class PrincipalDecoderDefinitions {
                      resourceRegistration.registerReadWriteAttribute(current, null, write);
                  }
              }
-        }
-
-        @Override
-        public void registerCapabilities(ManagementResourceRegistration resourceRegistration) {
-            resourceRegistration.registerCapability(PRINCIPAL_DECODER_RUNTIME_CAPABILITY);
         }
 
     }
