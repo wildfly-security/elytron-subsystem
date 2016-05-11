@@ -1,13 +1,13 @@
 <subsystem xmlns="urn:wildfly:elytron:1.0">
     <tls>
-        <keystores>
-            <keystore name="KeyStoreOne" type="jks" password="password">
+        <key-stores>
+            <key-store name="KeyStoreOne" type="jks" password="password">
                 <file relative-to="jboss.server.config.dir" path="keystore.jks" required="true" />
-            </keystore>
-            <keystore name="KeyStoreTwo" type="jks" password="password">
+            </key-store>
+            <key-store name="KeyStoreTwo" type="jks" password="password">
                 <file relative-to="jboss.server.config.dir" path="keystore.jks" required="true" />
-            </keystore>
-        </keystores>
+            </key-store>
+        </key-stores>
     </tls>
     <security-realms>
         <aggregate-realm name="AggregateOne" authentication-realm="RealmThree" authorization-realm="RealmFour" />
@@ -18,8 +18,8 @@
                 <property key="c" value="d" />
             </configuration>
         </custom-realm>
-        <keystore-realm name="RealmThree" keystore="KeyStoreOne" />
-        <keystore-realm name="RealmFour" keystore="KeyStoreTwo" />
+        <key-store-realm name="RealmThree" key-store="KeyStoreOne" />
+        <key-store-realm name="RealmFour" key-store="KeyStoreTwo" />
         <properties-realm name="RealmFive">
             <users-properties path="my.properties" />
         </properties-realm>

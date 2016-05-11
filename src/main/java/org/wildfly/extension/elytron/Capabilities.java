@@ -72,10 +72,10 @@ class Capabilities {
             .Builder.of(KEY_MANAGERS_CAPABILITY, true, KeyManager[].class)
             .build();
 
-    static final String KEYSTORE_CAPABILITY = CAPABILITY_BASE + "keystore";
+    static final String KEY_STORE_CAPABILITY = CAPABILITY_BASE + "key-store";
 
     static final RuntimeCapability<Void> KEY_STORE_RUNTIME_CAPABILITY =  RuntimeCapability
-        .Builder.of(KEYSTORE_CAPABILITY, true, KeyStore.class)
+        .Builder.of(KEY_STORE_CAPABILITY, true, KeyStore.class)
         .build();
 
     static final String NAME_REWRITER_CAPABILITY = CAPABILITY_BASE + "name-rewriter";

@@ -43,8 +43,8 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.GROUPS_A
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.GROUPS_PROPERTIES;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.IDENTITY_MAPPING;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.JDBC_REALM;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEYSTORE;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEYSTORE_REALM;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEY_STORE;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEY_STORE_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.LDAP_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.LEVELS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME;
@@ -102,7 +102,7 @@ class RealmParser {
                 case JDBC_REALM:
                     readJdbcRealm(parentAddress, reader, operations);
                     break;
-                case KEYSTORE_REALM:
+                case KEY_STORE_REALM:
                     readKeyStoreRealm(parentAddress, reader, operations);
                     break;
                 case PROPERTIES_REALM:
@@ -240,7 +240,7 @@ class RealmParser {
         ModelNode addRealm = new ModelNode();
         addRealm.get(OP).set(ADD);
 
-        Set<String> requiredAttributes = new HashSet<String>(Arrays.asList(new String[] { NAME, KEYSTORE }));
+        Set<String> requiredAttributes = new HashSet<String>(Arrays.asList(new String[] { NAME, KEY_STORE }));
         String name = null;
 
         final int count = reader.getAttributeCount();
@@ -255,7 +255,7 @@ class RealmParser {
                     case NAME:
                         name = value;
                         break;
-                    case KEYSTORE:
+                    case KEY_STORE:
                         KeyStoreRealmDefinition.KEYSTORE.parseAndSetParameter(value, addRealm, reader);
                         break;
                     default:
@@ -268,7 +268,7 @@ class RealmParser {
             throw missingRequired(reader, requiredAttributes);
         }
 
-        addRealm.get(OP_ADDR).set(parentAddress).add(KEYSTORE_REALM, name);
+        addRealm.get(OP_ADDR).set(parentAddress).add(KEY_STORE_REALM, name);
 
         operations.add(addRealm);
 
@@ -646,12 +646,12 @@ class RealmParser {
     }
 
     private boolean writeKeyStoreRealms(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
-        if (subsystem.hasDefined(KEYSTORE_REALM)) {
+        if (subsystem.hasDefined(KEY_STORE_REALM)) {
             startRealms(started, writer);
 
-            ModelNode realms = subsystem.require(KEYSTORE_REALM);
+            ModelNode realms = subsystem.require(KEY_STORE_REALM);
             for (String name : realms.keys()) {
-                writer.writeStartElement(KEYSTORE_REALM);
+                writer.writeStartElement(KEY_STORE_REALM);
                 writer.writeAttribute(NAME, name);
                 KeyStoreRealmDefinition.KEYSTORE.marshallAsAttribute(realms.require(name), writer);
                 writer.writeEndElement();

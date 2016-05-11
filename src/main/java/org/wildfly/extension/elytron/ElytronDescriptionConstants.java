@@ -142,9 +142,9 @@ interface ElytronDescriptionConstants {
     String KEY = "key";
     String KEY_MANAGER = "key-manager";
     String KEY_MANAGERS = "key-managers";
-    String KEYSTORE = "keystore";
-    String KEYSTORE_REALM = "keystore-realm";
-    String KEYSTORES = "keystores";
+    String KEY_STORE = "key-store";
+    String KEY_STORE_REALM = "key-store-realm";
+    String KEY_STORES = "key-stores";
 
     String LAST_ACCESSED_TIME = "last-accessed-time";
     String LDAP_REALM = "ldap-realm";

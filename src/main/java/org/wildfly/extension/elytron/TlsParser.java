@@ -32,8 +32,8 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ALGORITH
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ALIAS_FILTER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CIPHER_SUITE_FILTER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.FILE;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEYSTORE;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEYSTORES;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEY_STORE;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEY_STORES;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEY_MANAGER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEY_MANAGERS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME;
@@ -89,7 +89,7 @@ class TlsParser {
             if (KEY_MANAGERS.equals(localName) && keyManagersFound == false) {
                 keyManagersFound = true;
                 readKeyManagers(parentAddress, reader, operations);
-            } else if (KEYSTORES.equals(localName) && keyStoresFound == false) {
+            } else if (KEY_STORES.equals(localName) && keyStoresFound == false) {
                 keyStoresFound = true;
                 readKeyStores(parentAddress, reader, operations);
             } else if (TRUST_MANAGERS.equals(localName) && trustManagersFound == false) {
@@ -138,7 +138,7 @@ class TlsParser {
                     case ALGORITHM:
                         SSLDefinitions.ALGORITHM.parseAndSetParameter(value, addKeyManager, reader);
                         break;
-                    case KEYSTORE:
+                    case KEY_STORE:
                         SSLDefinitions.KEYSTORE.parseAndSetParameter(value, addKeyManager, reader);
                         break;
                     case PROVIDER:
@@ -197,7 +197,7 @@ class TlsParser {
                     case ALGORITHM:
                         SSLDefinitions.ALGORITHM.parseAndSetParameter(value, addKeyManager, reader);
                         break;
-                    case KEYSTORE:
+                    case KEY_STORE:
                         SSLDefinitions.KEYSTORE.parseAndSetParameter(value, addKeyManager, reader);
                         break;
                     case PROVIDER:
@@ -306,7 +306,7 @@ class TlsParser {
         while(reader.hasNext() && reader.nextTag() != END_ELEMENT) {
             verifyNamespace(reader);
             String localName = reader.getLocalName();
-            if (KEYSTORE.equals(localName)) {
+            if (KEY_STORE.equals(localName)) {
                 readKeyStore(parentAddress, reader, operations);
             } else {
                 throw unexpectedElement(reader);
@@ -357,7 +357,7 @@ class TlsParser {
             throw missingRequired(reader, requiredAttributes);
         }
 
-        addKeyStore.get(OP_ADDR).set(parentAddress).add(KEYSTORE, name);
+        addKeyStore.get(OP_ADDR).set(parentAddress).add(KEY_STORE, name);
         list.add(addKeyStore);
 
         while(reader.hasNext() && reader.nextTag() != END_ELEMENT) {
@@ -503,13 +503,13 @@ class TlsParser {
     }
 
     private boolean writeKeyStores(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
-        if (subsystem.hasDefined(KEYSTORE)) {
+        if (subsystem.hasDefined(KEY_STORE)) {
             startTLS(started, writer);
-            writer.writeStartElement(KEYSTORES);
-            ModelNode keystores = subsystem.require(KEYSTORE);
+            writer.writeStartElement(KEY_STORES);
+            ModelNode keystores = subsystem.require(KEY_STORE);
             for (String name : keystores.keys()) {
                 ModelNode keyStore = keystores.require(name);
-                writer.writeStartElement(KEYSTORE);
+                writer.writeStartElement(KEY_STORE);
                 writer.writeAttribute(NAME, name);
                 KeyStoreDefinition.TYPE.marshallAsAttribute(keyStore, writer);
                 KeyStoreDefinition.PROVIDER.marshallAsAttribute(keyStore, writer);

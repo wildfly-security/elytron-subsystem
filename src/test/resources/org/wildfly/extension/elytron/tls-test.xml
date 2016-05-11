@@ -1,19 +1,19 @@
 <!-- for needs of SaslTestCase and KeyStoresTestCase -->
 <subsystem xmlns="urn:wildfly:elytron:1.0">
     <tls>
-        <keystores>
-            <keystore name="FireflyKeystore" type="JKS" password="Elytron">
+        <key-stores>
+            <key-store name="FireflyKeystore" type="JKS" password="Elytron">
                 <file path="firefly.keystore" relative-to="jboss.server.config.dir"/>
-            </keystore>
-            <keystore name="ElytronCaTruststore" type="JKS" password="Elytron">
+            </key-store>
+            <key-store name="ElytronCaTruststore" type="JKS" password="Elytron">
                 <file path="target/test-classes/org/wildfly/extension/elytron/ca.truststore"/>
-            </keystore>
-        </keystores>
+            </key-store>
+        </key-stores>
         <key-managers>
-            <key-manager name="MyKeyManager" algorithm="SunX509" keystore="FireflyKeystore" password="Elytron"/>
+            <key-manager name="MyKeyManager" algorithm="SunX509" key-store="FireflyKeystore" password="Elytron"/>
         </key-managers>
         <trust-managers>
-            <trust-manager name="MyTrustManager" algorithm="SunX509" keystore="ElytronCaTruststore"/>
+            <trust-manager name="MyTrustManager" algorithm="SunX509" key-store="ElytronCaTruststore"/>
         </trust-managers>
         <server-ssl-contexts>
             <server-ssl-context name="ServerSslContext" protocols="SSLv2 SSLv3 TLSv1 TLSv1_3 TLSv1_2 TLSv1_1" key-managers="MyKeyManager" trust-managers="MyTrustManager"/>

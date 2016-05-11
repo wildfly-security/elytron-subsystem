@@ -310,7 +310,7 @@
             <xs:element name="aggregate-realm" type="aggregateRealmType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="custom-realm" type="customRealmType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="jdbc-realm" type="jdbcRealmType" minOccurs="0" maxOccurs="unbounded" />
-            <xs:element name="keystore-realm" type="keyStoreRealmType" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="key-store-realm" type="keyStoreRealmType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="properties-realm" type="propertiesRealmType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="ldap-realm" type="ldapRealmType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="filesystem-realm" type="fileSystemRealmType" minOccurs="0" maxOccurs="unbounded" />
@@ -575,7 +575,7 @@
     <xs:complexType name="keyStoreRealmType">
         <xs:complexContent>
             <xs:extension base="realmType">
-                <xs:attribute name="keystore" type="xs:string" use="required">
+                <xs:attribute name="key-store" type="xs:string" use="required">
                     <xs:annotation>
                         <xs:documentation>
                             Reference to the KeyStore to be used by this realm.
@@ -2307,7 +2307,7 @@
             </xs:documentation>
         </xs:annotation>
         <xs:all>
-            <xs:element name="keystores" type="keyStoresType" minOccurs="0" />
+            <xs:element name="key-stores" type="keyStoresType" minOccurs="0" />
             <xs:element name="key-managers" type="keyManagersType" minOccurs="0" />
             <xs:element name="trust-managers" type="trustManagersType" minOccurs="0"/>
             <xs:element name="server-ssl-contexts" type="serverSSLContextsType" minOccurs="0" />
@@ -2345,7 +2345,7 @@
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
-        <xs:attribute name="keystore" type="xs:string" use="optional">
+        <xs:attribute name="key-store" type="xs:string" use="optional">
             <xs:annotation>
                 <xs:documentation>
                     Reference to the KeyStore to use with the KeyManager.
@@ -2399,7 +2399,7 @@
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
-        <xs:attribute name="keystore" type="xs:string" use="optional">
+        <xs:attribute name="key-store" type="xs:string" use="optional">
             <xs:annotation>
                 <xs:documentation>
                     Reference to the KeyStore to use with the TrustManager.
@@ -2528,7 +2528,7 @@
             </xs:documentation>
         </xs:annotation>
         <xs:sequence>
-            <xs:element name="keystore" type="keyStoreType" maxOccurs="unbounded" />
+            <xs:element name="key-store" type="keyStoreType" maxOccurs="unbounded" />
         </xs:sequence>
     </xs:complexType>
 

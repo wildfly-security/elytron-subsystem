@@ -19,7 +19,7 @@
 package org.wildfly.extension.elytron;
 
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP;
-import static org.wildfly.extension.elytron.Capabilities.KEYSTORE_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.KEY_STORE_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.KEY_STORE_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.PROVIDERS_CAPABILITY;
 import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
@@ -81,7 +81,7 @@ import org.wildfly.extension.elytron.KeyStoreService.LoadKey;
  */
 final class KeyStoreDefinition extends SimpleResourceDefinition {
 
-    static final ServiceUtil<KeyStore> KEY_STORE_UTIL = ServiceUtil.newInstance(KEY_STORE_RUNTIME_CAPABILITY, ElytronDescriptionConstants.KEYSTORE, KeyStore.class);
+    static final ServiceUtil<KeyStore> KEY_STORE_UTIL = ServiceUtil.newInstance(KEY_STORE_RUNTIME_CAPABILITY, ElytronDescriptionConstants.KEY_STORE, KeyStore.class);
 
     static final String ISO_8601_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
 
@@ -103,7 +103,7 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
         .setAttributeGroup(ElytronDescriptionConstants.IMPLEMENTATION)
         .setMinSize(1)
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
-        .setCapabilityReference(PROVIDERS_CAPABILITY, KEYSTORE_CAPABILITY, true)
+        .setCapabilityReference(PROVIDERS_CAPABILITY, KEY_STORE_CAPABILITY, true)
         .build();
 
     static final SimpleAttributeDefinition PASSWORD = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PASSWORD, ModelType.STRING, true)
@@ -129,7 +129,7 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
 
     // Resource Resolver
 
-    static final StandardResourceDescriptionResolver RESOURCE_RESOLVER = ElytronExtension.getResourceDescriptionResolver(ElytronDescriptionConstants.KEYSTORE);
+    static final StandardResourceDescriptionResolver RESOURCE_RESOLVER = ElytronExtension.getResourceDescriptionResolver(ElytronDescriptionConstants.KEY_STORE);
 
     // Runtime Attributes
 
@@ -160,7 +160,7 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
     private static final WriteAttributeHandler WRITE = new WriteAttributeHandler();
 
     KeyStoreDefinition() {
-        super(new Parameters(PathElement.pathElement(ElytronDescriptionConstants.KEYSTORE), RESOURCE_RESOLVER)
+        super(new Parameters(PathElement.pathElement(ElytronDescriptionConstants.KEY_STORE), RESOURCE_RESOLVER)
             .setAddHandler(ADD)
             .setRemoveHandler(REMOVE)
             .setAddRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
@@ -311,7 +311,7 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
     private static class WriteAttributeHandler extends RestartParentWriteAttributeHandler {
 
         WriteAttributeHandler() {
-            super(ElytronDescriptionConstants.KEYSTORE, CONFIG_ATTRIBUTES);
+            super(ElytronDescriptionConstants.KEY_STORE, CONFIG_ATTRIBUTES);
         }
 
         @Override

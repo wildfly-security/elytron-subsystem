@@ -18,7 +18,7 @@
 package org.wildfly.extension.elytron;
 
 import static org.jboss.as.controller.capability.RuntimeCapability.buildDynamicCapabilityName;
-import static org.wildfly.extension.elytron.Capabilities.KEYSTORE_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.KEY_STORE_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.KEY_MANAGERS_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.KEY_MANAGERS_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.PROVIDERS_CAPABILITY;
@@ -102,7 +102,7 @@ class SSLDefinitions {
             .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
             .build();
 
-    static final SimpleAttributeDefinition KEYSTORE = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.KEYSTORE, ModelType.STRING, false)
+    static final SimpleAttributeDefinition KEYSTORE = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.KEY_STORE, ModelType.STRING, false)
             .setAllowExpression(true)
             .setMinSize(1)
             .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
@@ -191,7 +191,7 @@ class SSLDefinitions {
 
     static ResourceDefinition getKeyManagerDefinition() {
         final SimpleAttributeDefinition providerLoaderDefinition = setCapabilityReference(PROVIDERS_CAPABILITY, KEY_MANAGERS_CAPABILITY, PROVIDER_LOADER);
-        final SimpleAttributeDefinition keystoreDefinition = setCapabilityReference(KEYSTORE_CAPABILITY, KEY_MANAGERS_CAPABILITY, KEYSTORE);
+        final SimpleAttributeDefinition keystoreDefinition = setCapabilityReference(KEY_STORE_CAPABILITY, KEY_MANAGERS_CAPABILITY, KEYSTORE);
 
         AttributeDefinition[] attributes = new AttributeDefinition[] { ALGORITHM, providerLoaderDefinition, keystoreDefinition, PASSWORD };
 
@@ -214,7 +214,7 @@ class SSLDefinitions {
                 final InjectedValue<KeyStore> keyStoreInjector = new InjectedValue<>();
                 if (keyStore != null) {
                     serviceBuilder.addDependency(context.getCapabilityServiceName(
-                            buildDynamicCapabilityName(KEYSTORE_CAPABILITY, keyStore), KeyStore.class),
+                            buildDynamicCapabilityName(KEY_STORE_CAPABILITY, keyStore), KeyStore.class),
                             KeyStore.class, keyStoreInjector);
                 }
 
@@ -257,7 +257,7 @@ class SSLDefinitions {
 
     static ResourceDefinition getTrustManagerDefinition() {
         final SimpleAttributeDefinition providerLoaderDefinition = setCapabilityReference(PROVIDERS_CAPABILITY, TRUST_MANAGERS_CAPABILITY, PROVIDER_LOADER);
-        final SimpleAttributeDefinition keystoreDefinition = setCapabilityReference(KEYSTORE_CAPABILITY, TRUST_MANAGERS_CAPABILITY, KEYSTORE);
+        final SimpleAttributeDefinition keystoreDefinition = setCapabilityReference(KEY_STORE_CAPABILITY, TRUST_MANAGERS_CAPABILITY, KEYSTORE);
 
         AttributeDefinition[] attributes = new AttributeDefinition[] { ALGORITHM, providerLoaderDefinition, keystoreDefinition };
 
@@ -279,7 +279,7 @@ class SSLDefinitions {
                 final InjectedValue<KeyStore> keyStoreInjector = new InjectedValue<>();
                 if (keyStore != null) {
                     serviceBuilder.addDependency(context.getCapabilityServiceName(
-                            buildDynamicCapabilityName(KEYSTORE_CAPABILITY, keyStore), KeyStore.class),
+                            buildDynamicCapabilityName(KEY_STORE_CAPABILITY, keyStore), KeyStore.class),
                             KeyStore.class, keyStoreInjector);
                 }
 
