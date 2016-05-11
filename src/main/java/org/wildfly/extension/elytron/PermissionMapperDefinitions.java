@@ -17,6 +17,9 @@
  */
 package org.wildfly.extension.elytron;
 
+import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.CLASS_NAME;
+import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.MODULE;
+
 import static org.wildfly.extension.elytron.Capabilities.PERMISSION_MAPPER_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.PERMISSION_MAPPER_RUNTIME_CAPABILITY;
 
@@ -24,11 +27,14 @@ import java.util.Locale;
 import java.util.function.BinaryOperator;
 
 import org.jboss.as.controller.AttributeDefinition;
+import org.jboss.as.controller.ObjectListAttributeDefinition;
+import org.jboss.as.controller.ObjectTypeAttributeDefinition;
 import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
 import org.jboss.as.controller.ResourceDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
+import org.jboss.as.controller.StringListAttributeDefinition;
 import org.jboss.as.controller.capability.RuntimeCapability;
 import org.jboss.as.controller.operations.validation.EnumValidator;
 import org.jboss.as.controller.registry.AttributeAccess;
@@ -38,6 +44,7 @@ import org.jboss.msc.service.ServiceBuilder;
 import org.jboss.msc.value.InjectedValue;
 import org.wildfly.extension.elytron.TrivialService.ValueSupplier;
 import org.wildfly.security.authz.PermissionMapper;
+import org.wildfly.security.authz.SimplePermissionMapper;
 
 /**
  * Definitions for resources describing {@link PermissionMapper} instances.
@@ -52,20 +59,63 @@ class PermissionMapperDefinitions {
             .setCapabilityReference(PERMISSION_MAPPER_CAPABILITY, PERMISSION_MAPPER_CAPABILITY, true)
             .build();
 
-        static final SimpleAttributeDefinition RIGHT = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.RIGHT, ModelType.STRING, false)
+    static final SimpleAttributeDefinition RIGHT = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.RIGHT, ModelType.STRING, false)
             .setMinSize(1)
             .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
             .setCapabilityReference(PERMISSION_MAPPER_CAPABILITY, PERMISSION_MAPPER_CAPABILITY, true)
             .build();
 
-        static final SimpleAttributeDefinition LOGICAL_OPERATION = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.LOGICAL_OPERATION, ModelType.STRING, false)
+    static final SimpleAttributeDefinition LOGICAL_OPERATION = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.LOGICAL_OPERATION, ModelType.STRING, false)
             .setAllowExpression(true)
             .setAllowedValues(ElytronDescriptionConstants.AND, ElytronDescriptionConstants.OR, ElytronDescriptionConstants.XOR, ElytronDescriptionConstants.UNLESS)
-            .setValidator(EnumValidator.create(LogicalOperation.class, false, true))
+            .setValidator(EnumValidator.create(LogicalMapperOperation.class, false, true))
             .setMinSize(1)
             .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
             .build();
 
+    static final SimpleAttributeDefinition MAPPING_MODE = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.MAPPING_MODE, ModelType.STRING, false)
+            .setAllowExpression(true)
+            .setDefaultValue(new ModelNode(ElytronDescriptionConstants.FIRST))
+            .setAllowedValues(ElytronDescriptionConstants.AND, ElytronDescriptionConstants.OR, ElytronDescriptionConstants.XOR, ElytronDescriptionConstants.UNLESS, ElytronDescriptionConstants.FIRST)
+            .setValidator(EnumValidator.create(MappingMode.class, false, true))
+            .setMinSize(1)
+            .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+            .build();
+
+    static final StringListAttributeDefinition PRINCIPALS = new StringListAttributeDefinition.Builder(ElytronDescriptionConstants.PRINCIPALS)
+            .setAllowExpression(true)
+            .setMinSize(1)
+            .build();
+
+    static final StringListAttributeDefinition ROLES = new StringListAttributeDefinition.Builder(ElytronDescriptionConstants.ROLES)
+            .setAllowExpression(true)
+            .setMinSize(1)
+            .build();
+
+    static final ObjectTypeAttributeDefinition CRITERIA = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.CRITERIA, PRINCIPALS, ROLES)
+            .build();
+
+    static final SimpleAttributeDefinition TARGET_NAME = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.TARGET_NAME, ModelType.STRING, true)
+            .setAllowExpression(true)
+            .setMinSize(1)
+            .build();
+
+    static final SimpleAttributeDefinition ACTION = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ACTION, ModelType.STRING, true)
+            .setAllowExpression(true)
+            .setMinSize(1)
+            .build();
+
+    static final ObjectTypeAttributeDefinition PERMISSION = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.PERMISSION, CLASS_NAME, MODULE, TARGET_NAME, ACTION)
+            .build();
+
+    static final ObjectListAttributeDefinition PERMISSIONS = new ObjectListAttributeDefinition.Builder(ElytronDescriptionConstants.PERMISSIONS, PERMISSION)
+            .build();
+
+    static final ObjectTypeAttributeDefinition PERMISSION_MAPPING = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.PERMISSION_MAPPING, CRITERIA, PERMISSIONS)
+            .build();
+
+    static final ObjectListAttributeDefinition PERMISSION_MAPPINGS = new ObjectListAttributeDefinition.Builder(ElytronDescriptionConstants.PERMISSION_MAPPINGS, PERMISSION_MAPPING)
+            .build();
 
     static ResourceDefinition getLogicalPermissionMapper() {
         AttributeDefinition[] attributes = new AttributeDefinition[] {LOGICAL_OPERATION, LEFT, RIGHT};
@@ -78,7 +128,7 @@ class PermissionMapperDefinitions {
                 final InjectedValue<PermissionMapper> leftPermissionMapperInjector = new InjectedValue<>();
                 final InjectedValue<PermissionMapper> rightPermissionMapperInjector = new InjectedValue<>();
 
-                LogicalOperation operation = LogicalOperation.valueOf(LogicalOperation.class, LOGICAL_OPERATION.resolveModelAttribute(context, model).asString().toUpperCase(Locale.ENGLISH));
+                LogicalMapperOperation operation = LogicalMapperOperation.valueOf(LogicalMapperOperation.class, LOGICAL_OPERATION.resolveModelAttribute(context, model).asString().toUpperCase(Locale.ENGLISH));
 
                 serviceBuilder.addDependency(context.getCapabilityServiceName(RuntimeCapability.buildDynamicCapabilityName(PERMISSION_MAPPER_CAPABILITY, LEFT.resolveModelAttribute(context, model).asString()),
                         PermissionMapper.class), PermissionMapper.class, leftPermissionMapperInjector);
@@ -93,7 +143,50 @@ class PermissionMapperDefinitions {
         return new TrivialResourceDefinition(ElytronDescriptionConstants.LOGICAL_PERMISSION_MAPPER, add, attributes, PERMISSION_MAPPER_RUNTIME_CAPABILITY);
     }
 
-    private enum LogicalOperation {
+    static ResourceDefinition getSimplePermissionMapper() {
+        final AttributeDefinition[] attributes = new AttributeDefinition[] { MAPPING_MODE, PERMISSION_MAPPINGS };
+        TrivialAddHandler<PermissionMapper>  add = new TrivialAddHandler<PermissionMapper>(PermissionMapper.class, attributes, PERMISSION_MAPPER_RUNTIME_CAPABILITY) {
+
+            @Override
+            protected ValueSupplier<PermissionMapper> getValueSupplier(ServiceBuilder<PermissionMapper> serviceBuilder,
+                    OperationContext context, ModelNode model) throws OperationFailedException {
+                return () -> PermissionMapper.EMPTY_PERMISSION_MAPPER;
+            }
+        };
+
+        return new TrivialResourceDefinition(ElytronDescriptionConstants.SIMPLE_PERMISSION_MAPPER, add, attributes, PERMISSION_MAPPER_RUNTIME_CAPABILITY);
+    }
+
+    private enum MappingMode {
+
+        AND,
+
+        OR,
+
+        XOR,
+
+        UNLESS,
+
+        FIRST;
+
+        SimplePermissionMapper.MappingMode convert() {
+            switch (this) {
+                case AND:
+                    return SimplePermissionMapper.MappingMode.AND;
+                case OR:
+                    return SimplePermissionMapper.MappingMode.OR;
+                case XOR:
+                    return SimplePermissionMapper.MappingMode.XOR;
+                case UNLESS:
+                    return SimplePermissionMapper.MappingMode.UNLESS;
+                default:
+                    return SimplePermissionMapper.MappingMode.FIRST_MATCH;
+            }
+        }
+
+    }
+
+    private enum LogicalMapperOperation {
 
         AND((l,r) -> l.and(r)),
 
@@ -105,7 +198,7 @@ class PermissionMapperDefinitions {
 
         private final BinaryOperator<PermissionMapper> operator;
 
-        private LogicalOperation(BinaryOperator<PermissionMapper> operator) {
+        private LogicalMapperOperation(BinaryOperator<PermissionMapper> operator) {
             this.operator = operator;
         }
 

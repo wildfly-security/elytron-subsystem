@@ -25,6 +25,7 @@ package org.wildfly.extension.elytron;
  */
 interface ElytronDescriptionConstants {
 
+    String ACTION = "action";
     String ACTIVE_SESSION_COUNT = "active-session-count";
     String ADD_ATTRIBUTE = "add-attribute";
     String ADD_PREFIX_ROLE_MAPPER = "add-prefix-role-mapper";
@@ -83,6 +84,7 @@ interface ElytronDescriptionConstants {
     String CREDENTIAL_SECURITY_FACTORIES = "credential-security-factories";
     String CREDENTIAL_SECURITY_FACTORY = "credential-security-factory";
     String CREDENTIALS = "credentials";
+    String CRITERIA = "criteria";
     String CUSTOM_NAME_REWRITER = "custom-name-rewriter";
     String CUSTOM_PERMISSION_MAPPER = "custom-permission-mapper";
     String CUSTOM_PRINCIPAL_DECODER = "custom-principal-decoder";
@@ -114,6 +116,7 @@ interface ElytronDescriptionConstants {
     String FINAL_NAME_REWRITER = "final-name-rewriter";
     String FINGER_PRINT = "finger-print";
     String FINGER_PRINTS = "finger-prints";
+    String FIRST = "first";
     String FORMAT = "format";
     String FROM = "from";
 
@@ -164,6 +167,7 @@ interface ElytronDescriptionConstants {
 
     String MAPPED_REGEX_REALM_MAPPER = "mapped-regex-realm-mapper";
     String MAPPERS = "mappers";
+    String MAPPING_MODE = "mapping-mode";
     String MATCH = "match";
     String MAXIMUM_SEGMENTS = "maximum-segments";
     String MAXIMUM_SESSION_CACHE_SIZE = "maximum-session-cache-size";
@@ -201,13 +205,18 @@ interface ElytronDescriptionConstants {
     String PEER_HOST = "peer-host";
     String PEER_PORT = "peer-port";
     String PEER_PRINCIPAL = "peer-principal";
+    String PERMISSION = "permission";
+    String PERMISSIONS = "permissions";
     String PERMISSION_MAPPER = "permission-mapper";
+    String PERMISSION_MAPPING = "permission-mapping";
+    String PERMISSION_MAPPINGS = "permission-mappings";
     String PLAIN_TEXT = "plain-text";
     String POST_REALM_NAME_REWRITER = "post-realm-name-rewriter";
     String PRE_REALM_NAME_REWRITER = "pre-realm-name-rewriter";
     String PREDEFINED_FILTER = "predefined-filter";
     String PREFIX = "prefix";
     String PRINCIPAL = "principal";
+    String PRINCIPALS = "principals";
     String PRINCIPAL_DECODER = "principal-decoder";
     String PRINCIPAL_DECODERS = "principal-decoders";
     String PRINCIPAL_QUERY = "principal-query";
@@ -280,6 +289,7 @@ interface ElytronDescriptionConstants {
     String SIGNATURE_ALGORITHM = "signature-algorithm";
     String SIMPLE_DIGEST = "simple-digest";
     String SIMPLE_DIGEST_MAPPER = "simple-digest-mapper";
+    String SIMPLE_PERMISSION_MAPPER = "simple-permission-mapper";
     String SIMPLE_REGEX_REALM_MAPPER = "simple-regex-realm-mapper";
     String SIMPLE_ROLE_DECODER = "simple-role-decoder";
     String SIZE = "size";
@@ -294,6 +304,7 @@ interface ElytronDescriptionConstants {
     String SUPPORTED_CREDENTIALS = "supported-credentials";
     String SYNCHRONIZED = "synchronized";
 
+    String TARGET_NAME = "target-name";
     String TLS = "tls";
     String TO = "to";
     String TRUST_MANAGER = "trust-manager";

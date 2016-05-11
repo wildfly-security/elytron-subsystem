@@ -109,6 +109,7 @@ class ElytronDefinition extends SimpleResourceDefinition {
         // Permission Mappers
         resourceRegistration.registerSubModel(new CustomComponentDefinition<PermissionMapper>(PermissionMapper.class, ElytronDescriptionConstants.CUSTOM_PERMISSION_MAPPER, PERMISSION_MAPPER_RUNTIME_CAPABILITY));
         resourceRegistration.registerSubModel(PermissionMapperDefinitions.getLogicalPermissionMapper());
+        resourceRegistration.registerSubModel(PermissionMapperDefinitions.getSimplePermissionMapper());
 
         // Principal Decoders
         resourceRegistration.registerSubModel(PrincipalDecoderDefinitions.getAggregatePrincipalDecoderDefinition());
