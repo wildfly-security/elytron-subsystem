@@ -23,7 +23,6 @@ import static org.wildfly.extension.elytron.Capabilities.HTTP_SERVER_FACTORY_CAP
 import static org.wildfly.extension.elytron.Capabilities.HTTP_SERVER_FACTORY_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.PROVIDERS_CAPABILITY;
 import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.MODULE;
-import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.SLOT;
 import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.resolveClassLoader;
 import static org.wildfly.extension.elytron.CommonAttributes.PROPERTIES;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.VALUE;
@@ -210,7 +209,7 @@ class HttpServerDefinitions {
     }
 
     static ResourceDefinition getServiceLoaderServerFactoryDefinition() {
-        AttributeDefinition[] attributes = new AttributeDefinition[] { MODULE, SLOT };
+        AttributeDefinition[] attributes = new AttributeDefinition[] { MODULE };
         AbstractAddStepHandler add = new TrivialAddHandler<HttpServerAuthenticationMechanismFactory>(HTTP_SERVER_FACTORY_RUNTIME_CAPABILITY, HttpServerAuthenticationMechanismFactory.class, attributes) {
 
             @Override
@@ -218,11 +217,10 @@ class HttpServerDefinitions {
                     ServiceBuilder<HttpServerAuthenticationMechanismFactory> serviceBuilder, OperationContext context,
                     ModelNode model) throws OperationFailedException {
                 final String module = asStringIfDefined(context, MODULE, model);
-                final String slot = asStringIfDefined(context, SLOT, model);
 
                 return () -> {
                     try {
-                        ClassLoader classLoader = doPrivileged((PrivilegedExceptionAction<ClassLoader>) () -> resolveClassLoader(module, slot));
+                        ClassLoader classLoader = doPrivileged((PrivilegedExceptionAction<ClassLoader>) () -> resolveClassLoader(module));
 
                         return new ServiceLoaderServerMechanismFactory(classLoader);
                     } catch (Exception e) {

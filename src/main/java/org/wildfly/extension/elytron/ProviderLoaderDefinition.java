@@ -21,7 +21,6 @@ package org.wildfly.extension.elytron;
 import static org.wildfly.extension.elytron.Capabilities.PROVIDERS_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.CLASS_NAMES;
 import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.MODULE;
-import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.SLOT;
 import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
 import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
 import static org.wildfly.extension.elytron.ElytronExtension.getRequiredService;
@@ -157,7 +156,6 @@ class ProviderLoaderDefinition extends SimpleResourceDefinition {
                 for (ModelNode current : nodes) {
                     ProviderConfigBuilder providerBuilder = builder.addProviderConfig()
                     .setModule(asStringIfDefined(context, MODULE, current))
-                    .setSlot(asStringIfDefined(context, SLOT, current))
                     .setLoadServices(ProviderAttributeDefinition.LOAD_SERVICES.resolveModelAttribute(context, current).asBoolean())
                     .setClassNames(asStringArrayIfDefined(context, CLASS_NAMES, current))
                     .setPath(asStringIfDefined(context, FileAttributeDefinitions.PATH, current));

@@ -12,7 +12,7 @@
     <security-realms>
         <aggregate-realm name="AggregateOne" authentication-realm="RealmThree" authorization-realm="RealmFour" />
         <custom-realm name="CustomOne" class-name="org.wildfly.security.ElytronRealm" />
-        <custom-realm name="CustomTwo" module="a.b.c" slot="d" class-name="org.wildfly.security.ElytronRealm">
+        <custom-realm name="CustomTwo" module="a.b.c" class-name="org.wildfly.security.ElytronRealm">
             <configuration>
                 <property key="a" value="b" />
                 <property key="c" value="d" />

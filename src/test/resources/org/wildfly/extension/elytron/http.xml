@@ -11,7 +11,7 @@
     </security-realms>
     <provider-loaders>
         <provider-loader name="TestProviderLoader">
-            <provider module="test.module" slot="testing" />
+            <provider module="test.module" />
         </provider-loader>
     </provider-loaders>
     <mappers>
@@ -48,6 +48,6 @@
             <http-server-factory name="ServiceHttpFactory" />
         </aggregate-http-server-factory>
         <provider-http-server-factory name="ProviderHttpFactory" provider-loader="TestProviderLoader" />
-        <service-loader-http-server-factory name="ServiceHttpFactory" module="a.b.c" slot="other" />
+        <service-loader-http-server-factory name="ServiceHttpFactory" module="a.b.c" />
     </http>
 </subsystem>

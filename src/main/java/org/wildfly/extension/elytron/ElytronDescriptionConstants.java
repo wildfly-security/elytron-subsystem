@@ -281,7 +281,6 @@ interface ElytronDescriptionConstants {
     String SIMPLE_REGEX_REALM_MAPPER = "simple-regex-realm-mapper";
     String SIMPLE_ROLE_DECODER = "simple-role-decoder";
     String SIZE = "size";
-    String SLOT = "slot";
     String SQL = "sql";
     String SSL_SESSION = "ssl-session";
     String START_SEGMENT = "start-segment";

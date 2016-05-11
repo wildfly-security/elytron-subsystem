@@ -143,15 +143,6 @@
                                          </xs:documentation>
                                      </xs:annotation>
                                  </xs:attribute>
-                                 <xs:attribute name="slot" type="xs:string" use="optional">
-                                     <xs:annotation>
-                                         <xs:documentation>
-                                             The slot of the module to use to load the providers.
-
-                                             This will only be required in rare situations where a single module is defined with multiple slots.
-                                         </xs:documentation>
-                                     </xs:annotation>
-                                 </xs:attribute>
                                  <xs:attribute name="load-services" type="xs:boolean" default="false">
                                      <xs:annotation>
                                          <xs:documentation>
@@ -1942,15 +1933,6 @@
                         </xs:documentation>
                     </xs:annotation>
                 </xs:attribute>
-                <xs:attribute name="slot" type="xs:string" use="optional">
-                    <xs:annotation>
-                        <xs:documentation>
-                            The slot of the module to use to load the providers.
-
-                            This will only be required in rare situations where a single module is defined with multiple slots.
-                        </xs:documentation>
-                    </xs:annotation>
-                </xs:attribute>
             </xs:extension>
         </xs:complexContent>
     </xs:complexType>
@@ -2296,15 +2278,6 @@
                             The name of the module to use.
 
                             If this is not specified the ClassLoader used to load the service will be used instead.
-                        </xs:documentation>
-                    </xs:annotation>
-                </xs:attribute>
-                <xs:attribute name="slot" type="xs:string" use="optional">
-                    <xs:annotation>
-                        <xs:documentation>
-                            The slot of the module to use to load the providers.
-
-                            This will only be required in rare situations where a single module is defined with multiple slots.
                         </xs:documentation>
                     </xs:annotation>
                 </xs:attribute>
@@ -2691,15 +2664,6 @@
 			<xs:annotation>
 				<xs:documentation>
 					The module to use to load the custom component.
-				</xs:documentation>
-			</xs:annotation>
-		</xs:attribute>
-		<xs:attribute name="slot" type="xs:string">
-			<xs:annotation>
-				<xs:documentation>
-					The module slot to use when loading the custom component.
-
-					Note: This has no effect if a module is not specified.
 				</xs:documentation>
 			</xs:annotation>
 		</xs:attribute>

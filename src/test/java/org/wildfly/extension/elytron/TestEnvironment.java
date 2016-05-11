@@ -72,7 +72,7 @@ class TestEnvironment extends AdditionalInitialization {
     // classloader obtaining mock to load classes from testsuite
     private static class ClassLoadingAttributeDefinitionsMock extends MockUp<ClassLoadingAttributeDefinitions> {
         @Mock
-        static ClassLoader resolveClassLoader(String module, String slot) {
+        static ClassLoader resolveClassLoader(String module) {
             return SaslTestCase.class.getClassLoader();
         }
     }

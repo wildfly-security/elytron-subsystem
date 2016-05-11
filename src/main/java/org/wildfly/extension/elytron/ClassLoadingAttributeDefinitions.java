@@ -38,12 +38,6 @@ class ClassLoadingAttributeDefinitions {
         .setMinSize(1)
         .build();
 
-    static final SimpleAttributeDefinition SLOT = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.SLOT, ModelType.STRING, true)
-        .setAttributeGroup(ElytronDescriptionConstants.CLASS_LOADING)
-        .setAllowExpression(true)
-        .setMinSize(1)
-        .build();
-
     static final SimpleAttributeDefinition CLASS_NAME = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.CLASS_NAME, ModelType.STRING, false)
         .setAttributeGroup(ElytronDescriptionConstants.CLASS_LOADING)
         .setAllowExpression(true)
@@ -56,10 +50,10 @@ class ClassLoadingAttributeDefinitions {
         .setAllowNull(true)
         .build();
 
-    static ClassLoader resolveClassLoader(String module, String slot) throws ModuleLoadException {
+    static ClassLoader resolveClassLoader(String module) throws ModuleLoadException {
         Module current = Module.getCallerModule();
         if (module != null) {
-            ModuleIdentifier mi = ModuleIdentifier.create(module, slot);
+            ModuleIdentifier mi = ModuleIdentifier.fromString(module);
             current = current.getModule(mi);
         }
 

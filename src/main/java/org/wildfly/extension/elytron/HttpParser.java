@@ -46,7 +46,6 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROPERTY
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDER_HTTP_SERVER_FACTORY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDER_LOADER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SERVICE_LOADER_HTTP_SERVER_FACTORY;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SLOT;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.VALUE;
 import static org.wildfly.extension.elytron.ElytronSubsystemParser.verifyNamespace;
 
@@ -366,9 +365,6 @@ class HttpParser {
                     case MODULE:
                         ClassLoadingAttributeDefinitions.MODULE.parseAndSetParameter(value, addOperation, reader);
                         break;
-                    case SLOT:
-                        ClassLoadingAttributeDefinitions.SLOT.parseAndSetParameter(value, addOperation, reader);
-                        break;
                     default:
                         throw unexpectedAttribute(reader, i);
                 }
@@ -477,7 +473,6 @@ class HttpParser {
                 writer.writeStartElement(SERVICE_LOADER_HTTP_SERVER_FACTORY);
                 writer.writeAttribute(NAME, name);
                 ClassLoadingAttributeDefinitions.MODULE.marshallAsAttribute(serverFactory, writer);
-                ClassLoadingAttributeDefinitions.SLOT.marshallAsAttribute(serverFactory, writer);
                 writer.writeEndElement();
             }
             return true;

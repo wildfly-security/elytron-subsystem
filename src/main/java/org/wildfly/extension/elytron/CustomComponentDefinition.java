@@ -20,7 +20,6 @@ package org.wildfly.extension.elytron;
 
 import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.CLASS_NAME;
 import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.MODULE;
-import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.SLOT;
 import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.resolveClassLoader;
 import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEY;
@@ -93,7 +92,7 @@ class CustomComponentDefinition<T> extends SimpleResourceDefinition {
     private final RuntimeCapability<Void> runtimeCapability;
     private final String pathKey;
 
-    private static final AttributeDefinition[] ATTRIBUTES = {MODULE, SLOT, CLASS_NAME, CONFIGURATION};
+    private static final AttributeDefinition[] ATTRIBUTES = {MODULE, CLASS_NAME, CONFIGURATION};
 
     CustomComponentDefinition(Class<T> serviceType, RuntimeCapability<Void> runtimeCapability, String pathKey) {
         super(addAddRemoveHandlers(new Parameters(PathElement.pathElement(pathKey), ElytronExtension.getResourceDescriptionResolver(pathKey))
@@ -147,7 +146,6 @@ class CustomComponentDefinition<T> extends SimpleResourceDefinition {
             ServiceName componentName = runtimeCapability.getCapabilityServiceName(serviceType);
 
             final String module = asStringIfDefined(context, MODULE, model);
-            final String slot = asStringIfDefined(context, SLOT, model);
             final String className = CLASS_NAME.resolveModelAttribute(context, model).asString();
 
             final Map<String, String> configurationMap;
@@ -159,7 +157,7 @@ class CustomComponentDefinition<T> extends SimpleResourceDefinition {
                 configurationMap = null;
             }
 
-            TrivialService<T> customComponentService = new TrivialService<T>(() -> createValue(module, slot, className, configurationMap));
+            TrivialService<T> customComponentService = new TrivialService<T>(() -> createValue(module, className, configurationMap));
 
             ServiceBuilder<T> serviceBuilder = serviceTarget.addService(componentName, customComponentService);
             commonDependencies(serviceBuilder)
@@ -167,10 +165,10 @@ class CustomComponentDefinition<T> extends SimpleResourceDefinition {
                 .install();
         }
 
-        private T createValue(String module, String slot, String className, Map<String, String> configuration) throws StartException {
+        private T createValue(String module, String className, Map<String, String> configuration) throws StartException {
             final ClassLoader classLoader;
             try {
-                classLoader = doPrivileged((PrivilegedExceptionAction<ClassLoader>) () -> resolveClassLoader(module, slot));
+                classLoader = doPrivileged((PrivilegedExceptionAction<ClassLoader>) () -> resolveClassLoader(module));
 
                 Class<? extends T> typeClazz = classLoader.loadClass(className).asSubclass(serviceType);
 

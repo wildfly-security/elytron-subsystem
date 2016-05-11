@@ -44,7 +44,6 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SECURITY
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SECURITY_PROPERTIES;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SECURITY_PROPERTY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SECURITY_REALMS;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SLOT;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.TLS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.VALUE;
 import static org.wildfly.extension.elytron.ElytronExtension.NAMESPACE;
@@ -227,9 +226,6 @@ class ElytronSubsystemParser implements XMLElementReader<List<ModelNode>>, XMLEl
                     case MODULE:
                         ClassLoadingAttributeDefinitions.MODULE.parseAndSetParameter(value, addComponent, reader);
                         break;
-                    case SLOT:
-                        ClassLoadingAttributeDefinitions.SLOT.parseAndSetParameter(value, addComponent, reader);
-                        break;
                     case CLASS_NAME:
                         ClassLoadingAttributeDefinitions.CLASS_NAME.parseAndSetParameter(value, addComponent, reader);
                         break;
@@ -314,7 +310,6 @@ class ElytronSubsystemParser implements XMLElementReader<List<ModelNode>>, XMLEl
         writer.writeStartElement(elementName);
         writer.writeAttribute(NAME, componentName);
         ClassLoadingAttributeDefinitions.MODULE.marshallAsAttribute(component, writer);
-        ClassLoadingAttributeDefinitions.SLOT.marshallAsAttribute(component, writer);
         ClassLoadingAttributeDefinitions.CLASS_NAME.marshallAsAttribute(component, writer);
         CustomComponentDefinition.CONFIGURATION.marshallAsElement(component, writer);
         writer.writeEndElement();

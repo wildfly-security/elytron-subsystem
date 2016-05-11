@@ -53,7 +53,6 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SASL_SER
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SASL_SERVER_FACTORY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SERVER_NAME;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SERVICE_LOADER_SASL_SERVER_FACTORY;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SLOT;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.VALUE;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.VERSION_COMPARISON;
 import static org.wildfly.extension.elytron.ElytronSubsystemParser.verifyNamespace;
@@ -489,9 +488,6 @@ class SaslParser {
                     case MODULE:
                         ClassLoadingAttributeDefinitions.MODULE.parseAndSetParameter(value, addOperation, reader);
                         break;
-                    case SLOT:
-                        ClassLoadingAttributeDefinitions.SLOT.parseAndSetParameter(value, addOperation, reader);
-                        break;
                     default:
                         throw unexpectedAttribute(reader, i);
                 }
@@ -638,7 +634,6 @@ class SaslParser {
                 writer.writeStartElement(SERVICE_LOADER_SASL_SERVER_FACTORY);
                 writer.writeAttribute(NAME, name);
                 ClassLoadingAttributeDefinitions.MODULE.marshallAsAttribute(serverFactory, writer);
-                ClassLoadingAttributeDefinitions.SLOT.marshallAsAttribute(serverFactory, writer);
                 writer.writeEndElement();
             }
             return true;

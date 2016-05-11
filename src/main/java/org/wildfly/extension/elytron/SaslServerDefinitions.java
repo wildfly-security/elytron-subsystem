@@ -24,7 +24,6 @@ import static org.wildfly.extension.elytron.Capabilities.SASL_SERVER_FACTORY_CAP
 import static org.wildfly.extension.elytron.Capabilities.SASL_SERVER_FACTORY_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SECURITY_DOMAIN_CAPABILITY;
 import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.MODULE;
-import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.SLOT;
 import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.resolveClassLoader;
 import static org.wildfly.extension.elytron.CommonAttributes.PROPERTIES;
 import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
@@ -299,21 +298,20 @@ class SaslServerDefinitions {
     }
 
     static ResourceDefinition getServiceLoaderSaslServerFactoryDefinition() {
-        AbstractAddStepHandler add = new SaslServerAddHandler(MODULE, SLOT) {
+        AbstractAddStepHandler add = new SaslServerAddHandler(MODULE) {
 
             @Override
             protected ValueSupplier<SaslServerFactory> getValueSupplier(OperationContext context, ModelNode model)
                     throws OperationFailedException {
 
                 final String module = asStringIfDefined(context, MODULE, model);
-                final String slot = asStringIfDefined(context, SLOT, model);
 
-                return () -> getSaslServerFactory(module, slot);
+                return () -> getSaslServerFactory(module);
             }
 
-            private SaslServerFactory getSaslServerFactory(final String module, final String slot) throws StartException {
+            private SaslServerFactory getSaslServerFactory(final String module) throws StartException {
                 try {
-                    ClassLoader classLoader = doPrivileged((PrivilegedExceptionAction<ClassLoader>) () -> resolveClassLoader(module, slot));
+                    ClassLoader classLoader = doPrivileged((PrivilegedExceptionAction<ClassLoader>) () -> resolveClassLoader(module));
 
                     return new ServiceLoaderSaslServerFactory(classLoader);
                 } catch (Exception e) {
@@ -322,7 +320,7 @@ class SaslServerDefinitions {
             }
         };
 
-        return wrap(new SaslServerResourceDefinition(ElytronDescriptionConstants.SERVICE_LOADER_SASL_SERVER_FACTORY, add, MODULE, SLOT), SaslServerDefinitions::getSaslServerAvailableMechanisms);
+        return wrap(new SaslServerResourceDefinition(ElytronDescriptionConstants.SERVICE_LOADER_SASL_SERVER_FACTORY, add, MODULE), SaslServerDefinitions::getSaslServerAvailableMechanisms);
     }
 
     static ResourceDefinition getMechanismProviderFilteringSaslServerFactory() {

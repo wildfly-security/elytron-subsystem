@@ -43,7 +43,6 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDER
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDER_LOADER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REGISTER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.RELATIVE_TO;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SLOT;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.VALUE;
 import static org.wildfly.extension.elytron.ElytronSubsystemParser.verifyNamespace;
 
@@ -123,9 +122,6 @@ class ProviderLoaderParser {
                 switch (attribute) {
                     case MODULE:
                         ClassLoadingAttributeDefinitions.MODULE.parseAndSetParameter(value, provider, reader);
-                        break;
-                    case SLOT:
-                        ClassLoadingAttributeDefinitions.SLOT.parseAndSetParameter(value, provider, reader);
                         break;
                     case LOAD_SERVICES:
                         ProviderAttributeDefinition.LOAD_SERVICES.parseAndSetParameter(value, provider, reader);
@@ -251,7 +247,6 @@ class ProviderLoaderParser {
             for (ModelNode currentProvider : providersList) {
                 writer.writeStartElement(PROVIDER);
                 ClassLoadingAttributeDefinitions.MODULE.marshallAsAttribute(currentProvider, writer);
-                ClassLoadingAttributeDefinitions.SLOT.marshallAsAttribute(currentProvider, writer);
                 ProviderAttributeDefinition.LOAD_SERVICES.marshallAsAttribute(currentProvider, writer);
                 ClassLoadingAttributeDefinitions.CLASS_NAMES.getAttributeMarshaller().marshallAsAttribute(ClassLoadingAttributeDefinitions.CLASS_NAMES, currentProvider, false, writer);
 

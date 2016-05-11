@@ -107,7 +107,7 @@ class ProviderLoaderService implements Service<Provider[]> {
     }
 
     private List<Provider> loadProviders(ProviderConfig config) throws Exception {
-        ClassLoader classLoader = doPrivileged((PrivilegedExceptionAction<ClassLoader>) () -> resolveClassLoader(config.getModule(), config.getSlot()));
+        ClassLoader classLoader = doPrivileged((PrivilegedExceptionAction<ClassLoader>) () -> resolveClassLoader(config.getModule()));
         ArrayList<Provider> providers = new ArrayList<Provider>();
         Set<String> discovered = new HashSet<String>();
 
@@ -285,16 +285,14 @@ class ProviderLoaderService implements Service<Provider[]> {
     private static class ProviderConfig {
 
         private final String module;
-        private final String slot;
         private final boolean loadServices;
         private final String[] classNames;
         private final String path;
         private final String relativeTo;
         private final List<Property> propertyList;
 
-        private ProviderConfig(String module, String slot, boolean loadServices, String[] classNames, String path, String relativeTo, List<Property> propertyList) {
+        private ProviderConfig(String module, boolean loadServices, String[] classNames, String path, String relativeTo, List<Property> propertyList) {
             this.module = module;
-            this.slot = slot;
             this.loadServices = loadServices;
             this.classNames = classNames;
             this.path = path;
@@ -304,10 +302,6 @@ class ProviderLoaderService implements Service<Provider[]> {
 
         private String getModule() {
             return module;
-        }
-
-        private String getSlot() {
-            return slot;
         }
 
         private boolean loadServices() {
@@ -368,7 +362,6 @@ class ProviderLoaderService implements Service<Provider[]> {
         private final ProviderLoaderServiceBuilder serviceBuilder;
 
         private String module;
-        private String slot;
         private boolean loadServices;
         private String[] classNames;
         private String path;
@@ -381,12 +374,6 @@ class ProviderLoaderService implements Service<Provider[]> {
 
         ProviderConfigBuilder setModule(String module) {
             this.module = module;
-
-            return this;
-        }
-
-        ProviderConfigBuilder setSlot(String slot) {
-            this.slot = slot;
 
             return this;
         }
@@ -426,7 +413,7 @@ class ProviderLoaderService implements Service<Provider[]> {
         }
 
         ProviderLoaderServiceBuilder build() {
-            serviceBuilder.add(new ProviderConfig(module, slot, loadServices, classNames, path, relativeTo, propertyList));
+            serviceBuilder.add(new ProviderConfig(module, loadServices, classNames, path, relativeTo, propertyList));
 
             return serviceBuilder;
         }

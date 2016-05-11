@@ -10,12 +10,12 @@
             <name-rewriter name="AggregateOne" />
         </chained-name-rewriter>
         <constant-name-rewriter name="ConstantOne" constant="constant" />
-        <custom-name-rewriter name="CustomOne" class-name="org.wildfly.elytron.CustomRewriter" module="a.b" slot="c" />
+        <custom-name-rewriter name="CustomOne" class-name="org.wildfly.elytron.CustomRewriter" module="a.b" />
         <regex-name-rewriter name="RegexOne" pattern=".?" replacement="X" replace-all="true" />
         <regex-name-validating-rewriter name="RegexTwo" pattern="p*" match="false" />
         
-        <custom-permission-mapper name="CustomPermissionMapper" class-name="org.wildfly.elytron.CustomPermissionMapper" module="l.m" slot="n" />
-        <custom-permission-mapper name="CustomPermissionMapper2" class-name="org.wildfly.elytron.CustomPermissionMapper" module="l.m" slot="n" />
+        <custom-permission-mapper name="CustomPermissionMapper" class-name="org.wildfly.elytron.CustomPermissionMapper" module="l.m" />
+        <custom-permission-mapper name="CustomPermissionMapper2" class-name="org.wildfly.elytron.CustomPermissionMapper" module="l.m" />
         <logical-permission-mapper name="LogicalPermissionMapper" logical-operation="unless" left="CustomPermissionMapper" right="CustomPermissionMapper2" />
         
         <aggregate-principal-decoder name="AggregatePrincipalDecoder">
@@ -32,20 +32,20 @@
             <principal-decoder name="ConstantPrincipalDecoder" />
         </concatenating-principal-decoder>
         <constant-principal-decoder name="ConstantPrincipalDecoder" constant="constant" />
-        <custom-principal-decoder name="CustomPrincipalDecoderOne" class-name="org.wildfly.elytron.CustomPrincipalDecoder" module="i.j" slot="k" />
-        <custom-principal-decoder name="CustomPrincipalDecoderTwo" class-name="org.wildfly.elytron.CustomPrincipalDecoder" module="i.j" slot="k" />
+        <custom-principal-decoder name="CustomPrincipalDecoderOne" class-name="org.wildfly.elytron.CustomPrincipalDecoder" module="i.j" />
+        <custom-principal-decoder name="CustomPrincipalDecoderTwo" class-name="org.wildfly.elytron.CustomPrincipalDecoder" module="i.j" />
         <x500-attribute-principal-decoder name="X500PrincipalDecoderOne" oid="2.5.4.3" joiner="," maximum-segments="6" />
         <x500-attribute-principal-decoder name="X500PrincipalDecoderTwo" oid="2.5.4.3" joiner="." start-segment="2" maximum-segments="6" reverse="true" />
         <x500-attribute-principal-decoder name="X500PrincipalDecoderThree" oid="2.5.4.3" joiner="." start-segment="2" maximum-segments="6" reverse="true" required-oids="2.5.4.3 2.5.4.11"/>
 
-        <custom-realm-mapper name="CustomRealmOne" class-name="org.wildfly.elytron.CustomRealmMapper" module="c.d" slot="e" />
+        <custom-realm-mapper name="CustomRealmOne" class-name="org.wildfly.elytron.CustomRealmMapper" module="c.d" />
         <simple-regex-realm-mapper name="SimpleOne" pattern=".?" delegate-realm-mapper="CustomRealmOne" />
         <mapped-regex-realm-mapper name="MappedOne" pattern=".?" delegate-realm-mapper="SimpleOne">
             <realm-mapping from="a" to="b" />
             <realm-mapping from="c" to="d" />
         </mapped-regex-realm-mapper>
         
-        <custom-role-decoder name="CustomDecoderOne" class-name="org.wildfly.elytron.CustomRoleDecoder" module="f.g" slot="h" />
+        <custom-role-decoder name="CustomDecoderOne" class-name="org.wildfly.elytron.CustomRoleDecoder" module="f.g" />
         <empty-role-decoder name="EmptyRoleDecoder" />
         <simple-role-decoder name="SimpleRoleDecoder" attribute="groups" />
         
@@ -56,7 +56,7 @@
             <role-mapper name="AddSuffix" />
         </aggregate-role-mapper>
         <constant-role-mapper name="ConstantRoles" roles="a b c" />
-        <custom-role-mapper name="CustomRoleOne" class-name="org.wildfly.elytron.CustomRoleMapper" module="i.j" slot="k" />
+        <custom-role-mapper name="CustomRoleOne" class-name="org.wildfly.elytron.CustomRoleMapper" module="i.j" />
         <logical-role-mapper name="AdditionalRoles" logical-operation="and" left="ConstantRoles" right="CustomRoleOne" />
     </mappers>
 </subsystem>

@@ -11,7 +11,7 @@
     </security-realms>
     <provider-loaders>
         <provider-loader name="TestProviderLoader">
-            <provider module="test.module" slot="testing" />
+            <provider module="test.module" />
         </provider-loader>
     </provider-loaders>
     <mappers>
@@ -57,6 +57,6 @@
             <sasl-server-factory name="ServiceSaslFactory" />
         </aggregate-sasl-server-factory>
         <provider-sasl-server-factory name="ProviderSaslFactory" provider-loader="TestProviderLoader" />
-        <service-loader-sasl-server-factory name="ServiceSaslFactory" module="a.b.c" slot="other" />
+        <service-loader-sasl-server-factory name="ServiceSaslFactory" module="a.b.c" />
     </sasl>
 </subsystem>
