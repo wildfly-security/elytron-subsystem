@@ -116,7 +116,6 @@ class SSLDefinitions {
             .build();
 
     static final SimpleAttributeDefinition SECURITY_DOMAIN = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.SECURITY_DOMAIN, ModelType.STRING, true)
-            .setAllowExpression(true)
             .setMinSize(1)
             .setCapabilityReference(SECURITY_DOMAIN_CAPABILITY, SSL_CONTEXT_CAPABILITY, true)
             .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
@@ -170,14 +169,12 @@ class SSLDefinitions {
             .build();
 
     static final SimpleAttributeDefinition KEY_MANAGERS = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.KEY_MANAGERS, ModelType.STRING, true)
-            .setAllowExpression(true)
             .setMinSize(1)
             .setCapabilityReference(KEY_MANAGERS_CAPABILITY, SSL_CONTEXT_CAPABILITY, true)
             .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
             .build();
 
     static final SimpleAttributeDefinition TRUST_MANAGERS = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.TRUST_MANAGERS, ModelType.STRING, true)
-            .setAllowExpression(true)
             .setMinSize(1)
             .setCapabilityReference(TRUST_MANAGERS_CAPABILITY, SSL_CONTEXT_CAPABILITY, true)
             .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)

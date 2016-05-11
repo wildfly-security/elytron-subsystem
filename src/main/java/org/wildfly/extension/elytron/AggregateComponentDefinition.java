@@ -91,7 +91,6 @@ class AggregateComponentDefinition<T> extends SimpleResourceDefinition {
         String capabilityName = runtimeCapability.getName();
         StringListAttributeDefinition aggregateReferences = new StringListAttributeDefinition.Builder(referencesName)
             .setMinSize(2)
-            .setAllowExpression(true)
             .setAllowNull(false)
             .setCapabilityReference(capabilityName, capabilityName, true)
             .build();

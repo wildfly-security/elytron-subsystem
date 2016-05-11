@@ -62,7 +62,6 @@ class KeyStoreRealmDefinition extends SimpleResourceDefinition {
     static final ServiceUtil<SecurityRealm> REALM_SERVICE_UTIL = ServiceUtil.newInstance(SECURITY_REALM_RUNTIME_CAPABILITY, ElytronDescriptionConstants.KEYSTORE_REALM, SecurityRealm.class);
 
     static final SimpleAttributeDefinition KEYSTORE = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.KEYSTORE, ModelType.STRING, false)
-        .setAllowExpression(true)
         .setMinSize(1)
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
         .setCapabilityReference(KEYSTORE_CAPABILITY, SECURITY_REALM_CAPABILITY, true)

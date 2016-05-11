@@ -101,7 +101,6 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
 
     static final SimpleAttributeDefinition PROVIDER_LOADER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PROVIDER_LOADER, ModelType.STRING, true)
         .setAttributeGroup(ElytronDescriptionConstants.IMPLEMENTATION)
-        .setAllowExpression(true)
         .setMinSize(1)
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
         .setCapabilityReference(PROVIDERS_CAPABILITY, KEYSTORE_CAPABILITY, true)
