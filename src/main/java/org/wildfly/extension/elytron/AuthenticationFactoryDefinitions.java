@@ -293,7 +293,7 @@ class AuthenticationFactoryDefinitions {
         AttributeDefinition mechanismConfigurationAttribute = getMechanismConfiguration(HTTP_SERVER_AUTHENTICATION_CAPABILITY);
 
         AttributeDefinition[] attributes = new AttributeDefinition[] { securityDomainAttribute, HTTP_SERVER_FACTORY, mechanismConfigurationAttribute };
-        AbstractAddStepHandler add = new TrivialAddHandler<HttpAuthenticationFactory>(HTTP_SERVER_AUTHENTICATION_RUNTIME_CAPABILITY, HttpAuthenticationFactory.class, attributes) {
+        AbstractAddStepHandler add = new TrivialAddHandler<HttpAuthenticationFactory>(HttpAuthenticationFactory.class, attributes, HTTP_SERVER_AUTHENTICATION_RUNTIME_CAPABILITY) {
 
             @Override
             protected ValueSupplier<HttpAuthenticationFactory> getValueSupplier(
@@ -329,8 +329,8 @@ class AuthenticationFactoryDefinitions {
             }
         };
 
-        return wrap(new TrivialResourceDefinition<>(ElytronDescriptionConstants.HTTP_SERVER_AUTHENTICATION, HTTP_SERVER_AUTHENTICATION_RUNTIME_CAPABILITY,
-                HttpAuthenticationFactory.class, add, attributes), AuthenticationFactoryDefinitions::getAvailableHttpMechanisms);
+        return wrap(new TrivialResourceDefinition(ElytronDescriptionConstants.HTTP_SERVER_AUTHENTICATION,
+                add, attributes, HTTP_SERVER_AUTHENTICATION_RUNTIME_CAPABILITY), AuthenticationFactoryDefinitions::getAvailableHttpMechanisms);
     }
 
     private static String[] getAvailableHttpMechanisms(OperationContext context) {
@@ -355,7 +355,7 @@ class AuthenticationFactoryDefinitions {
 
         AttributeDefinition[] attributes = new AttributeDefinition[] { securityDomainAttribute, SASL_SERVER_FACTORY, mechanismConfigurationAttribute };
 
-        AbstractAddStepHandler add = new TrivialAddHandler<SaslAuthenticationFactory>(SASL_SERVER_AUTHENTICATION_RUNTIME_CAPABILITY, SaslAuthenticationFactory.class, attributes) {
+        AbstractAddStepHandler add = new TrivialAddHandler<SaslAuthenticationFactory>(SaslAuthenticationFactory.class, attributes, SASL_SERVER_AUTHENTICATION_RUNTIME_CAPABILITY) {
 
             @Override
             protected ValueSupplier<SaslAuthenticationFactory> getValueSupplier(
@@ -392,8 +392,8 @@ class AuthenticationFactoryDefinitions {
             }
         };
 
-        return wrap(new TrivialResourceDefinition<SaslAuthenticationFactory>(ElytronDescriptionConstants.SASL_SERVER_AUTHENTICATION,
-                SASL_SERVER_AUTHENTICATION_RUNTIME_CAPABILITY, SaslAuthenticationFactory.class, add, attributes), AuthenticationFactoryDefinitions::getAvailableSaslMechanisms);
+        return wrap(new TrivialResourceDefinition(ElytronDescriptionConstants.SASL_SERVER_AUTHENTICATION,
+                add, attributes, SASL_SERVER_AUTHENTICATION_RUNTIME_CAPABILITY), AuthenticationFactoryDefinitions::getAvailableSaslMechanisms);
     }
 
     private static String[] getAvailableSaslMechanisms(OperationContext context) {

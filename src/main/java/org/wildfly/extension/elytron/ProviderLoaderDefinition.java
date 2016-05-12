@@ -87,7 +87,7 @@ class ProviderLoaderDefinition extends SimpleResourceDefinition {
         .build();
 
     private static final AbstractAddStepHandler ADD = new ProviderAddHandler();
-    private static final OperationStepHandler REMOVE = new SingleCapabilityServiceRemoveHandler<Provider[]>(ADD, PROVIDERS_RUNTIME_CAPABILITY, Provider[].class);
+    private static final OperationStepHandler REMOVE = new TrivialCapabilityServiceRemoveHandler(ADD, PROVIDERS_RUNTIME_CAPABILITY);
     private static final OperationStepHandler WRITE = new WriteAttributeHandler();
 
     private static final StandardResourceDescriptionResolver RESOLVER = ElytronExtension.getResourceDescriptionResolver(ElytronDescriptionConstants.PROVIDER_LOADER);

@@ -126,7 +126,7 @@ class NameRewriterDefinitions {
             }
         };
 
-        private static final AbstractRemoveStepHandler REMOVE = new SingleCapabilityServiceRemoveHandler<NameRewriter>(ADD, NAME_REWRITER_RUNTIME_CAPABILITY, NameRewriter.class);
+        private static final AbstractRemoveStepHandler REMOVE = new TrivialCapabilityServiceRemoveHandler(ADD, NAME_REWRITER_RUNTIME_CAPABILITY);
 
         private RegexNameRewriterDefinition() {
             super(new Parameters(PathElement.pathElement(ElytronDescriptionConstants.REGEX_NAME_REWRITER), ElytronExtension.getResourceDescriptionResolver(ElytronDescriptionConstants.REGEX_NAME_REWRITER))
@@ -164,7 +164,7 @@ class NameRewriterDefinitions {
 
         };
 
-        private static final AbstractRemoveStepHandler REMOVE = new SingleCapabilityServiceRemoveHandler<NameRewriter>(ADD, NAME_REWRITER_RUNTIME_CAPABILITY, NameRewriter.class);
+        private static final AbstractRemoveStepHandler REMOVE = new TrivialCapabilityServiceRemoveHandler(ADD, NAME_REWRITER_RUNTIME_CAPABILITY);
 
         private RegexNameValidatingRewriterDefinition() {
             super(new Parameters(PathElement.pathElement(ElytronDescriptionConstants.REGEX_NAME_VALIDATING_REWRITER),
@@ -199,7 +199,7 @@ class NameRewriterDefinitions {
 
         };
 
-        private static final AbstractRemoveStepHandler REMOVE = new SingleCapabilityServiceRemoveHandler<NameRewriter>(ADD, NAME_REWRITER_RUNTIME_CAPABILITY, NameRewriter.class);
+        private static final AbstractRemoveStepHandler REMOVE = new TrivialCapabilityServiceRemoveHandler(ADD, NAME_REWRITER_RUNTIME_CAPABILITY);
 
         private ConstantNameRewriterDefinition() {
             super(new Parameters(PathElement.pathElement(ElytronDescriptionConstants.CONSTANT_NAME_REWRITER),

@@ -72,7 +72,7 @@ class AggregateRealmDefinition extends SimpleResourceDefinition {
     private static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] { AUTHENTICATION_REALM, AUTHORIZATION_REALM };
 
     private static final AbstractAddStepHandler ADD = new RealmAddHandler();
-    private static final OperationStepHandler REMOVE = new SingleCapabilityServiceRemoveHandler<SecurityRealm>(ADD, SECURITY_REALM_RUNTIME_CAPABILITY, SecurityRealm.class);
+    private static final OperationStepHandler REMOVE = new TrivialCapabilityServiceRemoveHandler(ADD, SECURITY_REALM_RUNTIME_CAPABILITY);
 
     AggregateRealmDefinition() {
         super(new Parameters(PathElement.pathElement(ElytronDescriptionConstants.AGGREGATE_REALM), ElytronExtension.getResourceDescriptionResolver(ElytronDescriptionConstants.AGGREGATE_REALM))

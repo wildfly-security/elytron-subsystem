@@ -151,7 +151,7 @@ class PrincipalDecoderDefinitions {
 
     static ResourceDefinition getConcatenatingPrincipalDecoder() {
         AttributeDefinition[] attributes = new AttributeDefinition[] { JOINER, PRINCIPAL_DECODERS };
-        AbstractAddStepHandler add = new TrivialAddHandler<PrincipalDecoder>(PRINCIPAL_DECODER_RUNTIME_CAPABILITY, PrincipalDecoder.class, Mode.LAZY, attributes) {
+        AbstractAddStepHandler add = new TrivialAddHandler<PrincipalDecoder>(PrincipalDecoder.class, Mode.LAZY, attributes, PRINCIPAL_DECODER_RUNTIME_CAPABILITY) {
 
             @Override
             protected ValueSupplier<PrincipalDecoder> getValueSupplier(ServiceBuilder<PrincipalDecoder> serviceBuilder,
@@ -191,7 +191,7 @@ class PrincipalDecoderDefinitions {
             super(new Parameters(PathElement.pathElement(pathKey),
                     ElytronExtension.getResourceDescriptionResolver(pathKey))
                 .setAddHandler(add)
-                .setRemoveHandler(new SingleCapabilityServiceRemoveHandler<PrincipalDecoder>(add, PRINCIPAL_DECODER_RUNTIME_CAPABILITY, PrincipalDecoder.class))
+                .setRemoveHandler(new TrivialCapabilityServiceRemoveHandler(add, PRINCIPAL_DECODER_RUNTIME_CAPABILITY))
                 .setAddRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
                 .setRemoveRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
                 .setCapabilities(PRINCIPAL_DECODER_RUNTIME_CAPABILITY));

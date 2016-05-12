@@ -195,7 +195,7 @@ class SSLDefinitions {
 
         AttributeDefinition[] attributes = new AttributeDefinition[] { ALGORITHM, providerLoaderDefinition, keystoreDefinition, PASSWORD };
 
-        AbstractAddStepHandler add = new TrivialAddHandler<KeyManager[]>(KEY_MANAGERS_RUNTIME_CAPABILITY, KeyManager[].class, attributes) {
+        AbstractAddStepHandler add = new TrivialAddHandler<KeyManager[]>(KeyManager[].class, attributes, KEY_MANAGERS_RUNTIME_CAPABILITY) {
 
             @Override
             protected ValueSupplier<KeyManager[]> getValueSupplier(ServiceBuilder<KeyManager[]> serviceBuilder, OperationContext context, ModelNode model) throws OperationFailedException {
@@ -251,7 +251,7 @@ class SSLDefinitions {
             }
         };
 
-        return new TrivialResourceDefinition<>(ElytronDescriptionConstants.KEY_MANAGERS, KEY_MANAGERS_RUNTIME_CAPABILITY, KeyManager[].class, add, attributes);
+        return new TrivialResourceDefinition(ElytronDescriptionConstants.KEY_MANAGERS, add, attributes, KEY_MANAGERS_RUNTIME_CAPABILITY);
 
     }
 
@@ -261,7 +261,7 @@ class SSLDefinitions {
 
         AttributeDefinition[] attributes = new AttributeDefinition[] { ALGORITHM, providerLoaderDefinition, keystoreDefinition };
 
-        AbstractAddStepHandler add = new TrivialAddHandler<TrustManager[]>(TRUST_MANAGERS_RUNTIME_CAPABILITY, TrustManager[].class, attributes) {
+        AbstractAddStepHandler add = new TrivialAddHandler<TrustManager[]>(TrustManager[].class, attributes, TRUST_MANAGERS_RUNTIME_CAPABILITY) {
 
             @Override
             protected ValueSupplier<TrustManager[]> getValueSupplier(ServiceBuilder<TrustManager[]> serviceBuilder, OperationContext context, ModelNode model) throws OperationFailedException {
@@ -316,7 +316,7 @@ class SSLDefinitions {
             }
         };
 
-        return new TrivialResourceDefinition<>(ElytronDescriptionConstants.TRUST_MANAGERS, TRUST_MANAGERS_RUNTIME_CAPABILITY, TrustManager[].class, add, attributes);
+        return new TrivialResourceDefinition(ElytronDescriptionConstants.TRUST_MANAGERS, add, attributes, TRUST_MANAGERS_RUNTIME_CAPABILITY);
 
     }
 
@@ -326,7 +326,7 @@ class SSLDefinitions {
         AttributeDefinition[] attributes = new AttributeDefinition[] { SECURITY_DOMAIN, CIPHER_SUITE_FILTER, PROTOCOLS, WANT_CLIENT_AUTH, NEED_CLIENT_AUTH, AUTHENTICATION_OPTIONAL,
                 MAXIMUM_SESSION_CACHE_SIZE, SESSION_TIMEOUT, KEY_MANAGERS, TRUST_MANAGERS, providerLoaderDefinition };
 
-        AbstractAddStepHandler add = new TrivialAddHandler<SSLContext>(SSL_CONTEXT_RUNTIME_CAPABILITY, SSLContext.class, attributes) {
+        AbstractAddStepHandler add = new TrivialAddHandler<SSLContext>(SSLContext.class, attributes, SSL_CONTEXT_RUNTIME_CAPABILITY) {
 
             @Override
             protected ValueSupplier<SSLContext> getValueSupplier(ServiceBuilder<SSLContext> serviceBuilder, OperationContext context, ModelNode model) throws OperationFailedException {
@@ -432,7 +432,7 @@ class SSLDefinitions {
 
         };
 
-        return new TrivialResourceDefinition<SSLContext>(ElytronDescriptionConstants.SERVER_SSL_CONTEXT, SSL_CONTEXT_RUNTIME_CAPABILITY, SSLContext.class, add, attributes) {
+        return new TrivialResourceDefinition(ElytronDescriptionConstants.SERVER_SSL_CONTEXT, add, attributes, SSL_CONTEXT_RUNTIME_CAPABILITY) {
 
             @Override
             public void registerAttributes(ManagementResourceRegistration resourceRegistration) {

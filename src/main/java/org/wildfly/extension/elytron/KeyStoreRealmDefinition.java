@@ -68,7 +68,7 @@ class KeyStoreRealmDefinition extends SimpleResourceDefinition {
         .build();
 
     private static final AbstractAddStepHandler ADD = new RealmAddHandler();
-    private static final OperationStepHandler REMOVE = new SingleCapabilityServiceRemoveHandler<SecurityRealm>(ADD, SECURITY_REALM_RUNTIME_CAPABILITY, SecurityRealm.class);
+    private static final OperationStepHandler REMOVE = new TrivialCapabilityServiceRemoveHandler(ADD, SECURITY_REALM_RUNTIME_CAPABILITY);
 
     KeyStoreRealmDefinition() {
         super(new Parameters(PathElement.pathElement(ElytronDescriptionConstants.KEY_STORE_REALM), ElytronExtension.getResourceDescriptionResolver(ElytronDescriptionConstants.KEY_STORE_REALM))

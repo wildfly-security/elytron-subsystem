@@ -196,7 +196,7 @@ class RoleMapperDefinitions {
             super(new Parameters(PathElement.pathElement(pathKey),
                     ElytronExtension.getResourceDescriptionResolver(pathKey))
                 .setAddHandler(add)
-                .setRemoveHandler(new SingleCapabilityServiceRemoveHandler<RoleMapper>(add, ROLE_MAPPER_RUNTIME_CAPABILITY, RoleMapper.class))
+                .setRemoveHandler(new TrivialCapabilityServiceRemoveHandler(add, ROLE_MAPPER_RUNTIME_CAPABILITY))
                 .setAddRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
                 .setRemoveRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
                 .setCapabilities(ROLE_MAPPER_RUNTIME_CAPABILITY));

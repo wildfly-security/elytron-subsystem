@@ -69,7 +69,7 @@ class PermissionMapperDefinitions {
 
     static ResourceDefinition getLogicalPermissionMapper() {
         AttributeDefinition[] attributes = new AttributeDefinition[] {LOGICAL_OPERATION, LEFT, RIGHT};
-        TrivialAddHandler<PermissionMapper> add = new TrivialAddHandler<PermissionMapper>(PERMISSION_MAPPER_RUNTIME_CAPABILITY, PermissionMapper.class, attributes) {
+        TrivialAddHandler<PermissionMapper> add = new TrivialAddHandler<PermissionMapper>(PermissionMapper.class, attributes, PERMISSION_MAPPER_RUNTIME_CAPABILITY) {
 
             @Override
             protected ValueSupplier<PermissionMapper> getValueSupplier(ServiceBuilder<PermissionMapper> serviceBuilder,
@@ -90,7 +90,7 @@ class PermissionMapperDefinitions {
             }
         };
 
-        return new TrivialResourceDefinition<PermissionMapper>(ElytronDescriptionConstants.LOGICAL_PERMISSION_MAPPER, PERMISSION_MAPPER_RUNTIME_CAPABILITY, PermissionMapper.class, add, attributes);
+        return new TrivialResourceDefinition(ElytronDescriptionConstants.LOGICAL_PERMISSION_MAPPER, add, attributes, PERMISSION_MAPPER_RUNTIME_CAPABILITY);
     }
 
     private enum LogicalOperation {

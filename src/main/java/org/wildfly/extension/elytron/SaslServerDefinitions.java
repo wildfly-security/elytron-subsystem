@@ -410,7 +410,7 @@ class SaslServerDefinitions {
             super(new Parameters(PathElement.pathElement(pathKey),
                     ElytronExtension.getResourceDescriptionResolver(pathKey))
                 .setAddHandler(add)
-                .setRemoveHandler(new SingleCapabilityServiceRemoveHandler<SaslServerFactory>(add, SASL_SERVER_FACTORY_RUNTIME_CAPABILITY, SaslServerFactory.class))
+                .setRemoveHandler(new TrivialCapabilityServiceRemoveHandler(add, SASL_SERVER_FACTORY_RUNTIME_CAPABILITY))
                 .setAddRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
                 .setRemoveRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
                 .setCapabilities(SASL_SERVER_FACTORY_RUNTIME_CAPABILITY));

@@ -53,7 +53,7 @@ class EmptyResourceDefinition extends SimpleResourceDefinition {
 
     static <T> ResourceDefinition create(Class<T> valueType, String pathKey, RuntimeCapability<?> runtimeCapability, ValueSupplier<T> valueSupplier) {
         AbstractAddStepHandler add = new ResourceAddHandler<T>(valueType, runtimeCapability, valueSupplier);
-        OperationStepHandler remove = new SingleCapabilityServiceRemoveHandler<T>(add, runtimeCapability, valueType);
+        OperationStepHandler remove = new TrivialCapabilityServiceRemoveHandler(add, runtimeCapability);
         return new EmptyResourceDefinition(pathKey, runtimeCapability, add, remove);
     }
 

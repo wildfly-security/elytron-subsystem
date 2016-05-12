@@ -61,7 +61,7 @@ import org.wildfly.security.auth.server.SecurityRealm;
  *
  * @author <a href="mailto:darran.lofthouse@jboss.com">Darran Lofthouse</a>
  */
-class PropertiesRealmDefinition extends TrivialResourceDefinition<SecurityRealm> {
+class PropertiesRealmDefinition extends TrivialResourceDefinition {
 
     static final ServiceUtil<SecurityRealm> REALM_SERVICE_UTIL = ServiceUtil.newInstance(SECURITY_REALM_RUNTIME_CAPABILITY, ElytronDescriptionConstants.PROPERTIES_REALM, SecurityRealm.class);
 
@@ -89,7 +89,7 @@ class PropertiesRealmDefinition extends TrivialResourceDefinition<SecurityRealm>
 
     private static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] { USERS_PROPERTIES, GROUPS_PROPERTIES, PLAIN_TEXT, GROUPS_ATTRIBUTE };
 
-    private static final AbstractAddStepHandler ADD = new TrivialAddHandler<SecurityRealm>(SECURITY_REALM_RUNTIME_CAPABILITY, SecurityRealm.class, ATTRIBUTES) {
+    private static final AbstractAddStepHandler ADD = new TrivialAddHandler<SecurityRealm>(SecurityRealm.class, ATTRIBUTES, SECURITY_REALM_RUNTIME_CAPABILITY) {
 
         @Override
         protected ValueSupplier<SecurityRealm> getValueSupplier(ServiceBuilder<SecurityRealm> serviceBuilder,
@@ -188,7 +188,7 @@ class PropertiesRealmDefinition extends TrivialResourceDefinition<SecurityRealm>
     };
 
     PropertiesRealmDefinition() {
-        super(ElytronDescriptionConstants.PROPERTIES_REALM, SECURITY_REALM_RUNTIME_CAPABILITY, SecurityRealm.class, ADD, ATTRIBUTES);
+        super(ElytronDescriptionConstants.PROPERTIES_REALM, ADD, ATTRIBUTES, SECURITY_REALM_RUNTIME_CAPABILITY);
     }
 
 }

@@ -94,7 +94,7 @@ class FileSystemRealmDefinition extends SimpleResourceDefinition {
             new AttributeDefinition[]{PATH, RELATIVE_TO, LEVELS, NAME_REWRITER};
 
     private static final AbstractAddStepHandler ADD = new RealmAddHandler();
-    private static final OperationStepHandler REMOVE = new SingleCapabilityServiceRemoveHandler<SecurityRealm>(ADD, SECURITY_REALM_RUNTIME_CAPABILITY, SecurityRealm.class);
+    private static final OperationStepHandler REMOVE = new TrivialCapabilityServiceRemoveHandler(ADD, SECURITY_REALM_RUNTIME_CAPABILITY);
 
     FileSystemRealmDefinition() {
         super(new Parameters(PathElement.pathElement(ElytronDescriptionConstants.FILESYSTEM_REALM),

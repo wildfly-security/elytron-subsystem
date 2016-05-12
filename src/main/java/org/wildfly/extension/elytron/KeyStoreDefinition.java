@@ -156,7 +156,7 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
     private static final AttributeDefinition[] CONFIG_ATTRIBUTES = new AttributeDefinition[] { TYPE, PROVIDER, PASSWORD, PATH, RELATIVE_TO, PROVIDER_LOADER, REQUIRED, ALIAS_FILTER };
 
     private static final KeyStoreAddHandler ADD = new KeyStoreAddHandler();
-    private static final OperationStepHandler REMOVE = new SingleCapabilityServiceRemoveHandler<KeyStore>(ADD, KEY_STORE_RUNTIME_CAPABILITY, KeyStore.class);
+    private static final OperationStepHandler REMOVE = new TrivialCapabilityServiceRemoveHandler(ADD, KEY_STORE_RUNTIME_CAPABILITY);
     private static final WriteAttributeHandler WRITE = new WriteAttributeHandler();
 
     KeyStoreDefinition() {

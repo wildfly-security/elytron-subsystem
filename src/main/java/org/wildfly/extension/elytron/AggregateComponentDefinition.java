@@ -87,7 +87,7 @@ class AggregateComponentDefinition<T> extends SimpleResourceDefinition {
             .build();
 
         AbstractAddStepHandler add = new AggregateComponentAddHandler<T>(aggregationType, aggregator, aggregateReferences, runtimeCapability);
-        OperationStepHandler remove = new SingleCapabilityServiceRemoveHandler<T>(add, runtimeCapability, aggregationType);
+        OperationStepHandler remove = new TrivialCapabilityServiceRemoveHandler(add, runtimeCapability);
         OperationStepHandler write = new WriteAttributeHandler<T>(aggregationType, runtimeCapability, componentName, aggregateReferences);
 
         return new AggregateComponentDefinition<T>(aggregationType, componentName, add, remove, aggregateReferences, write, runtimeCapability);

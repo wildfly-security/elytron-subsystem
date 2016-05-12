@@ -111,7 +111,7 @@ class RealmMapperDefinitions {
         private static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] { PATTERN, DELEGATE_REALM_MAPPER };
 
         private static final AbstractAddStepHandler ADD = new SimpleRegexRealmMapperAddHandler(ATTRIBUTES);
-        private static final OperationStepHandler REMOVE = new SingleCapabilityServiceRemoveHandler<RealmMapper>(ADD, REALM_MAPPER_RUNTIME_CAPABILITY, RealmMapper.class);
+        private static final OperationStepHandler REMOVE = new TrivialCapabilityServiceRemoveHandler(ADD, REALM_MAPPER_RUNTIME_CAPABILITY);
 
         private SimpleRegexRealmMapperDefinition() {
             super(new Parameters(PathElement.pathElement(ElytronDescriptionConstants.SIMPLE_REGEX_REALM_MAPPER), ElytronExtension.getResourceDescriptionResolver(ElytronDescriptionConstants.SIMPLE_REGEX_REALM_MAPPER))
@@ -181,7 +181,7 @@ class RealmMapperDefinitions {
         private static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] { PATTERN, REALM_REALM_MAP, DELEGATE_REALM_MAPPER };
 
         private static final AbstractAddStepHandler ADD = new MappedRegexRealmMapperAddHandler(ATTRIBUTES);
-        private static final OperationStepHandler REMOVE = new SingleCapabilityServiceRemoveHandler<RealmMapper>(ADD, REALM_MAPPER_RUNTIME_CAPABILITY, RealmMapper.class);
+        private static final OperationStepHandler REMOVE = new TrivialCapabilityServiceRemoveHandler(ADD, REALM_MAPPER_RUNTIME_CAPABILITY);
 
         private MappedRegexRealmMapperDefinition() {
             super(new Parameters(PathElement.pathElement(ElytronDescriptionConstants.MAPPED_REGEX_REALM_MAPPER), ElytronExtension.getResourceDescriptionResolver(ElytronDescriptionConstants.MAPPED_REGEX_REALM_MAPPER))

@@ -119,7 +119,7 @@ class HttpServerDefinitions {
 
     static ResourceDefinition getConfigurableHttpServerFactoryDefinition() {
         AttributeDefinition[] attributes = new AttributeDefinition[] { HTTP_SERVER_FACTORY, CONFIGURED_FILTERS, PROPERTIES };
-        AbstractAddStepHandler add = new TrivialAddHandler<HttpServerAuthenticationMechanismFactory>(HTTP_SERVER_FACTORY_RUNTIME_CAPABILITY, HttpServerAuthenticationMechanismFactory.class, attributes) {
+        AbstractAddStepHandler add = new TrivialAddHandler<HttpServerAuthenticationMechanismFactory>(HttpServerAuthenticationMechanismFactory.class, attributes, HTTP_SERVER_FACTORY_RUNTIME_CAPABILITY) {
 
             @Override
             protected ValueSupplier<HttpServerAuthenticationMechanismFactory> getValueSupplier(
@@ -172,13 +172,13 @@ class HttpServerDefinitions {
             }
         };
 
-        return wrapFactory(new TrivialResourceDefinition<>(ElytronDescriptionConstants.CONFIGURABLE_HTTP_SERVER_FACTORY,
-                HTTP_SERVER_FACTORY_RUNTIME_CAPABILITY, HttpServerAuthenticationMechanismFactory.class, add, attributes));
+        return wrapFactory(new TrivialResourceDefinition(ElytronDescriptionConstants.CONFIGURABLE_HTTP_SERVER_FACTORY,
+                add, attributes, HTTP_SERVER_FACTORY_RUNTIME_CAPABILITY));
     }
 
     static ResourceDefinition getProviderHttpServerFactoryDefinition() {
         AttributeDefinition[] attributes = new AttributeDefinition[] { PROVIDER_LOADER };
-        AbstractAddStepHandler add = new TrivialAddHandler<HttpServerAuthenticationMechanismFactory>(HTTP_SERVER_FACTORY_RUNTIME_CAPABILITY, HttpServerAuthenticationMechanismFactory.class, attributes) {
+        AbstractAddStepHandler add = new TrivialAddHandler<HttpServerAuthenticationMechanismFactory>(HttpServerAuthenticationMechanismFactory.class, attributes, HTTP_SERVER_FACTORY_RUNTIME_CAPABILITY) {
 
             @Override
             protected ValueSupplier<HttpServerAuthenticationMechanismFactory> getValueSupplier(
@@ -202,13 +202,13 @@ class HttpServerDefinitions {
 
         };
 
-        return wrapFactory(new TrivialResourceDefinition<HttpServerAuthenticationMechanismFactory>(ElytronDescriptionConstants.PROVIDER_HTTP_SERVER_FACTORY, HTTP_SERVER_FACTORY_RUNTIME_CAPABILITY,
-                HttpServerAuthenticationMechanismFactory.class, add, attributes));
+        return wrapFactory(new TrivialResourceDefinition(ElytronDescriptionConstants.PROVIDER_HTTP_SERVER_FACTORY, add,
+                attributes, HTTP_SERVER_FACTORY_RUNTIME_CAPABILITY));
     }
 
     static ResourceDefinition getServiceLoaderServerFactoryDefinition() {
         AttributeDefinition[] attributes = new AttributeDefinition[] { MODULE };
-        AbstractAddStepHandler add = new TrivialAddHandler<HttpServerAuthenticationMechanismFactory>(HTTP_SERVER_FACTORY_RUNTIME_CAPABILITY, HttpServerAuthenticationMechanismFactory.class, attributes) {
+        AbstractAddStepHandler add = new TrivialAddHandler<HttpServerAuthenticationMechanismFactory>(HttpServerAuthenticationMechanismFactory.class, attributes, HTTP_SERVER_FACTORY_RUNTIME_CAPABILITY) {
 
             @Override
             protected ValueSupplier<HttpServerAuthenticationMechanismFactory> getValueSupplier(
@@ -229,8 +229,8 @@ class HttpServerDefinitions {
             }
         };
 
-        return wrapFactory(new TrivialResourceDefinition<HttpServerAuthenticationMechanismFactory>(ElytronDescriptionConstants.SERVICE_LOADER_HTTP_SERVER_FACTORY, HTTP_SERVER_FACTORY_RUNTIME_CAPABILITY,
-                HttpServerAuthenticationMechanismFactory.class, add, attributes));
+        return wrapFactory(new TrivialResourceDefinition(ElytronDescriptionConstants.SERVICE_LOADER_HTTP_SERVER_FACTORY,
+                add, attributes, HTTP_SERVER_FACTORY_RUNTIME_CAPABILITY));
     }
 
     private static ResourceDefinition wrapFactory(ResourceDefinition resourceDefinition) {

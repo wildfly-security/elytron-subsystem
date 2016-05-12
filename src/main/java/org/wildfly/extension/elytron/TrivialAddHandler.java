@@ -21,6 +21,9 @@ package org.wildfly.extension.elytron;
 import static org.wildfly.common.Assert.checkNotNullParam;
 import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
 
+import java.util.Arrays;
+import java.util.HashSet;
+
 import org.jboss.as.controller.AttributeDefinition;
 import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
@@ -36,7 +39,6 @@ import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.ServiceTarget;
 import org.wildfly.extension.elytron.TrivialService.ValueSupplier;
 
-
 /**
  * A trivial {@link OperationStepHandler} for adding a {@link Service} for a resource.
  *
@@ -44,31 +46,34 @@ import org.wildfly.extension.elytron.TrivialService.ValueSupplier;
  */
 abstract class TrivialAddHandler<T> extends BaseAddHandler {
 
-    private final RuntimeCapability<?> runtimeCapability;
-    private final Class<T> serviceType;
+    private final RuntimeCapability<?>[] runtimeCapabilities;
     private final Mode initialMode;
 
-    TrivialAddHandler(RuntimeCapability<?> runtimeCapability, Class<T> serviceType, AttributeDefinition... attributes) {
-        this(runtimeCapability, serviceType, Mode.ACTIVE, attributes);
+    TrivialAddHandler(Class<T> serviceType, AttributeDefinition[] attributes, RuntimeCapability<?> ... runtimeCapabilities) {
+        this(serviceType, Mode.ACTIVE, attributes, runtimeCapabilities);
     }
 
-    TrivialAddHandler(RuntimeCapability<?> runtimeCapability, Class<T> serviceType, Mode initialMode, AttributeDefinition... attributes) {
-        super(checkNotNullParam("runtimeCapability", runtimeCapability), attributes);
-        this.runtimeCapability = runtimeCapability;
-        this.serviceType = checkNotNullParam("serviceType", serviceType);
+    TrivialAddHandler(Class<T> serviceType, Mode initialMode, AttributeDefinition[] attributes, RuntimeCapability<?> ... runtimeCapabilities) {
+        super( new HashSet<RuntimeCapability>( Arrays.asList(checkNotNullParam("runtimeCapabilities", runtimeCapabilities))), attributes);
+        this.runtimeCapabilities = runtimeCapabilities;
+        checkNotNullParam("serviceType", serviceType);
         this.initialMode = checkNotNullParam("initialMode", initialMode);
     }
 
     @Override
     protected final void performRuntime(OperationContext context, ModelNode operation, Resource resource)
             throws OperationFailedException {
-        RuntimeCapability<?> runtimeCapability = this.runtimeCapability.fromBaseCapability(context.getCurrentAddressValue());
-        ServiceName serviceName = runtimeCapability.getCapabilityServiceName(serviceType);
+        String address = context.getCurrentAddressValue();
+        ServiceName mainName = runtimeCapabilities[0].fromBaseCapability(address).getCapabilityServiceName();
 
         ServiceTarget serviceTarget = context.getServiceTarget();
         TrivialService<T> trivialService = new TrivialService<T>();
 
-        ServiceBuilder<T> serviceBuilder = serviceTarget.addService(serviceName, trivialService);
+        ServiceBuilder<T> serviceBuilder = serviceTarget.addService(mainName, trivialService);
+        for (int i= 1; i< runtimeCapabilities.length; i++) {
+            serviceBuilder.addAliases(runtimeCapabilities[i].fromBaseCapability(address).getCapabilityServiceName());
+        }
+
         trivialService.setValueSupplier(getValueSupplier(serviceBuilder, context, resource.getModel()));
 
         installedForResource(commonDependencies(serviceBuilder)

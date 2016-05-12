@@ -86,7 +86,7 @@ class ElytronDefinition extends SimpleResourceDefinition {
         resourceRegistration.registerSubModel(new DomainDefinition());
         // Security Realms
         resourceRegistration.registerSubModel(new AggregateRealmDefinition());
-        resourceRegistration.registerSubModel(SecurityRealmResourceDecorator.wrap(new CustomComponentDefinition<SecurityRealm>(SecurityRealm.class, SECURITY_REALM_RUNTIME_CAPABILITY, ElytronDescriptionConstants.CUSTOM_REALM)));
+        resourceRegistration.registerSubModel(SecurityRealmResourceDecorator.wrap(new CustomComponentDefinition<SecurityRealm>(SecurityRealm.class, ElytronDescriptionConstants.CUSTOM_REALM, SECURITY_REALM_RUNTIME_CAPABILITY)));
         resourceRegistration.registerSubModel(new JdbcRealmDefinition());
         resourceRegistration.registerSubModel(new KeyStoreRealmDefinition());
         resourceRegistration.registerSubModel(new PropertiesRealmDefinition());
@@ -97,28 +97,28 @@ class ElytronDefinition extends SimpleResourceDefinition {
         resourceRegistration.registerSubModel(NameRewriterDefinitions.getAggregateNameRewriterDefinition());
         resourceRegistration.registerSubModel(NameRewriterDefinitions.getChainedNameRewriterDefinition());
         resourceRegistration.registerSubModel(NameRewriterDefinitions.getConstantNameRewriterDefinition());
-        resourceRegistration.registerSubModel(new CustomComponentDefinition<NameRewriter>(NameRewriter.class, NAME_REWRITER_RUNTIME_CAPABILITY, ElytronDescriptionConstants.CUSTOM_NAME_REWRITER));
+        resourceRegistration.registerSubModel(new CustomComponentDefinition<NameRewriter>(NameRewriter.class, ElytronDescriptionConstants.CUSTOM_NAME_REWRITER, NAME_REWRITER_RUNTIME_CAPABILITY));
         resourceRegistration.registerSubModel(NameRewriterDefinitions.getRegexNameRewriterDefinition());
         resourceRegistration.registerSubModel(NameRewriterDefinitions.getRegexNameValidatingRewriterDefinition());
 
         // Permission Mappers
-        resourceRegistration.registerSubModel(new CustomComponentDefinition<PermissionMapper>(PermissionMapper.class, PERMISSION_MAPPER_RUNTIME_CAPABILITY, ElytronDescriptionConstants.CUSTOM_PERMISSION_MAPPER));
+        resourceRegistration.registerSubModel(new CustomComponentDefinition<PermissionMapper>(PermissionMapper.class, ElytronDescriptionConstants.CUSTOM_PERMISSION_MAPPER, PERMISSION_MAPPER_RUNTIME_CAPABILITY));
         resourceRegistration.registerSubModel(PermissionMapperDefinitions.getLogicalPermissionMapper());
 
         // Principal Decoders
         resourceRegistration.registerSubModel(PrincipalDecoderDefinitions.getAggregatePrincipalDecoderDefinition());
         resourceRegistration.registerSubModel(PrincipalDecoderDefinitions.getConcatenatingPrincipalDecoder());
         resourceRegistration.registerSubModel(PrincipalDecoderDefinitions.getConstantPrincipalDecoder());
-        resourceRegistration.registerSubModel(new CustomComponentDefinition<PrincipalDecoder>(PrincipalDecoder.class, PRINCIPAL_DECODER_RUNTIME_CAPABILITY, ElytronDescriptionConstants.CUSTOM_PRINCIPAL_DECODER));
+        resourceRegistration.registerSubModel(new CustomComponentDefinition<PrincipalDecoder>(PrincipalDecoder.class, ElytronDescriptionConstants.CUSTOM_PRINCIPAL_DECODER, PRINCIPAL_DECODER_RUNTIME_CAPABILITY));
         resourceRegistration.registerSubModel(PrincipalDecoderDefinitions.getX500AttributePrincipalDecoder());
 
         // Realm Mappers
-        resourceRegistration.registerSubModel(new CustomComponentDefinition<RealmMapper>(RealmMapper.class, REALM_MAPPER_RUNTIME_CAPABILITY, ElytronDescriptionConstants.CUSTOM_REALM_MAPPER));
+        resourceRegistration.registerSubModel(new CustomComponentDefinition<RealmMapper>(RealmMapper.class, ElytronDescriptionConstants.CUSTOM_REALM_MAPPER, REALM_MAPPER_RUNTIME_CAPABILITY));
         resourceRegistration.registerSubModel(RealmMapperDefinitions.getMappedRegexRealmMapper());
         resourceRegistration.registerSubModel(RealmMapperDefinitions.getSimpleRegexRealmMapperDefinition());
 
         // Role Decoders
-        resourceRegistration.registerSubModel(new CustomComponentDefinition<RoleDecoder>(RoleDecoder.class, ROLE_DECODER_RUNTIME_CAPABILITY, ElytronDescriptionConstants.CUSTOM_ROLE_DECODER));
+        resourceRegistration.registerSubModel(new CustomComponentDefinition<RoleDecoder>(RoleDecoder.class, ElytronDescriptionConstants.CUSTOM_ROLE_DECODER, ROLE_DECODER_RUNTIME_CAPABILITY));
         resourceRegistration.registerSubModel(RoleDecoderDefinitions.getEmptyRoleDecoderDefinition());
         resourceRegistration.registerSubModel(RoleDecoderDefinitions.getSimpleRoleDecoderDefinition());
 
@@ -127,7 +127,7 @@ class ElytronDefinition extends SimpleResourceDefinition {
         resourceRegistration.registerSubModel(RoleMapperDefinitions.getAddPrefixRoleMapperDefinition());
         resourceRegistration.registerSubModel(RoleMapperDefinitions.getAggregateRoleMapperDefinition());
         resourceRegistration.registerSubModel(RoleMapperDefinitions.getConstantRoleMapperDefinition());
-        resourceRegistration.registerSubModel(new CustomComponentDefinition<RoleMapper>(RoleMapper.class, ROLE_MAPPER_RUNTIME_CAPABILITY, ElytronDescriptionConstants.CUSTOM_ROLE_MAPPER));
+        resourceRegistration.registerSubModel(new CustomComponentDefinition<RoleMapper>(RoleMapper.class, ElytronDescriptionConstants.CUSTOM_ROLE_MAPPER, ROLE_MAPPER_RUNTIME_CAPABILITY));
         resourceRegistration.registerSubModel(RoleMapperDefinitions.getLogicalRoleMapperDefinition());
 
         // HTTP Mechanisms

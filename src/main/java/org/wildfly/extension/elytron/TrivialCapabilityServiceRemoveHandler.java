@@ -30,10 +30,9 @@ import org.jboss.msc.service.ServiceName;
  *
  * @author <a href="mailto:darran.lofthouse@jboss.com">Darran Lofthouse</a>
  */
-class SingleCapabilityServiceRemoveHandler<T> extends ServiceRemoveStepHandler {
+class TrivialCapabilityServiceRemoveHandler extends ServiceRemoveStepHandler {
 
-    private final RuntimeCapability<?> runtimeCapability;
-    private final Class<T> serviceType;
+    private final RuntimeCapability<?> firstCapability;
 
     /**
      * Construct an {@link OperationStepHandler} for removing a single service based on it's capability.
@@ -41,10 +40,9 @@ class SingleCapabilityServiceRemoveHandler<T> extends ServiceRemoveStepHandler {
      * @param addOperation
      * @param unavailableCapabilities
      */
-    SingleCapabilityServiceRemoveHandler(AbstractAddStepHandler addOperation, RuntimeCapability<?> runtimeCapability, Class<T> serviceType) {
-        super(addOperation, runtimeCapability);
-        this.runtimeCapability = runtimeCapability;
-        this.serviceType = serviceType;
+    TrivialCapabilityServiceRemoveHandler(AbstractAddStepHandler addOperation, RuntimeCapability<?> ... runtimeCapabilities) {
+        super(addOperation, runtimeCapabilities);
+        this.firstCapability = runtimeCapabilities[0];
     }
 
     /**
@@ -53,8 +51,7 @@ class SingleCapabilityServiceRemoveHandler<T> extends ServiceRemoveStepHandler {
      */
     @Override
     protected ServiceName serviceName(String name) {
-        RuntimeCapability<?> dynamicCapability = runtimeCapability.fromBaseCapability(name);
-        return dynamicCapability.getCapabilityServiceName(serviceType);
+        return firstCapability.fromBaseCapability(name).getCapabilityServiceName();
     }
 
 }

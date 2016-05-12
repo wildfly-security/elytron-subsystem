@@ -17,6 +17,8 @@
  */
 package org.wildfly.extension.elytron;
 
+import java.util.Set;
+
 import org.jboss.as.controller.AbstractAddStepHandler;
 import org.jboss.as.controller.AttributeDefinition;
 import org.jboss.as.controller.OperationContext;
@@ -48,6 +50,18 @@ class BaseAddHandler extends AbstractAddStepHandler {
      */
     BaseAddHandler(RuntimeCapability<?> runtimeCapability, AttributeDefinition... attributes) {
         super(runtimeCapability, attributes);
+    }
+
+
+
+    /**
+     * Constructor of the add handler that takes a {@link Set} of {@link RuntimeCapability} and array of {@link AttributeDefinition}.
+     *
+     * @param capabilities a {@link Set} of capabilitiies that will be added.
+     * @param attributes the {@link AttributeDefinition} instances associated with this resource.
+     */
+    public BaseAddHandler(Set<RuntimeCapability> capabilities, AttributeDefinition... attributes) {
+        super(capabilities, attributes);
     }
 
     /**

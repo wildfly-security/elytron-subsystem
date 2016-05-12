@@ -157,7 +157,7 @@ class DomainDefinition extends SimpleResourceDefinition {
             new AttributeDefinition[] { PRE_REALM_NAME_REWRITER, POST_REALM_NAME_REWRITER, PRINCIPAL_DECODER, REALM_MAPPER, ROLE_MAPPER, PERMISSION_MAPPER, DEFAULT_REALM, REALMS, TRUSTED_SECURITY_DOMAINS };
 
     private static final DomainAddHandler ADD = new DomainAddHandler();
-    private static final OperationStepHandler REMOVE = new SingleCapabilityServiceRemoveHandler<SecurityDomain>(ADD, SECURITY_DOMAIN_RUNTIME_CAPABILITY, SecurityDomain.class);
+    private static final OperationStepHandler REMOVE = new TrivialCapabilityServiceRemoveHandler(ADD, SECURITY_DOMAIN_RUNTIME_CAPABILITY);
     private static final WriteAttributeHandler WRITE = new WriteAttributeHandler(ElytronDescriptionConstants.SECURITY_DOMAIN);
     private static final AuthenticatorOperationHandler AUTHENTICATE = new AuthenticatorOperationHandler();
 

@@ -34,25 +34,23 @@ import org.jboss.msc.service.ServiceName;
  *
  * @author <a href="mailto:darran.lofthouse@jboss.com">Darran Lofthouse</a>
  */
-class TrivialResourceDefinition<T> extends SimpleResourceDefinition {
+class TrivialResourceDefinition extends SimpleResourceDefinition {
 
     private final String pathKey;
-    private final RuntimeCapability<?> runtimeCapability;
-    private final Class<T> serviceType;
+    private final RuntimeCapability<?> firstCapability;
     private final AttributeDefinition[] attributes;
 
-    TrivialResourceDefinition(String pathKey, RuntimeCapability<?> runtimeCapability, Class<T> serviceType, AbstractAddStepHandler add, AttributeDefinition ... attributes) {
+    TrivialResourceDefinition(String pathKey, AbstractAddStepHandler add, AttributeDefinition[] attributes, RuntimeCapability<?> ... runtimeCapabilities) {
         super(new Parameters(PathElement.pathElement(pathKey),
                 ElytronExtension.getResourceDescriptionResolver(pathKey))
             .setAddHandler(add)
-            .setRemoveHandler(new SingleCapabilityServiceRemoveHandler<T>(add, runtimeCapability, serviceType))
+            .setRemoveHandler(new TrivialCapabilityServiceRemoveHandler(add, runtimeCapabilities))
             .setAddRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
             .setRemoveRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
-            .setCapabilities(runtimeCapability));
+            .setCapabilities(runtimeCapabilities));
 
         this.pathKey = pathKey;
-        this.runtimeCapability = runtimeCapability;
-        this.serviceType = serviceType;
+        this.firstCapability = runtimeCapabilities[0];
         this.attributes = attributes;
     }
 
@@ -74,7 +72,7 @@ class TrivialResourceDefinition<T> extends SimpleResourceDefinition {
 
         @Override
         protected ServiceName getParentServiceName(PathAddress pathAddress) {
-            return runtimeCapability.fromBaseCapability(pathAddress.getLastElement().getValue()).getCapabilityServiceName(serviceType);
+            return firstCapability.fromBaseCapability(pathAddress.getLastElement().getValue()).getCapabilityServiceName();
         }
     }
 

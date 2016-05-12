@@ -68,7 +68,7 @@ class RoleDecoderDefinitions {
     private static class SimpleRoleDecoderDefinition extends SimpleResourceDefinition {
 
         private static final AbstractAddStepHandler ADD = new SimpleRoleDecoderAddHandler();
-        private static final OperationStepHandler REMOVE = new SingleCapabilityServiceRemoveHandler<RoleDecoder>(ADD, ROLE_DECODER_RUNTIME_CAPABILITY, RoleDecoder.class);
+        private static final OperationStepHandler REMOVE = new TrivialCapabilityServiceRemoveHandler(ADD, ROLE_DECODER_RUNTIME_CAPABILITY);
 
         SimpleRoleDecoderDefinition() {
             super(new Parameters(PathElement.pathElement(ElytronDescriptionConstants.SIMPLE_ROLE_DECODER), ElytronExtension.getResourceDescriptionResolver(ElytronDescriptionConstants.SIMPLE_ROLE_DECODER))

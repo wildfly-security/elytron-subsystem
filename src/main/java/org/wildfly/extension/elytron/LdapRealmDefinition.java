@@ -180,7 +180,7 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
     private static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] {DirContextObjectDefinition.OBJECT_DEFINITION, IdentityMappingObjectDefinition.OBJECT_DEFINITION, DIRECT_VERIFICATION};
 
     private static final AbstractAddStepHandler ADD = new RealmAddHandler();
-    private static final OperationStepHandler REMOVE = new SingleCapabilityServiceRemoveHandler<SecurityRealm>(ADD, SECURITY_REALM_RUNTIME_CAPABILITY, SecurityRealm.class);
+    private static final OperationStepHandler REMOVE = new TrivialCapabilityServiceRemoveHandler(ADD, SECURITY_REALM_RUNTIME_CAPABILITY);
     private static final OperationStepHandler WRITE = new WriteAttributeHandler();
 
     LdapRealmDefinition() {
