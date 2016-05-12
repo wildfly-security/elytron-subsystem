@@ -29,6 +29,7 @@ import javax.security.sasl.SaslServerFactory;
 import org.jboss.as.controller.capability.RuntimeCapability;
 import org.wildfly.security.SecurityFactory;
 import org.wildfly.security.auth.server.HttpAuthenticationFactory;
+import org.wildfly.security.auth.server.ModifiableSecurityRealm;
 import org.wildfly.security.auth.server.NameRewriter;
 import org.wildfly.security.auth.server.PrincipalDecoder;
 import org.wildfly.security.auth.server.RealmMapper;
@@ -143,6 +144,12 @@ class Capabilities {
 
     static final RuntimeCapability<Void> SECURITY_FACTORY_CREDENTIAL_RUNTIME_CAPABILITY = RuntimeCapability
             .Builder.of(SECURITY_FACTORY_CREDENTIAL_CAPABILITY, true, SecurityFactory.class)
+            .build();
+
+    static final String MODIFIABLE_SECURITY_REALM_CAPABILITY = CAPABILITY_BASE + "modifiable-security-realm";
+
+    static final RuntimeCapability<Void> MODIFIABLE_SECURITY_REALM_RUNTIME_CAPABILITY = RuntimeCapability
+            .Builder.of(MODIFIABLE_SECURITY_REALM_CAPABILITY, true, ModifiableSecurityRealm.class)
             .build();
 
     static final String SECURITY_REALM_CAPABILITY = CAPABILITY_BASE + "security-realm";
