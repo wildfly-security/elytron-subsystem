@@ -196,8 +196,7 @@ public interface ElytronSubsystemMessages extends BasicLogger {
     @Message(id = 16, value = "The supplied regular expression '%s' is invalid.")
     OperationFailedException invalidRegularExpression(String pattern, @Cause Exception cause);
 
-    @Message(id = 17, value = "Security realm [%s] is not modifiable.")
-    OperationFailedException realmNotModifiable(ServiceName serviceName);
+    // id = 17 - Free to be used.
 
     /**
      * A {@link StartException} where a Key or Trust manager factory can not be created for a specific algorithm.

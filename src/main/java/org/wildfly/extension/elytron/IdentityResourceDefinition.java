@@ -19,8 +19,8 @@
 package org.wildfly.extension.elytron;
 
 import static org.jboss.as.controller.OperationContext.ResultHandler.NOOP_RESULT_HANDLER;
+import static org.wildfly.extension.elytron.Capabilities.MODIFIABLE_SECURITY_REALM_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SECURITY_DOMAIN_RUNTIME_CAPABILITY;
-import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.ElytronExtension.getRequiredService;
 import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
 import static org.wildfly.security.auth.server.IdentityLocator.fromName;
@@ -65,7 +65,6 @@ import org.wildfly.security.auth.server.RealmIdentity;
 import org.wildfly.security.auth.server.RealmUnavailableException;
 import org.wildfly.security.auth.server.SecurityDomain;
 import org.wildfly.security.auth.server.SecurityIdentity;
-import org.wildfly.security.auth.server.SecurityRealm;
 import org.wildfly.security.auth.server.ServerAuthenticationContext;
 import org.wildfly.security.authz.Attributes;
 import org.wildfly.security.authz.AuthorizationIdentity;
@@ -87,8 +86,7 @@ import org.wildfly.security.password.spec.PasswordSpec;
 import org.wildfly.security.password.spec.SaltedPasswordAlgorithmSpec;
 
 /**
- * A {@link org.jboss.as.controller.ResourceDefinition} that defines identity management operations for those {@link SecurityRealm} resources
- * resources that implements {@link ModifiableSecurityRealm}.
+ * A {@link org.jboss.as.controller.ResourceDefinition} that defines identity management operations for those {@link ModifiableSecurityRealm} resources.
  *
  * @see SecurityRealmResourceDecorator
  * @author <a href="mailto:psilva@redhat.com">Pedro Igor</a>
@@ -594,29 +592,24 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
      *
      * @param context the current context
      * @return the current security realm
-     * @throws OperationFailedException if the current security realm is not a {@link ModifiableSecurityRealm} or if any occurs
+     * @throws OperationFailedException if any error occurs obtaining the reference to the security realm.
      */
     private static ModifiableSecurityRealm getModifiableSecurityRealm(OperationContext context) throws OperationFailedException {
         ServiceRegistry serviceRegistry = context.getServiceRegistry(false);
         PathAddress currentAddress = context.getCurrentAddress();
-        RuntimeCapability<Void> runtimeCapability = SECURITY_REALM_RUNTIME_CAPABILITY.fromBaseCapability(currentAddress.subAddress(0, currentAddress.size() - 1).getLastElement().getValue());
-        ServiceName realmName = runtimeCapability.getCapabilityServiceName(SecurityRealm.class);
-        ServiceController<SecurityRealm> serviceController = getRequiredService(serviceRegistry, realmName, SecurityRealm.class);
-        SecurityRealm realm = serviceController.getValue();
+        RuntimeCapability<Void> runtimeCapability = MODIFIABLE_SECURITY_REALM_RUNTIME_CAPABILITY.fromBaseCapability(currentAddress.subAddress(0, currentAddress.size() - 1).getLastElement().getValue());
+        ServiceName realmName = runtimeCapability.getCapabilityServiceName();
+        ServiceController<ModifiableSecurityRealm> serviceController = getRequiredService(serviceRegistry, realmName, ModifiableSecurityRealm.class);
 
-        if (!ModifiableSecurityRealm.class.isInstance(realm)) {
-            throw ROOT_LOGGER.realmNotModifiable(realmName);
-        }
-
-        return (ModifiableSecurityRealm) realm;
+        return serviceController.getValue();
     }
 
     /**
-     * Try to obtain a {@link ModifiableRealmIdentity} based on the identity and {@link SecurityRealm} associated with given {@link OperationContext}.
+     * Try to obtain a {@link ModifiableRealmIdentity} based on the identity and {@link ModifiableSecurityRealm} associated with given {@link OperationContext}.
      *
      * @param context the current context
      * @return the current identity
-     * @throws OperationFailedException if the identity does not exists or if any error occures while obtaining it.
+     * @throws OperationFailedException if the identity does not exists or if any error occurs while obtaining it.
      */
     private static ModifiableRealmIdentity getRealmIdentity(OperationContext context) throws OperationFailedException {
         ModifiableSecurityRealm modifiableRealm = getModifiableSecurityRealm(context);
