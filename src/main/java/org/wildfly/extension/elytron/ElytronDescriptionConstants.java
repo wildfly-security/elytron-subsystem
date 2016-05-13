@@ -176,6 +176,7 @@ interface ElytronDescriptionConstants {
     String MECHANISM_REALM_CONFIGURATION = "mechanism-realm-configuration";
     String MECHANISM_REALM_CONFIGURATIONS = "mechanism-realm-configurations";
     String MINUS = "minus";
+    String MODIFIABLE_SECURITY_REALM = "modifiable-security-realm";
     String MODIFIED = "modified";
     String MODULE = "module";
     String MODULE_REFERENCE = "module-reference";

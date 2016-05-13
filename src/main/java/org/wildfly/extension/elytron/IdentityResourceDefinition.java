@@ -98,7 +98,7 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
 
     IdentityResourceDefinition(ResourceDefinition parentResource) {
         super(new Parameters(PathElement.pathElement(ElytronDescriptionConstants.IDENTITY),
-                ElytronExtension.getResourceDescriptionResolver(parentResource.getPathElement().getKey(), ElytronDescriptionConstants.IDENTITY))
+                ElytronExtension.getResourceDescriptionResolver(ElytronDescriptionConstants.MODIFIABLE_SECURITY_REALM, ElytronDescriptionConstants.IDENTITY))
                 .setAddHandler(ADD)
                 .setRemoveHandler(REMOVE));
     }
