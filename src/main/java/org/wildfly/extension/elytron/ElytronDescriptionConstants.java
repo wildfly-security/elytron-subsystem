@@ -87,6 +87,7 @@ interface ElytronDescriptionConstants {
     String CUSTOM_PERMISSION_MAPPER = "custom-permission-mapper";
     String CUSTOM_PRINCIPAL_DECODER = "custom-principal-decoder";
     String CUSTOM_REALM = "custom-realm";
+    String CUSTOM_MODIFIABLE_REALM = "custom-modifiable-realm";
     String CUSTOM_REALM_MAPPER = "custom-realm-mapper";
     String CUSTOM_ROLE_DECODER = "custom-role-decoder";
     String CUSTOM_ROLE_MAPPER = "custom-role-mapper";

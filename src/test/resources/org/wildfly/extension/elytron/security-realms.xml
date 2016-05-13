@@ -18,6 +18,12 @@
                 <property key="c" value="d" />
             </configuration>
         </custom-realm>
+        <custom-modifiable-realm name="CustomModifiable" module="a.b.c" class-name="org.wildfly.security.ElytronRealm">
+            <configuration>
+                <property key="a" value="b" />
+                <property key="c" value="d" />
+            </configuration>
+        </custom-modifiable-realm>
         <key-store-realm name="RealmThree" key-store="KeyStoreOne" />
         <key-store-realm name="RealmFour" key-store="KeyStoreTwo" />
         <properties-realm name="RealmFive">

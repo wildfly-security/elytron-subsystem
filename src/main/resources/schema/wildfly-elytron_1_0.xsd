@@ -308,7 +308,25 @@
         </xs:annotation>
         <xs:choice maxOccurs="unbounded">
             <xs:element name="aggregate-realm" type="aggregateRealmType" minOccurs="0" maxOccurs="unbounded" />
-            <xs:element name="custom-realm" type="customRealmType" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="custom-realm" type="customRealmType" minOccurs="0" maxOccurs="unbounded">
+                <xs:annotation>
+                    <xs:documentation>
+                      Custom realm definitions can implement either the SecurityRealm interface or the ModifiableSecurityRealm interface.
+                      
+                      Regardless of which interface is implemented management operations will not be exposed to manage the realm.  However other
+                      services that depend on the realm will still be able to perform a type check and cast to gain access to the modification API.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="custom-modifiable-realm" type="customRealmType" minOccurs="0" maxOccurs="unbounded">
+                <xs:annotation>
+                    <xs:documentation>
+                      Realms configured as being modifiable will be expected to implement the ModifiableSecurityRealm interface.
+                      
+                      By configuring a realm as being modifiable management operations will be made available to manipulate the realm.  
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
             <xs:element name="jdbc-realm" type="jdbcRealmType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="key-store-realm" type="keyStoreRealmType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="properties-realm" type="propertiesRealmType" minOccurs="0" maxOccurs="unbounded" />
@@ -366,7 +384,7 @@
 
 				Generally subsystems that provide security realms should make them available
 				using the capabilities and requirements features of the application
-				server, this custom mechanism is provided for truly issolated realm implementations.
+				server, this custom mechanism is provided for truly isolated realm implementations.
 			</xs:documentation>
 		</xs:annotation>
 		<xs:complexContent>

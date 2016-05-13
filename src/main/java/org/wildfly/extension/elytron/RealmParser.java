@@ -35,6 +35,7 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ATTRIBUT
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AUTHENTICATION_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AUTHORIZATION_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CUSTOM_REALM;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CUSTOM_MODIFIABLE_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.DIRECT_VERIFICATION;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.DIR_CONTEXT;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.FILE;
@@ -98,6 +99,9 @@ class RealmParser {
                     break;
                 case CUSTOM_REALM:
                     readCustomComponent(CUSTOM_REALM, parentAddress, reader, operations);
+                    break;
+                case CUSTOM_MODIFIABLE_REALM:
+                    readCustomComponent(CUSTOM_MODIFIABLE_REALM, parentAddress, reader, operations);
                     break;
                 case JDBC_REALM:
                     readJdbcRealm(parentAddress, reader, operations);
@@ -601,6 +605,22 @@ class RealmParser {
         return false;
     }
 
+    private boolean writeCustomModifiableRealms(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
+        if (subsystem.hasDefined(CUSTOM_MODIFIABLE_REALM)) {
+            startRealms(started, writer);
+            ModelNode realms = subsystem.require(CUSTOM_MODIFIABLE_REALM);
+            for (String name : realms.keys()) {
+                ModelNode realm = realms.require(name);
+
+                writeCustomComponent(CUSTOM_MODIFIABLE_REALM, name, realm, writer);
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
     private boolean writeJdbcRealms(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (subsystem.hasDefined(JDBC_REALM)) {
             startRealms(started, writer);
@@ -783,6 +803,7 @@ class RealmParser {
 
         realmsStarted = realmsStarted | writeAggregateRealms(realmsStarted, subsystem, writer);
         realmsStarted = realmsStarted | writeCustomRealms(realmsStarted, subsystem, writer);
+        realmsStarted = realmsStarted | writeCustomModifiableRealms(realmsStarted, subsystem, writer);
         realmsStarted = realmsStarted | writeJdbcRealms(realmsStarted, subsystem, writer);
         realmsStarted = realmsStarted | writeKeyStoreRealms(realmsStarted, subsystem, writer);
         realmsStarted = realmsStarted | writePropertiesRealms(realmsStarted, subsystem, writer);
