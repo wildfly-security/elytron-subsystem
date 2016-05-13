@@ -21,6 +21,7 @@ package org.wildfly.extension.elytron;
 import static org.wildfly.extension.elytron.Capabilities.NAME_REWRITER_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.MODIFIABLE_SECURITY_REALM_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
 import static org.wildfly.extension.elytron.FileAttributeDefinitions.pathName;
 import static org.wildfly.extension.elytron.FileAttributeDefinitions.pathResolver;
@@ -65,8 +66,6 @@ import org.wildfly.security.auth.server.SecurityRealm;
  */
 class FileSystemRealmDefinition extends SimpleResourceDefinition {
 
-    static final ServiceUtil<SecurityRealm> REALM_SERVICE_UTIL = ServiceUtil.newInstance(SECURITY_REALM_RUNTIME_CAPABILITY, ElytronDescriptionConstants.FILESYSTEM_REALM, SecurityRealm.class);
-
     static final SimpleAttributeDefinition PATH =
             new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PATH, FileAttributeDefinitions.PATH)
                     .setAttributeGroup(ElytronDescriptionConstants.FILE)
@@ -94,7 +93,7 @@ class FileSystemRealmDefinition extends SimpleResourceDefinition {
             new AttributeDefinition[]{PATH, RELATIVE_TO, LEVELS, NAME_REWRITER};
 
     private static final AbstractAddStepHandler ADD = new RealmAddHandler();
-    private static final OperationStepHandler REMOVE = new TrivialCapabilityServiceRemoveHandler(ADD, SECURITY_REALM_RUNTIME_CAPABILITY);
+    private static final OperationStepHandler REMOVE = new TrivialCapabilityServiceRemoveHandler(ADD, MODIFIABLE_SECURITY_REALM_RUNTIME_CAPABILITY, SECURITY_REALM_RUNTIME_CAPABILITY);
 
     FileSystemRealmDefinition() {
         super(new Parameters(PathElement.pathElement(ElytronDescriptionConstants.FILESYSTEM_REALM),
@@ -103,7 +102,7 @@ class FileSystemRealmDefinition extends SimpleResourceDefinition {
             .setRemoveHandler(REMOVE)
             .setAddRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
             .setRemoveRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
-            .setCapabilities(SECURITY_REALM_RUNTIME_CAPABILITY));
+            .setCapabilities(MODIFIABLE_SECURITY_REALM_RUNTIME_CAPABILITY, SECURITY_REALM_RUNTIME_CAPABILITY));
     }
 
     @Override
@@ -124,8 +123,11 @@ class FileSystemRealmDefinition extends SimpleResourceDefinition {
         protected void performRuntime(OperationContext context, ModelNode operation, ModelNode model)
                 throws OperationFailedException {
             ServiceTarget serviceTarget = context.getServiceTarget();
-            RuntimeCapability<Void> runtimeCapability = SECURITY_REALM_RUNTIME_CAPABILITY.fromBaseCapability(context.getCurrentAddressValue());
-            ServiceName realmName = runtimeCapability.getCapabilityServiceName(SecurityRealm.class);
+
+            String address = context.getCurrentAddressValue();
+            ServiceName mainServiceName = MODIFIABLE_SECURITY_REALM_RUNTIME_CAPABILITY.fromBaseCapability(address).getCapabilityServiceName();
+            ServiceName aliasServiceName = SECURITY_REALM_RUNTIME_CAPABILITY.fromBaseCapability(address).getCapabilityServiceName();
+
             String nameRewriter = asStringIfDefined(context, NAME_REWRITER, model);
 
             final int levels = LEVELS.resolveModelAttribute(context, model).asInt();
@@ -163,7 +165,9 @@ class FileSystemRealmDefinition extends SimpleResourceDefinition {
 
                     });
 
-            ServiceBuilder<SecurityRealm> serviceBuilder = serviceTarget.addService(realmName, fileSystemRealmService);
+            ServiceBuilder<SecurityRealm> serviceBuilder = serviceTarget.addService(mainServiceName, fileSystemRealmService)
+                    .addAliases(aliasServiceName);
+
             if (relativeTo != null) {
                 serviceBuilder.addDependency(PathManagerService.SERVICE_NAME, PathManager.class, pathManagerInjector);
                 serviceBuilder.addDependency(pathName(relativeTo));
@@ -187,7 +191,7 @@ class FileSystemRealmDefinition extends SimpleResourceDefinition {
         @Override
         protected ServiceName getParentServiceName(PathAddress parentAddress) {
             final String name = parentAddress.getLastElement().getValue();
-            return REALM_SERVICE_UTIL.serviceName(name);
+            return MODIFIABLE_SECURITY_REALM_RUNTIME_CAPABILITY.fromBaseCapability(name).getCapabilityServiceName();
         }
     }
 }
