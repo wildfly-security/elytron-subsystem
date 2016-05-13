@@ -95,7 +95,7 @@ class ElytronDefinition extends SimpleResourceDefinition {
         resourceRegistration.registerSubModel(new JdbcRealmDefinition());
         resourceRegistration.registerSubModel(new KeyStoreRealmDefinition());
         resourceRegistration.registerSubModel(new PropertiesRealmDefinition());
-        resourceRegistration.registerSubModel(new LdapRealmDefinition());
+        resourceRegistration.registerSubModel(SecurityRealmResourceDecorator.wrap(new LdapRealmDefinition()));
         resourceRegistration.registerSubModel(SecurityRealmResourceDecorator.wrap(new FileSystemRealmDefinition()));
 
         // Name Rewriters

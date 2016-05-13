@@ -18,9 +18,12 @@
 
 package org.wildfly.extension.elytron;
 
+import static org.wildfly.extension.elytron.Capabilities.MODIFIABLE_SECURITY_REALM_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Properties;
 
 import org.jboss.as.controller.AbstractAddStepHandler;
@@ -50,8 +53,8 @@ import org.jboss.msc.service.ServiceTarget;
 import org.wildfly.security.auth.realm.ldap.AttributeMapping;
 import org.wildfly.security.auth.realm.ldap.DirContextFactory;
 import org.wildfly.security.auth.realm.ldap.LdapSecurityRealmBuilder;
-import org.wildfly.security.auth.realm.ldap.SimpleDirContextFactoryBuilder;
 import org.wildfly.security.auth.realm.ldap.LdapSecurityRealmBuilder.IdentityMappingBuilder;
+import org.wildfly.security.auth.realm.ldap.SimpleDirContextFactoryBuilder;
 import org.wildfly.security.auth.server.SecurityRealm;
 
 /**
@@ -60,8 +63,6 @@ import org.wildfly.security.auth.server.SecurityRealm;
  * @author <a href="mailto:psilva@redhat.com">Pedro Igor</a>
  */
 class LdapRealmDefinition extends SimpleResourceDefinition {
-
-    static final ServiceUtil<SecurityRealm> REALM_SERVICE_UTIL = ServiceUtil.newInstance(SECURITY_REALM_RUNTIME_CAPABILITY, ElytronDescriptionConstants.LDAP_REALM, SecurityRealm.class);
 
     static class AttributeMappingObjectDefinition {
         static final SimpleAttributeDefinition FROM = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.FROM, ModelType.STRING, false)
@@ -180,7 +181,7 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
     private static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] {DirContextObjectDefinition.OBJECT_DEFINITION, IdentityMappingObjectDefinition.OBJECT_DEFINITION, DIRECT_VERIFICATION};
 
     private static final AbstractAddStepHandler ADD = new RealmAddHandler();
-    private static final OperationStepHandler REMOVE = new TrivialCapabilityServiceRemoveHandler(ADD, SECURITY_REALM_RUNTIME_CAPABILITY);
+    private static final OperationStepHandler REMOVE = new TrivialCapabilityServiceRemoveHandler(ADD, MODIFIABLE_SECURITY_REALM_RUNTIME_CAPABILITY, SECURITY_REALM_RUNTIME_CAPABILITY);
     private static final OperationStepHandler WRITE = new WriteAttributeHandler();
 
     LdapRealmDefinition() {
@@ -189,7 +190,7 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
             .setRemoveHandler(REMOVE)
             .setAddRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
             .setRemoveRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
-            .setCapabilities(SECURITY_REALM_RUNTIME_CAPABILITY));
+            .setCapabilities(MODIFIABLE_SECURITY_REALM_RUNTIME_CAPABILITY, SECURITY_REALM_RUNTIME_CAPABILITY));
     }
 
     @Override
@@ -204,14 +205,18 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
         public static final String CONNECTION_POOLING_PROPERTY = "com.sun.jndi.ldap.connect.pool";
 
         private RealmAddHandler() {
-            super(SECURITY_REALM_RUNTIME_CAPABILITY, ATTRIBUTES);
+            super(new HashSet<RuntimeCapability>(Arrays.asList(new RuntimeCapability[] {
+                    MODIFIABLE_SECURITY_REALM_RUNTIME_CAPABILITY, SECURITY_REALM_RUNTIME_CAPABILITY })), ATTRIBUTES);
         }
 
         @Override
         protected void performRuntime(OperationContext context, ModelNode operation, ModelNode model) throws OperationFailedException {
             ServiceTarget serviceTarget = context.getServiceTarget();
-            RuntimeCapability<Void> runtimeCapability = SECURITY_REALM_RUNTIME_CAPABILITY.fromBaseCapability(context.getCurrentAddressValue());
-            ServiceName realmName = runtimeCapability.getCapabilityServiceName(SecurityRealm.class);
+
+            String address = context.getCurrentAddressValue();
+            ServiceName mainServiceName = MODIFIABLE_SECURITY_REALM_RUNTIME_CAPABILITY.fromBaseCapability(address).getCapabilityServiceName();
+            ServiceName aliasServiceName = SECURITY_REALM_RUNTIME_CAPABILITY.fromBaseCapability(address).getCapabilityServiceName();
+
             final LdapSecurityRealmBuilder builder = LdapSecurityRealmBuilder.builder();
 
             configureIdentityMapping(context, model, builder);
@@ -222,7 +227,8 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
             }
 
             TrivialService<SecurityRealm> ldapRealmService = new TrivialService<SecurityRealm>(builder::build);
-            ServiceBuilder<SecurityRealm> serviceBuilder = serviceTarget.addService(realmName, ldapRealmService);
+            ServiceBuilder<SecurityRealm> serviceBuilder = serviceTarget.addService(mainServiceName, ldapRealmService)
+                    .addAliases(aliasServiceName);
 
             commonDependencies(serviceBuilder).setInitialMode(ServiceController.Mode.ACTIVE).install();
         }
@@ -314,7 +320,8 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
 
         @Override
         protected ServiceName getParentServiceName(PathAddress pathAddress) {
-            return SECURITY_REALM_RUNTIME_CAPABILITY.fromBaseCapability(pathAddress.getLastElement().getValue()).getCapabilityServiceName(SecurityRealm.class);
+            return MODIFIABLE_SECURITY_REALM_RUNTIME_CAPABILITY.fromBaseCapability(pathAddress.getLastElement().getValue())
+                    .getCapabilityServiceName();
         }
     }
 }
