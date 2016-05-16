@@ -18,7 +18,7 @@
 
 package org.wildfly.extension.elytron;
 
-import static org.wildfly.extension.elytron.KeyStoreDefinition.ISO_8601_FORMAT;
+import static org.wildfly.extension.elytron.ElytronExtension.ISO_8601_FORMAT;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;

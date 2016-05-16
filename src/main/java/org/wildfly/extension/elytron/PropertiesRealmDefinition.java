@@ -19,7 +19,9 @@
 package org.wildfly.extension.elytron;
 
 import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY;
+import static org.wildfly.extension.elytron.ElytronExtension.ISO_8601_FORMAT;
 import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
+import static org.wildfly.extension.elytron.ElytronExtension.getRequiredService;
 import static org.wildfly.extension.elytron.FileAttributeDefinitions.PATH;
 import static org.wildfly.extension.elytron.FileAttributeDefinitions.RELATIVE_TO;
 import static org.wildfly.extension.elytron.FileAttributeDefinitions.pathName;
@@ -29,10 +31,13 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import org.jboss.as.controller.AbstractAddStepHandler;
+import org.jboss.as.controller.AbstractRuntimeOnlyHandler;
 import org.jboss.as.controller.AttributeDefinition;
 import org.jboss.as.controller.ObjectTypeAttributeDefinition;
 import org.jboss.as.controller.OperationContext;
@@ -41,6 +46,7 @@ import org.jboss.as.controller.ResourceDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
 import org.jboss.as.controller.registry.AttributeAccess;
+import org.jboss.as.controller.registry.ManagementResourceRegistration;
 import org.jboss.as.controller.services.path.PathEntry;
 import org.jboss.as.controller.services.path.PathManager;
 import org.jboss.as.controller.services.path.PathManager.Callback.Handle;
@@ -50,6 +56,9 @@ import org.jboss.as.controller.services.path.PathManagerService;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
 import org.jboss.msc.service.ServiceBuilder;
+import org.jboss.msc.service.ServiceController;
+import org.jboss.msc.service.ServiceController.State;
+import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.StartException;
 import org.jboss.msc.value.InjectedValue;
 import org.wildfly.extension.elytron.TrivialService.ValueSupplier;
@@ -85,6 +94,10 @@ class PropertiesRealmDefinition extends TrivialResourceDefinition {
         .setDefaultValue(new ModelNode(ElytronDescriptionConstants.GROUPS))
         .setAllowExpression(true)
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+        .build();
+
+    static final SimpleAttributeDefinition SYNCHRONIZED = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.SYNCHRONIZED, ModelType.STRING)
+        .setStorageRuntime()
         .build();
 
     private static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] { USERS_PROPERTIES, GROUPS_PROPERTIES, PLAIN_TEXT, GROUPS_ATTRIBUTE };
@@ -191,4 +204,48 @@ class PropertiesRealmDefinition extends TrivialResourceDefinition {
         super(ElytronDescriptionConstants.PROPERTIES_REALM, ADD, ATTRIBUTES, SECURITY_REALM_RUNTIME_CAPABILITY);
     }
 
+    @Override
+    public void registerAttributes(ManagementResourceRegistration resourceRegistration) {
+        super.registerAttributes(resourceRegistration);
+
+        resourceRegistration.registerReadOnlyAttribute(SYNCHRONIZED, new PropertiesRuntimeHandler(false) {
+
+            @Override
+            void performRuntime(OperationContext context, LegacyPropertiesSecurityRealm securityRealm) throws OperationFailedException {
+                SimpleDateFormat sdf = new SimpleDateFormat(ISO_8601_FORMAT);
+                context.getResult().set(sdf.format(new Date(securityRealm.getLoadTime())));
+            }
+        });
+    }
+
+    abstract static class PropertiesRuntimeHandler extends AbstractRuntimeOnlyHandler {
+
+        private final boolean writeAccess;
+
+        PropertiesRuntimeHandler(final boolean writeAccess) {
+            this.writeAccess = writeAccess;
+        }
+
+        @Override
+        protected void executeRuntimeStep(OperationContext context, ModelNode operation) throws OperationFailedException {
+            ServiceName securityRealmName = SECURITY_REALM_RUNTIME_CAPABILITY.fromBaseCapability(context.getCurrentAddressValue()).getCapabilityServiceName();
+
+            ServiceController<SecurityRealm> serviceContainer = getRequiredService(context.getServiceRegistry(writeAccess), securityRealmName, SecurityRealm.class);
+            State serviceState;
+            if ((serviceState = serviceContainer.getState()) != State.UP) {
+                throw ROOT_LOGGER.requiredServiceNotUp(securityRealmName, serviceState);
+            }
+
+            SecurityRealm securityRealm = serviceContainer.getValue();
+
+            assert securityRealm instanceof LegacyPropertiesSecurityRealm;
+
+            performRuntime(context, (LegacyPropertiesSecurityRealm) securityRealm);
+        }
+
+        abstract void performRuntime(OperationContext context, LegacyPropertiesSecurityRealm securityRealm) throws OperationFailedException;
+
+    }
+
 }
+

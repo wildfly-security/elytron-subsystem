@@ -20,7 +20,7 @@ package org.wildfly.extension.elytron;
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP_ADDR;
 import static org.wildfly.extension.elytron.CertificateChainAttributeDefinitions.getNamedCertificateList;
 import static org.wildfly.extension.elytron.CertificateChainAttributeDefinitions.writeCertificates;
-import static org.wildfly.extension.elytron.KeyStoreDefinition.ISO_8601_FORMAT;
+import static org.wildfly.extension.elytron.ElytronExtension.ISO_8601_FORMAT;
 import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
 
 import java.nio.charset.StandardCharsets;

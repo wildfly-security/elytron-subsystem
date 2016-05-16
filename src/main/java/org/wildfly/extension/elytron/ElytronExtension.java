@@ -62,6 +62,8 @@ public class ElytronExtension implements Extension {
 
     private static final ModelVersion ELYTRON_CURRENT = ELYTRON_1_0_0;
 
+    static final String ISO_8601_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
+
     /**
      * The parser used for parsing our subsystem
      */

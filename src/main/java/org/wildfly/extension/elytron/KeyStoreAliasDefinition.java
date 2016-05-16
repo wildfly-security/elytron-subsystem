@@ -23,7 +23,7 @@ import static org.wildfly.extension.elytron.CertificateChainAttributeDefinitions
 import static org.wildfly.extension.elytron.CertificateChainAttributeDefinitions.getNamedCertificateList;
 import static org.wildfly.extension.elytron.CertificateChainAttributeDefinitions.writeCertificate;
 import static org.wildfly.extension.elytron.CertificateChainAttributeDefinitions.writeCertificates;
-import static org.wildfly.extension.elytron.KeyStoreDefinition.ISO_8601_FORMAT;
+import static org.wildfly.extension.elytron.ElytronExtension.ISO_8601_FORMAT;
 import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
 
 import java.security.KeyStore;

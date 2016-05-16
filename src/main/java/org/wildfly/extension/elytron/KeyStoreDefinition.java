@@ -24,6 +24,7 @@ import static org.wildfly.extension.elytron.Capabilities.KEY_STORE_RUNTIME_CAPAB
 import static org.wildfly.extension.elytron.Capabilities.PROVIDERS_CAPABILITY;
 import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
 import static org.wildfly.extension.elytron.ElytronExtension.ELYTRON_1_0_0;
+import static org.wildfly.extension.elytron.ElytronExtension.ISO_8601_FORMAT;
 import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
 import static org.wildfly.extension.elytron.ElytronExtension.getRequiredService;
 import static org.wildfly.extension.elytron.FileAttributeDefinitions.PATH;
@@ -82,8 +83,6 @@ import org.wildfly.extension.elytron.KeyStoreService.LoadKey;
 final class KeyStoreDefinition extends SimpleResourceDefinition {
 
     static final ServiceUtil<KeyStore> KEY_STORE_UTIL = ServiceUtil.newInstance(KEY_STORE_RUNTIME_CAPABILITY, ElytronDescriptionConstants.KEY_STORE, KeyStore.class);
-
-    static final String ISO_8601_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
 
     static final SimpleAttributeDefinition TYPE = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.TYPE, ModelType.STRING, false)
         .setAttributeGroup(ElytronDescriptionConstants.IMPLEMENTATION)
