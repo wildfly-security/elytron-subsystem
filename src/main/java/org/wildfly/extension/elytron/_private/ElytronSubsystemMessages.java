@@ -217,6 +217,15 @@ public interface ElytronSubsystemMessages extends BasicLogger {
     @Message(id = 19, value = "No '%s' found in injected value.")
     StartException noTypeFound(final String type);
 
+    /**
+     * A {@link OperationFailedException} for when the properties file used by the realm can not be reloaded.
+     *
+     * @param cause the underlying cause of the error.
+     * @return The {@link OperationFailedException} for the error.
+     */
+    @Message(id = 20, value = "Unable to reload the properties files required to by the properties file backed realm.")
+    OperationFailedException unableToReLoadPropertiesFiles(@Cause Exception cause);
+
     /*
      * Identity Resource Messages - 1000
      */

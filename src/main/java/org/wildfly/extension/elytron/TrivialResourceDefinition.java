@@ -25,6 +25,7 @@ import org.jboss.as.controller.ResourceDefinition;
 import org.jboss.as.controller.RestartParentWriteAttributeHandler;
 import org.jboss.as.controller.SimpleResourceDefinition;
 import org.jboss.as.controller.capability.RuntimeCapability;
+import org.jboss.as.controller.descriptions.ResourceDescriptionResolver;
 import org.jboss.as.controller.registry.ManagementResourceRegistration;
 import org.jboss.as.controller.registry.OperationEntry;
 import org.jboss.msc.service.ServiceName;
@@ -40,9 +41,9 @@ class TrivialResourceDefinition extends SimpleResourceDefinition {
     private final RuntimeCapability<?> firstCapability;
     private final AttributeDefinition[] attributes;
 
-    TrivialResourceDefinition(String pathKey, AbstractAddStepHandler add, AttributeDefinition[] attributes, RuntimeCapability<?> ... runtimeCapabilities) {
+    TrivialResourceDefinition(String pathKey, ResourceDescriptionResolver resourceDescriptionResolver, AbstractAddStepHandler add, AttributeDefinition[] attributes, RuntimeCapability<?> ... runtimeCapabilities) {
         super(new Parameters(PathElement.pathElement(pathKey),
-                ElytronExtension.getResourceDescriptionResolver(pathKey))
+                resourceDescriptionResolver)
             .setAddHandler(add)
             .setRemoveHandler(new TrivialCapabilityServiceRemoveHandler(add, runtimeCapabilities))
             .setAddRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
@@ -52,6 +53,10 @@ class TrivialResourceDefinition extends SimpleResourceDefinition {
         this.pathKey = pathKey;
         this.firstCapability = runtimeCapabilities[0];
         this.attributes = attributes;
+    }
+
+    TrivialResourceDefinition(String pathKey, AbstractAddStepHandler add, AttributeDefinition[] attributes, RuntimeCapability<?> ... runtimeCapabilities) {
+        this(pathKey, ElytronExtension.getResourceDescriptionResolver(pathKey), add, attributes, runtimeCapabilities);
     }
 
     @Override

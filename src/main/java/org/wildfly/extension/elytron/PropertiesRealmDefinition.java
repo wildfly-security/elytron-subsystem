@@ -45,6 +45,9 @@ import org.jboss.as.controller.OperationFailedException;
 import org.jboss.as.controller.ResourceDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
+import org.jboss.as.controller.SimpleOperationDefinition;
+import org.jboss.as.controller.SimpleOperationDefinitionBuilder;
+import org.jboss.as.controller.descriptions.StandardResourceDescriptionResolver;
 import org.jboss.as.controller.registry.AttributeAccess;
 import org.jboss.as.controller.registry.ManagementResourceRegistration;
 import org.jboss.as.controller.services.path.PathEntry;
@@ -63,7 +66,14 @@ import org.jboss.msc.service.StartException;
 import org.jboss.msc.value.InjectedValue;
 import org.wildfly.extension.elytron.TrivialService.ValueSupplier;
 import org.wildfly.security.auth.realm.LegacyPropertiesSecurityRealm;
+import org.wildfly.security.auth.server.IdentityLocator;
+import org.wildfly.security.auth.server.RealmIdentity;
+import org.wildfly.security.auth.server.RealmUnavailableException;
 import org.wildfly.security.auth.server.SecurityRealm;
+import org.wildfly.security.auth.server.SupportLevel;
+import org.wildfly.security.auth.server.event.RealmEvent;
+import org.wildfly.security.credential.Credential;
+import org.wildfly.security.evidence.Evidence;
 
 /**
  * A {@link ResourceDefinition} for a {@link SecurityRealm} backed by properties files.
@@ -101,6 +111,15 @@ class PropertiesRealmDefinition extends TrivialResourceDefinition {
         .build();
 
     private static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] { USERS_PROPERTIES, GROUPS_PROPERTIES, PLAIN_TEXT, GROUPS_ATTRIBUTE };
+
+    // Resource Resolver
+
+    static final StandardResourceDescriptionResolver RESOURCE_RESOLVER = ElytronExtension.getResourceDescriptionResolver(ElytronDescriptionConstants.PROPERTIES_REALM);
+
+    // Operations
+
+    static final SimpleOperationDefinition LOAD = new SimpleOperationDefinitionBuilder(ElytronDescriptionConstants.LOAD, RESOURCE_RESOLVER)
+            .build();
 
     private static final AbstractAddStepHandler ADD = new TrivialAddHandler<SecurityRealm>(SecurityRealm.class, ATTRIBUTES, SECURITY_REALM_RUNTIME_CAPABILITY) {
 
@@ -151,12 +170,12 @@ class PropertiesRealmDefinition extends TrivialResourceDefinition {
 
                     try (InputStream usersInputStream = new FileInputStream(usersFile);
                             InputStream groupsInputStream = groupsFile != null ? new FileInputStream(groupsFile) : null) {
-                        return LegacyPropertiesSecurityRealm.builder()
+                        return new RealmWrapper(LegacyPropertiesSecurityRealm.builder()
                                 .setPasswordsStream(usersInputStream)
                                 .setGroupsStream(groupsInputStream)
                                 .setPlainText(plainText)
                                 .setGroupsAttribute(groupsAttribute)
-                                .build();
+                                .build(), usersFile, groupsFile);
 
                     } catch (IOException e) {
                         throw ROOT_LOGGER.unableToLoadPropertiesFiles(e);
@@ -201,7 +220,7 @@ class PropertiesRealmDefinition extends TrivialResourceDefinition {
     };
 
     PropertiesRealmDefinition() {
-        super(ElytronDescriptionConstants.PROPERTIES_REALM, ADD, ATTRIBUTES, SECURITY_REALM_RUNTIME_CAPABILITY);
+        super(ElytronDescriptionConstants.PROPERTIES_REALM, RESOURCE_RESOLVER, ADD, ATTRIBUTES, SECURITY_REALM_RUNTIME_CAPABILITY);
     }
 
     @Override
@@ -211,9 +230,22 @@ class PropertiesRealmDefinition extends TrivialResourceDefinition {
         resourceRegistration.registerReadOnlyAttribute(SYNCHRONIZED, new PropertiesRuntimeHandler(false) {
 
             @Override
-            void performRuntime(OperationContext context, LegacyPropertiesSecurityRealm securityRealm) throws OperationFailedException {
+            void performRuntime(OperationContext context, RealmWrapper securityRealm) throws OperationFailedException {
                 SimpleDateFormat sdf = new SimpleDateFormat(ISO_8601_FORMAT);
                 context.getResult().set(sdf.format(new Date(securityRealm.getLoadTime())));
+            }
+        });
+    }
+
+    @Override
+    public void registerOperations(ManagementResourceRegistration resourceRegistration) {
+        super.registerOperations(resourceRegistration);
+
+        resourceRegistration.registerOperationHandler(LOAD, new PropertiesRuntimeHandler(true) {
+
+            @Override
+            void performRuntime(OperationContext context, RealmWrapper securityRealm) throws OperationFailedException {
+                securityRealm.reload();
             }
         });
     }
@@ -238,12 +270,61 @@ class PropertiesRealmDefinition extends TrivialResourceDefinition {
 
             SecurityRealm securityRealm = serviceContainer.getValue();
 
-            assert securityRealm instanceof LegacyPropertiesSecurityRealm;
+            assert securityRealm instanceof RealmWrapper;
 
-            performRuntime(context, (LegacyPropertiesSecurityRealm) securityRealm);
+            performRuntime(context, (RealmWrapper) securityRealm);
         }
 
-        abstract void performRuntime(OperationContext context, LegacyPropertiesSecurityRealm securityRealm) throws OperationFailedException;
+        abstract void performRuntime(OperationContext context, RealmWrapper securityRealm) throws OperationFailedException;
+
+    }
+
+    private static final class RealmWrapper implements SecurityRealm {
+
+        private final LegacyPropertiesSecurityRealm delegate;
+        private final File usersFile;
+        private final File groupsFile;
+
+        RealmWrapper(LegacyPropertiesSecurityRealm delegate, File usersFile, File groupsFile) {
+            this.delegate = delegate;
+            this.usersFile = usersFile;
+            this.groupsFile = groupsFile;
+        }
+
+        @Override
+        public RealmIdentity getRealmIdentity(IdentityLocator locator) throws RealmUnavailableException {
+            return delegate.getRealmIdentity(locator);
+        }
+
+        @Override
+        public SupportLevel getCredentialAcquireSupport(Class<? extends Credential> credentialType, String algorithmName)
+                throws RealmUnavailableException {
+            return delegate.getCredentialAcquireSupport(credentialType, algorithmName);
+        }
+
+        @Override
+        public SupportLevel getEvidenceVerifySupport(Class<? extends Evidence> evidenceType, String algorithmName)
+                throws RealmUnavailableException {
+            return delegate.getEvidenceVerifySupport(evidenceType, algorithmName);
+        }
+
+        @Override
+        public void handleRealmEvent(RealmEvent event) {
+            delegate.handleRealmEvent(event);
+        }
+
+        long getLoadTime() {
+            return delegate.getLoadTime();
+        }
+
+        void reload() throws OperationFailedException {
+            try (InputStream usersInputStream = new FileInputStream(usersFile);
+                    InputStream groupsInputStream = groupsFile != null ? new FileInputStream(groupsFile) : null) {
+                delegate.load(usersInputStream, groupsInputStream);
+            } catch (IOException e) {
+                throw ROOT_LOGGER.unableToReLoadPropertiesFiles(e);
+            }
+        }
 
     }
 
