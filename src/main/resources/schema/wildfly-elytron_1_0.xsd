@@ -857,6 +857,7 @@
             <xs:element name="x500-attribute-principal-decoder" type="x500AttributePrincipalDecoderType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="custom-permission-mapper" type="customPermissionMapperType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="logical-permission-mapper" type="logicalPermissionMapperType" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="simple-permission-mapper" type="simplePermissionMapperType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="custom-realm-mapper" type="customRealmMapperType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="simple-regex-realm-mapper" type="simpleRegexRealmMapperType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="mapped-regex-realm-mapper" type="mappedRegexRealmMapperType" minOccurs="0" maxOccurs="unbounded" />
@@ -1122,6 +1123,90 @@
             <xs:enumeration value="unless" />
         </xs:restriction>
     </xs:simpleType>
+
+    <xs:complexType name="simplePermissionMapperType">
+        <xs:annotation>
+            <xs:documentation>
+                A simple permission mapper that maps from defined principal and role names to predefined permissions.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="permissionMapperType">
+                <xs:sequence>
+                    <xs:element name="permission-mapping" maxOccurs="unbounded">
+                        <xs:complexType>
+                            <xs:sequence>
+                                <xs:element name="permission" maxOccurs="unbounded" >
+                                    <xs:complexType>
+                                        <xs:attribute name="class-name" type="xs:string" use="required">
+                                            <xs:annotation>
+                                                <xs:documentation>
+                                                    The fully qualified class name of the permission.
+                                                </xs:documentation>
+                                            </xs:annotation>
+                                         </xs:attribute>
+                                         <xs:attribute name="module" type="xs:string">
+                                             <xs:annotation>
+                                                 <xs:documentation>
+                                                             The module to use to load the permission class.
+                                                 </xs:documentation>
+                                             </xs:annotation>
+                                         </xs:attribute>
+                                         <xs:attribute name="target-name" type="xs:string">
+                                                     <xs:annotation>
+                                                                 <xs:documentation>
+                                                     The target-name to pass to the constructor of the permission.
+                                                 </xs:documentation>
+                                             </xs:annotation>
+                                         </xs:attribute>
+                                         <xs:attribute name="action" type="xs:string">
+                                             <xs:annotation>
+                                                 <xs:documentation>
+                                                     The action to pass to the constructor of the permission.
+                                                 </xs:documentation>
+                                             </xs:annotation>
+                                         </xs:attribute>
+                                    </xs:complexType>
+                                </xs:element>
+                            </xs:sequence>
+                
+                            <xs:attribute name="principals" type="stringListType">
+                                <xs:annotation>
+                                    <xs:documentation>
+                                        If the identities principal name matches any of the principals listed here then this permission mapping will be a match.
+                                    </xs:documentation>
+                                </xs:annotation>
+                            </xs:attribute>
+                            <xs:attribute name="roles" type="stringListType">
+                                <xs:annotation>
+                                    <xs:documentation>
+                                        If the identity is a member of any of the roles listed here then the permission mapping will be a match.
+                                    </xs:documentation>
+                                </xs:annotation>
+                            </xs:attribute>
+                        </xs:complexType>
+                    </xs:element>
+                </xs:sequence>
+                <xs:attribute name="mapping-mode" type="simpleMappingMode" default="first" />
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:simpleType name="simpleMappingMode">
+        <xs:annotation>
+            <xs:documentation>
+                How multiple matching permission mappings will be combined.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="and" />
+            <xs:enumeration value="or" />
+            <xs:enumeration value="xor" />
+            <xs:enumeration value="unless" />
+            <xs:enumeration value="first" />
+        </xs:restriction>
+    </xs:simpleType>
+
 
     <xs:complexType name="principalDecoderType" abstract="true">
         <xs:annotation>
@@ -1584,6 +1669,20 @@
         </xs:complexContent>
     </xs:complexType>
 
+    <xs:simpleType name="logicalRoleMappingsType">
+        <xs:annotation>
+            <xs:documentation>
+                The supported set of logical operations.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="and" />
+            <xs:enumeration value="minus" />
+            <xs:enumeration value="or" />
+            <xs:enumeration value="xor" />
+        </xs:restriction>
+    </xs:simpleType>
+
     <xs:complexType name="logicalRoleMapperType">
         <xs:annotation>
             <xs:documentation>
@@ -1592,7 +1691,7 @@
         </xs:annotation>
         <xs:complexContent>
             <xs:extension base="roleMapperType">
-                <xs:attribute name="logical-operation" type="logicalRoleMappingType" use="required">
+                <xs:attribute name="logical-operation" type="logicalRoleMappingsType" use="required">
                     <xs:annotation>
                         <xs:documentation>
                             The logicial operation to perform using the two referenced RoleMappers.
@@ -1616,20 +1715,6 @@
             </xs:extension>
         </xs:complexContent>
     </xs:complexType>
-
-    <xs:simpleType name="logicalRoleMappingsType">
-        <xs:annotation>
-            <xs:documentation>
-                The supported set of logical operations.
-            </xs:documentation>
-        </xs:annotation>
-        <xs:restriction base="xs:string">
-            <xs:enumeration value="and" />
-            <xs:enumeration value="minus" />
-            <xs:enumeration value="or" />
-            <xs:enumeration value="xor" />
-        </xs:restriction>
-    </xs:simpleType>
 
     <xs:complexType name="roleMapperRefType">
         <xs:annotation>
