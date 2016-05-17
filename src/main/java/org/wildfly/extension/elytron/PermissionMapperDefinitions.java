@@ -85,12 +85,11 @@ class PermissionMapperDefinitions {
             .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
             .build();
 
-    static final SimpleAttributeDefinition MAPPING_MODE = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.MAPPING_MODE, ModelType.STRING, false)
+    static final SimpleAttributeDefinition MAPPING_MODE = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.MAPPING_MODE, ModelType.STRING, true)
             .setAllowExpression(true)
             .setDefaultValue(new ModelNode(ElytronDescriptionConstants.FIRST))
             .setAllowedValues(ElytronDescriptionConstants.AND, ElytronDescriptionConstants.OR, ElytronDescriptionConstants.XOR, ElytronDescriptionConstants.UNLESS, ElytronDescriptionConstants.FIRST)
-            .setValidator(EnumValidator.create(MappingMode.class, false, true))
-            .setMinSize(1)
+            .setValidator(EnumValidator.create(MappingMode.class, true, true))
             .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
             .build();
 
@@ -208,7 +207,8 @@ class PermissionMapperDefinitions {
                     }
                 }
 
-                permissions.add(PermissionUtil.createPermission(currentModule.getClassLoader(), permission.getClassName(), permission.getTargetName(), permission.getAction()));
+                ClassLoader classLoader = currentModule != null ? currentModule.getClassLoader() : PermissionMapperDefinitions.class.getClassLoader();
+                permissions.add(PermissionUtil.createPermission(classLoader, permission.getClassName(), permission.getTargetName(), permission.getAction()));
             }
 
             builder.addMapping(current.getPrincipals(), current.getRoles(), PermissionVerifier.from(permissions));

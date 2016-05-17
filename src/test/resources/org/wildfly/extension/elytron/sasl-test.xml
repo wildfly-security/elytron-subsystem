@@ -11,7 +11,11 @@
         </filesystem-realm>
     </security-realms>
     <mappers>
-        <custom-permission-mapper name="PermMapper" class-name="org.wildfly.extension.elytron.SaslTestCase$PermMapper"/>
+        <simple-permission-mapper name="PermMapper">
+            <permission-mapping principals="firstUser" >
+                <permission class-name="org.wildfly.security.auth.permission.LoginPermission" />
+            </permission-mapping>
+        </simple-permission-mapper>
     </mappers>
     <sasl>
         <provider-sasl-server-factory name="MySaslServer"/>

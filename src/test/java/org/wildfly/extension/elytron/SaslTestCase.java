@@ -17,28 +17,9 @@
  */
 package org.wildfly.extension.elytron;
 
-import mockit.integration.junit4.JMockit;
-import org.jboss.as.subsystem.test.AbstractSubsystemTest;
-import org.jboss.as.subsystem.test.KernelServices;
-import org.jboss.msc.service.ServiceName;
-import org.junit.Assert;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.wildfly.security.auth.callback.ChannelBindingCallback;
-import org.wildfly.security.auth.callback.CredentialCallback;
-import org.wildfly.security.auth.permission.LoginPermission;
-import org.wildfly.security.auth.server.SaslAuthenticationFactory;
-import org.wildfly.security.authz.PermissionMappable;
-import org.wildfly.security.authz.PermissionMapper;
-import org.wildfly.security.authz.Roles;
-import org.wildfly.security.credential.PasswordCredential;
-import org.wildfly.security.password.Password;
-import org.wildfly.security.password.PasswordFactory;
-import org.wildfly.security.password.interfaces.ClearPassword;
-import org.wildfly.security.password.spec.ClearPasswordSpec;
-import org.wildfly.security.permission.PermissionVerifier;
-import org.wildfly.security.sasl.util.SaslMechanismInformation;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.CallbackHandler;
@@ -52,9 +33,25 @@ import javax.security.sasl.SaslClient;
 import javax.security.sasl.SaslException;
 import javax.security.sasl.SaslServer;
 import javax.security.sasl.SaslServerFactory;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+
+import org.jboss.as.subsystem.test.AbstractSubsystemTest;
+import org.jboss.as.subsystem.test.KernelServices;
+import org.jboss.msc.service.ServiceName;
+import org.junit.Assert;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.wildfly.security.auth.callback.ChannelBindingCallback;
+import org.wildfly.security.auth.callback.CredentialCallback;
+import org.wildfly.security.auth.server.SaslAuthenticationFactory;
+import org.wildfly.security.credential.PasswordCredential;
+import org.wildfly.security.password.Password;
+import org.wildfly.security.password.PasswordFactory;
+import org.wildfly.security.password.interfaces.ClearPassword;
+import org.wildfly.security.password.spec.ClearPasswordSpec;
+import org.wildfly.security.sasl.util.SaslMechanismInformation;
+
+import mockit.integration.junit4.JMockit;
 
 /**
  * @author <a href="mailto:jkalina@redhat.com">Jan Kalina</a>
@@ -187,10 +184,4 @@ public class SaslTestCase extends AbstractSubsystemTest {
         };
     }
 
-    public static class PermMapper implements PermissionMapper {
-        @Override
-        public PermissionVerifier mapPermissions(PermissionMappable permissionMappable, Roles roles) {
-            return permission -> permission instanceof LoginPermission;
-        }
-    }
 }
