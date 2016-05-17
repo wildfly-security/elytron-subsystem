@@ -21,8 +21,14 @@ import static org.wildfly.extension.elytron.Capabilities.PERMISSION_MAPPER_CAPAB
 import static org.wildfly.extension.elytron.Capabilities.PERMISSION_MAPPER_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.CLASS_NAME;
 import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.MODULE;
+import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
 
+import java.security.Permissions;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.function.BinaryOperator;
 
 import org.jboss.as.controller.AttributeDefinition;
@@ -39,11 +45,18 @@ import org.jboss.as.controller.operations.validation.EnumValidator;
 import org.jboss.as.controller.registry.AttributeAccess;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
+import org.jboss.modules.Module;
+import org.jboss.modules.ModuleIdentifier;
+import org.jboss.modules.ModuleLoadException;
 import org.jboss.msc.service.ServiceBuilder;
+import org.jboss.msc.service.StartException;
 import org.jboss.msc.value.InjectedValue;
 import org.wildfly.extension.elytron.TrivialService.ValueSupplier;
 import org.wildfly.security.authz.PermissionMapper;
 import org.wildfly.security.authz.SimplePermissionMapper;
+import org.wildfly.security.authz.SimplePermissionMapper.Builder;
+import org.wildfly.security.permission.PermissionUtil;
+import org.wildfly.security.permission.PermissionVerifier;
 
 /**
  * Definitions for resources describing {@link PermissionMapper} instances.
@@ -146,12 +159,121 @@ class PermissionMapperDefinitions {
             @Override
             protected ValueSupplier<PermissionMapper> getValueSupplier(ServiceBuilder<PermissionMapper> serviceBuilder,
                     OperationContext context, ModelNode model) throws OperationFailedException {
-                return () -> PermissionMapper.EMPTY_PERMISSION_MAPPER;
+
+                final MappingMode mappingMode = MappingMode.valueOf(MappingMode.class, MAPPING_MODE.resolveModelAttribute(context, model).asString().toUpperCase(Locale.ENGLISH));
+
+                final List<Mapping> permissionMappings = new ArrayList<>();
+                if (model.hasDefined(ElytronDescriptionConstants.PERMISSION_MAPPINGS)) {
+                    for (ModelNode permissionMapping : model.get(ElytronDescriptionConstants.PERMISSION_MAPPINGS).asList()) {
+                        Set<String> principals = new HashSet<>(PRINCIPALS.unwrap(context, permissionMapping));
+                        Set<String> roles = new HashSet<>(ROLES.unwrap(context, permissionMapping));
+
+                        List<Permission> permissions = new ArrayList<>();
+                        if (permissionMapping.hasDefined(ElytronDescriptionConstants.PERMISSIONS)) {
+                            for (ModelNode permission : permissionMapping.require(ElytronDescriptionConstants.PERMISSIONS).asList()) {
+                                permissions.add(new Permission(CLASS_NAME.resolveModelAttribute(context, permission).asString(),
+                                        asStringIfDefined(context, MODULE, permission),
+                                        asStringIfDefined(context, TARGET_NAME, permission),
+                                        asStringIfDefined(context, ACTION, permission)));
+                            }
+                        }
+
+                        permissionMappings.add(new Mapping(principals, roles, permissions));
+                    }
+                }
+
+
+                return () -> createSimplePermissionMapper(mappingMode, permissionMappings);
             }
         };
 
         return new TrivialResourceDefinition(ElytronDescriptionConstants.SIMPLE_PERMISSION_MAPPER, add, attributes, PERMISSION_MAPPER_RUNTIME_CAPABILITY);
     }
+
+    private static PermissionMapper createSimplePermissionMapper(MappingMode mappingMode, List<Mapping> mappings) throws StartException {
+        Builder builder  = SimplePermissionMapper.builder();
+        builder.setMappingMode(mappingMode.convert());
+        for (Mapping current : mappings) {
+
+            Permissions permissions = new Permissions();
+
+            for (Permission permission : current.getPermissions()) {
+                Module currentModule = Module.getCallerModule();
+                if (permission.getModule() != null) {
+                    ModuleIdentifier mi = ModuleIdentifier.fromString(permission.getModule());
+                    try {
+                        currentModule = currentModule.getModule(mi);
+                    } catch (ModuleLoadException e) {
+                        throw new StartException(e);
+                    }
+                }
+
+                permissions.add(PermissionUtil.createPermission(currentModule.getClassLoader(), permission.getClassName(), permission.getTargetName(), permission.getAction()));
+            }
+
+            builder.addMapping(current.getPrincipals(), current.getRoles(), PermissionVerifier.from(permissions));
+        }
+
+        return builder.build();
+
+    }
+
+
+    static class Permission {
+        private final String className;
+        private final String module;
+        private final String targetName;
+        private final String action;
+
+        Permission(final String className, final String module, final String targetName, final String action) {
+            this.className = className;
+            this.module = module;
+            this.targetName = targetName;
+            this.action = action;
+        }
+
+        public String getClassName() {
+            return className;
+        }
+
+        public String getModule() {
+            return module;
+        }
+
+        public String getTargetName() {
+            return targetName;
+        }
+
+        public String getAction() {
+            return action;
+        }
+    }
+
+    static class Mapping {
+        private final Set<String> principals;
+        private final Set<String> roles;
+        private final List<Permission> permissions;
+
+        public Mapping(Set<String> principals, Set<String> roles, List<Permission> permissions) {
+            this.principals = principals;
+            this.roles = roles;
+            this.permissions = permissions;
+        }
+
+        public Set<String> getPrincipals() {
+            return principals;
+        }
+
+        public Set<String> getRoles() {
+            return roles;
+        }
+
+        public List<Permission> getPermissions() {
+            return permissions;
+        }
+
+    }
+
 
     private enum MappingMode {
 
