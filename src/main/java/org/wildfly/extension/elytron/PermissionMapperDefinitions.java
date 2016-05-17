@@ -17,11 +17,10 @@
  */
 package org.wildfly.extension.elytron;
 
-import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.CLASS_NAME;
-import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.MODULE;
-
 import static org.wildfly.extension.elytron.Capabilities.PERMISSION_MAPPER_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.PERMISSION_MAPPER_RUNTIME_CAPABILITY;
+import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.CLASS_NAME;
+import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.MODULE;
 
 import java.util.Locale;
 import java.util.function.BinaryOperator;
@@ -92,9 +91,6 @@ class PermissionMapperDefinitions {
             .setMinSize(1)
             .build();
 
-    static final ObjectTypeAttributeDefinition CRITERIA = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.CRITERIA, PRINCIPALS, ROLES)
-            .build();
-
     static final SimpleAttributeDefinition TARGET_NAME = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.TARGET_NAME, ModelType.STRING, true)
             .setAllowExpression(true)
             .setMinSize(1)
@@ -111,7 +107,7 @@ class PermissionMapperDefinitions {
     static final ObjectListAttributeDefinition PERMISSIONS = new ObjectListAttributeDefinition.Builder(ElytronDescriptionConstants.PERMISSIONS, PERMISSION)
             .build();
 
-    static final ObjectTypeAttributeDefinition PERMISSION_MAPPING = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.PERMISSION_MAPPING, CRITERIA, PERMISSIONS)
+    static final ObjectTypeAttributeDefinition PERMISSION_MAPPING = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.PERMISSION_MAPPING, PRINCIPALS, ROLES, PERMISSIONS)
             .build();
 
     static final ObjectListAttributeDefinition PERMISSION_MAPPINGS = new ObjectListAttributeDefinition.Builder(ElytronDescriptionConstants.PERMISSION_MAPPINGS, PERMISSION_MAPPING)

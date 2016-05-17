@@ -30,6 +30,7 @@ import static org.jboss.as.controller.parsing.ParseUtils.requireSingleAttribute;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedAttribute;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedElement;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ACTION;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PERMISSIONS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ADD_PREFIX_ROLE_MAPPER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ADD_SUFFIX_ROLE_MAPPER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AGGREGATE_NAME_REWRITER;
@@ -533,7 +534,9 @@ class MapperParser {
             permissionMappings.add(readPermissionMapping(reader));
         }
 
+        addPermissionMapper.get(OP_ADDR).set(parentAddress).add(SIMPLE_PERMISSION_MAPPER, name);
         addPermissionMapper.get(PERMISSION_MAPPINGS).set(permissionMappings);
+        System.out.println(addPermissionMapper);
         operations.add(addPermissionMapper);
     }
 
@@ -542,7 +545,6 @@ class MapperParser {
 
         final int count = reader.getAttributeCount();
         for (int i = 0; i < count; i++) {
-            final String value = reader.getAttributeValue(i);
             if (!isNoNamespaceAttribute(reader, i)) {
                 throw unexpectedAttribute(reader, i);
             } else {
@@ -574,6 +576,7 @@ class MapperParser {
             }
             permissions.add(readPermission(reader));
         }
+        permissionMapping.get(PERMISSIONS).set(permissions);
 
         return permissionMapping;
     }
@@ -610,7 +613,6 @@ class MapperParser {
         if (permission.get(CLASS_NAME).isDefined() == false) {
             throw missingRequired(reader, CLASS_NAME);
         }
-
 
         requireNoContent(reader);
 
@@ -1389,16 +1391,17 @@ class MapperParser {
             ModelNode permissionMappers = subsystem.require(SIMPLE_PERMISSION_MAPPER);
             for (String name : permissionMappers.keys()) {
                 ModelNode permissionMapper = permissionMappers.require(name);
+                System.out.println(permissionMapper);
                 writer.writeStartElement(SIMPLE_PERMISSION_MAPPER);
                 writer.writeAttribute(NAME, name);
                 PermissionMapperDefinitions.MAPPING_MODE.marshallAsAttribute(permissionMapper, false, writer);
-                if (permissionMapper.hasDefined(PERMISSION_MAPPING)) {
-                    for (ModelNode permissionMapping : permissionMapper.get(PERMISSION_MAPPING).asList()) {
+                if (permissionMapper.hasDefined(PERMISSION_MAPPINGS)) {
+                    for (ModelNode permissionMapping : permissionMapper.get(PERMISSION_MAPPINGS).asList()) {
                         writer.writeStartElement(PERMISSION_MAPPING);
                         PermissionMapperDefinitions.PRINCIPALS.getAttributeMarshaller().marshallAsAttribute(PermissionMapperDefinitions.PRINCIPALS, permissionMapping, false, writer);
                         PermissionMapperDefinitions.ROLES.getAttributeMarshaller().marshallAsAttribute(PermissionMapperDefinitions.ROLES, permissionMapping, false, writer);
-                        if (permissionMapping.hasDefined(PERMISSION)) {
-                            for (ModelNode permission : permissionMapping.get(PERMISSION).asList()) {
+                        if (permissionMapping.hasDefined(PERMISSIONS)) {
+                            for (ModelNode permission : permissionMapping.get(PERMISSIONS).asList()) {
                                 writer.writeStartElement(PERMISSION);
                                 ClassLoadingAttributeDefinitions.CLASS_NAME.marshallAsAttribute(permission, writer);
                                 ClassLoadingAttributeDefinitions.MODULE.marshallAsAttribute(permission, writer);

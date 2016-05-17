@@ -13,11 +13,24 @@
         <custom-name-rewriter name="CustomOne" class-name="org.wildfly.elytron.CustomRewriter" module="a.b" />
         <regex-name-rewriter name="RegexOne" pattern=".?" replacement="X" replace-all="true" />
         <regex-name-validating-rewriter name="RegexTwo" pattern="p*" match="false" />
-        
+
         <custom-permission-mapper name="CustomPermissionMapper" class-name="org.wildfly.elytron.CustomPermissionMapper" module="l.m" />
         <custom-permission-mapper name="CustomPermissionMapper2" class-name="org.wildfly.elytron.CustomPermissionMapper" module="l.m" />
         <logical-permission-mapper name="LogicalPermissionMapper" logical-operation="unless" left="CustomPermissionMapper" right="CustomPermissionMapper2" />
-        
+
+        <simple-permission-mapper name="SimplePermissionMapper" mapping-mode="AND">
+            <permission-mapping principals="John Joe" roles="User Administrator">
+                <permission class-name="a.b.MyPermission" />
+                <permission class-name="a.b.MyOtherPermission" target-name="../c" action="delete" />
+            </permission-mapping>
+            <permission-mapping principals="John">
+                <permission class-name="a.b.JohnPermission" />
+            </permission-mapping>
+            <permission-mapping principals="User">
+                <permission class-name="a.b.UserPermission" />
+            </permission-mapping>
+        </simple-permission-mapper>
+
         <aggregate-principal-decoder name="AggregatePrincipalDecoder">
             <principal-decoder name="CustomPrincipalDecoderOne" />
             <principal-decoder name="CustomPrincipalDecoderTwo" />
