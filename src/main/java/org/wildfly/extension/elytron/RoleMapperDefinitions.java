@@ -17,6 +17,7 @@
  */
 package org.wildfly.extension.elytron;
 
+import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
 import static org.wildfly.extension.elytron.Capabilities.ROLE_MAPPER_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.ROLE_MAPPER_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
@@ -73,13 +74,13 @@ class RoleMapperDefinitions {
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
         .build();
 
-    static final SimpleAttributeDefinition LEFT = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.LEFT, ModelType.STRING, false)
+    static final SimpleAttributeDefinition LEFT = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.LEFT, ModelType.STRING, true)
         .setMinSize(1)
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
         .setCapabilityReference(ROLE_MAPPER_CAPABILITY, ROLE_MAPPER_CAPABILITY, true)
         .build();
 
-    static final SimpleAttributeDefinition RIGHT = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.RIGHT, ModelType.STRING, false)
+    static final SimpleAttributeDefinition RIGHT = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.RIGHT, ModelType.STRING, true)
         .setMinSize(1)
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
         .setCapabilityReference(ROLE_MAPPER_CAPABILITY, ROLE_MAPPER_CAPABILITY, true)
@@ -158,11 +159,23 @@ class RoleMapperDefinitions {
 
                 ServiceBuilder<RoleMapper> serviceBuilder = serviceTarget.addService(roleMapperName, roleMapperService);
 
-                serviceBuilder.addDependency(context.getCapabilityServiceName(RuntimeCapability.buildDynamicCapabilityName(ROLE_MAPPER_CAPABILITY, LEFT.resolveModelAttribute(context, model).asString()),
-                        RoleMapper.class), RoleMapper.class, leftRoleMapperInjector);
+                String leftName = asStringIfDefined(context, LEFT, model);
+                if (leftName != null) {
+                    serviceBuilder.addDependency(context.getCapabilityServiceName(
+                            RuntimeCapability.buildDynamicCapabilityName(ROLE_MAPPER_CAPABILITY, leftName), RoleMapper.class),
+                            RoleMapper.class, leftRoleMapperInjector);
+                } else {
+                    leftRoleMapperInjector.inject(RoleMapper.IDENTITY_ROLE_MAPPER);
+                }
 
-                serviceBuilder.addDependency(context.getCapabilityServiceName(RuntimeCapability.buildDynamicCapabilityName(ROLE_MAPPER_CAPABILITY, RIGHT.resolveModelAttribute(context, model).asString()),
-                        RoleMapper.class), RoleMapper.class, rightRoleMapperInjector);
+                String rightName = asStringIfDefined(context, RIGHT, model);
+                if (rightName != null) {
+                    serviceBuilder.addDependency(context.getCapabilityServiceName(
+                            RuntimeCapability.buildDynamicCapabilityName(ROLE_MAPPER_CAPABILITY, rightName), RoleMapper.class),
+                            RoleMapper.class, rightRoleMapperInjector);
+                } else {
+                    rightRoleMapperInjector.inject(RoleMapper.IDENTITY_ROLE_MAPPER);
+                }
 
                 return serviceBuilder;
             }

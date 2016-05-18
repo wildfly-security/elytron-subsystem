@@ -1698,17 +1698,21 @@
                         </xs:documentation>
                     </xs:annotation>
                 </xs:attribute>
-                <xs:attribute name="left" type="xs:string" use="required">
+                <xs:attribute name="left" type="xs:string">
                     <xs:annotation>
                         <xs:documentation>
                             Reference to the RoleMapper to use to the left of the operation.
+
+                            If not set the identity role mapper will be used instead.
                         </xs:documentation>
                     </xs:annotation>
                 </xs:attribute>
-                <xs:attribute name="right" type="xs:string" use="required">
+                <xs:attribute name="right" type="xs:string">
                     <xs:annotation>
                         <xs:documentation>
                             Reference to the RoleMapper to use to the right of the operation.
+
+                            If not set the identity role mapper will be used instead.
                         </xs:documentation>
                     </xs:annotation>
                 </xs:attribute>

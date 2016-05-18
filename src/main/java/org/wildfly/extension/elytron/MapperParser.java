@@ -1179,7 +1179,7 @@ class MapperParser {
         ModelNode addRoleMapper = new ModelNode();
         addRoleMapper.get(OP).set(ADD);
 
-        Set<String> requiredAttributes = new HashSet<String>(Arrays.asList(new String[] { NAME, LOGICAL_OPERATION, LEFT, RIGHT }));
+        Set<String> requiredAttributes = new HashSet<String>(Arrays.asList(new String[] { NAME, LOGICAL_OPERATION }));
 
         String name = null;
 
