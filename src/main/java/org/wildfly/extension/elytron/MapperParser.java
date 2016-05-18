@@ -536,7 +536,6 @@ class MapperParser {
 
         addPermissionMapper.get(OP_ADDR).set(parentAddress).add(SIMPLE_PERMISSION_MAPPER, name);
         addPermissionMapper.get(PERMISSION_MAPPINGS).set(permissionMappings);
-        System.out.println(addPermissionMapper);
         operations.add(addPermissionMapper);
     }
 
@@ -1391,7 +1390,6 @@ class MapperParser {
             ModelNode permissionMappers = subsystem.require(SIMPLE_PERMISSION_MAPPER);
             for (String name : permissionMappers.keys()) {
                 ModelNode permissionMapper = permissionMappers.require(name);
-                System.out.println(permissionMapper);
                 writer.writeStartElement(SIMPLE_PERMISSION_MAPPER);
                 writer.writeAttribute(NAME, name);
                 PermissionMapperDefinitions.MAPPING_MODE.marshallAsAttribute(permissionMapper, false, writer);

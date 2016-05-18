@@ -30,6 +30,16 @@
 
         <mappers>
             <simple-role-decoder name="groups-to-roles" attribute="groups" />
+
+            <constant-role-mapper name="constant-roles" roles="All" />
+
+            <logical-role-mapper name="combined-role-mapper" logical-operation="or" left="constant-roles" />
+
+            <simple-permission-mapper name="login-permission-mapper">
+                <permission-mapping roles="All" >
+                    <permission class-name="org.wildfly.security.auth.permission.LoginPermission" />
+                </permission-mapping>
+            </simple-permission-mapper>
         </mappers>
 
         <http>
@@ -45,7 +55,7 @@
 
     <supplement name="domain">
         <replacement placeholder="DOMAIN_DEFINITIONS">
-            <security-domain name="ApplicationDomain" default-realm="ApplicationRealm">
+            <security-domain name="ApplicationDomain" default-realm="ApplicationRealm" role-mapper="combined-role-mapper" permission-mapper="login-permission-mapper">
                 <realm name="ApplicationRealm" role-decoder="groups-to-roles" />
             </security-domain>
         </replacement>
@@ -71,7 +81,7 @@
 
     <supplement name="host">
         <replacement placeholder="DOMAIN_DEFINITIONS">
-            <security-domain name="ManagementDomain" default-realm="ManagementRealm">
+            <security-domain name="ManagementDomain" default-realm="ManagementRealm" role-mapper="combined-role-mapper" permission-mapper="login-permission-mapper">
                 <realm name="ManagementRealm" role-decoder="groups-to-roles" />
             </security-domain>
         </replacement>
@@ -97,11 +107,11 @@
 
     <supplement name="standalone">
         <replacement placeholder="DOMAIN_DEFINITIONS">
-            <security-domain name="ApplicationDomain" default-realm="ApplicationRealm">
+            <security-domain name="ApplicationDomain" default-realm="ApplicationRealm" role-mapper="combined-role-mapper" permission-mapper="login-permission-mapper">
                 <realm name="ApplicationRealm" role-decoder="groups-to-roles" />
             </security-domain>
 
-            <security-domain name="ManagementDomain" default-realm="ManagementRealm">
+            <security-domain name="ManagementDomain" default-realm="ManagementRealm" role-mapper="combined-role-mapper" permission-mapper="login-permission-mapper">
                 <realm name="ManagementRealm" role-decoder="groups-to-roles" />
             </security-domain>
         </replacement>

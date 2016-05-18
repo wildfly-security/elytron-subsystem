@@ -25,6 +25,7 @@ import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
 
 import java.security.Permissions;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -95,11 +96,13 @@ class PermissionMapperDefinitions {
 
     static final StringListAttributeDefinition PRINCIPALS = new StringListAttributeDefinition.Builder(ElytronDescriptionConstants.PRINCIPALS)
             .setAllowExpression(true)
+            .setAllowNull(true)
             .setMinSize(1)
             .build();
 
     static final StringListAttributeDefinition ROLES = new StringListAttributeDefinition.Builder(ElytronDescriptionConstants.ROLES)
             .setAllowExpression(true)
+            .setAllowNull(true)
             .setMinSize(1)
             .build();
 
@@ -177,10 +180,10 @@ class PermissionMapperDefinitions {
                             }
                         }
 
-                        permissionMappings.add(new Mapping(principals, roles, permissions));
+                        permissionMappings.add(new Mapping(principals != null ? principals : Collections.emptySet(),
+                                roles != null ? roles : Collections.emptySet(), permissions));
                     }
                 }
-
 
                 return () -> createSimplePermissionMapper(mappingMode, permissionMappings);
             }
