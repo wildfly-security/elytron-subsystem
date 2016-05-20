@@ -71,6 +71,7 @@
                     <mechanism mechanism-name="BASIC" >
                         <mechanism-realm realm-name="Application Realm" />
                     </mechanism>
+                    <mechanism mechanism-name="FORM" />
                 </mechanism-configuration>
             </http-server-authentication>
         </replacement>
@@ -141,6 +142,7 @@
                     <mechanism mechanism-name="BASIC" >
                         <mechanism-realm realm-name="Application Realm" />
                     </mechanism>
+                    <mechanism mechanism-name="FORM" />
                 </mechanism-configuration>
             </http-server-authentication>
         </replacement>
