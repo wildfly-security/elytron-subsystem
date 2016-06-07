@@ -68,6 +68,7 @@ import org.wildfly.security.http.util.FilterServerMechanismFactory;
 import org.wildfly.security.http.util.PropertiesServerMechanismFactory;
 import org.wildfly.security.http.util.SecurityProviderServerMechanismFactory;
 import org.wildfly.security.http.util.ServiceLoaderServerMechanismFactory;
+import org.wildfly.security.http.util.SetMechanismInformationMechanismFactory;
 
 /**
  * Resource definitions for loading and configuring the HTTP server side authentication mechanisms.
@@ -164,6 +165,7 @@ class HttpServerDefinitions {
 
                 return () -> {
                     HttpServerAuthenticationMechanismFactory factory = factoryInjector.getValue();
+                    factory = new SetMechanismInformationMechanismFactory(factory);
                     factory = finalFilter != null ? new FilterServerMechanismFactory(factory, finalFilter) : factory;
                     factory = propertiesMap != null ? new PropertiesServerMechanismFactory(factoryInjector.getValue(), propertiesMap) : factory;
 

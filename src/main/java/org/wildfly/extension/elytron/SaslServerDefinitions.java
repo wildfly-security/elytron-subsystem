@@ -76,6 +76,7 @@ import org.jboss.msc.service.ServiceTarget;
 import org.jboss.msc.service.StartException;
 import org.jboss.msc.value.InjectedValue;
 import org.wildfly.extension.elytron.TrivialService.ValueSupplier;
+import org.wildfly.security.sasl.util.SetMechanismInformationSaslServerFactory;
 import org.wildfly.security.sasl.util.AggregateSaslServerFactory;
 import org.wildfly.security.sasl.util.FilterMechanismSaslServerFactory;
 import org.wildfly.security.sasl.util.MechanismProviderFilteringSaslServerFactory;
@@ -243,6 +244,7 @@ class SaslServerDefinitions {
 
                 TrivialService<SaslServerFactory> saslServiceFactoryService = new TrivialService<SaslServerFactory>(() -> {
                     SaslServerFactory theFactory = saslServerFactoryInjector.getValue();
+                    theFactory = new SetMechanismInformationSaslServerFactory(theFactory);
                     theFactory = protocol != null ? new ProtocolSaslServerFactory(theFactory, protocol) : theFactory;
                     theFactory = serverName != null ? new ServerNameSaslServerFactory(theFactory, serverName) : theFactory;
                     theFactory = propertiesMap != null ? new PropertiesSaslServerFactory(theFactory, propertiesMap) : theFactory;

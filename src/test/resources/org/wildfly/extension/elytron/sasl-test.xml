@@ -27,6 +27,7 @@
                 <mechanism mechanism-name="DIGEST">
                     <mechanism-realm realm-name="TestingRealm1"/>
                 </mechanism>
+                <mechanism />
             </mechanism-configuration>
         </sasl-server-authentication>
     </sasl>

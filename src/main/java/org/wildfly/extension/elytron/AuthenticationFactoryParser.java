@@ -27,7 +27,7 @@ import static org.jboss.as.controller.parsing.ParseUtils.requireNoAttributes;
 import static org.jboss.as.controller.parsing.ParseUtils.requireNoContent;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedAttribute;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedElement;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CREDENTIAL_SECURITY_FACTORIES;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CREDENTIAL_SECURITY_FACTORY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.FINAL_NAME_REWRITER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.HTTP_SERVER_AUTHENTICATION;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.HTTP_SERVER_FACTORY;
@@ -35,6 +35,8 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MECHANIS
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MECHANISM_CONFIGURATION;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MECHANISM_CONFIGURATIONS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MECHANISM_NAME;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.HOST_NAME;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROTOCOL;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MECHANISM_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MECHANISM_REALM_CONFIGURATIONS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME;
@@ -116,6 +118,12 @@ class AuthenticationFactoryParser {
                     case MECHANISM_NAME:
                         AuthenticationFactoryDefinitions.MECHANISM_NAME.parseAndSetParameter(value, mechanismConfiguration, reader);
                         break;
+                    case HOST_NAME:
+                        AuthenticationFactoryDefinitions.HOST_NAME.parseAndSetParameter(value, mechanismConfiguration, reader);
+                        break;
+                    case PROTOCOL:
+                        AuthenticationFactoryDefinitions.PROTOCOL.parseAndSetParameter(value, mechanismConfiguration, reader);
+                        break;
                     case PRE_REALM_NAME_REWRITER:
                         AuthenticationFactoryDefinitions.BASE_PRE_REALM_NAME_REWRITER.parseAndSetParameter(value, mechanismConfiguration, reader);
                         break;
@@ -128,19 +136,13 @@ class AuthenticationFactoryParser {
                     case REALM_MAPPER:
                         AuthenticationFactoryDefinitions.BASE_REALM_MAPPER.parseAndSetParameter(value, mechanismConfiguration, reader);
                         break;
-                    case CREDENTIAL_SECURITY_FACTORIES:
-                        for (String credentialSecurityFactory : reader.getListAttributeValue(i)) {
-                            AuthenticationFactoryDefinitions.BASE_CREDENTIAL_SECURITY_FACTORIES.parseAndAddParameterElement(credentialSecurityFactory, mechanismConfiguration, reader);
-                        }
+                    case CREDENTIAL_SECURITY_FACTORY:
+                        AuthenticationFactoryDefinitions.BASE_CREDENTIAL_SECURITY_FACTORY.parseAndSetParameter(value, mechanismConfiguration, reader);
                         break;
                     default:
                         throw unexpectedAttribute(reader, i);
                 }
             }
-        }
-
-        if (mechanismConfiguration.hasDefined(MECHANISM_NAME) == false) {
-            throw missingRequired(reader, Collections.singleton(MECHANISM_NAME));
         }
 
         while (reader.hasNext() && reader.nextTag() != END_ELEMENT) {
@@ -279,12 +281,13 @@ class AuthenticationFactoryParser {
             for (ModelNode currentMechConfig : configuration.require(MECHANISM_CONFIGURATIONS).asList()) {
                 writer.writeStartElement(MECHANISM);
                 AuthenticationFactoryDefinitions.MECHANISM_NAME.marshallAsAttribute(currentMechConfig, writer);
+                AuthenticationFactoryDefinitions.HOST_NAME.marshallAsAttribute(currentMechConfig, writer);
+                AuthenticationFactoryDefinitions.PROTOCOL.marshallAsAttribute(currentMechConfig, writer);
                 AuthenticationFactoryDefinitions.BASE_PRE_REALM_NAME_REWRITER.marshallAsAttribute(currentMechConfig, writer);
                 AuthenticationFactoryDefinitions.BASE_POST_REALM_NAME_REWRITER.marshallAsAttribute(currentMechConfig, writer);
                 AuthenticationFactoryDefinitions.BASE_FINAL_NAME_REWRITER.marshallAsAttribute(currentMechConfig, writer);
                 AuthenticationFactoryDefinitions.BASE_REALM_MAPPER.marshallAsAttribute(currentMechConfig, writer);
-                AuthenticationFactoryDefinitions.BASE_CREDENTIAL_SECURITY_FACTORIES.getAttributeMarshaller()
-                    .marshallAsAttribute(AuthenticationFactoryDefinitions.BASE_CREDENTIAL_SECURITY_FACTORIES, currentMechConfig, false, writer);
+                AuthenticationFactoryDefinitions.BASE_CREDENTIAL_SECURITY_FACTORY.marshallAsAttribute(currentMechConfig, writer);
                 if (currentMechConfig.hasDefined(MECHANISM_REALM_CONFIGURATIONS)) {
                     for (ModelNode currentMechRealmConfig : currentMechConfig.require(MECHANISM_REALM_CONFIGURATIONS).asList()) {
                         writer.writeStartElement(MECHANISM_REALM);

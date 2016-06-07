@@ -27,6 +27,7 @@ import org.junit.runner.RunWith;
 import org.wildfly.security.auth.permission.LoginPermission;
 import org.wildfly.security.auth.principal.NamePrincipal;
 import org.wildfly.security.auth.server.MechanismConfiguration;
+import org.wildfly.security.auth.server.MechanismConfigurationSelector;
 import org.wildfly.security.auth.server.MechanismRealmConfiguration;
 import org.wildfly.security.auth.server.SecurityDomain;
 import org.wildfly.security.auth.server.SecurityIdentity;
@@ -97,7 +98,7 @@ public class DomainTestCase extends AbstractSubsystemTest {
                 .addMechanismRealm(MechanismRealmConfiguration.builder().setRealmName("FileRealm").build())
                 .addMechanismRealm(MechanismRealmConfiguration.builder().setRealmName("PropRealm").build())
                 .build();
-        ServerAuthenticationContext context = domain.createNewAuthenticationContext(mechConf);
+        ServerAuthenticationContext context = domain.createNewAuthenticationContext(MechanismConfigurationSelector.constantSelector(mechConf));
 
         context.setMechanismRealmName("PropRealm");
         context.setAuthenticationName("xser1@PropRealm");

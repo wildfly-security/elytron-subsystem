@@ -124,6 +124,7 @@ interface ElytronDescriptionConstants {
     String GROUPS_ATTRIBUTE = "groups-attribute";
     String GROUPS_PROPERTIES = "groups-properties";
 
+    String HOST_NAME = "host-name";
     String HTTP = "http";
     String HTTP_SERVER_AUTHENTICATION = "http-server-authentication";
     String HTTP_SERVER_FACTORY = "http-server-factory";
@@ -274,6 +275,7 @@ interface ElytronDescriptionConstants {
     String SECURITY_PROPERTIES = "security-properties";
     String SECURITY_PROPERTY = "security-property";
     String SECURITY_REALMS = "security-realms";
+    String SELECTION_CRITERIA = "selection-criteria";
     String SERVER_NAME = "server-name";
     String SERIAL_NUMBER = "serial-number";
     String SERVER_SSL_CONTEXT = "server-ssl-context";
