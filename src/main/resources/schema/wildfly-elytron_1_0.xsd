@@ -840,6 +840,7 @@
             </xs:documentation>
         </xs:annotation>
         <xs:choice maxOccurs="unbounded">
+            <xs:element name="custom-credential-security-factory" type="customCredentialSecurityFactoryType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="kerberos-security-factory" type="kerberosSecurityFactory" minOccurs="0" maxOccurs="unbounded" />
         </xs:choice>
     </xs:complexType>
@@ -859,7 +860,32 @@
             </xs:annotation>
         </xs:attribute>
     </xs:complexType>
-    
+
+    <xs:complexType name="customCredentialSecurityFactoryType">
+        <xs:annotation>
+            <xs:documentation>
+                Generic definition for a custom credential SecurityFactory implementation.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="credentialSecurityFactoryType">
+                <xs:sequence>
+                    <xs:element name="configuration"
+                        type="customComponentConfiguration" minOccurs="0">
+                        <xs:annotation>
+                            <xs:documentation>
+                                The configuration to apply to the SecurityFactory implementation.
+
+                                Note: If configuration is supplied the SecurityFactory MUST implement the Configurable interface.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+                <xs:attributeGroup ref="customComponentAttributes" />
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
     <xs:complexType name="kerberosSecurityFactory">
         <xs:complexContent>
             <xs:extension base="credentialSecurityFactoryType">

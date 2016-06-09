@@ -84,6 +84,7 @@ interface ElytronDescriptionConstants {
     String CREDENTIAL_SECURITY_FACTORIES = "credential-security-factories";
     String CREDENTIAL_SECURITY_FACTORY = "credential-security-factory";
     String CREDENTIALS = "credentials";
+    String CUSTOM_CREDENTIAL_SECURITY_FACTORY = "custom-credential-security-factory";
     String CUSTOM_NAME_REWRITER = "custom-name-rewriter";
     String CUSTOM_PERMISSION_MAPPER = "custom-permission-mapper";
     String CUSTOM_PRINCIPAL_DECODER = "custom-principal-decoder";

@@ -28,6 +28,7 @@ import static org.jboss.as.controller.parsing.ParseUtils.requireNoContent;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedAttribute;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedElement;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CREDENTIAL_SECURITY_FACTORIES;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CUSTOM_CREDENTIAL_SECURITY_FACTORY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.DEBUG;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KERBEROS_SECURITY_FACTORY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MECHANISM_OIDS;
@@ -38,7 +39,9 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PRINCIPA
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.RELATIVE_TO;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REQUEST_LIFETIME;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SERVER;
+import static org.wildfly.extension.elytron.ElytronSubsystemParser.readCustomComponent;
 import static org.wildfly.extension.elytron.ElytronSubsystemParser.verifyNamespace;
+import static org.wildfly.extension.elytron.ElytronSubsystemParser.writeCustomComponent;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -64,6 +67,9 @@ class CredentialSecurityFactoryParser {
             verifyNamespace(reader);
             String localName = reader.getLocalName();
             switch (localName) {
+                case CUSTOM_CREDENTIAL_SECURITY_FACTORY:
+                    readCustomComponent(CUSTOM_CREDENTIAL_SECURITY_FACTORY, parentAddress, reader, operations);
+                    break;
                 case KERBEROS_SECURITY_FACTORY:
                     readKerberosSecurityFactory(parentAddress, reader, operations);
                     break;
@@ -142,6 +148,22 @@ class CredentialSecurityFactoryParser {
         }
     }
 
+    private boolean writeCustomCredenitalSecurityFactories(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
+        if (subsystem.hasDefined(CUSTOM_CREDENTIAL_SECURITY_FACTORY)) {
+            startCredentialSecurityFactories(started, writer);
+            ModelNode securityFactories = subsystem.require(CUSTOM_CREDENTIAL_SECURITY_FACTORY);
+            for (String name : securityFactories.keys()) {
+                ModelNode factory = securityFactories.require(name);
+
+                writeCustomComponent(CUSTOM_CREDENTIAL_SECURITY_FACTORY, name, factory, writer);
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
     private boolean writeKerberosSecurityFactories(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (subsystem.hasDefined(KERBEROS_SECURITY_FACTORY)) {
             startCredentialSecurityFactories(started, writer);
@@ -170,6 +192,7 @@ class CredentialSecurityFactoryParser {
     void writeCredentialSecurityFactories(ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         boolean credentialSecurityFactoriesStarted = false;
 
+        credentialSecurityFactoriesStarted = credentialSecurityFactoriesStarted | writeCustomCredenitalSecurityFactories(credentialSecurityFactoriesStarted, subsystem, writer);
         credentialSecurityFactoriesStarted = credentialSecurityFactoriesStarted | writeKerberosSecurityFactories(credentialSecurityFactoriesStarted, subsystem, writer);
 
         if (credentialSecurityFactoriesStarted) {
