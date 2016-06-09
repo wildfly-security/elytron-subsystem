@@ -17,7 +17,10 @@
  */
 package org.wildfly.extension.elytron;
 
-import mockit.integration.junit4.JMockit;
+import java.io.FilePermission;
+
+import javax.security.auth.x500.X500Principal;
+
 import org.jboss.as.subsystem.test.AbstractSubsystemTest;
 import org.jboss.as.subsystem.test.KernelServices;
 import org.jboss.msc.service.ServiceName;
@@ -37,8 +40,7 @@ import org.wildfly.security.authz.PermissionMapper;
 import org.wildfly.security.authz.Roles;
 import org.wildfly.security.permission.PermissionVerifier;
 
-import javax.security.auth.x500.X500Principal;
-import java.io.FilePermission;
+import mockit.integration.junit4.JMockit;
 
 
 /**

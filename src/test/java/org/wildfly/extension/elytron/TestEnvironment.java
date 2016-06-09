@@ -17,11 +17,6 @@
  */
 package org.wildfly.extension.elytron;
 
-import mockit.Mock;
-import mockit.MockUp;
-import org.jboss.as.subsystem.test.AdditionalInitialization;
-import org.jboss.as.subsystem.test.ControllerInitializer;
-
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.FileVisitResult;
@@ -30,6 +25,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+
+import org.jboss.as.subsystem.test.AdditionalInitialization;
+import org.jboss.as.subsystem.test.ControllerInitializer;
+
+import mockit.Mock;
+import mockit.MockUp;
 
 class TestEnvironment extends AdditionalInitialization {
 

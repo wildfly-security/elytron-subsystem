@@ -17,11 +17,12 @@
  */
 package org.wildfly.extension.elytron;
 
-import org.jboss.as.subsystem.test.AbstractSubsystemTest;
-import org.jboss.as.subsystem.test.KernelServices;
-import org.jboss.msc.service.ServiceName;
-import org.junit.Assert;
-import org.junit.Test;
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
+import java.security.cert.X509Certificate;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLServerSocketFactory;
@@ -29,12 +30,12 @@ import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
-import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.security.cert.X509Certificate;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+
+import org.jboss.as.subsystem.test.AbstractSubsystemTest;
+import org.jboss.as.subsystem.test.KernelServices;
+import org.jboss.msc.service.ServiceName;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * @author <a href="mailto:jkalina@redhat.com">Jan Kalina</a>

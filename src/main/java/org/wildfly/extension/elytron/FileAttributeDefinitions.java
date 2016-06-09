@@ -27,9 +27,9 @@ import org.jboss.as.controller.descriptions.ModelDescriptionConstants;
 import org.jboss.as.controller.registry.AttributeAccess;
 import org.jboss.as.controller.services.path.PathEntry;
 import org.jboss.as.controller.services.path.PathManager;
+import org.jboss.as.controller.services.path.PathManager.Callback.Handle;
 import org.jboss.as.controller.services.path.PathManager.Event;
 import org.jboss.as.controller.services.path.PathManager.PathEventContext;
-import org.jboss.as.controller.services.path.PathManager.Callback.Handle;
 import org.jboss.dmr.ModelType;
 import org.jboss.msc.service.ServiceName;
 

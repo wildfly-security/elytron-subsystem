@@ -34,8 +34,8 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ATTRIBUT
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ATTRIBUTE_MAPPING;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AUTHENTICATION_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AUTHORIZATION_REALM;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CUSTOM_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CUSTOM_MODIFIABLE_REALM;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CUSTOM_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.DIRECT_VERIFICATION;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.DIR_CONTEXT;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.FILE;

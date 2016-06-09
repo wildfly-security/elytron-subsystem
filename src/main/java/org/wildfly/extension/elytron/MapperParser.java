@@ -30,7 +30,6 @@ import static org.jboss.as.controller.parsing.ParseUtils.requireSingleAttribute;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedAttribute;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedElement;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ACTION;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PERMISSIONS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ADD_PREFIX_ROLE_MAPPER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ADD_SUFFIX_ROLE_MAPPER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AGGREGATE_NAME_REWRITER;
@@ -70,6 +69,7 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME_REW
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.OID;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PATTERN;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PERMISSION;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PERMISSIONS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PERMISSION_MAPPING;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PERMISSION_MAPPINGS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PREFIX;

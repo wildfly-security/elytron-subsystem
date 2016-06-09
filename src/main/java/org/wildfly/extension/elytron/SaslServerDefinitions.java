@@ -76,7 +76,6 @@ import org.jboss.msc.service.ServiceTarget;
 import org.jboss.msc.service.StartException;
 import org.jboss.msc.value.InjectedValue;
 import org.wildfly.extension.elytron.TrivialService.ValueSupplier;
-import org.wildfly.security.sasl.util.SetMechanismInformationSaslServerFactory;
 import org.wildfly.security.sasl.util.AggregateSaslServerFactory;
 import org.wildfly.security.sasl.util.FilterMechanismSaslServerFactory;
 import org.wildfly.security.sasl.util.MechanismProviderFilteringSaslServerFactory;
@@ -86,6 +85,7 @@ import org.wildfly.security.sasl.util.SaslMechanismInformation;
 import org.wildfly.security.sasl.util.SecurityProviderSaslServerFactory;
 import org.wildfly.security.sasl.util.ServerNameSaslServerFactory;
 import org.wildfly.security.sasl.util.ServiceLoaderSaslServerFactory;
+import org.wildfly.security.sasl.util.SetMechanismInformationSaslServerFactory;
 
 /**
  * The {@link ResourceDefinition} instances for the {@link SaslServerFactory} resources.
