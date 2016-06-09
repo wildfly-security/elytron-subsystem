@@ -29,6 +29,7 @@ import static org.jboss.as.controller.parsing.ParseUtils.requireNoContent;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedAttribute;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedElement;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CLASS_NAME;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CREDENTIAL_SECURITY_FACTORIES;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CONFIGURATION;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.HTTP;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEY;
@@ -73,6 +74,7 @@ class ElytronSubsystemParser implements XMLElementReader<List<ModelNode>>, XMLEl
     private final RealmParser realmParser = new RealmParser();
     private final TlsParser tlsParser = new TlsParser();
     private final ProviderLoaderParser providerLoaderParser = new ProviderLoaderParser();
+    private final CredentialSecurityFactoryParser credentialSecurityFactoryParser = new CredentialSecurityFactoryParser();
     private final MapperParser mapperParser = new MapperParser();
     private final SaslParser saslParser = new SaslParser();
     private final HttpParser httpParser = new HttpParser();
@@ -108,6 +110,9 @@ class ElytronSubsystemParser implements XMLElementReader<List<ModelNode>>, XMLEl
                     break;
                 case SECURITY_REALMS:
                     realmParser.readRealms(parentAddress, reader, operations);
+                    break;
+                case CREDENTIAL_SECURITY_FACTORIES:
+                    credentialSecurityFactoryParser.readCredentialSecurityFactories(parentAddress, reader, operations);
                     break;
                 case MAPPERS:
                     mapperParser.readMappers(parentAddress, reader, operations);
@@ -356,6 +361,7 @@ class ElytronSubsystemParser implements XMLElementReader<List<ModelNode>>, XMLEl
         }
 
         realmParser.writeRealms(model, writer);
+        credentialSecurityFactoryParser.writeCredentialSecurityFactories(model, writer);
         mapperParser.writeMappers(model, writer);
         httpParser.writeHttp(model, writer);
         saslParser.writeSasl(model, writer);

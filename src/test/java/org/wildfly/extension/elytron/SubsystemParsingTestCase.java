@@ -156,6 +156,11 @@ public class SubsystemParsingTestCase extends AbstractSubsystemTest {
     }
 
     @Test
+    public void testParseAndMarshalModel_CredentialSecurityFactories() throws Exception {
+        testParseAndMarshalModel("credential-security-factories.xml");
+    }
+
+    @Test
     public void testParseAndMarshalModel_Mappers() throws Exception {
         testParseAndMarshalModel("mappers.xml");
     }

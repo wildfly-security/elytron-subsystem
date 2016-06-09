@@ -98,6 +98,9 @@ class ElytronDefinition extends SimpleResourceDefinition {
         resourceRegistration.registerSubModel(SecurityRealmResourceDecorator.wrap(new LdapRealmDefinition()));
         resourceRegistration.registerSubModel(SecurityRealmResourceDecorator.wrap(new FileSystemRealmDefinition()));
 
+        // Security Factories
+        resourceRegistration.registerSubModel(KerberosSecurityFactoryDefinition.getKerberosSecurityFactoryDefinition());
+
         // Name Rewriters
         resourceRegistration.registerSubModel(NameRewriterDefinitions.getAggregateNameRewriterDefinition());
         resourceRegistration.registerSubModel(NameRewriterDefinitions.getChainedNameRewriterDefinition());

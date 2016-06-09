@@ -94,6 +94,7 @@ interface ElytronDescriptionConstants {
     String CUSTOM_ROLE_MAPPER = "custom-role-mapper";
 
     String DATA_SOURCE = "data-source";
+    String DEBUG = "debug";
     String DEFAULT_REALM = "default-realm";
     String DELEGATE_REALM_MAPPER = "delegate-realm-mapper";
     String DIGEST = "digest";
@@ -143,6 +144,7 @@ interface ElytronDescriptionConstants {
     String JDBC_REALM = "jdbc-realm";
     String JOINER = "joiner";
 
+    String KERBEROS_SECURITY_FACTORY = "kerberos-security-factory";
     String KEY = "key";
     String KEY_MANAGER = "key-manager";
     String KEY_MANAGERS = "key-managers";
@@ -175,10 +177,12 @@ interface ElytronDescriptionConstants {
     String MECHANISM_CONFIGURATION = "mechanism-configuration";
     String MECHANISM_CONFIGURATIONS = "mechanism-configurations";
     String MECHANISM_NAME = "mechanism-name";
+    String MECHANISM_OIDS = "mechanism-oids";
     String MECHANISM_PROVIDER_FILTERING_SASL_SERVER_FACTORY = "mechanism-provider-filtering-sasl-server-factory";
     String MECHANISM_REALM = "mechanism-realm";
     String MECHANISM_REALM_CONFIGURATION = "mechanism-realm-configuration";
     String MECHANISM_REALM_CONFIGURATIONS = "mechanism-realm-configurations";
+    String MINIMUM_REMAINING_LIFETIME = "minimum-remaining-lifetime";
     String MINUS = "minus";
     String MODIFIABLE_SECURITY_REALM = "modifiable-security-realm";
     String MODIFIED = "modified";
@@ -251,6 +255,7 @@ interface ElytronDescriptionConstants {
     String REMOVE_ATTRIBUTE = "remove-attribute";
     String REPLACE_ALL = "replace-all";
     String REPLACEMENT = "replacement";
+    String REQUEST_LIFETIME = "request-lifetime";
     String REQUIRED = "required";
     String REQUIRED_OIDS = "required-oids";
     String REVERSE = "reverse";
@@ -278,6 +283,7 @@ interface ElytronDescriptionConstants {
     String SELECTION_CRITERIA = "selection-criteria";
     String SERVER_NAME = "server-name";
     String SERIAL_NUMBER = "serial-number";
+    String SERVER = "server";
     String SERVER_SSL_CONTEXT = "server-ssl-context";
     String SERVER_SSL_CONTEXTS = "server-ssl-contexts";
     String SESSION_TIMEOUT = "session-timeout";
