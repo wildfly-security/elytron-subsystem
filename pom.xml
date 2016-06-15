@@ -57,7 +57,7 @@
         <wildfly.core.home>${project.build.directory}/wildfly-core</wildfly.core.home>
         <wildfly.extension.plugin.templates>${basedir}/src/main/resources/subsystem-templates</wildfly.extension.plugin.templates>
         <subsystem.template>elytron-empty.xml</subsystem.template>
-        <module.elytron.web.undertow-server.version>org.wildfly.security.elytron-web:undertow-server:1.0.0.Alpha7-SNAPSHOT</module.elytron.web.undertow-server.version>
+        <module.elytron.web.undertow-server.version>org.wildfly.security.elytron-web:undertow-server:1.0.0.Beta1</module.elytron.web.undertow-server.version>
         <module.elytron.version>org.wildfly.security:wildfly-elytron:${version.elytron}</module.elytron.version>
 
         <maven.compiler.source>1.8</maven.compiler.source>
