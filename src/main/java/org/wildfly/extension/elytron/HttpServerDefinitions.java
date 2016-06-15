@@ -199,7 +199,7 @@ class HttpServerDefinitions {
                     providerSupplier = Security::getProviders;
                 }
 
-                return () -> new SecurityProviderServerMechanismFactory(providerSupplier);
+                return () -> new SetMechanismInformationMechanismFactory(new SecurityProviderServerMechanismFactory(providerSupplier));
             }
 
         };
@@ -222,7 +222,7 @@ class HttpServerDefinitions {
                     try {
                         ClassLoader classLoader = doPrivileged((PrivilegedExceptionAction<ClassLoader>) () -> resolveClassLoader(module));
 
-                        return new ServiceLoaderServerMechanismFactory(classLoader);
+                        return new SetMechanismInformationMechanismFactory(new ServiceLoaderServerMechanismFactory(classLoader));
                     } catch (Exception e) {
                         throw new StartException(e);
                     }
