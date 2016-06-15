@@ -228,7 +228,7 @@ class AuthenticationFactoryDefinitions {
             injectNameRewriter(BASE_POST_REALM_NAME_REWRITER, serviceBuilder, context, currentMechanismConfiguration, resolvedMechanismConfiguration.postRealmNameRewriter);
             injectNameRewriter(BASE_FINAL_NAME_REWRITER, serviceBuilder, context, currentMechanismConfiguration, resolvedMechanismConfiguration.finalNameRewriter);
             injectRealmMapper(BASE_REALM_MAPPER, serviceBuilder, context, currentMechanismConfiguration, resolvedMechanismConfiguration.realmMapper);
-            injectSecurityFactory(BASE_CREDENTIAL_SECURITY_FACTORY, serviceBuilder, context, model, resolvedMechanismConfiguration.securityFactory);
+            injectSecurityFactory(BASE_CREDENTIAL_SECURITY_FACTORY, serviceBuilder, context, currentMechanismConfiguration, resolvedMechanismConfiguration.securityFactory);
 
             if (currentMechanismConfiguration.hasDefined(ElytronDescriptionConstants.MECHANISM_REALM_CONFIGURATIONS)) {
                 for (ModelNode currentMechanismRealm : currentMechanismConfiguration.require(ElytronDescriptionConstants.MECHANISM_REALM_CONFIGURATIONS).asList()) {
