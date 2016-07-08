@@ -92,7 +92,7 @@ public class SaslTestCase extends AbstractSubsystemTest {
     @Test
     public void testSaslAuthenticationPlain() throws Exception {
         init();
-        ServiceName serviceName = Capabilities.SASL_SERVER_AUTHENTICATION_RUNTIME_CAPABILITY.getCapabilityServiceName("MySaslAuth");
+        ServiceName serviceName = Capabilities.SASL_AUTHENTICATION_FACTORY_RUNTIME_CAPABILITY.getCapabilityServiceName("MySaslAuth");
         SaslAuthenticationFactory authFactory = (SaslAuthenticationFactory) services.getContainer().getService(serviceName).getValue();
 
         SaslServer server = authFactory.createMechanism(SaslMechanismInformation.Names.PLAIN);
@@ -106,7 +106,7 @@ public class SaslTestCase extends AbstractSubsystemTest {
     @Ignore("Waiting for AvailableRealmsCallback in Digest server (or PropertiesSaslServerFactory)")
     public void testSaslAuthenticationDigest() throws Exception {
         init();
-        ServiceName serviceName = Capabilities.SASL_SERVER_AUTHENTICATION_RUNTIME_CAPABILITY.getCapabilityServiceName("MySaslAuth");
+        ServiceName serviceName = Capabilities.SASL_AUTHENTICATION_FACTORY_RUNTIME_CAPABILITY.getCapabilityServiceName("MySaslAuth");
         SaslAuthenticationFactory authFactory = (SaslAuthenticationFactory) services.getContainer().getService(serviceName).getValue();
 
         SaslServer server = authFactory.createMechanism(SaslMechanismInformation.Names.DIGEST_SHA);
@@ -119,7 +119,7 @@ public class SaslTestCase extends AbstractSubsystemTest {
     @Test
     public void testSaslAuthenticationScram() throws Exception {
         init();
-        ServiceName serviceName = Capabilities.SASL_SERVER_AUTHENTICATION_RUNTIME_CAPABILITY.getCapabilityServiceName("MySaslAuth");
+        ServiceName serviceName = Capabilities.SASL_AUTHENTICATION_FACTORY_RUNTIME_CAPABILITY.getCapabilityServiceName("MySaslAuth");
         SaslAuthenticationFactory authFactory = (SaslAuthenticationFactory) services.getContainer().getService(serviceName).getValue();
 
         SaslServer server = authFactory.createMechanism(SaslMechanismInformation.Names.SCRAM_SHA_1);

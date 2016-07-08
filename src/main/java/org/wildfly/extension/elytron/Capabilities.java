@@ -121,11 +121,12 @@ class Capabilities {
             .Builder.of(ROLE_MAPPER_CAPABILITY, true, RoleMapper.class)
             .build();
 
-    static final String SASL_SERVER_AUTHENTICATION_CAPABILITY = CAPABILITY_BASE + "sasl-server-authentication";
+    static final String SASL_AUTHENTICATION_FACTORY_CAPABILITY = CAPABILITY_BASE + "sasl-authentication-factory";
 
-    static final RuntimeCapability<Void> SASL_SERVER_AUTHENTICATION_RUNTIME_CAPABILITY = RuntimeCapability
-            .Builder.of(SASL_SERVER_AUTHENTICATION_CAPABILITY, true, SaslAuthenticationFactory.class)
+    static final RuntimeCapability<Void> SASL_AUTHENTICATION_FACTORY_RUNTIME_CAPABILITY = RuntimeCapability
+            .Builder.of(SASL_AUTHENTICATION_FACTORY_CAPABILITY, true, SaslAuthenticationFactory.class)
             .build();
+
     static final String SASL_SERVER_FACTORY_CAPABILITY = CAPABILITY_BASE + "sasl-server-factory";
 
     static final RuntimeCapability<Void> SASL_SERVER_FACTORY_RUNTIME_CAPABILITY = RuntimeCapability

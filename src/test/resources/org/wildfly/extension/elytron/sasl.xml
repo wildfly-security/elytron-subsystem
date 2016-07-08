@@ -25,13 +25,13 @@
         <simple-regex-realm-mapper name="RegexMapper_II" pattern="(constant)" />
     </mappers>
     <sasl>
-        <sasl-server-authentication name="SaslAuthenticationDefinition" security-domain="MyDomain" sasl-server-factory="ConfigurableSaslServerFactory">
+        <sasl-authentication-factory name="SaslAuthenticationDefinition" security-domain="MyDomain" sasl-server-factory="ConfigurableSaslServerFactory">
             <mechanism-configuration>
                 <mechanism mechanism-name="PLAIN" pre-realm-name-rewriter="PreRealmNameRewriter"  post-realm-name-rewriter="PostRealmNameRewriter" final-name-rewriter="FinalNameRewriter" realm-mapper="RegexMapper">
                     <mechanism-realm realm-name="Test Realm" pre-realm-name-rewriter="PreRealmNameRewriter_II"  post-realm-name-rewriter="PostRealmNameRewriter_II" final-name-rewriter="FinalNameRewriter_II" realm-mapper="RegexMapper_II" />
                 </mechanism>
             </mechanism-configuration>
-        </sasl-server-authentication>
+        </sasl-authentication-factory>
         <configurable-sasl-server-factory name="ConfigurableSaslServerFactory" server-name="server" protocol="test-protocol" sasl-server-factory="MechFiltering">
             <properties>
                 <property key="a" value="b" />

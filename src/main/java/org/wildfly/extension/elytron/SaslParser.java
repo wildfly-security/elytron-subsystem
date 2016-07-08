@@ -48,7 +48,7 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDER
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDER_SASL_SERVER_FACTORY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDER_VERSION;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SASL;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SASL_SERVER_AUTHENTICATION;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SASL_AUTHENTICATION_FACTORY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SASL_SERVER_FACTORIES;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SASL_SERVER_FACTORY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SERVER_NAME;
@@ -84,8 +84,8 @@ class SaslParser {
             verifyNamespace(reader);
             String localName = reader.getLocalName();
             switch (localName) {
-                case SASL_SERVER_AUTHENTICATION:
-                    authenticationFactoryParser.readSaslServerAuthenticationElement(parentAddress, reader, operations);
+                case SASL_AUTHENTICATION_FACTORY:
+                    authenticationFactoryParser.readSaslAuthenticationFactoryElement(parentAddress, reader, operations);
                     break;
                 case AGGREGATE_SASL_SERVER_FACTORY:
                     readAggregateSaslServerFactoryElement(parentAddress, reader, operations);
@@ -645,7 +645,7 @@ class SaslParser {
     void writeSasl(ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         boolean saslStarted = false;
 
-        saslStarted = saslStarted | authenticationFactoryParser.writeSaslServerAuthenticationConfiguration(saslStarted, subsystem, writer, b -> startSasl(b, writer));
+        saslStarted = saslStarted | authenticationFactoryParser.writeSaslAuthenticationFactory(saslStarted, subsystem, writer, b -> startSasl(b, writer));
         saslStarted = saslStarted | writeAggregateSaslServerFactory(saslStarted, subsystem, writer);
         saslStarted = saslStarted | writeConfigurableSaslServerFactory(saslStarted, subsystem, writer);
         saslStarted = saslStarted | writeMechanismProviderFilteringSaslServerFactory(saslStarted, subsystem, writer);

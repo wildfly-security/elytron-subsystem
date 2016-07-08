@@ -44,7 +44,7 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PRE_REAL
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROTOCOL;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REALM_MAPPER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REALM_NAME;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SASL_SERVER_AUTHENTICATION;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SASL_AUTHENTICATION_FACTORY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SASL_SERVER_FACTORY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SECURITY_DOMAIN;
 import static org.wildfly.extension.elytron.ElytronSubsystemParser.verifyNamespace;
@@ -231,7 +231,7 @@ class AuthenticationFactoryParser {
 
     }
 
-    void readSaslServerAuthenticationElement(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations) throws XMLStreamException {
+    void readSaslAuthenticationFactoryElement(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations) throws XMLStreamException {
         ModelNode addOperation = new ModelNode();
         addOperation.get(OP).set(ADD);
 
@@ -267,7 +267,7 @@ class AuthenticationFactoryParser {
             throw missingRequired(reader, requiredAttributes);
         }
 
-        addOperation.get(OP_ADDR).set(parentAddress).add(SASL_SERVER_AUTHENTICATION, name);
+        addOperation.get(OP_ADDR).set(parentAddress).add(SASL_AUTHENTICATION_FACTORY, name);
 
         attemptReadMechanismConfigurationElement(addOperation, reader);
 
@@ -324,13 +324,13 @@ class AuthenticationFactoryParser {
         return false;
     }
 
-    boolean writeSaslServerAuthenticationConfiguration(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer, WrapperWriter wrapperWriter) throws XMLStreamException {
-        if (subsystem.hasDefined(SASL_SERVER_AUTHENTICATION)) {
+    boolean writeSaslAuthenticationFactory(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer, WrapperWriter wrapperWriter) throws XMLStreamException {
+        if (subsystem.hasDefined(SASL_AUTHENTICATION_FACTORY)) {
             wrapperWriter.start(started);
-            ModelNode securityDomainSaslConfigurationInstances = subsystem.require(SASL_SERVER_AUTHENTICATION);
+            ModelNode securityDomainSaslConfigurationInstances = subsystem.require(SASL_AUTHENTICATION_FACTORY);
             for (String name : securityDomainSaslConfigurationInstances.keys()) {
                 ModelNode configuration = securityDomainSaslConfigurationInstances.require(name);
-                writer.writeStartElement(SASL_SERVER_AUTHENTICATION);
+                writer.writeStartElement(SASL_AUTHENTICATION_FACTORY);
                 writer.writeAttribute(NAME, name);
                 SaslServerDefinitions.SASL_SERVER_FACTORY.marshallAsAttribute(configuration, writer);
                 SaslServerDefinitions.SECURITY_DOMAIN.marshallAsAttribute(configuration, writer);

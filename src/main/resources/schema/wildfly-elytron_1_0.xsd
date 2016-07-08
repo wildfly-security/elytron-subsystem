@@ -2213,7 +2213,7 @@
             </xs:documentation>
         </xs:annotation>
         <xs:choice maxOccurs="unbounded">
-            <xs:element name="sasl-server-authentication" type="saslServerAuthenticationType" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="sasl-authentication-factory" type="saslAuthenticationFactoryType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="aggregate-sasl-server-factory" type="aggregateSaslServerFactoryType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="configurable-sasl-server-factory" type="configurableSaslServerFactoryType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="mechanism-provider-filtering-sasl-server-factory" type="mechanismProviderFilteringSaslServerFactoryType" minOccurs="0" maxOccurs="unbounded" />
@@ -2222,7 +2222,7 @@
          </xs:choice>
     </xs:complexType>
 
-    <xs:complexType name="saslServerAuthenticationType">
+    <xs:complexType name="saslAuthenticationFactoryType">
         <xs:annotation>
             <xs:documentation>
                 The SASL authentication policy for the server side. 

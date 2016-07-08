@@ -19,7 +19,7 @@
     </mappers>
     <sasl>
         <provider-sasl-server-factory name="MySaslServer"/>
-        <sasl-server-authentication name="MySaslAuth" security-domain="MyDomain" sasl-server-factory="MySaslServer">
+        <sasl-authentication-factory name="MySaslAuth" security-domain="MyDomain" sasl-server-factory="MySaslServer">
             <mechanism-configuration>
                 <mechanism mechanism-name="PLAIN">
                     <mechanism-realm realm-name="TestingRealm1"/>
@@ -29,6 +29,6 @@
                 </mechanism>
                 <mechanism />
             </mechanism-configuration>
-        </sasl-server-authentication>
+        </sasl-authentication-factory>
     </sasl>
 </subsystem>
