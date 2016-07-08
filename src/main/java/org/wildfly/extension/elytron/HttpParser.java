@@ -28,24 +28,24 @@ import static org.jboss.as.controller.parsing.ParseUtils.requireNoContent;
 import static org.jboss.as.controller.parsing.ParseUtils.requireSingleAttribute;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedAttribute;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedElement;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AGGREGATE_HTTP_SERVER_FACTORY;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CONFIGURABLE_HTTP_SERVER_FACTORY;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AGGREGATE_HTTP_SERVER_MECHANISM_FACTORY;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CONFIGURABLE_HTTP_SERVER_MECHANISM_FACTORY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ENABLING;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.FILTER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.FILTERS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.HTTP;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.HTTP_SERVER_AUTHENTICATION;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.HTTP_AUTHENTICATION_FACTORY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.HTTP_SERVER_FACTORIES;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.HTTP_SERVER_FACTORY;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.HTTP_SERVER_MECHANISM_FACTORY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MODULE;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PATTERN_FILTER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROPERTIES;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROPERTY;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDER_HTTP_SERVER_FACTORY;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDER_HTTP_SERVER_MECHANISM_FACTORY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDER_LOADER;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SERVICE_LOADER_HTTP_SERVER_FACTORY;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SERVICE_LOADER_HTTP_SERVER_MECHANISM_FACTORY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.VALUE;
 import static org.wildfly.extension.elytron.ElytronSubsystemParser.verifyNamespace;
 
@@ -76,20 +76,20 @@ class HttpParser {
             verifyNamespace(reader);
             String localName = reader.getLocalName();
             switch (localName) {
-                case HTTP_SERVER_AUTHENTICATION:
-                    authenticationFactoryParser.readHttpServerAuthenticationElement(parentAddress, reader, operations);
+                case HTTP_AUTHENTICATION_FACTORY:
+                    authenticationFactoryParser.readHttpAuthenticationFactoryElement(parentAddress, reader, operations);
                     break;
-                case AGGREGATE_HTTP_SERVER_FACTORY:
-                    readAggregateHttpServerFactoryElement(parentAddress, reader, operations);
+                case AGGREGATE_HTTP_SERVER_MECHANISM_FACTORY:
+                    readAggregateHttpServerMechanismFactoryElement(parentAddress, reader, operations);
                     break;
-                case CONFIGURABLE_HTTP_SERVER_FACTORY:
-                    readConfigurableHttpServerFactoryElement(parentAddress, reader, operations);
+                case CONFIGURABLE_HTTP_SERVER_MECHANISM_FACTORY:
+                    readConfigurableHttpServerMechanismFactoryElement(parentAddress, reader, operations);
                     break;
-                case PROVIDER_HTTP_SERVER_FACTORY:
-                    readProviderHttpServerFactoryElement(parentAddress, reader, operations);
+                case PROVIDER_HTTP_SERVER_MECHANISM_FACTORY:
+                    readProviderHttpServerMechanismFactoryElement(parentAddress, reader, operations);
                     break;
-                case SERVICE_LOADER_HTTP_SERVER_FACTORY:
-                    readServiceLoaderHttpServerFactoryElement(parentAddress, reader, operations);
+                case SERVICE_LOADER_HTTP_SERVER_MECHANISM_FACTORY:
+                    readServiceLoaderHttpServerMechanismFactoryElement(parentAddress, reader, operations);
                     break;
                 default:
                     throw unexpectedElement(reader);
@@ -97,7 +97,7 @@ class HttpParser {
         }
     }
 
-    private void readAggregateHttpServerFactoryElement(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations) throws XMLStreamException {
+    private void readAggregateHttpServerMechanismFactoryElement(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations) throws XMLStreamException {
         ModelNode addOperation = new ModelNode();
         addOperation.get(OP).set(ADD);
 
@@ -124,7 +124,7 @@ class HttpParser {
             throw missingRequired(reader, NAME);
         }
 
-        addOperation.get(OP_ADDR).set(parentAddress).add(AGGREGATE_HTTP_SERVER_FACTORY, name);
+        addOperation.get(OP_ADDR).set(parentAddress).add(AGGREGATE_HTTP_SERVER_MECHANISM_FACTORY, name);
 
         operations.add(addOperation);
 
@@ -132,7 +132,7 @@ class HttpParser {
         while (reader.hasNext() && reader.nextTag() != END_ELEMENT) {
             verifyNamespace(reader);
             String localName = reader.getLocalName();
-            if (HTTP_SERVER_FACTORY.equals(localName) == false) {
+            if (HTTP_SERVER_MECHANISM_FACTORY.equals(localName) == false) {
                 throw unexpectedElement(reader);
             }
 
@@ -145,11 +145,11 @@ class HttpParser {
         }
     }
 
-    private void readConfigurableHttpServerFactoryElement(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations) throws XMLStreamException {
+    private void readConfigurableHttpServerMechanismFactoryElement(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations) throws XMLStreamException {
         ModelNode addOperation = new ModelNode();
         addOperation.get(OP).set(ADD);
 
-        Set<String> requiredAttributes = new HashSet<String>(Arrays.asList(new String[] { NAME, HTTP_SERVER_FACTORY }));
+        Set<String> requiredAttributes = new HashSet<String>(Arrays.asList(new String[] { NAME, HTTP_SERVER_MECHANISM_FACTORY }));
 
         String name = null;
 
@@ -165,7 +165,7 @@ class HttpParser {
                     case NAME:
                         name = value;
                         break;
-                    case HTTP_SERVER_FACTORY:
+                    case HTTP_SERVER_MECHANISM_FACTORY:
                         HttpServerDefinitions.HTTP_SERVER_FACTORY.parseAndSetParameter(value, addOperation, reader);
                         break;
                     default:
@@ -178,7 +178,7 @@ class HttpParser {
             throw missingRequired(reader, requiredAttributes);
         }
 
-        addOperation.get(OP_ADDR).set(parentAddress).add(CONFIGURABLE_HTTP_SERVER_FACTORY, name);
+        addOperation.get(OP_ADDR).set(parentAddress).add(CONFIGURABLE_HTTP_SERVER_MECHANISM_FACTORY, name);
 
         while (reader.hasNext() && reader.nextTag() != END_ELEMENT) {
             verifyNamespace(reader);
@@ -308,7 +308,7 @@ class HttpParser {
         properties.add(key, new ModelNode(value));
     }
 
-    private void readProviderHttpServerFactoryElement(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations) throws XMLStreamException {
+    private void readProviderHttpServerMechanismFactoryElement(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations) throws XMLStreamException {
         ModelNode addOperation = new ModelNode();
         addOperation.get(OP).set(ADD);
 
@@ -338,14 +338,14 @@ class HttpParser {
             throw missingRequired(reader, NAME);
         }
 
-        addOperation.get(OP_ADDR).set(parentAddress).add(PROVIDER_HTTP_SERVER_FACTORY, name);
+        addOperation.get(OP_ADDR).set(parentAddress).add(PROVIDER_HTTP_SERVER_MECHANISM_FACTORY, name);
 
         operations.add(addOperation);
 
         requireNoContent(reader);
     }
 
-    private void readServiceLoaderHttpServerFactoryElement(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations) throws XMLStreamException {
+    private void readServiceLoaderHttpServerMechanismFactoryElement(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations) throws XMLStreamException {
         ModelNode addOperation = new ModelNode();
         addOperation.get(OP).set(ADD);
 
@@ -375,7 +375,7 @@ class HttpParser {
             throw missingRequired(reader, NAME);
         }
 
-        addOperation.get(OP_ADDR).set(parentAddress).add(SERVICE_LOADER_HTTP_SERVER_FACTORY, name);
+        addOperation.get(OP_ADDR).set(parentAddress).add(SERVICE_LOADER_HTTP_SERVER_MECHANISM_FACTORY, name);
 
         operations.add(addOperation);
 
@@ -388,18 +388,18 @@ class HttpParser {
         }
     }
 
-    private boolean writeAggregateHttpServerFactory(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
-        if (subsystem.hasDefined(AGGREGATE_HTTP_SERVER_FACTORY)) {
+    private boolean writeAggregateHttpServerMechanismFactory(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
+        if (subsystem.hasDefined(AGGREGATE_HTTP_SERVER_MECHANISM_FACTORY)) {
             startHttp(started, writer);
-            ModelNode aggregateHttpServerFactory = subsystem.require(AGGREGATE_HTTP_SERVER_FACTORY);
+            ModelNode aggregateHttpServerFactory = subsystem.require(AGGREGATE_HTTP_SERVER_MECHANISM_FACTORY);
             for (String name : aggregateHttpServerFactory.keys()) {
                 ModelNode serverFactory = aggregateHttpServerFactory.require(name);
-                writer.writeStartElement(AGGREGATE_HTTP_SERVER_FACTORY);
+                writer.writeStartElement(AGGREGATE_HTTP_SERVER_MECHANISM_FACTORY);
                 writer.writeAttribute(NAME, name);
 
                 List<ModelNode> serverFactoryReferences = serverFactory.get(HTTP_SERVER_FACTORIES).asList();
                 for (ModelNode currentReference : serverFactoryReferences) {
-                    writer.writeStartElement(HTTP_SERVER_FACTORY);
+                    writer.writeStartElement(HTTP_SERVER_MECHANISM_FACTORY);
                     writer.writeAttribute(NAME, currentReference.asString());
                     writer.writeEndElement();
                 }
@@ -413,13 +413,13 @@ class HttpParser {
         return false;
     }
 
-    private boolean writeConfigurableHttpServerFactory(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
-        if (subsystem.hasDefined(CONFIGURABLE_HTTP_SERVER_FACTORY)) {
+    private boolean writeConfigurableHttpServerMechanismFactory(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
+        if (subsystem.hasDefined(CONFIGURABLE_HTTP_SERVER_MECHANISM_FACTORY)) {
             startHttp(started, writer);
-            ModelNode httpServerFactories = subsystem.require(CONFIGURABLE_HTTP_SERVER_FACTORY);
+            ModelNode httpServerFactories = subsystem.require(CONFIGURABLE_HTTP_SERVER_MECHANISM_FACTORY);
             for (String name : httpServerFactories.keys()) {
                 ModelNode serverFactory = httpServerFactories.require(name);
-                writer.writeStartElement(CONFIGURABLE_HTTP_SERVER_FACTORY);
+                writer.writeStartElement(CONFIGURABLE_HTTP_SERVER_MECHANISM_FACTORY);
                 writer.writeAttribute(NAME, name);
                 HttpServerDefinitions.HTTP_SERVER_FACTORY.marshallAsAttribute(serverFactory, writer);
                 CommonAttributes.PROPERTIES.marshallAsElement(serverFactory, writer);
@@ -447,13 +447,13 @@ class HttpParser {
         return false;
     }
 
-    private boolean writeProviderHttpServerFactory(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
-        if (subsystem.hasDefined(PROVIDER_HTTP_SERVER_FACTORY)) {
+    private boolean writeProviderHttpServerMechanismFactory(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
+        if (subsystem.hasDefined(PROVIDER_HTTP_SERVER_MECHANISM_FACTORY)) {
             startHttp(started, writer);
-            ModelNode serverFactories = subsystem.require(PROVIDER_HTTP_SERVER_FACTORY);
+            ModelNode serverFactories = subsystem.require(PROVIDER_HTTP_SERVER_MECHANISM_FACTORY);
             for (String name : serverFactories.keys()) {
                 ModelNode serverFactory = serverFactories.require(name);
-                writer.writeStartElement(PROVIDER_HTTP_SERVER_FACTORY);
+                writer.writeStartElement(PROVIDER_HTTP_SERVER_MECHANISM_FACTORY);
                 writer.writeAttribute(NAME, name);
                 HttpServerDefinitions.PROVIDER_LOADER.marshallAsAttribute(serverFactory, writer);
                 writer.writeEndElement();
@@ -464,13 +464,13 @@ class HttpParser {
         return false;
     }
 
-    private boolean writeServiceLoaderHttpServerFactory(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
-        if (subsystem.hasDefined(SERVICE_LOADER_HTTP_SERVER_FACTORY)) {
+    private boolean writeServiceLoaderHttpServerMechanismFactory(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
+        if (subsystem.hasDefined(SERVICE_LOADER_HTTP_SERVER_MECHANISM_FACTORY)) {
             startHttp(started, writer);
-            ModelNode serverFactories = subsystem.require(SERVICE_LOADER_HTTP_SERVER_FACTORY);
+            ModelNode serverFactories = subsystem.require(SERVICE_LOADER_HTTP_SERVER_MECHANISM_FACTORY);
             for (String name : serverFactories.keys()) {
                 ModelNode serverFactory = serverFactories.require(name);
-                writer.writeStartElement(SERVICE_LOADER_HTTP_SERVER_FACTORY);
+                writer.writeStartElement(SERVICE_LOADER_HTTP_SERVER_MECHANISM_FACTORY);
                 writer.writeAttribute(NAME, name);
                 ClassLoadingAttributeDefinitions.MODULE.marshallAsAttribute(serverFactory, writer);
                 writer.writeEndElement();
@@ -484,11 +484,11 @@ class HttpParser {
     void writeHttp(ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         boolean started = false;
 
-        started = started | authenticationFactoryParser.writeHttpServerAuthentication(started, subsystem, writer, b -> startHttp(b, writer));
-        started = started | writeAggregateHttpServerFactory(started, subsystem, writer);
-        started = started | writeConfigurableHttpServerFactory(started, subsystem, writer);
-        started = started | writeProviderHttpServerFactory(started, subsystem, writer);
-        started = started | writeServiceLoaderHttpServerFactory(started, subsystem, writer);
+        started = started | authenticationFactoryParser.writeHttpAuthenticationFactory(started, subsystem, writer, b -> startHttp(b, writer));
+        started = started | writeAggregateHttpServerMechanismFactory(started, subsystem, writer);
+        started = started | writeConfigurableHttpServerMechanismFactory(started, subsystem, writer);
+        started = started | writeProviderHttpServerMechanismFactory(started, subsystem, writer);
+        started = started | writeServiceLoaderHttpServerMechanismFactory(started, subsystem, writer);
 
         if (started) {
             writer.writeEndElement();

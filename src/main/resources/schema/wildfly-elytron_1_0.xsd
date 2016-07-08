@@ -2012,15 +2012,15 @@
              </xs:documentation>
          </xs:annotation>
          <xs:choice maxOccurs="unbounded">
-             <xs:element name="http-server-authentication" type="httpServerAuthenticationType" minOccurs="0"/>
-             <xs:element name="aggregate-http-server-factory" type="aggregateHttpServerFactoryType" minOccurs="0" />
-             <xs:element name="configurable-http-server-factory" type="configurableHttpServerFactoryType" minOccurs="0" />
-             <xs:element name="provider-http-server-factory" type="providerHttpServerFactoryType" minOccurs="0" />
-             <xs:element name="service-loader-http-server-factory" type="serviceLoaderHttpServerFactoryType" minOccurs="0" />
+             <xs:element name="http-authentication-factory" type="httpAuthenticationFactoryType" minOccurs="0"/>
+             <xs:element name="aggregate-http-server-mechanism-factory" type="aggregateHttpServerMechanismFactoryType" minOccurs="0" />
+             <xs:element name="configurable-http-server-mechanism-factory" type="configurableHttpServerMechanismFactoryType" minOccurs="0" />
+             <xs:element name="provider-http-server-mechanism-factory" type="providerHttpServerMechanismFactoryType" minOccurs="0" />
+             <xs:element name="service-loader-http-server-mechanism-factory" type="serviceLoaderHttpServerMechanismFactoryType" minOccurs="0" />
          </xs:choice>
      </xs:complexType>
 
-     <xs:complexType name="httpServerAuthenticationType">
+     <xs:complexType name="httpAuthenticationFactoryType">
         <xs:annotation>
             <xs:documentation>
                 Complex type for the definition of the server side HTTP authentication policy.
@@ -2037,16 +2037,16 @@
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
-        <xs:attribute name="http-server-factory" type="xs:string" use="required">
+        <xs:attribute name="http-server-mechanism-factory" type="xs:string" use="required">
             <xs:annotation>
                 <xs:documentation>
-                    The http-server-factory referenced by this resource.
+                    The http-server-mechanism-factory referenced by this resource.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
     </xs:complexType>
 
-    <xs:complexType name="httpServerFactoryType" abstract="true">
+    <xs:complexType name="httpServerMechanismFactoryType" abstract="true">
         <xs:annotation>
             <xs:documentation>
                 Base type for all http server factory definitions.
@@ -2061,29 +2061,29 @@
         </xs:attribute>
     </xs:complexType>
 
-    <xs:complexType name="aggregateHttpServerFactoryType">
+    <xs:complexType name="aggregateHttpServerMechanismFactoryType">
         <xs:annotation>
             <xs:documentation>
                 A HTTP server factory definition that is actually an aggregation of other HTTP server factories.
             </xs:documentation>
         </xs:annotation>
         <xs:complexContent>
-            <xs:extension base="httpServerFactoryType">
+            <xs:extension base="httpServerMechanismFactoryType">
                 <xs:sequence>
-                    <xs:element name="http-server-factory" type="httpServerFactoryRefType" minOccurs="2" maxOccurs="unbounded" />
+                    <xs:element name="http-server-mechanism-factory" type="httpServerMechanismFactoryRefType" minOccurs="2" maxOccurs="unbounded" />
                 </xs:sequence>
             </xs:extension>
         </xs:complexContent>
     </xs:complexType>
 
-    <xs:complexType name="configurableHttpServerFactoryType">
+    <xs:complexType name="configurableHttpServerMechanismFactoryType">
         <xs:annotation>
             <xs:documentation>
                 A HTTP server factory definition that wraps another HTTP server factory and applies the specified configuration and filtering.
             </xs:documentation>
         </xs:annotation>
         <xs:complexContent>
-            <xs:extension base="httpServerFactoryType">
+            <xs:extension base="httpServerMechanismFactoryType">
                 <xs:sequence>
                     <xs:element name="filters" minOccurs="0">
                         <xs:annotation>
@@ -2151,14 +2151,14 @@
         </xs:complexContent>
     </xs:complexType>
 
-    <xs:complexType name="providerHttpServerFactoryType">
+    <xs:complexType name="providerHttpServerMechanismFactoryType">
         <xs:annotation>
             <xs:documentation>
                 A HTTP server factory definition that searches an array of Provider instances for all available HTTP server factories.
             </xs:documentation>
         </xs:annotation>
         <xs:complexContent>
-            <xs:extension base="httpServerFactoryType">
+            <xs:extension base="httpServerMechanismFactoryType">
                 <xs:attribute name="provider-loader" type="xs:string">
                     <xs:annotation>
                         <xs:documentation>
@@ -2172,14 +2172,14 @@
         </xs:complexContent>
     </xs:complexType>
 
-    <xs:complexType name="serviceLoaderHttpServerFactoryType">
+    <xs:complexType name="serviceLoaderHttpServerMechanismFactoryType">
         <xs:annotation>
             <xs:documentation>
                 A HTTP server factory definition that uses a ServiceLoader to search for HTTP server factory implementations.
             </xs:documentation>
         </xs:annotation>
         <xs:complexContent>
-            <xs:extension base="httpServerFactoryType">
+            <xs:extension base="httpServerMechanismFactoryType">
                 <xs:attribute name="module" type="xs:string" use="optional">
                     <xs:annotation>
                         <xs:documentation>
@@ -2193,10 +2193,10 @@
         </xs:complexContent>
     </xs:complexType>
 
-    <xs:complexType name="httpServerFactoryRefType">
+    <xs:complexType name="httpServerMechanismFactoryRefType">
         <xs:annotation>
             <xs:documentation>
-                A reference to a HTTP server factory.
+                A reference to a HTTP server mechanism factory.
             </xs:documentation>
         </xs:annotation>
         <xs:attribute name="name" type="xs:string" use="required" />

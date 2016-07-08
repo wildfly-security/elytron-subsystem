@@ -30,7 +30,7 @@ interface ElytronDescriptionConstants {
     String ADD_ATTRIBUTE = "add-attribute";
     String ADD_PREFIX_ROLE_MAPPER = "add-prefix-role-mapper";
     String ADD_SUFFIX_ROLE_MAPPER = "add-suffix-role-mapper";
-    String AGGREGATE_HTTP_SERVER_FACTORY = "aggregate-http-server-factory";
+    String AGGREGATE_HTTP_SERVER_MECHANISM_FACTORY = "aggregate-http-server-mechanism-factory";
     String AGGREGATE_NAME_REWRITER = "aggregate-name-rewriter";
     String AGGREGATE_PRINCIPAL_DECODER = "aggregate-principal-decoder";
     String AGGREGATE_REALM = "aggregate-realm";
@@ -67,7 +67,7 @@ interface ElytronDescriptionConstants {
     String CLEAR = "clear";
     String CLEAR_PASSWORD_MAPPER = "clear-password-mapper";
     String CONCATENATING_PRINCIPAL_DECODER = "concatenating-principal-decoder";
-    String CONFIGURABLE_HTTP_SERVER_FACTORY = "configurable-http-server-factory";
+    String CONFIGURABLE_HTTP_SERVER_MECHANISM_FACTORY = "configurable-http-server-mechanism-factory";
     String CONFIGURABLE_SASL_SERVER_FACTORY = "configurable-sasl-server-factory";
     String CONFIGURATION = "configuration";
     String CONFIGURATION_FILE = "configuration-file";
@@ -128,8 +128,8 @@ interface ElytronDescriptionConstants {
 
     String HOST_NAME = "host-name";
     String HTTP = "http";
-    String HTTP_SERVER_AUTHENTICATION = "http-server-authentication";
-    String HTTP_SERVER_FACTORY = "http-server-factory";
+    String HTTP_AUTHENTICATION_FACTORY = "http-authentication-factory";
+    String HTTP_SERVER_MECHANISM_FACTORY = "http-server-mechanism-factory";
     String HTTP_SERVER_FACTORIES = "http-server-factories";
 
     String IDENTITY = "identity";
@@ -232,7 +232,7 @@ interface ElytronDescriptionConstants {
     String PROTOCOL = "protocol";
     String PROTOCOLS = "protocols";
     String PROVIDER = "provider";
-    String PROVIDER_HTTP_SERVER_FACTORY = "provider-http-server-factory";
+    String PROVIDER_HTTP_SERVER_MECHANISM_FACTORY = "provider-http-server-mechanism-factory";
     String PROVIDER_LOADER = "provider-loader";
     String PROVIDER_LOADERS = "provider-loaders";
     String PROVIDER_NAME = "provider-name";
@@ -290,7 +290,7 @@ interface ElytronDescriptionConstants {
     String SESSION_TIMEOUT = "session-timeout";
     String SET_PASSWORD = "set-password";
     String SERVICE = "service";
-    String SERVICE_LOADER_HTTP_SERVER_FACTORY = "service-loader-http-server-factory";
+    String SERVICE_LOADER_HTTP_SERVER_MECHANISM_FACTORY = "service-loader-http-server-mechanism-factory";
     String SERVICE_LOADER_SASL_SERVER_FACTORY = "service-loader-sasl-server-factory";
     String SERVICES = "services";
     String SIGNATURE = "signature";

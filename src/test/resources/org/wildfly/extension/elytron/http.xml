@@ -25,14 +25,14 @@
         <simple-regex-realm-mapper name="RegexMapper_II" pattern="(constant)" />
     </mappers>
     <http>
-        <http-server-authentication name="HttpAuthenticationDefinition" security-domain="MyDomain" http-server-factory="ConfigurableHttpServerFactory">
+        <http-authentication-factory name="HttpAuthenticationDefinition" security-domain="MyDomain" http-server-mechanism-factory="ConfigurableHttpServerFactory">
             <mechanism-configuration>
                 <mechanism mechanism-name="BASIC" pre-realm-name-rewriter="PreRealmNameRewriter"  post-realm-name-rewriter="PostRealmNameRewriter" final-name-rewriter="FinalNameRewriter" realm-mapper="RegexMapper">
                     <mechanism-realm realm-name="Test Realm" pre-realm-name-rewriter="PreRealmNameRewriter_II"  post-realm-name-rewriter="PostRealmNameRewriter_II" final-name-rewriter="FinalNameRewriter_II" realm-mapper="RegexMapper_II" />
                 </mechanism>
             </mechanism-configuration>
-        </http-server-authentication>
-        <configurable-http-server-factory name="ConfigurableHttpServerFactory" http-server-factory="AggregateHttpFactory">
+        </http-authentication-factory>
+        <configurable-http-server-mechanism-factory name="ConfigurableHttpServerFactory" http-server-mechanism-factory="AggregateHttpFactory">
             <properties>
                 <property key="a" value="b" />
                 <property key="c" value="d" />
@@ -42,12 +42,12 @@
                     <pattern-filter value="x" />
                 </filter>
             </filters>
-        </configurable-http-server-factory>
-        <aggregate-http-server-factory name="AggregateHttpFactory">
-            <http-server-factory name="ProviderHttpFactory" />
-            <http-server-factory name="ServiceHttpFactory" />
-        </aggregate-http-server-factory>
-        <provider-http-server-factory name="ProviderHttpFactory" provider-loader="TestProviderLoader" />
-        <service-loader-http-server-factory name="ServiceHttpFactory" module="a.b.c" />
+        </configurable-http-server-mechanism-factory>
+        <aggregate-http-server-mechanism-factory name="AggregateHttpFactory">
+            <http-server-mechanism-factory name="ProviderHttpFactory" />
+            <http-server-mechanism-factory name="ServiceHttpFactory" />
+        </aggregate-http-server-mechanism-factory>
+        <provider-http-server-mechanism-factory name="ProviderHttpFactory" provider-loader="TestProviderLoader" />
+        <service-loader-http-server-mechanism-factory name="ServiceHttpFactory" module="a.b.c" />
     </http>
 </subsystem>

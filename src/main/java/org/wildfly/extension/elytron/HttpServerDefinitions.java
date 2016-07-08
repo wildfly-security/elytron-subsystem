@@ -19,8 +19,8 @@
 package org.wildfly.extension.elytron;
 
 import static org.jboss.as.controller.capability.RuntimeCapability.buildDynamicCapabilityName;
-import static org.wildfly.extension.elytron.Capabilities.HTTP_SERVER_FACTORY_CAPABILITY;
-import static org.wildfly.extension.elytron.Capabilities.HTTP_SERVER_FACTORY_RUNTIME_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.HTTP_SERVER_MECHANISM_FACTORY_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.HTTP_SERVER_MECHANISM_FACTORY_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.PROVIDERS_CAPABILITY;
 import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.MODULE;
 import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.resolveClassLoader;
@@ -77,16 +77,16 @@ import org.wildfly.security.http.util.SetMechanismInformationMechanismFactory;
  */
 class HttpServerDefinitions {
 
-    static final SimpleAttributeDefinition HTTP_SERVER_FACTORY = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.HTTP_SERVER_FACTORY, ModelType.STRING, false)
+    static final SimpleAttributeDefinition HTTP_SERVER_FACTORY = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.HTTP_SERVER_MECHANISM_FACTORY, ModelType.STRING, false)
         .setMinSize(1)
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
-        .setCapabilityReference(HTTP_SERVER_FACTORY_CAPABILITY, HTTP_SERVER_FACTORY_CAPABILITY, true)
+        .setCapabilityReference(HTTP_SERVER_MECHANISM_FACTORY_CAPABILITY, HTTP_SERVER_MECHANISM_FACTORY_CAPABILITY, true)
         .build();
 
     static final SimpleAttributeDefinition PROVIDER_LOADER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PROVIDER_LOADER, ModelType.STRING, true)
         .setMinSize(1)
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
-        .setCapabilityReference(PROVIDERS_CAPABILITY, HTTP_SERVER_FACTORY_CAPABILITY, true)
+        .setCapabilityReference(PROVIDERS_CAPABILITY, HTTP_SERVER_MECHANISM_FACTORY_CAPABILITY, true)
         .build();
 
     static final SimpleAttributeDefinition PATTERN_FILTER = new SimpleAttributeDefinitionBuilder(RegexAttributeDefinitions.PATTERN)
@@ -107,7 +107,7 @@ class HttpServerDefinitions {
         .build();
 
     private static final AggregateComponentDefinition<HttpServerAuthenticationMechanismFactory> AGGREGATE_HTTP_SERVER_FACTORY = AggregateComponentDefinition.create(HttpServerAuthenticationMechanismFactory.class,
-            ElytronDescriptionConstants.AGGREGATE_HTTP_SERVER_FACTORY, ElytronDescriptionConstants.HTTP_SERVER_FACTORIES, HTTP_SERVER_FACTORY_RUNTIME_CAPABILITY,
+            ElytronDescriptionConstants.AGGREGATE_HTTP_SERVER_MECHANISM_FACTORY, ElytronDescriptionConstants.HTTP_SERVER_FACTORIES, HTTP_SERVER_MECHANISM_FACTORY_RUNTIME_CAPABILITY,
             (HttpServerAuthenticationMechanismFactory[] n) -> new AggregateServerMechanismFactory(n));
 
     static AggregateComponentDefinition<HttpServerAuthenticationMechanismFactory> getRawAggregateHttpServerFactoryDefinition() {
@@ -118,9 +118,9 @@ class HttpServerDefinitions {
         return wrapFactory(AGGREGATE_HTTP_SERVER_FACTORY);
     }
 
-    static ResourceDefinition getConfigurableHttpServerFactoryDefinition() {
+    static ResourceDefinition getConfigurableHttpServerMechanismFactoryDefinition() {
         AttributeDefinition[] attributes = new AttributeDefinition[] { HTTP_SERVER_FACTORY, CONFIGURED_FILTERS, PROPERTIES };
-        AbstractAddStepHandler add = new TrivialAddHandler<HttpServerAuthenticationMechanismFactory>(HttpServerAuthenticationMechanismFactory.class, attributes, HTTP_SERVER_FACTORY_RUNTIME_CAPABILITY) {
+        AbstractAddStepHandler add = new TrivialAddHandler<HttpServerAuthenticationMechanismFactory>(HttpServerAuthenticationMechanismFactory.class, attributes, HTTP_SERVER_MECHANISM_FACTORY_RUNTIME_CAPABILITY) {
 
             @Override
             protected ValueSupplier<HttpServerAuthenticationMechanismFactory> getValueSupplier(
@@ -131,7 +131,7 @@ class HttpServerDefinitions {
 
                 String httpServerFactory = HTTP_SERVER_FACTORY.resolveModelAttribute(context, model).asString();
                 serviceBuilder.addDependency(context.getCapabilityServiceName(
-                        buildDynamicCapabilityName(HTTP_SERVER_FACTORY_CAPABILITY, httpServerFactory), HttpServerAuthenticationMechanismFactory.class),
+                        buildDynamicCapabilityName(HTTP_SERVER_MECHANISM_FACTORY_CAPABILITY, httpServerFactory), HttpServerAuthenticationMechanismFactory.class),
                         HttpServerAuthenticationMechanismFactory.class, factoryInjector);
 
                 final Predicate<String> finalFilter;
@@ -174,13 +174,13 @@ class HttpServerDefinitions {
             }
         };
 
-        return wrapFactory(new TrivialResourceDefinition(ElytronDescriptionConstants.CONFIGURABLE_HTTP_SERVER_FACTORY,
-                add, attributes, HTTP_SERVER_FACTORY_RUNTIME_CAPABILITY));
+        return wrapFactory(new TrivialResourceDefinition(ElytronDescriptionConstants.CONFIGURABLE_HTTP_SERVER_MECHANISM_FACTORY,
+                add, attributes, HTTP_SERVER_MECHANISM_FACTORY_RUNTIME_CAPABILITY));
     }
 
-    static ResourceDefinition getProviderHttpServerFactoryDefinition() {
+    static ResourceDefinition getProviderHttpServerMechanismFactoryDefinition() {
         AttributeDefinition[] attributes = new AttributeDefinition[] { PROVIDER_LOADER };
-        AbstractAddStepHandler add = new TrivialAddHandler<HttpServerAuthenticationMechanismFactory>(HttpServerAuthenticationMechanismFactory.class, attributes, HTTP_SERVER_FACTORY_RUNTIME_CAPABILITY) {
+        AbstractAddStepHandler add = new TrivialAddHandler<HttpServerAuthenticationMechanismFactory>(HttpServerAuthenticationMechanismFactory.class, attributes, HTTP_SERVER_MECHANISM_FACTORY_RUNTIME_CAPABILITY) {
 
             @Override
             protected ValueSupplier<HttpServerAuthenticationMechanismFactory> getValueSupplier(
@@ -204,13 +204,13 @@ class HttpServerDefinitions {
 
         };
 
-        return wrapFactory(new TrivialResourceDefinition(ElytronDescriptionConstants.PROVIDER_HTTP_SERVER_FACTORY, add,
-                attributes, HTTP_SERVER_FACTORY_RUNTIME_CAPABILITY));
+        return wrapFactory(new TrivialResourceDefinition(ElytronDescriptionConstants.PROVIDER_HTTP_SERVER_MECHANISM_FACTORY, add,
+                attributes, HTTP_SERVER_MECHANISM_FACTORY_RUNTIME_CAPABILITY));
     }
 
-    static ResourceDefinition getServiceLoaderServerFactoryDefinition() {
+    static ResourceDefinition getServiceLoaderServerMechanismFactoryDefinition() {
         AttributeDefinition[] attributes = new AttributeDefinition[] { MODULE };
-        AbstractAddStepHandler add = new TrivialAddHandler<HttpServerAuthenticationMechanismFactory>(HttpServerAuthenticationMechanismFactory.class, attributes, HTTP_SERVER_FACTORY_RUNTIME_CAPABILITY) {
+        AbstractAddStepHandler add = new TrivialAddHandler<HttpServerAuthenticationMechanismFactory>(HttpServerAuthenticationMechanismFactory.class, attributes, HTTP_SERVER_MECHANISM_FACTORY_RUNTIME_CAPABILITY) {
 
             @Override
             protected ValueSupplier<HttpServerAuthenticationMechanismFactory> getValueSupplier(
@@ -231,15 +231,15 @@ class HttpServerDefinitions {
             }
         };
 
-        return wrapFactory(new TrivialResourceDefinition(ElytronDescriptionConstants.SERVICE_LOADER_HTTP_SERVER_FACTORY,
-                add, attributes, HTTP_SERVER_FACTORY_RUNTIME_CAPABILITY));
+        return wrapFactory(new TrivialResourceDefinition(ElytronDescriptionConstants.SERVICE_LOADER_HTTP_SERVER_MECHANISM_FACTORY,
+                add, attributes, HTTP_SERVER_MECHANISM_FACTORY_RUNTIME_CAPABILITY));
     }
 
     private static ResourceDefinition wrapFactory(ResourceDefinition resourceDefinition) {
         return AvailableMechanismsRuntimeResource.wrap(
                 resourceDefinition,
                 (context) -> {
-                    RuntimeCapability<Void> runtimeCapability = HTTP_SERVER_FACTORY_RUNTIME_CAPABILITY.fromBaseCapability(context.getCurrentAddressValue());
+                    RuntimeCapability<Void> runtimeCapability = HTTP_SERVER_MECHANISM_FACTORY_RUNTIME_CAPABILITY.fromBaseCapability(context.getCurrentAddressValue());
                     ServiceName httpServerFactoryName = runtimeCapability.getCapabilityServiceName(HttpServerAuthenticationMechanismFactory.class);
 
                     ServiceRegistry registry = context.getServiceRegistry(false);

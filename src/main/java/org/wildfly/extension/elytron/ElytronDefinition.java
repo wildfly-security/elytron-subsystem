@@ -84,7 +84,7 @@ class ElytronDefinition extends SimpleResourceDefinition {
 
         // Security Domain SASL / HTTP Configurations
         resourceRegistration.registerSubModel(AuthenticationFactoryDefinitions.getSecurityDomainSaslConfiguration());
-        resourceRegistration.registerSubModel(AuthenticationFactoryDefinitions.getSecurityDomainHttpServerConfiguration());
+        resourceRegistration.registerSubModel(AuthenticationFactoryDefinitions.getHttpAuthenticationFactory());
 
         // Domain
         resourceRegistration.registerSubModel(new DomainDefinition());
@@ -144,9 +144,9 @@ class ElytronDefinition extends SimpleResourceDefinition {
 
         // HTTP Mechanisms
         resourceRegistration.registerSubModel(HttpServerDefinitions.getAggregateHttpServerFactoryDefinition());
-        resourceRegistration.registerSubModel(HttpServerDefinitions.getConfigurableHttpServerFactoryDefinition());
-        resourceRegistration.registerSubModel(HttpServerDefinitions.getProviderHttpServerFactoryDefinition());
-        resourceRegistration.registerSubModel(HttpServerDefinitions.getServiceLoaderServerFactoryDefinition());
+        resourceRegistration.registerSubModel(HttpServerDefinitions.getConfigurableHttpServerMechanismFactoryDefinition());
+        resourceRegistration.registerSubModel(HttpServerDefinitions.getProviderHttpServerMechanismFactoryDefinition());
+        resourceRegistration.registerSubModel(HttpServerDefinitions.getServiceLoaderServerMechanismFactoryDefinition());
 
         // SASL Mechanisms
         resourceRegistration.registerSubModel(SaslServerDefinitions.getAggregateSaslServerFactoryDefinition());

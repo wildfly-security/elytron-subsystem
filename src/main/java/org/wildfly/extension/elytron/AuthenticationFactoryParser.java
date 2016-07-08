@@ -30,8 +30,8 @@ import static org.jboss.as.controller.parsing.ParseUtils.unexpectedElement;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CREDENTIAL_SECURITY_FACTORY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.FINAL_NAME_REWRITER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.HOST_NAME;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.HTTP_SERVER_AUTHENTICATION;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.HTTP_SERVER_FACTORY;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.HTTP_AUTHENTICATION_FACTORY;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.HTTP_SERVER_MECHANISM_FACTORY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MECHANISM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MECHANISM_CONFIGURATION;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MECHANISM_CONFIGURATIONS;
@@ -187,11 +187,11 @@ class AuthenticationFactoryParser {
         }
     }
 
-    void readHttpServerAuthenticationElement(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations) throws XMLStreamException {
+    void readHttpAuthenticationFactoryElement(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations) throws XMLStreamException {
         ModelNode addOperation = new ModelNode();
         addOperation.get(OP).set(ADD);
 
-        Set<String> requiredAttributes = new HashSet<String>(Arrays.asList(new String[] { NAME, SECURITY_DOMAIN, HTTP_SERVER_FACTORY }));
+        Set<String> requiredAttributes = new HashSet<String>(Arrays.asList(new String[] { NAME, SECURITY_DOMAIN, HTTP_SERVER_MECHANISM_FACTORY }));
 
         String name = null;
 
@@ -207,8 +207,8 @@ class AuthenticationFactoryParser {
                     case NAME:
                         name = value;
                         break;
-                    case HTTP_SERVER_FACTORY:
-                        AuthenticationFactoryDefinitions.HTTP_SERVER_FACTORY.parseAndSetParameter(value, addOperation, reader);
+                    case HTTP_SERVER_MECHANISM_FACTORY:
+                        AuthenticationFactoryDefinitions.HTTP_SERVER_MECHANISM_FACTORY.parseAndSetParameter(value, addOperation, reader);
                         break;
                     case SECURITY_DOMAIN:
                         AuthenticationFactoryDefinitions.BASE_SECURITY_DOMAIN_REF.parseAndSetParameter(value, addOperation, reader);
@@ -223,7 +223,7 @@ class AuthenticationFactoryParser {
             throw missingRequired(reader, requiredAttributes);
         }
 
-        addOperation.get(OP_ADDR).set(parentAddress).add(HTTP_SERVER_AUTHENTICATION, name);
+        addOperation.get(OP_ADDR).set(parentAddress).add(HTTP_AUTHENTICATION_FACTORY, name);
 
         attemptReadMechanismConfigurationElement(addOperation, reader);
 
@@ -305,15 +305,15 @@ class AuthenticationFactoryParser {
         }
     }
 
-    boolean writeHttpServerAuthentication(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer, WrapperWriter wrapperWriter) throws XMLStreamException {
-        if (subsystem.hasDefined(HTTP_SERVER_AUTHENTICATION)) {
+    boolean writeHttpAuthenticationFactory(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer, WrapperWriter wrapperWriter) throws XMLStreamException {
+        if (subsystem.hasDefined(HTTP_AUTHENTICATION_FACTORY)) {
             wrapperWriter.start(started);
-            ModelNode securityDomainHttpConfiguration = subsystem.require(HTTP_SERVER_AUTHENTICATION);
-            for (String name : securityDomainHttpConfiguration.keys()) {
-                ModelNode configuration = securityDomainHttpConfiguration.require(name);
-                writer.writeStartElement(HTTP_SERVER_AUTHENTICATION);
+            ModelNode httpAuthenticationFactory = subsystem.require(HTTP_AUTHENTICATION_FACTORY);
+            for (String name : httpAuthenticationFactory.keys()) {
+                ModelNode configuration = httpAuthenticationFactory.require(name);
+                writer.writeStartElement(HTTP_AUTHENTICATION_FACTORY);
                 writer.writeAttribute(NAME, name);
-                AuthenticationFactoryDefinitions.HTTP_SERVER_FACTORY.marshallAsAttribute(configuration, writer);
+                AuthenticationFactoryDefinitions.HTTP_SERVER_MECHANISM_FACTORY.marshallAsAttribute(configuration, writer);
                 AuthenticationFactoryDefinitions.BASE_SECURITY_DOMAIN_REF.marshallAsAttribute(configuration, writer);
                 writeMechanismConfiguration(configuration, writer);
                 writer.writeEndElement();

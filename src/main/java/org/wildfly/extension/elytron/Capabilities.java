@@ -55,16 +55,16 @@ class Capabilities {
 
     private static final String CAPABILITY_BASE = "org.wildfly.security.";
 
-    static final String HTTP_SERVER_AUTHENTICATION_CAPABILITY = CAPABILITY_BASE + "http-server-authentication";
+    static final String HTTP_AUTHENTICATION_FACTORY_CAPABILITY = CAPABILITY_BASE + "http-authentication-factory";
 
-    static final RuntimeCapability<Void> HTTP_SERVER_AUTHENTICATION_RUNTIME_CAPABILITY = RuntimeCapability
-            .Builder.of(HTTP_SERVER_AUTHENTICATION_CAPABILITY, true, HttpAuthenticationFactory.class)
+    static final RuntimeCapability<Void> HTTP_AUTHENTICATION_FACTORY_RUNTIME_CAPABILITY = RuntimeCapability
+            .Builder.of(HTTP_AUTHENTICATION_FACTORY_CAPABILITY, true, HttpAuthenticationFactory.class)
             .build();
 
-    static final String HTTP_SERVER_FACTORY_CAPABILITY = CAPABILITY_BASE + "http-server-mechanism-factory";
+    static final String HTTP_SERVER_MECHANISM_FACTORY_CAPABILITY = CAPABILITY_BASE + "http-server-mechanism-factory";
 
-    static final RuntimeCapability<Void> HTTP_SERVER_FACTORY_RUNTIME_CAPABILITY =  RuntimeCapability
-        .Builder.of(HTTP_SERVER_FACTORY_CAPABILITY, true, HttpServerAuthenticationMechanismFactory.class)
+    static final RuntimeCapability<Void> HTTP_SERVER_MECHANISM_FACTORY_RUNTIME_CAPABILITY =  RuntimeCapability
+        .Builder.of(HTTP_SERVER_MECHANISM_FACTORY_CAPABILITY, true, HttpServerAuthenticationMechanismFactory.class)
         .build();
 
     static final String KEY_MANAGERS_CAPABILITY = CAPABILITY_BASE + "key-managers";
