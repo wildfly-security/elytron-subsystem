@@ -44,7 +44,7 @@
 
         <http>
             <?HTTP_DEFINITIONS?>
-            <provider-http-server-factory name="global"/>
+            <provider-http-server-mechanism-factory name="global"/>
         </http>
 
         <sasl>
@@ -66,17 +66,17 @@
             </properties-realm>
         </replacement>
         <replacement placeholder="HTTP_DEFINITIONS">
-            <http-server-authentication name="application-http-authentication" http-server-factory="global" security-domain="ApplicationDomain">
+            <http-authentication-factory name="application-http-authentication" http-server-mechanism-factory="global" security-domain="ApplicationDomain">
                 <mechanism-configuration>
                     <mechanism mechanism-name="BASIC" >
                         <mechanism-realm realm-name="Application Realm" />
                     </mechanism>
                     <mechanism mechanism-name="FORM" />
                 </mechanism-configuration>
-            </http-server-authentication>
+            </http-authentication-factory>
         </replacement>
         <replacement placeholder="SASL_DEFINITIONS">
-            <sasl-server-authentication name="application-sasl-authentication" sasl-server-factory="global" security-domain="ApplicationDomain"/>
+            <sasl-authentication-factory name="application-sasl-authentication" sasl-server-factory="global" security-domain="ApplicationDomain"/>
         </replacement>
     </supplement>
 
@@ -93,16 +93,16 @@
             </properties-realm>
         </replacement>
         <replacement placeholder="HTTP_DEFINITIONS">
-            <http-server-authentication name="management-http-authentication" http-server-factory="global" security-domain="ManagementDomain">
+            <http-authentication-factory name="management-http-authentication" http-server-mechanism-factory="global" security-domain="ManagementDomain">
                 <mechanism-configuration>
                     <mechanism mechanism-name="BASIC" >
                         <mechanism-realm realm-name="Management Realm" />
                     </mechanism>
                 </mechanism-configuration>
-            </http-server-authentication>
+            </http-authentication-factory>
         </replacement>
         <replacement placeholder="SASL_DEFINITIONS">
-            <sasl-server-authentication name="management-sasl-authentication" sasl-server-factory="global" security-domain="ManagementDomain"/>
+            <sasl-authentication-factory name="management-sasl-authentication" sasl-server-factory="global" security-domain="ManagementDomain"/>
         </replacement>
     </supplement>
 
@@ -130,14 +130,14 @@
         </replacement>
 
         <replacement placeholder="HTTP_DEFINITIONS">
-            <http-server-authentication name="management-http-authentication" http-server-factory="global" security-domain="ManagementDomain">
+            <http-authentication-factory name="management-http-authentication" http-server-mechanism-factory="global" security-domain="ManagementDomain">
                 <mechanism-configuration>
                     <mechanism mechanism-name="BASIC" >
                         <mechanism-realm realm-name="Management Realm" />
                     </mechanism>
                 </mechanism-configuration>
-            </http-server-authentication>
-            <http-server-authentication name="application-http-authentication" http-server-factory="global" security-domain="ApplicationDomain">
+            </http-authentication-factory>
+            <http-server-authentication name="application-http-authentication" http-server-mechanism-factory="global" security-domain="ApplicationDomain">
                 <mechanism-configuration>
                     <mechanism mechanism-name="BASIC" >
                         <mechanism-realm realm-name="Application Realm" />
@@ -147,8 +147,8 @@
             </http-server-authentication>
         </replacement>
         <replacement placeholder="SASL_DEFINITIONS">
-            <sasl-server-authentication name="management-sasl-authentication" sasl-server-factory="global" security-domain="ManagementDomain"/>
-            <sasl-server-authentication name="application-sasl-authentication" sasl-server-factory="global" security-domain="ApplicationDomain"/>
+            <sasl-authentication-factory name="management-sasl-authentication" sasl-server-factory="global" security-domain="ManagementDomain"/>
+            <sasl-authentication-factory name="application-sasl-authentication" sasl-server-factory="global" security-domain="ApplicationDomain"/>
         </replacement>
     </supplement>
 </config>
