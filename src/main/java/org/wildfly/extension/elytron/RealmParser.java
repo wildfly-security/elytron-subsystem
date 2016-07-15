@@ -50,6 +50,7 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.LDAP_REA
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.LEVELS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME_REWRITER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NEW_IDENTITY_ATTRIBUTES;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PATH;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PLAIN_TEXT;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PRINCIPAL_QUERY;
@@ -72,6 +73,7 @@ import javax.xml.stream.XMLStreamException;
 import org.jboss.as.controller.AttributeDefinition;
 import org.jboss.as.controller.ObjectTypeAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinition;
+import org.jboss.as.controller.StringListAttributeDefinition;
 import org.jboss.dmr.ModelNode;
 import org.jboss.staxmapper.XMLExtendedStreamReader;
 import org.jboss.staxmapper.XMLExtendedStreamWriter;
@@ -498,6 +500,7 @@ class RealmParser {
                     break;
                 case IDENTITY_MAPPING:
                     ModelNode principalMappingNode = readModelNode(IdentityMappingObjectDefinition.ATTRIBUTES, reader, (parentNode, reader1) -> {
+
                         if (reader1.getLocalName().equals(ATTRIBUTE_MAPPING)) {
                             ModelNode attributeMappingNode = readModelNode(null, reader, (parentNode1, reader2) -> {
                                 if (reader1.getLocalName().equals(ATTRIBUTE)) {
@@ -507,8 +510,27 @@ class RealmParser {
                                     throw unexpectedElement(reader1);
                                 }
                             });
-
                             parentNode.get(ATTRIBUTE_MAPPING).set(attributeMappingNode);
+
+                        } else if (reader1.getLocalName().equals(NEW_IDENTITY_ATTRIBUTES)) {
+                            ModelNode newIdentityAttributesNode = readModelNode(null, reader, (parentNode1, reader2) -> {
+                                if (reader1.getLocalName().equals(ATTRIBUTE)) {
+                                    parentNode1.add(readModelNode(LdapRealmDefinition.NewIdentityAttributeObjectDefinition.ATTRIBUTES, reader1, null));
+                                    requireNoContent(reader1);
+                                } else {
+                                    throw unexpectedElement(reader1);
+                                }
+                            });
+                            parentNode.get(NEW_IDENTITY_ATTRIBUTES).set(newIdentityAttributesNode);
+
+                        } else if (LdapRealmDefinition.SUPPORTED_CREDENTIAL_MAPPERS.containsKey(reader1.getLocalName())) {
+                            LdapRealmDefinition.CredentialMappingObjectDefinition credentialMapperObjectDefinition = LdapRealmDefinition.SUPPORTED_CREDENTIAL_MAPPERS.get(reader1.getLocalName());
+
+                            ModelNode credentialMapperNode = readModelNode(credentialMapperObjectDefinition.getAttributes(), reader1, null);
+
+                            parentNode.get(reader1.getLocalName()).set(credentialMapperNode);
+
+                            requireNoContent(reader1);
                         } else {
                             throw unexpectedElement(reader1);
                         }
@@ -550,6 +572,13 @@ class RealmParser {
                 if (SimpleAttributeDefinition.class.isInstance(attributeDefinition)) {
                     SimpleAttributeDefinition simpleAttributeDefinition = (SimpleAttributeDefinition) attributeDefinition;
                     simpleAttributeDefinition.parseAndSetParameter(value, newModelNode, reader);
+                }
+
+                if (attributeDefinition instanceof StringListAttributeDefinition) {
+                    StringListAttributeDefinition stringListAttributeDefinition = (StringListAttributeDefinition) attributeDefinition;
+                    for (String val : reader.getListAttributeValue(i)) {
+                        stringListAttributeDefinition.parseAndAddParameterElement(val, newModelNode, reader);
+                    }
                 }
             }
         }
@@ -728,7 +757,6 @@ class RealmParser {
                 writeObjectTypeAttribute(DIR_CONTEXT, DirContextObjectDefinition.ATTRIBUTES, ldapRealmNode.get(DIR_CONTEXT), writer, null);
                 writeObjectTypeAttribute(IDENTITY_MAPPING, IdentityMappingObjectDefinition.ATTRIBUTES, ldapRealmNode.get(IDENTITY_MAPPING), writer, (modelNode, writer1) -> {
                     ModelNode attributeMappingNode = modelNode.get(ATTRIBUTE_MAPPING);
-
                     if (attributeMappingNode.isDefined()) {
                         writer1.writeStartElement(ATTRIBUTE_MAPPING);
 
@@ -738,6 +766,24 @@ class RealmParser {
 
                         writer1.writeEndElement();
                     }
+
+                    for (LdapRealmDefinition.CredentialMappingObjectDefinition mapperDefinition : LdapRealmDefinition.SUPPORTED_CREDENTIAL_MAPPERS.values()) {
+                        ObjectTypeAttributeDefinition objectDefinition = mapperDefinition.getObjectDefinition();
+
+                        writeObjectTypeAttribute(objectDefinition.getName(), mapperDefinition.getAttributes(), modelNode.get(objectDefinition.getName()), writer, null);
+                    }
+
+                    ModelNode newIdentityAttributesNode = modelNode.get(NEW_IDENTITY_ATTRIBUTES);
+                    if (newIdentityAttributesNode.isDefined()) {
+                        writer1.writeStartElement(NEW_IDENTITY_ATTRIBUTES);
+
+                        for (ModelNode elementNode : newIdentityAttributesNode.asList()) {
+                            writeObjectTypeAttribute(ATTRIBUTE, LdapRealmDefinition.NewIdentityAttributeObjectDefinition.ATTRIBUTES, elementNode, writer1, null);
+                        }
+
+                        writer1.writeEndElement();
+                    }
+
                 });
 
                 writer.writeEndElement();
@@ -787,6 +833,10 @@ class RealmParser {
             for (AttributeDefinition attributeDefinition : attributes) {
                 if (SimpleAttributeDefinition.class.isInstance(attributeDefinition)) {
                     ((SimpleAttributeDefinition) attributeDefinition).marshallAsAttribute(attributeNode, writer);
+                }
+
+                if (attributeDefinition instanceof StringListAttributeDefinition) {
+                    attributeDefinition.getAttributeMarshaller().marshallAsAttribute(attributeDefinition, attributeNode, false, writer);
                 }
             }
 

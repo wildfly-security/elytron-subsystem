@@ -39,6 +39,7 @@ interface ElytronDescriptionConstants {
     String ALIAS = "alias";
     String ALIAS_FILTER = "alias-filter";
     String ALGORITHM = "algorithm";
+    String ALGORITHM_FROM = "algorithm-from";
     String AND = "and";
     String APPLICATION_BUFFER_SIZE = "application-buffer-size";
     String AS_RDN = "as-rdn";
@@ -80,6 +81,7 @@ interface ElytronDescriptionConstants {
     String CREATION_DATE = "creation-date";
     String CREATION_TIME = "creation-time";
     String CREDENTIAL = "credential";
+    String CREDENTIAL_MAPPING = "credential-mapping";
     String CREDENTIAL_NAME = "credential-name";
     String CREDENTIAL_SECURITY_FACTORIES = "credential-security-factories";
     String CREDENTIAL_SECURITY_FACTORY = "credential-security-factory";
@@ -127,6 +129,7 @@ interface ElytronDescriptionConstants {
     String GROUPS_PROPERTIES = "groups-properties";
 
     String HOST_NAME = "host-name";
+    String HASH_FROM = "hash-from";
     String HTTP = "http";
     String HTTP_AUTHENTICATION_FACTORY = "http-authentication-factory";
     String HTTP_SERVER_MECHANISM_FACTORY = "http-server-mechanism-factory";
@@ -141,6 +144,8 @@ interface ElytronDescriptionConstants {
     String ISSUER = "issuer";
     String ITERATION_COUNT = "iteration-count";
     String ITERATION_COUNT_INDEX = "iteration-count-index";
+    String ITERATOR_FILTER = "iterator-filter";
+    String ITERATOR_FILTER_ARGS = "iterator-filter-args";
 
     String JDBC_REALM = "jdbc-realm";
     String JOINER = "joiner";
@@ -194,10 +199,13 @@ interface ElytronDescriptionConstants {
     String NAME_REWRITER = "name-rewriter";
     String NAME_REWRITERS = "name-rewriters";
     String NEED_CLIENT_AUTH = "need-client-auth";
+    String NEW_IDENTITY_ATTRIBUTES = "new-identity-attributes";
+    String NEW_IDENTITY_PARENT_DN = "new-identity-parent-dn";
     String NOT_AFTER = "not-after";
     String NOT_BEFORE = "not-before";
 
     String OID = "oid";
+    String OTP_CREDENTIAL_MAPPER = "otp-credential-mapper";
     String OR = "or";
 
     String PACKET_BUFFER_SIZE = "packet-buffer-size";
@@ -282,6 +290,7 @@ interface ElytronDescriptionConstants {
     String SECURITY_PROPERTY = "security-property";
     String SECURITY_REALMS = "security-realms";
     String SELECTION_CRITERIA = "selection-criteria";
+    String SEED_FROM = "seed-from";
     String SERVER_NAME = "server-name";
     String SERIAL_NUMBER = "serial-number";
     String SERVER = "server";
@@ -293,6 +302,7 @@ interface ElytronDescriptionConstants {
     String SERVICE_LOADER_HTTP_SERVER_MECHANISM_FACTORY = "service-loader-http-server-mechanism-factory";
     String SERVICE_LOADER_SASL_SERVER_FACTORY = "service-loader-sasl-server-factory";
     String SERVICES = "services";
+    String SEQUENCE_FROM = "sequence-from";
     String SIGNATURE = "signature";
     String SIGNATURE_ALGORITHM = "signature-algorithm";
     String SIMPLE_DIGEST = "simple-digest";
@@ -324,14 +334,17 @@ interface ElytronDescriptionConstants {
     String URL = "url";
     String USE_RECURSIVE_SEARCH = "use-recursive-search";
     String USERS_PROPERTIES = "users-properties";
+    String USER_PASSWORD_MAPPER = "user-password-mapper";
 
     String VALID = "valid";
     String VALUE = "value";
+    String VERIFIABLE = "verifiable";
     String VERSION = "version";
     String VERSION_COMPARISON = "version-comparison";
 
     String WANT_CLIENT_AUTH = "want-client-auth";
     String WATCH = "watch";
+    String WRITABLE = "writable";
 
     String X500_ATTRIBUTE_PRINCIPAL_DECODER = "x500-attribute-principal-decoder";
     String XOR = "xor";

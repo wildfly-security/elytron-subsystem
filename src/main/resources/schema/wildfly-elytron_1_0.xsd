@@ -751,7 +751,7 @@
                 The configuration options that define how principals are mapped to their corresponding entries in the underlying LDAP server.
             </xs:documentation>
         </xs:annotation>
-        <xs:sequence>
+        <xs:all>
             <xs:element name="attribute-mapping" type="ldapAttributeMappingType" minOccurs="0" maxOccurs="unbounded">
                 <xs:annotation>
                     <xs:documentation>
@@ -759,7 +759,28 @@
                     </xs:documentation>
                 </xs:annotation>
             </xs:element>
-        </xs:sequence>
+            <xs:element name="user-password-mapper" type="userPasswordMapperType" minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>
+                        The user password credential mapping defined for this resource.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="otp-credential-mapper" type="otpCredentialMapperType" minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>
+                        The user password credential mapping defined for this resource.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="new-identity-attributes" type="ldapNewIdentityAttributesType" minOccurs="0" maxOccurs="unbounded">
+                <xs:annotation>
+                    <xs:documentation>
+                        The attributes of newly created identities. Required for modifiability.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:all>
         <xs:attribute name="rdn-identifier" type="xs:string" use="required">
             <xs:annotation>
                 <xs:documentation>
@@ -778,6 +799,20 @@
             <xs:annotation>
                 <xs:documentation>
                     Indicates if queries are recursive.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="iterator-filter" type="xs:string" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    The LDAP filter for iterating over identities of the realm. Optional, but required for modifiability.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="new-identity-parent-dn" type="xs:string" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    The DN of parent of newly created identities. Optional, but required for modifiability.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
@@ -828,6 +863,99 @@
             <xs:annotation>
                 <xs:documentation>
                     The RDN key to use as the value for an attribute, in case the value in its raw form is in X.500 format.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="userPasswordMapperType">
+        <xs:annotation>
+            <xs:documentation>
+                The configuration used to map a specific LDAP attribute (userPassword usualy) as an identity password credential.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="from" type="xs:string" use="required">
+            <xs:annotation>
+                <xs:documentation>
+                    The name of the LDAP attribute to map to an identity user password credential.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="writable" type="xs:boolean" default="false" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    If the password credential is writable.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="verifiable" type="xs:boolean" default="true" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    If the password credential is verifiable.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="otpCredentialMapperType">
+        <xs:annotation>
+            <xs:documentation>
+                The configuration used to map a specific LDAP attribute (userPassword usualy) as an identity password credential.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="algorithm-from" type="xs:string" use="required">
+            <xs:annotation>
+                <xs:documentation>
+                    The name of the LDAP attribute to map to an OTP credential algorithm.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="hash-from" type="xs:string" use="required">
+            <xs:annotation>
+                <xs:documentation>
+                    The name of the LDAP attribute to map to an OTP credential hash function.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="seed-from" type="xs:string" use="required">
+            <xs:annotation>
+                <xs:documentation>
+                    The name of the LDAP attribute to map to an OTP credential seed.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="sequence-from" type="xs:string" use="required">
+            <xs:annotation>
+                <xs:documentation>
+                    The name of the LDAP attribute to map to an OTP credential sequence number.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="ldapNewIdentityAttributesType">
+        <xs:sequence>
+            <xs:element name="attribute" type="ldapNewIdentityAttributeType" minOccurs="0" maxOccurs="unbounded" />
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="ldapNewIdentityAttributeType">
+        <xs:annotation>
+            <xs:documentation>
+                Attribute of newly created LDAP identity.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="name" type="xs:string" use="required">
+            <xs:annotation>
+                <xs:documentation>
+                    The name of the LDAP attribute.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="value" type="xs:string" use="required">
+            <xs:annotation>
+                <xs:documentation>
+                    The value(s) of LDAP attribute delimited by space.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
@@ -2954,5 +3082,3 @@
     </xs:simpleType>
 
 </xs:schema>
-
-

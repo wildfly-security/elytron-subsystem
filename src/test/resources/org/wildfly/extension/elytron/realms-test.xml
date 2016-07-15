@@ -1,11 +1,34 @@
 <!-- for needs of RealmsTestCase -->
 <subsystem xmlns="urn:wildfly:elytron:1.0">
     <security-realms>
+
         <properties-realm name="TestingPropertyRealm1">
             <users-properties path="testingrealm1-users.properties" relative-to="jboss.server.config.dir" />
         </properties-realm>
+
         <filesystem-realm name="FilesystemRealm" levels="2">
             <file path="filesystem-realm" relative-to="jboss.server.config.dir" />
         </filesystem-realm>
+
+        <ldap-realm name="LdapRealm">
+            <dir-context url="ldap://localhost:11391/" principal="uid=server,dc=elytron,dc=wildfly,dc=org" credential="serverPassword"/>
+            <identity-mapping rdn-identifier="uid" search-base-dn="dc=elytron,dc=wildfly,dc=org" use-recursive-search="true" iterator-filter="(uid=*)" new-identity-parent-dn="dc=elytron,dc=wildfly,dc=org">
+                <attribute-mapping>
+                    <attribute from="uid" to="userName"/>
+                    <attribute from="cn" to="firstName"/>
+                    <attribute from="sn" to="lastName"/>
+                    <attribute from="telephoneNumber" to="phones"/>
+                    <attribute filter-base-dn="ou=Finance,dc=elytron,dc=wildfly,dc=org" filter="(&amp;(objectClass=groupOfNames)(member={0}))" from="CN" as-rdn="OU"  to="businessArea"/>
+                </attribute-mapping>
+                <user-password-mapper from="userPassword" writable="true" verifiable="true"/>
+                <otp-credential-mapper algorithm-from="otpAlgorithm" hash-from="otpHash" seed-from="otpSeed" sequence-from="otpSequence"/>
+                <new-identity-attributes>
+                    <attribute name="objectClass" value="top inetOrgPerson person organizationalPerson otpToken"/>
+                    <attribute name="sn" value="BlankSurname"/>
+                    <attribute name="cn" value="BlankCommonName"/>
+                </new-identity-attributes>
+            </identity-mapping>
+        </ldap-realm>
+
     </security-realms>
 </subsystem>

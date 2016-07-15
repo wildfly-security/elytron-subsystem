@@ -17,6 +17,12 @@
  */
 package org.wildfly.extension.elytron;
 
+import mockit.Mock;
+import mockit.MockUp;
+import org.jboss.as.subsystem.test.AdditionalInitialization;
+import org.jboss.as.subsystem.test.ControllerInitializer;
+
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.FileVisitResult;
@@ -26,13 +32,9 @@ import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 
-import org.jboss.as.subsystem.test.AdditionalInitialization;
-import org.jboss.as.subsystem.test.ControllerInitializer;
-
-import mockit.Mock;
-import mockit.MockUp;
-
 class TestEnvironment extends AdditionalInitialization {
+
+    static final int LDAP_PORT = 11391;
 
     @Override
     protected ControllerInitializer createControllerInitializer() {
@@ -52,6 +54,20 @@ class TestEnvironment extends AdditionalInitialization {
         }
 
         return initializer;
+    }
+
+    public static LdapService startLdapService() {
+        try {
+            return LdapService.builder()
+                    .setWorkingDir(new File("./target/apache-ds/working"))
+                    .createDirectoryService("Test Service")
+                    .addPartition("Elytron", "dc=elytron,dc=wildfly,dc=org", 5, "uid")
+                    .importLdif(TestEnvironment.class.getResourceAsStream("ldap.ldif"))
+                    .addTcpServer("Default TCP", "localhost", LDAP_PORT)
+                    .start();
+        } catch (Exception e) {
+            throw new RuntimeException("Could not start LDAP embedded server.", e);
+        }
     }
 
     private void emptyDirectory(Path directory) throws IOException {

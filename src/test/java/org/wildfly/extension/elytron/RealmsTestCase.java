@@ -38,7 +38,9 @@ import org.wildfly.security.credential.PasswordCredential;
 import org.wildfly.security.evidence.PasswordGuessEvidence;
 import org.wildfly.security.password.PasswordFactory;
 import org.wildfly.security.password.interfaces.ClearPassword;
+import org.wildfly.security.password.interfaces.OneTimePassword;
 import org.wildfly.security.password.spec.ClearPasswordSpec;
+import org.wildfly.security.password.spec.OneTimePasswordSpec;
 
 /**
  * @author <a href="mailto:jkalina@redhat.com">Jan Kalina</a>
@@ -90,32 +92,66 @@ public class RealmsTestCase extends AbstractSubsystemTest {
         RealmIdentity identity1 = securityRealm.getRealmIdentity(fromName("firstUser"));
         Assert.assertTrue(identity1.exists());
 
-        int currentCount = getRealmIdentityCount(securityRealm);
-        Assert.assertTrue(currentCount > 0);
-        // expectedCount = currentCount + 1 for the new identity that will be created
-        testModifiability(securityRealm, currentCount + 1);
+        testModifiability(securityRealm);
     }
 
-    private void testModifiability(ModifiableSecurityRealm securityRealm, int expectedCount) throws Exception {
+    @Test
+    public void testLdapRealm() throws Exception {
+        TestEnvironment.startLdapService();
+        KernelServices services = super.createKernelServicesBuilder(new TestEnvironment()).setSubsystemXmlResource("realms-test.xml").build();
+        if (!services.isSuccessfulBoot()) {
+            Assert.fail(services.getBootError().toString());
+        }
+
+        ServiceName serviceName = Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY.getCapabilityServiceName("LdapRealm");
+        ModifiableSecurityRealm securityRealm = (ModifiableSecurityRealm) services.getContainer().getService(serviceName).getValue();
+        Assert.assertNotNull(securityRealm);
+
+        RealmIdentity identity1 = securityRealm.getRealmIdentity(fromName("plainUser"));
+        Assert.assertTrue(identity1.exists());
+
+        testModifiability(securityRealm);
+    }
+
+    private void testModifiability(ModifiableSecurityRealm securityRealm) throws Exception {
+        // obtain original count of identities
+        int oldCount = getRealmIdentityCount(securityRealm);
+        Assert.assertTrue(oldCount > 0);
+
         // create identity
         ModifiableRealmIdentity identity1 = securityRealm.getRealmIdentityForUpdate(fromName("createdUser"));
         Assert.assertFalse(identity1.exists());
         identity1.create();
         Assert.assertTrue(identity1.exists());
-        List<Credential> creds = new LinkedList<>();
+
+        // write password credential
+        List<Credential> credentials = new LinkedList<>();
         PasswordFactory factory = PasswordFactory.getInstance(ClearPassword.ALGORITHM_CLEAR);
         KeySpec spec = new ClearPasswordSpec("createdPassword".toCharArray());
-        creds.add(new PasswordCredential(factory.generatePassword(spec)));
-        identity1.setCredentials(creds);
+        credentials.add(new PasswordCredential(factory.generatePassword(spec)));
+
+        PasswordFactory factoryOtp = PasswordFactory.getInstance(OneTimePassword.ALGORITHM_OTP_SHA1);
+        KeySpec specOtp = new OneTimePasswordSpec(new byte[]{0x12}, new byte[]{0x34}, 56789);
+        credentials.add(new PasswordCredential(factoryOtp.generatePassword(specOtp)));
+
+        identity1.setCredentials(credentials);
 
         // read created identity
         ModifiableRealmIdentity identity2 = securityRealm.getRealmIdentityForUpdate(fromName("createdUser"));
         Assert.assertTrue(identity2.exists());
+
+        // verify password
         Assert.assertTrue(identity2.verifyEvidence(new PasswordGuessEvidence("createdPassword".toCharArray())));
 
+        // obtain OTP
+        OneTimePassword otp = identity2.getCredential(PasswordCredential.class, OneTimePassword.ALGORITHM_OTP_SHA1).getPassword(OneTimePassword.class);
+        Assert.assertArrayEquals(new byte[]{0x12}, otp.getHash());
+        Assert.assertArrayEquals(new byte[]{0x34}, otp.getSeed());
+        Assert.assertEquals(56789, otp.getSequenceNumber());
+
         // iterate (include created identity)
-        int count = getRealmIdentityCount(securityRealm);
-        Assert.assertEquals(expectedCount, count);
+        int newCount = getRealmIdentityCount(securityRealm);
+        Assert.assertEquals(oldCount + 1, newCount);
 
         // delete identity
         identity1.delete();
