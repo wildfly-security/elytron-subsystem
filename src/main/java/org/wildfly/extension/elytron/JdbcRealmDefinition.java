@@ -123,10 +123,12 @@ class JdbcRealmDefinition extends SimpleResourceDefinition {
 
         @Override
         public PasswordKeyMapper toPasswordKeyMapper(OperationContext context, ModelNode propertyNode) throws OperationFailedException, InvalidKeyException {
+            String algorithm = ElytronExtension.asStringIfDefined(context, ALGORITHM, propertyNode);
             int password = ElytronExtension.asIntIfDefined(context, PASSWORD, propertyNode);
 
             return PasswordKeyMapper
                     .builder()
+                    .setDefaultAlgorithm(algorithm)
                     .setHashColumn(password)
                     .build();
         }
@@ -178,11 +180,13 @@ class JdbcRealmDefinition extends SimpleResourceDefinition {
 
         @Override
         public PasswordKeyMapper toPasswordKeyMapper(OperationContext context, ModelNode propertyNode) throws OperationFailedException, InvalidKeyException {
+            String algorithm = ElytronExtension.asStringIfDefined(context, ALGORITHM, propertyNode);
             int password = ElytronExtension.asIntIfDefined(context, PASSWORD, propertyNode);
             int salt = ElytronExtension.asIntIfDefined(context, SALT, propertyNode);
             int iterationCount = ElytronExtension.asIntIfDefined(context, ITERATION_COUNT, propertyNode);
 
-            return PasswordKeyMapper .builder()
+            return PasswordKeyMapper.builder()
+                    .setDefaultAlgorithm(algorithm)
                     .setHashColumn(password)
                     .setSaltColumn(salt)
                     .setIterationCountColumn(iterationCount)
