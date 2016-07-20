@@ -131,8 +131,9 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
                 ModifiableSecurityRealm modifiableRealm = getModifiableSecurityRealm(context);
                 String principalName = PathAddress.pathAddress(operation.get(ModelDescriptionConstants.ADDRESS)).getLastElement().getValue();
 
+                ModifiableRealmIdentity identity = null;
                 try {
-                    ModifiableRealmIdentity identity = modifiableRealm.getRealmIdentityForUpdate(fromName(principalName));
+                    identity = modifiableRealm.getRealmIdentityForUpdate(fromName(principalName));
 
                     if (identity.exists()) {
                         throw ROOT_LOGGER.identityAlreadyExists(principalName);
@@ -141,6 +142,10 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
                     identity.create();
                 } catch (RealmUnavailableException e) {
                     throw ROOT_LOGGER.couldNotCreateIdentity(principalName, e);
+                } finally {
+                    if (identity != null) {
+                        identity.dispose();
+                    }
                 }
             }, OperationContext.Stage.RUNTIME);
         }
@@ -157,16 +162,22 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
                 ModifiableSecurityRealm modifiableRealm = getModifiableSecurityRealm(context1);
                 String principalName = PathAddress.pathAddress(operation1.get(ModelDescriptionConstants.ADDRESS)).getLastElement().getValue();
 
+                ModifiableRealmIdentity realmIdentity = null;
                 try {
-                    ModifiableRealmIdentity realmIdentity = modifiableRealm.getRealmIdentityForUpdate(fromName(principalName));
+                    realmIdentity = modifiableRealm.getRealmIdentityForUpdate(fromName(principalName));
 
                     if (!realmIdentity.exists()) {
                         throw new OperationFailedException(ROOT_LOGGER.identityNotFound(principalName));
                     }
 
                     realmIdentity.delete();
+                    realmIdentity.dispose();
                 } catch (RealmUnavailableException e) {
                     throw ROOT_LOGGER.couldNotCreateIdentity(principalName, e);
+                } finally {
+                    if (realmIdentity != null) {
+                        realmIdentity.dispose();
+                    }
                 }
             }, OperationContext.Stage.RUNTIME);
         }
@@ -616,8 +627,9 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
         PathAddress currentAddress = context.getCurrentAddress();
         String principalName = currentAddress.getLastElement().getValue();
 
+        ModifiableRealmIdentity realmIdentity = null;
         try {
-            ModifiableRealmIdentity realmIdentity = modifiableRealm.getRealmIdentityForUpdate(fromName(principalName));
+             realmIdentity = modifiableRealm.getRealmIdentityForUpdate(fromName(principalName));
 
             if (!realmIdentity.exists()) {
                 throw new OperationFailedException(ROOT_LOGGER.identityNotFound(principalName));
@@ -626,6 +638,10 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
             return realmIdentity;
         } catch (RealmUnavailableException e) {
             throw ROOT_LOGGER.couldNotReadIdentity(principalName, e);
+        } finally {
+            if (realmIdentity != null) {
+                realmIdentity.dispose();
+            }
         }
     }
 

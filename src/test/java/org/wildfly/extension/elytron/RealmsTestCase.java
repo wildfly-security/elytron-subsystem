@@ -67,14 +67,17 @@ public class RealmsTestCase extends AbstractSubsystemTest {
         Assert.assertTrue(identity1.exists());
         Assert.assertTrue(identity1.verifyEvidence(new PasswordGuessEvidence("password1".toCharArray())));
         Assert.assertFalse(identity1.verifyEvidence(new PasswordGuessEvidence("password2".toCharArray())));
+        identity1.dispose();
 
         RealmIdentity identity2 = securityRealm.getRealmIdentity(fromName("user2"));
         Assert.assertTrue(identity2.exists());
         Assert.assertTrue(identity2.verifyEvidence(new PasswordGuessEvidence("password2".toCharArray())));
+        identity2.dispose();
 
         RealmIdentity identity9 = securityRealm.getRealmIdentity(fromName("user9"));
         Assert.assertFalse(identity9.exists());
         Assert.assertFalse(identity9.verifyEvidence(new PasswordGuessEvidence("password9".toCharArray())));
+        identity9.dispose();
     }
 
     /* Test filesystem-realm with existing filesystem from resources, without relative-to */
@@ -91,6 +94,7 @@ public class RealmsTestCase extends AbstractSubsystemTest {
 
         RealmIdentity identity1 = securityRealm.getRealmIdentity(fromName("firstUser"));
         Assert.assertTrue(identity1.exists());
+        identity1.dispose();
 
         testModifiability(securityRealm);
     }
@@ -109,6 +113,7 @@ public class RealmsTestCase extends AbstractSubsystemTest {
 
         RealmIdentity identity1 = securityRealm.getRealmIdentity(fromName("plainUser"));
         Assert.assertTrue(identity1.exists());
+        identity1.dispose();
 
         testModifiability(securityRealm);
     }
@@ -135,6 +140,7 @@ public class RealmsTestCase extends AbstractSubsystemTest {
         credentials.add(new PasswordCredential(factoryOtp.generatePassword(specOtp)));
 
         identity1.setCredentials(credentials);
+        identity1.dispose();
 
         // read created identity
         ModifiableRealmIdentity identity2 = securityRealm.getRealmIdentityForUpdate(fromName("createdUser"));
@@ -148,14 +154,17 @@ public class RealmsTestCase extends AbstractSubsystemTest {
         Assert.assertArrayEquals(new byte[]{0x12}, otp.getHash());
         Assert.assertArrayEquals(new byte[]{0x34}, otp.getSeed());
         Assert.assertEquals(56789, otp.getSequenceNumber());
+        identity2.dispose();
 
         // iterate (include created identity)
         int newCount = getRealmIdentityCount(securityRealm);
         Assert.assertEquals(oldCount + 1, newCount);
 
         // delete identity
+        identity1 = securityRealm.getRealmIdentityForUpdate(fromName("createdUser"));
         identity1.delete();
         Assert.assertFalse(identity1.exists());
+        identity1.dispose();
     }
 
     private int getRealmIdentityCount(final ModifiableSecurityRealm securityRealm) throws Exception {
@@ -164,6 +173,7 @@ public class RealmsTestCase extends AbstractSubsystemTest {
         while (it.hasNext()) {
             ModifiableRealmIdentity identity = it.next();
             Assert.assertTrue(identity.exists());
+            identity.dispose();
             count++;
         }
         return count;
