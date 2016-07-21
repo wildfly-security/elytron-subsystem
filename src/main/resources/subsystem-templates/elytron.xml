@@ -137,14 +137,14 @@
                     </mechanism>
                 </mechanism-configuration>
             </http-authentication-factory>
-            <http-server-authentication name="application-http-authentication" http-server-mechanism-factory="global" security-domain="ApplicationDomain">
+            <http-authentication-factory name="application-http-authentication" http-server-mechanism-factory="global" security-domain="ApplicationDomain">
                 <mechanism-configuration>
                     <mechanism mechanism-name="BASIC" >
                         <mechanism-realm realm-name="Application Realm" />
                     </mechanism>
                     <mechanism mechanism-name="FORM" />
                 </mechanism-configuration>
-            </http-server-authentication>
+            </http-authentication-factory>
         </replacement>
         <replacement placeholder="SASL_DEFINITIONS">
             <sasl-authentication-factory name="management-sasl-authentication" sasl-server-factory="global" security-domain="ManagementDomain"/>
