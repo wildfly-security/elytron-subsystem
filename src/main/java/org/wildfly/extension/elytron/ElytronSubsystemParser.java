@@ -31,6 +31,7 @@ import static org.jboss.as.controller.parsing.ParseUtils.unexpectedElement;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CLASS_NAME;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CREDENTIAL_SECURITY_FACTORIES;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CONFIGURATION;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.DIR_CONTEXTS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.HTTP;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MAPPERS;
@@ -78,6 +79,7 @@ class ElytronSubsystemParser implements XMLElementReader<List<ModelNode>>, XMLEl
     private final MapperParser mapperParser = new MapperParser();
     private final SaslParser saslParser = new SaslParser();
     private final HttpParser httpParser = new HttpParser();
+    private final DirContextParser dirContextParser = new DirContextParser();
 
     /**
      * {@inheritDoc}
@@ -125,6 +127,9 @@ class ElytronSubsystemParser implements XMLElementReader<List<ModelNode>>, XMLEl
                     break;
                 case TLS:
                     tlsParser.readTls(parentAddress, reader, operations);
+                    break;
+                case DIR_CONTEXTS:
+                    dirContextParser.readDirContexts(parentAddress, reader, operations);
                     break;
                 default:
                     throw unexpectedElement(reader);
@@ -366,6 +371,7 @@ class ElytronSubsystemParser implements XMLElementReader<List<ModelNode>>, XMLEl
         httpParser.writeHttp(model, writer);
         saslParser.writeSasl(model, writer);
         tlsParser.writeTLS(model, writer);
+        dirContextParser.writeDirContexts(model, writer);
 
         writer.writeEndElement();
     }

@@ -79,7 +79,6 @@ import org.jboss.staxmapper.XMLExtendedStreamReader;
 import org.jboss.staxmapper.XMLExtendedStreamWriter;
 import org.wildfly.extension.elytron.JdbcRealmDefinition.PasswordMapperObjectDefinition;
 import org.wildfly.extension.elytron.JdbcRealmDefinition.PrincipalQueryAttributes;
-import org.wildfly.extension.elytron.LdapRealmDefinition.DirContextObjectDefinition;
 import org.wildfly.extension.elytron.LdapRealmDefinition.IdentityMappingObjectDefinition;
 
 /**
@@ -476,6 +475,9 @@ class RealmParser {
                     case DIRECT_VERIFICATION:
                         LdapRealmDefinition.DIRECT_VERIFICATION.parseAndSetParameter(value, addRealm, reader);
                         break;
+                    case DIR_CONTEXT:
+                        LdapRealmDefinition.DIR_CONTEXT.parseAndSetParameter(value, addRealm, reader);
+                        break;
                     default:
                         throw unexpectedAttribute(reader, i);
                 }
@@ -493,11 +495,6 @@ class RealmParser {
             String localName = reader.getLocalName();
 
             switch (localName) {
-                case DIR_CONTEXT:
-                    ModelNode dirContextNode = readModelNode(DirContextObjectDefinition.ATTRIBUTES, reader, null);
-                    requireNoContent(reader);
-                    addRealm.get(DIR_CONTEXT).set(dirContextNode);
-                    break;
                 case IDENTITY_MAPPING:
                     ModelNode principalMappingNode = readModelNode(IdentityMappingObjectDefinition.ATTRIBUTES, reader, (parentNode, reader1) -> {
 
@@ -751,10 +748,11 @@ class RealmParser {
             for (String name : realms.keys()) {
                 writer.writeStartElement(LDAP_REALM);
                 writer.writeAttribute(NAME, name);
-                ModelNode ldapRealmNode = realms.require(name);
-                LdapRealmDefinition.DIRECT_VERIFICATION.marshallAsElement(ldapRealmNode, false, writer);
 
-                writeObjectTypeAttribute(DIR_CONTEXT, DirContextObjectDefinition.ATTRIBUTES, ldapRealmNode.get(DIR_CONTEXT), writer, null);
+                ModelNode ldapRealmNode = realms.require(name);
+                LdapRealmDefinition.DIR_CONTEXT.marshallAsAttribute(ldapRealmNode, false, writer);
+                LdapRealmDefinition.DIRECT_VERIFICATION.marshallAsAttribute(ldapRealmNode, false, writer);
+
                 writeObjectTypeAttribute(IDENTITY_MAPPING, IdentityMappingObjectDefinition.ATTRIBUTES, ldapRealmNode.get(IDENTITY_MAPPING), writer, (modelNode, writer1) -> {
                     ModelNode attributeMappingNode = modelNode.get(ATTRIBUTE_MAPPING);
                     if (attributeMappingNode.isDefined()) {

@@ -1,5 +1,9 @@
 <!-- for needs of RealmsTestCase -->
 <subsystem xmlns="urn:wildfly:elytron:1.0">
+    <dir-contexts>
+        <dir-context name="ldap1" url="ldap://localhost:11391/" authentication-level="none"/>
+        <dir-context name="ldap2" url="ldap://localhost:11391/" principal="uid=server,dc=elytron,dc=wildfly,dc=org" credential="serverPassword"/>
+    </dir-contexts>
     <security-realms>
 
         <properties-realm name="TestingPropertyRealm1">
@@ -10,8 +14,7 @@
             <file path="filesystem-realm" relative-to="jboss.server.config.dir" />
         </filesystem-realm>
 
-        <ldap-realm name="LdapRealm">
-            <dir-context url="ldap://localhost:11391/" principal="uid=server,dc=elytron,dc=wildfly,dc=org" credential="serverPassword"/>
+        <ldap-realm name="LdapRealm" direct-verification="false" dir-context="ldap2">
             <identity-mapping rdn-identifier="uid" search-base-dn="dc=elytron,dc=wildfly,dc=org" use-recursive-search="true" iterator-filter="(uid=*)" new-identity-parent-dn="dc=elytron,dc=wildfly,dc=org">
                 <attribute-mapping>
                     <attribute from="uid" to="userName"/>

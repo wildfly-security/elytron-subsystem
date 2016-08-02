@@ -39,6 +39,7 @@
             <xs:element name="http" type="httpType" minOccurs="0" />    
             <xs:element name="sasl" type="saslType" minOccurs="0" />
             <xs:element name="tls" type="tlsType" minOccurs="0" />
+            <xs:element name="dir-contexts" type="dirContextsType" minOccurs="0" />
         </xs:all>
     </xs:complexType>
 
@@ -658,9 +659,15 @@
         <xs:complexContent>
             <xs:extension base="realmType">
                 <xs:all>
-                    <xs:element name="dir-context" type="dirContextType" nillable="false"/>
                     <xs:element name="identity-mapping" type="identityMappingType" nillable="false"/>
                 </xs:all>
+                <xs:attribute name="dir-context" type="xs:string" use="required">
+                    <xs:annotation>
+                        <xs:documentation>
+                            The name of dir-context used to connect to the LDAP server.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
                 <xs:attribute name="direct-verification" type="xs:boolean" use="optional" default="false">
                     <xs:annotation>
                         <xs:documentation>
@@ -702,12 +709,31 @@
         </xs:complexContent>
     </xs:complexType>
 
+
+    <xs:complexType name="dirContextsType">
+        <xs:annotation>
+            <xs:documentation>
+                The configuration options that define how to connect to the LDAP server.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:choice maxOccurs="unbounded">
+            <xs:element name="dir-context" type="dirContextType" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:choice>
+    </xs:complexType>
+
     <xs:complexType name="dirContextType">
         <xs:annotation>
             <xs:documentation>
-                The configuration options that define how principals are mapped to their corresponding entries in the underlying LDAP server.
+                The configuration options that define how to connect to the LDAP server.
             </xs:documentation>
         </xs:annotation>
+        <xs:attribute name="name" type="xs:string" use="required">
+            <xs:annotation>
+                <xs:documentation>
+                    Name of the connection. Allows to refer the DirContext.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
         <xs:attribute name="url" type="xs:string" use="required">
             <xs:annotation>
                 <xs:documentation>
@@ -718,21 +744,25 @@
         <xs:attribute name="authentication-level" type="xs:string" use="optional" default="simple">
             <xs:annotation>
                 <xs:documentation>
-                    The authentication level.
+                    The authentication level (security level) to use.
+                    Corresponds to SECURITY_AUTHENTICATION environment property.
+                    Allowed values: "none", "simple", "strong".
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
-        <xs:attribute name="principal" type="xs:string" use="required">
+        <xs:attribute name="principal" type="xs:string" use="optional">
             <xs:annotation>
                 <xs:documentation>
                     The principal to authenticate and connect to the LDAP server.
+                    Can be omitted if authentication-level is "none" (anonymous).
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
-        <xs:attribute name="credential" type="xs:string" use="required">
+        <xs:attribute name="credential" type="xs:string" use="optional">
             <xs:annotation>
                 <xs:documentation>
                     The credential to authenticate and connect to the LDAP server.
+                    Can be omitted if authentication-level is "none" (anonymous).
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>

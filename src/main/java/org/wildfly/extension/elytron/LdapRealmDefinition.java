@@ -18,20 +18,6 @@
 
 package org.wildfly.extension.elytron;
 
-import static org.wildfly.extension.elytron.Capabilities.MODIFIABLE_SECURITY_REALM_RUNTIME_CAPABILITY;
-import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY;
-import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.IDENTITY_MAPPING;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.OTP_CREDENTIAL_MAPPER;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.USER_PASSWORD_MAPPER;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Properties;
-
 import org.jboss.as.controller.AbstractAddStepHandler;
 import org.jboss.as.controller.AttributeDefinition;
 import org.jboss.as.controller.ObjectListAttributeDefinition;
@@ -57,18 +43,35 @@ import org.jboss.msc.service.ServiceBuilder;
 import org.jboss.msc.service.ServiceController;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.ServiceTarget;
+import org.jboss.msc.value.InjectedValue;
+import org.wildfly.common.function.ExceptionSupplier;
 import org.wildfly.security.auth.realm.ldap.AttributeMapping;
-import org.wildfly.security.auth.realm.ldap.DirContextFactory;
 import org.wildfly.security.auth.realm.ldap.LdapSecurityRealmBuilder;
 import org.wildfly.security.auth.realm.ldap.LdapSecurityRealmBuilder.IdentityMappingBuilder;
-import org.wildfly.security.auth.realm.ldap.SimpleDirContextFactoryBuilder;
 import org.wildfly.security.auth.server.SecurityRealm;
 
 import javax.naming.InvalidNameException;
+import javax.naming.NamingException;
 import javax.naming.directory.Attributes;
 import javax.naming.directory.BasicAttribute;
 import javax.naming.directory.BasicAttributes;
+import javax.naming.directory.DirContext;
 import javax.naming.ldap.LdapName;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+
+import static org.wildfly.extension.elytron.Capabilities.DIR_CONTEXT_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.MODIFIABLE_SECURITY_REALM_RUNTIME_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY;
+import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.IDENTITY_MAPPING;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.OTP_CREDENTIAL_MAPPER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.USER_PASSWORD_MAPPER;
+import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
 
 /**
  * A {@link ResourceDefinition} for a {@link SecurityRealm} backed by LDAP.
@@ -312,42 +315,11 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
                 .build();
     }
 
-    static class DirContextObjectDefinition {
-
-        static final SimpleAttributeDefinition URL = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.URL, ModelType.STRING, false)
-                .setAllowExpression(true)
-                .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
-                .build();
-
-        static final SimpleAttributeDefinition AUTHENTICATION_LEVEL = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.AUTHENTICATION_LEVEL, ModelType.STRING, false)
-                .setDefaultValue(new ModelNode("simple"))
-                .setAllowedValues("none", "simple", "strong")
-                .setAllowExpression(true)
-                .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
-                .build();
-
-        static final SimpleAttributeDefinition PRINCIPAL = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PRINCIPAL, ModelType.STRING, false)
-                .setAllowExpression(true)
-                .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
-                .build();
-
-        static final SimpleAttributeDefinition CREDENTIAL = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.CREDENTIAL, ModelType.STRING, false)
-                .setAllowExpression(true)
-                .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
-                .build();
-
-        static final SimpleAttributeDefinition ENABLE_CONNECTION_POOLING = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ENABLE_CONNECTION_POOLING, ModelType.BOOLEAN, false)
-                .setDefaultValue(new ModelNode(false))
-                .setAllowExpression(true)
-                .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
-                .build();
-
-        static final SimpleAttributeDefinition[] ATTRIBUTES = new SimpleAttributeDefinition[] {URL, AUTHENTICATION_LEVEL, PRINCIPAL, CREDENTIAL, ENABLE_CONNECTION_POOLING};
-
-        static final ObjectTypeAttributeDefinition OBJECT_DEFINITION = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.DIR_CONTEXT, ATTRIBUTES)
-                .setAllowNull(false)
-                .build();
-    }
+    static final SimpleAttributeDefinition DIR_CONTEXT = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.DIR_CONTEXT, ModelType.STRING, false)
+            .setAllowExpression(true)
+            .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+            .setCapabilityReference(DIR_CONTEXT_CAPABILITY, SECURITY_REALM_CAPABILITY, true) // or MODIFIABLE_SECURITY_REALM_CAPABILITY ?
+            .build();
 
     static final SimpleAttributeDefinition DIRECT_VERIFICATION = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.DIRECT_VERIFICATION, ModelType.BOOLEAN, true)
         .setDefaultValue(new ModelNode(false))
@@ -355,7 +327,7 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
         .build();
 
-    private static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] {DirContextObjectDefinition.OBJECT_DEFINITION, IdentityMappingObjectDefinition.OBJECT_DEFINITION, DIRECT_VERIFICATION};
+    private static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] {IdentityMappingObjectDefinition.OBJECT_DEFINITION, DIR_CONTEXT, DIRECT_VERIFICATION};
 
     private static final AbstractAddStepHandler ADD = new RealmAddHandler();
     private static final OperationStepHandler REMOVE = new TrivialCapabilityServiceRemoveHandler(ADD, MODIFIABLE_SECURITY_REALM_RUNTIME_CAPABILITY, SECURITY_REALM_RUNTIME_CAPABILITY);
@@ -379,11 +351,9 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
 
     private static class RealmAddHandler extends BaseAddHandler {
 
-        public static final String CONNECTION_POOLING_PROPERTY = "com.sun.jndi.ldap.connect.pool";
-
         private RealmAddHandler() {
-            super(new HashSet<RuntimeCapability>(Arrays.asList(new RuntimeCapability[] {
-                    MODIFIABLE_SECURITY_REALM_RUNTIME_CAPABILITY, SECURITY_REALM_RUNTIME_CAPABILITY })), ATTRIBUTES);
+            super(new HashSet<>(Arrays.asList(new RuntimeCapability[]{
+                    MODIFIABLE_SECURITY_REALM_RUNTIME_CAPABILITY, SECURITY_REALM_RUNTIME_CAPABILITY})), ATTRIBUTES);
         }
 
         @Override
@@ -396,38 +366,36 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
 
             final LdapSecurityRealmBuilder builder = LdapSecurityRealmBuilder.builder();
 
-            configureIdentityMapping(context, model, builder);
-            configureDirContext(context, model, builder);
-
             if (DIRECT_VERIFICATION.resolveModelAttribute(context, model).asBoolean()) {
                 builder.addDirectEvidenceVerification();
             }
 
-            TrivialService<SecurityRealm> ldapRealmService = new TrivialService<SecurityRealm>(builder::build);
+            TrivialService<SecurityRealm> ldapRealmService = new TrivialService<>(builder::build);
             ServiceBuilder<SecurityRealm> serviceBuilder = serviceTarget.addService(mainServiceName, ldapRealmService)
                     .addAliases(aliasServiceName);
 
-            commonDependencies(serviceBuilder).setInitialMode(ServiceController.Mode.ACTIVE).install();
+            commonDependencies(serviceBuilder);
+
+            configureIdentityMapping(context, model, builder);
+            configureDirContext(context, model, builder, serviceBuilder);
+
+            serviceBuilder.setInitialMode(ServiceController.Mode.ACTIVE).install();
         }
 
-        private void configureDirContext(OperationContext context, ModelNode model, LdapSecurityRealmBuilder builder) throws OperationFailedException {
-            ModelNode dirContextNode = DirContextObjectDefinition.OBJECT_DEFINITION.resolveModelAttribute(context, model);
+        private void configureDirContext(OperationContext context, ModelNode model, LdapSecurityRealmBuilder realmBuilder, ServiceBuilder<SecurityRealm> serviceBuilder) throws OperationFailedException {
+            String dirContextName = asStringIfDefined(context, DIR_CONTEXT, model);
 
-            Properties connectionProperties = new Properties();
+            String runtimeCapability = RuntimeCapability.buildDynamicCapabilityName(DIR_CONTEXT_CAPABILITY, dirContextName);
+            ServiceName dirContextServiceName = context.getCapabilityServiceName(runtimeCapability, ExceptionSupplier.class);
 
-            ModelNode enableConnectionPoolingNode = DirContextObjectDefinition.ENABLE_CONNECTION_POOLING.resolveModelAttribute(context, dirContextNode);
+            final InjectedValue<ExceptionSupplier> dirContextInjector = new InjectedValue<>();
+            serviceBuilder.addDependency(dirContextServiceName, ExceptionSupplier.class, dirContextInjector);
 
-            connectionProperties.put(CONNECTION_POOLING_PROPERTY, enableConnectionPoolingNode.asBoolean());
-
-            DirContextFactory dirContextFactory = SimpleDirContextFactoryBuilder.builder()
-                    .setProviderUrl(DirContextObjectDefinition.URL.resolveModelAttribute(context, dirContextNode).asString())
-                    .setSecurityAuthentication(DirContextObjectDefinition.AUTHENTICATION_LEVEL.resolveModelAttribute(context, dirContextNode).asString())
-                    .setSecurityPrincipal(DirContextObjectDefinition.PRINCIPAL.resolveModelAttribute(context, dirContextNode).asString())
-                    .setSecurityCredential(DirContextObjectDefinition.CREDENTIAL.resolveModelAttribute(context, dirContextNode).asString())
-                    .setConnectionProperties(connectionProperties)
-                    .build();
-
-            builder.setDirContextFactory(dirContextFactory);
+            realmBuilder.setDirContextSupplier(() -> {
+                @SuppressWarnings("unchecked")
+                ExceptionSupplier<DirContext, NamingException> supplier = dirContextInjector.getValue();
+                return supplier.get();
+            });
         }
 
         private void configureIdentityMapping(OperationContext context, ModelNode model, LdapSecurityRealmBuilder builder) throws OperationFailedException {

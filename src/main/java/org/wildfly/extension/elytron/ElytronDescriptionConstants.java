@@ -102,6 +102,7 @@ interface ElytronDescriptionConstants {
     String DELEGATE_REALM_MAPPER = "delegate-realm-mapper";
     String DIGEST = "digest";
     String DIR_CONTEXT = "dir-context";
+    String DIR_CONTEXTS = "dir-contexts";
     String DIRECT_VERIFICATION = "direct-verification";
 
     String EMPTY = "empty";
@@ -257,6 +258,7 @@ interface ElytronDescriptionConstants {
     String REALM_MAPPING = "realm-mapping";
     String REALM_NAME = "realm-name";
     String REALMS = "realms";
+    String REFERRAL_MODE = "referral-mode";
     String REGEX_NAME_REWRITER = "regex-name-rewriter";
     String REGEX_NAME_VALIDATING_REWRITER = "regex-name-validating-rewriter";
     String REGISTER = "register";

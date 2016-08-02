@@ -29,6 +29,8 @@ import org.jboss.as.subsystem.test.KernelServices;
 import org.jboss.msc.service.ServiceName;
 import org.junit.Assert;
 import org.junit.Test;
+import org.wildfly.common.function.ExceptionSupplier;
+import org.wildfly.security.auth.realm.ldap.DelegatingLdapContext;
 import org.wildfly.security.auth.server.ModifiableRealmIdentity;
 import org.wildfly.security.auth.server.ModifiableSecurityRealm;
 import org.wildfly.security.auth.server.RealmIdentity;
@@ -41,6 +43,9 @@ import org.wildfly.security.password.interfaces.ClearPassword;
 import org.wildfly.security.password.interfaces.OneTimePassword;
 import org.wildfly.security.password.spec.ClearPasswordSpec;
 import org.wildfly.security.password.spec.OneTimePasswordSpec;
+
+import javax.naming.NamingException;
+import javax.naming.directory.DirContext;
 
 /**
  * @author <a href="mailto:jkalina@redhat.com">Jan Kalina</a>
@@ -107,6 +112,15 @@ public class RealmsTestCase extends AbstractSubsystemTest {
             Assert.fail(services.getBootError().toString());
         }
 
+        // test DirContext first
+        ServiceName serviceNameDirContext = Capabilities.DIR_CONTEXT_RUNTIME_CAPABILITY.getCapabilityServiceName("ldap1");
+        ExceptionSupplier<DirContext, NamingException> dirContextSup = (ExceptionSupplier<DirContext, NamingException>) services.getContainer().getService(serviceNameDirContext).getValue();
+        DirContext dirContext = dirContextSup.get();
+        Assert.assertNotNull(dirContext);
+        Assert.assertTrue(dirContext instanceof DelegatingLdapContext);
+        dirContext.close();
+
+        // test LdapRealm
         ServiceName serviceName = Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY.getCapabilityServiceName("LdapRealm");
         ModifiableSecurityRealm securityRealm = (ModifiableSecurityRealm) services.getContainer().getService(serviceName).getValue();
         Assert.assertNotNull(securityRealm);

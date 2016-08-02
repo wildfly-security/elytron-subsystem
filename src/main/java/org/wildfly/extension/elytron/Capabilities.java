@@ -27,6 +27,7 @@ import javax.net.ssl.TrustManager;
 import javax.security.sasl.SaslServerFactory;
 
 import org.jboss.as.controller.capability.RuntimeCapability;
+import org.wildfly.common.function.ExceptionSupplier;
 import org.wildfly.security.SecurityFactory;
 import org.wildfly.security.auth.server.HttpAuthenticationFactory;
 import org.wildfly.security.auth.server.ModifiableSecurityRealm;
@@ -169,6 +170,12 @@ class Capabilities {
 
     static final RuntimeCapability<Void> TRUST_MANAGERS_RUNTIME_CAPABILITY =  RuntimeCapability
             .Builder.of(TRUST_MANAGERS_CAPABILITY, true, TrustManager[].class)
+            .build();
+
+    static final String DIR_CONTEXT_CAPABILITY = CAPABILITY_BASE + "dir-context";
+
+    static final RuntimeCapability<Void> DIR_CONTEXT_RUNTIME_CAPABILITY = RuntimeCapability
+            .Builder.of(DIR_CONTEXT_CAPABILITY, true, ExceptionSupplier.class) // ExceptionSupplier<DirContext, Exception>
             .build();
 
     /**

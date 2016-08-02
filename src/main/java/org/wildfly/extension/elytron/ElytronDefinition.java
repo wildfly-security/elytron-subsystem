@@ -88,6 +88,7 @@ class ElytronDefinition extends SimpleResourceDefinition {
 
         // Domain
         resourceRegistration.registerSubModel(new DomainDefinition());
+
         // Security Realms
         resourceRegistration.registerSubModel(new AggregateRealmDefinition());
         resourceRegistration.registerSubModel(new CustomComponentDefinition<SecurityRealm>(SecurityRealm.class, ElytronDescriptionConstants.CUSTOM_REALM, SECURITY_REALM_RUNTIME_CAPABILITY));
@@ -160,6 +161,9 @@ class ElytronDefinition extends SimpleResourceDefinition {
         resourceRegistration.registerSubModel(SSLDefinitions.getKeyManagerDefinition());
         resourceRegistration.registerSubModel(SSLDefinitions.getTrustManagerDefinition());
         resourceRegistration.registerSubModel(SSLDefinitions.getServerSSLContextBuilder());
+
+        // Dir-Context
+        resourceRegistration.registerSubModel(new DirContextDefinition());
     }
 
     static <T> ServiceBuilder<T>  commonDependencies(ServiceBuilder<T> serviceBuilder) {
