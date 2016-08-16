@@ -69,7 +69,7 @@ public class TlsTestCase extends AbstractSubsystemTest {
         SSLSocket clientSocket = (SSLSocket) clientSocketFactory.createSocket("localhost", TESTING_PORT);
         SSLSocket serverSocket = (SSLSocket) listeningSocket.accept();
 
-        testCommunication(listeningSocket, serverSocket, clientSocket, "OU=Elytron,O=Elytron,C=UK,ST=Elytron,CN=Firefly", null);
+        testCommunication(listeningSocket, serverSocket, clientSocket, "OU=Elytron,O=Elytron,C=CZ,ST=Elytron,CN=localhost", null);
     }
 
     @Test
@@ -82,7 +82,7 @@ public class TlsTestCase extends AbstractSubsystemTest {
         SSLSocket clientSocket = (SSLSocket) clientSocketFactory.createSocket("localhost", TESTING_PORT);
         SSLSocket serverSocket = (SSLSocket) listeningSocket.accept();
 
-        testCommunication(listeningSocket, serverSocket, clientSocket, "OU=Elytron,O=Elytron,C=UK,ST=Elytron,CN=Firefly", "OU=Elytron,O=Elytron,C=UK,ST=Elytron,CN=Firefly");
+        testCommunication(listeningSocket, serverSocket, clientSocket, "OU=Elytron,O=Elytron,C=CZ,ST=Elytron,CN=localhost", "OU=Elytron,O=Elytron,C=UK,ST=Elytron,CN=Firefly");
     }
 
     @Test(expected = SSLPeerUnverifiedException.class)

@@ -30,7 +30,6 @@ import org.jboss.msc.service.ServiceName;
 import org.junit.Assert;
 import org.junit.Test;
 import org.wildfly.common.function.ExceptionSupplier;
-import org.wildfly.security.auth.realm.ldap.DelegatingLdapContext;
 import org.wildfly.security.auth.server.ModifiableRealmIdentity;
 import org.wildfly.security.auth.server.ModifiableSecurityRealm;
 import org.wildfly.security.auth.server.RealmIdentity;
@@ -117,7 +116,7 @@ public class RealmsTestCase extends AbstractSubsystemTest {
         ExceptionSupplier<DirContext, NamingException> dirContextSup = (ExceptionSupplier<DirContext, NamingException>) services.getContainer().getService(serviceNameDirContext).getValue();
         DirContext dirContext = dirContextSup.get();
         Assert.assertNotNull(dirContext);
-        Assert.assertTrue(dirContext instanceof DelegatingLdapContext);
+        Assert.assertEquals("org.wildfly.security.auth.realm.ldap.DelegatingLdapContext", dirContext.getClass().getName());
         dirContext.close();
 
         // test LdapRealm

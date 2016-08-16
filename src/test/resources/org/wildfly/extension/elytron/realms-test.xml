@@ -2,7 +2,7 @@
 <subsystem xmlns="urn:wildfly:elytron:1.0">
     <dir-contexts>
         <dir-context name="ldap1" url="ldap://localhost:11391/" authentication-level="none"/>
-        <dir-context name="ldap2" url="ldap://localhost:11391/" principal="uid=server,dc=elytron,dc=wildfly,dc=org" credential="serverPassword"/>
+        <dir-context name="ldap2" url="ldaps://localhost:11391/" principal="uid=server,dc=elytron,dc=wildfly,dc=org" credential="serverPassword" ssl-context="ClientSslContext"/>
     </dir-contexts>
     <security-realms>
 
@@ -21,7 +21,7 @@
                     <attribute from="cn" to="firstName"/>
                     <attribute from="sn" to="lastName"/>
                     <attribute from="telephoneNumber" to="phones"/>
-                    <attribute filter-base-dn="ou=Finance,dc=elytron,dc=wildfly,dc=org" filter="(&amp;(objectClass=groupOfNames)(member={0}))" from="CN" as-rdn="OU"  to="businessArea"/>
+                    <attribute filter-base-dn="ou=Finance,dc=elytron,dc=wildfly,dc=org" filter="(&amp;(objectClass=groupOfNames)(member={0}))" from="CN" as-rdn="OU" to="businessArea"/>
                 </attribute-mapping>
                 <user-password-mapper from="userPassword" writable="true" verifiable="true"/>
                 <otp-credential-mapper algorithm-from="otpAlgorithm" hash-from="otpHash" seed-from="otpSeed" sequence-from="otpSequence"/>
@@ -34,4 +34,17 @@
         </ldap-realm>
 
     </security-realms>
+    <tls>
+        <key-stores>
+            <key-store name="ElytronCaTruststore" type="JKS" password="Elytron">
+                <file path="target/test-classes/org/wildfly/extension/elytron/ca.truststore"/>
+            </key-store>
+        </key-stores>
+        <trust-managers>
+            <trust-manager name="ElytronTrustManager" algorithm="SunX509" key-store="ElytronCaTruststore"/>
+        </trust-managers>
+        <client-ssl-contexts>
+            <client-ssl-context name="ClientSslContext" protocols="SSLv2 SSLv3 TLSv1 TLSv1_3 TLSv1_2 TLSv1_1" trust-managers="ElytronTrustManager" />
+        </client-ssl-contexts>
+    </tls>
 </subsystem>

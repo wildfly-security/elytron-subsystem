@@ -316,6 +316,7 @@ interface ElytronDescriptionConstants {
     String SIMPLE_ROLE_DECODER = "simple-role-decoder";
     String SIZE = "size";
     String SQL = "sql";
+    String SSL_CONTEXT = "ssl-context";
     String SSL_SESSION = "ssl-session";
     String START_SEGMENT = "start-segment";
     String STATE = "state";

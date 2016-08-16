@@ -63,7 +63,7 @@ class TestEnvironment extends AdditionalInitialization {
                     .createDirectoryService("Test Service")
                     .addPartition("Elytron", "dc=elytron,dc=wildfly,dc=org", 5, "uid")
                     .importLdif(TestEnvironment.class.getResourceAsStream("ldap.ldif"))
-                    .addTcpServer("Default TCP", "localhost", LDAP_PORT)
+                    .addTcpServer("Default TCP", "localhost", LDAP_PORT, "localhost.keystore", "Elytron")
                     .start();
         } catch (Exception e) {
             throw new RuntimeException("Could not start LDAP embedded server.", e);

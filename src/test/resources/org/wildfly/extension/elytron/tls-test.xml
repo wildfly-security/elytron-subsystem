@@ -5,24 +5,28 @@
             <key-store name="FireflyKeystore" type="JKS" password="Elytron">
                 <file path="firefly.keystore" relative-to="jboss.server.config.dir"/>
             </key-store>
+            <key-store name="LocalhostKeystore" type="JKS" password="Elytron">
+                <file path="localhost.keystore" relative-to="jboss.server.config.dir"/>
+            </key-store>
             <key-store name="ElytronCaTruststore" type="JKS" password="Elytron">
                 <file path="target/test-classes/org/wildfly/extension/elytron/ca.truststore"/>
             </key-store>
         </key-stores>
         <key-managers>
-            <key-manager name="MyKeyManager" algorithm="SunX509" key-store="FireflyKeystore" password="Elytron"/>
+            <key-manager name="ServerKeyManager" algorithm="SunX509" key-store="LocalhostKeystore" password="Elytron"/>
+            <key-manager name="ClientKeyManager" algorithm="SunX509" key-store="FireflyKeystore" password="Elytron"/>
         </key-managers>
         <trust-managers>
-            <trust-manager name="MyTrustManager" algorithm="SunX509" key-store="ElytronCaTruststore"/>
+            <trust-manager name="CaTrustManager" algorithm="SunX509" key-store="ElytronCaTruststore"/>
         </trust-managers>
         <server-ssl-contexts>
-            <server-ssl-context name="ServerSslContextNoAuth" protocols="SSLv2 SSLv3 TLSv1 TLSv1_3 TLSv1_2 TLSv1_1" key-managers="MyKeyManager" trust-managers="MyTrustManager"/>
-            <server-ssl-context name="ServerSslContextAuth" protocols="TLSv1_3 TLSv1_2 TLSv1_1" key-managers="MyKeyManager" trust-managers="MyTrustManager"
+            <server-ssl-context name="ServerSslContextNoAuth" protocols="SSLv2 SSLv3 TLSv1 TLSv1_3 TLSv1_2 TLSv1_1" key-managers="ServerKeyManager" trust-managers="CaTrustManager"/>
+            <server-ssl-context name="ServerSslContextAuth" protocols="TLSv1_3 TLSv1_2 TLSv1_1" key-managers="ServerKeyManager" trust-managers="CaTrustManager"
                                 want-client-auth="true" need-client-auth="true" authentication-optional="false"/>
         </server-ssl-contexts>
         <client-ssl-contexts>
-            <client-ssl-context name="ClientSslContextNoAuth" protocols="SSLv2 SSLv3 TLSv1 TLSv1_3 TLSv1_2 TLSv1_1" trust-managers="MyTrustManager" />
-            <client-ssl-context name="ClientSslContextAuth" protocols="SSLv2 SSLv3 TLSv1 TLSv1_3 TLSv1_2" key-managers="MyKeyManager" trust-managers="MyTrustManager" />
+            <client-ssl-context name="ClientSslContextNoAuth" protocols="SSLv2 SSLv3 TLSv1 TLSv1_3 TLSv1_2 TLSv1_1" trust-managers="CaTrustManager" />
+            <client-ssl-context name="ClientSslContextAuth" protocols="SSLv2 SSLv3 TLSv1 TLSv1_3 TLSv1_2" key-managers="ClientKeyManager" trust-managers="CaTrustManager" />
         </client-ssl-contexts>
     </tls>
 </subsystem>
