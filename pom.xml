@@ -61,8 +61,6 @@
         <wildfly.core.home>${project.build.directory}/wildfly-core</wildfly.core.home>
         <wildfly.extension.plugin.templates>${basedir}/src/main/resources/subsystem-templates</wildfly.extension.plugin.templates>
         <subsystem.template>elytron-empty.xml</subsystem.template>
-        <module.elytron.web.undertow-server.version>org.wildfly.security.elytron-web:undertow-server:1.0.0.Beta1</module.elytron.web.undertow-server.version>
-        <module.elytron.version>org.wildfly.security:wildfly-elytron:${version.elytron}</module.elytron.version>
 
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
@@ -152,21 +150,9 @@
                                 <replace file="${module.dir}/module.xml" token="}" value="@" />
                                 <replace file="${module.dir}/module.xml" token="@org.wildfly.security:elytron-subsystem@" value="${project.groupId}:${project.artifactId}:${project.version}" />
 
-                                <!-- elytron module zip file -->
-                                <delete dir="target/module-elytron" />
-                                <copy file="src/main/resources/subsystem-templates/elytron-main.xml" tofile="target/module-elytron/org/wildfly/security/elytron/main/module.xml" />
-                                <replace file="target/module-elytron/org/wildfly/security/elytron/main/module.xml" token="@elytron@" value="${module.elytron.version}" />
-
-                                <!-- elytron-web module zip file -->
-                                <delete dir="target/module-elytron-web" />
-                                <copy file="src/main/resources/subsystem-templates/elytron-web-main.xml" tofile="target/module-elytron-web/org/wildfly/security/elytron-web/undertow-server/main/module.xml" />
-                                <replace file="target/module-elytron-web/org/wildfly/security/elytron-web/undertow-server/main/module.xml" token="@undertow-server@" value="${module.elytron.web.undertow-server.version}" />
-
                                 <!-- create zip file with all modules necessary for elytron subsystem and not present in wildfly-core -->
                                 <zip destfile="target/module.zip">
                                     <fileset dir="target/module"/>
-                                    <fileset dir="target/module-elytron"/>
-                                    <fileset dir="target/module-elytron-web"/>
                                 </zip>
 
                                 <!-- replace module.xml with original after zip took modified version -->
