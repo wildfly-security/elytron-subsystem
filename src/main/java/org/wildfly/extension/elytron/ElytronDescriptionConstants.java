@@ -67,6 +67,8 @@ interface ElytronDescriptionConstants {
     String CLASS_NAMES = "class-names";
     String CLEAR = "clear";
     String CLEAR_PASSWORD_MAPPER = "clear-password-mapper";
+    String CLIENT_SSL_CONTEXT = "client-ssl-context";
+    String CLIENT_SSL_CONTEXTS = "client-ssl-contexts";
     String CONCATENATING_PRINCIPAL_DECODER = "concatenating-principal-decoder";
     String CONFIGURABLE_HTTP_SERVER_MECHANISM_FACTORY = "configurable-http-server-mechanism-factory";
     String CONFIGURABLE_SASL_SERVER_FACTORY = "configurable-sasl-server-factory";

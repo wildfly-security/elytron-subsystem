@@ -2725,6 +2725,7 @@
             <xs:element name="key-managers" type="keyManagersType" minOccurs="0" />
             <xs:element name="trust-managers" type="trustManagersType" minOccurs="0"/>
             <xs:element name="server-ssl-contexts" type="serverSSLContextsType" minOccurs="0" />
+            <xs:element name="client-ssl-contexts" type="clientSSLContextsType" minOccurs="0" />
         </xs:all>
     </xs:complexType>
 
@@ -2843,7 +2844,7 @@
     <xs:complexType name="serverSSLContextType">
         <xs:annotation>
             <xs:documentation>
-                Definitions of a single server side SSLContext. 
+                Definitions of a single server side SSLContext.
             </xs:documentation>
         </xs:annotation>
         <xs:attribute name="name" type="xs:string" use="required">
@@ -2892,9 +2893,91 @@
             <xs:annotation>
                 <xs:documentation>
                     Allow for an SSLSession to still be established even if client authentication based on the supplied certificate is not successful.
-                    
-                    This does not bypass the underlying trust manager check but it does allow the connection to be established so another authentication 
+
+                    This does not bypass the underlying trust manager check but it does allow the connection to be established so another authentication
                     mechanism can be used.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="maximum-session-cache-size" type="xs:int" default="0">
+            <xs:annotation>
+                <xs:documentation>
+                    The maximum number of SSL sessions in the cache.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="session-timeout" type="xs:int" default="0">
+            <xs:annotation>
+                <xs:documentation>
+                    The timeout for SSL sessions.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="key-managers" type="xs:string" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    Reference to the KeyManagers to be used by this SSLContext.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="trust-managers" type="xs:string" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    Reference to the TrustManagers to be used by this SSLContext.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="provider" type="xs:string" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    Reference to the Providers to use to initialise the SSLContext.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="clientSSLContextsType">
+        <xs:annotation>
+            <xs:documentation>
+                Container for client SSLContext definitions.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="client-ssl-context" type="clientSSLContextType" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="clientSSLContextType">
+        <xs:annotation>
+            <xs:documentation>
+                Definitions of a single client side SSLContext.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="name" type="xs:string" use="required">
+            <xs:annotation>
+                <xs:documentation>
+                    The unique name of this client side SSLContext.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="security-domain" type="xs:string" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    Reference to the SecurityDomain to use for authentication during SSL session establishment.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="cipher-suite-filter" type="xs:string" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    The filter to be applied to the cipher suites made available by this SSLContext.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="protocols" type="stringListType" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    List of protocols supported by this SSLContext.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>

@@ -57,7 +57,6 @@ import org.jboss.as.controller.AbstractRuntimeOnlyHandler;
 import org.jboss.as.controller.AttributeDefinition;
 import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
-import org.jboss.as.controller.PathAddress;
 import org.jboss.as.controller.ResourceDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
@@ -65,7 +64,6 @@ import org.jboss.as.controller.StringListAttributeDefinition;
 import org.jboss.as.controller.operations.validation.EnumValidator;
 import org.jboss.as.controller.registry.AttributeAccess;
 import org.jboss.as.controller.registry.ManagementResourceRegistration;
-import org.jboss.as.controller.registry.Resource;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
 import org.jboss.msc.service.ServiceBuilder;
@@ -88,7 +86,7 @@ import org.wildfly.security.ssl.SSLContextBuilder;
  */
 class SSLDefinitions {
 
-    static final ServiceUtil<SSLContext> SERVER_SSL_CONTEXT = ServiceUtil.newInstance(SSL_CONTEXT_RUNTIME_CAPABILITY, ElytronDescriptionConstants.SERVER_SSL_CONTEXT, SSLContext.class);
+    static final ServiceUtil<SSLContext> SSL_CONTEXT_SERVICE_UTIL = ServiceUtil.newInstance(SSL_CONTEXT_RUNTIME_CAPABILITY, ElytronDescriptionConstants.SERVER_SSL_CONTEXT, SSLContext.class);
 
     static final SimpleAttributeDefinition ALGORITHM = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ALGORITHM, ModelType.STRING, false)
             .setAllowExpression(true)
@@ -190,8 +188,14 @@ class SSLDefinitions {
 
 
     static ResourceDefinition getKeyManagerDefinition() {
-        final SimpleAttributeDefinition providerLoaderDefinition = setCapabilityReference(PROVIDERS_CAPABILITY, KEY_MANAGERS_CAPABILITY, PROVIDER_LOADER);
-        final SimpleAttributeDefinition keystoreDefinition = setCapabilityReference(KEY_STORE_CAPABILITY, KEY_MANAGERS_CAPABILITY, KEYSTORE);
+
+        final SimpleAttributeDefinition providerLoaderDefinition = new SimpleAttributeDefinitionBuilder(PROVIDER_LOADER)
+                .setCapabilityReference(PROVIDERS_CAPABILITY, KEY_MANAGERS_CAPABILITY, true)
+                .build();
+
+        final SimpleAttributeDefinition keystoreDefinition = new SimpleAttributeDefinitionBuilder(KEYSTORE)
+                .setCapabilityReference(KEY_STORE_CAPABILITY, KEY_MANAGERS_CAPABILITY, true)
+                .build();
 
         AttributeDefinition[] attributes = new AttributeDefinition[] { ALGORITHM, providerLoaderDefinition, keystoreDefinition, PASSWORD };
 
@@ -256,8 +260,14 @@ class SSLDefinitions {
     }
 
     static ResourceDefinition getTrustManagerDefinition() {
-        final SimpleAttributeDefinition providerLoaderDefinition = setCapabilityReference(PROVIDERS_CAPABILITY, TRUST_MANAGERS_CAPABILITY, PROVIDER_LOADER);
-        final SimpleAttributeDefinition keystoreDefinition = setCapabilityReference(KEY_STORE_CAPABILITY, TRUST_MANAGERS_CAPABILITY, KEYSTORE);
+
+        final SimpleAttributeDefinition providerLoaderDefinition = new SimpleAttributeDefinitionBuilder(PROVIDER_LOADER)
+                .setCapabilityReference(PROVIDERS_CAPABILITY, TRUST_MANAGERS_CAPABILITY, true)
+                .build();
+
+        final SimpleAttributeDefinition keystoreDefinition = new SimpleAttributeDefinitionBuilder(KEYSTORE)
+                .setCapabilityReference(KEY_STORE_CAPABILITY, TRUST_MANAGERS_CAPABILITY, true)
+                .build();
 
         AttributeDefinition[] attributes = new AttributeDefinition[] { ALGORITHM, providerLoaderDefinition, keystoreDefinition };
 
@@ -317,23 +327,65 @@ class SSLDefinitions {
         };
 
         return new TrivialResourceDefinition(ElytronDescriptionConstants.TRUST_MANAGERS, add, attributes, TRUST_MANAGERS_RUNTIME_CAPABILITY);
-
     }
 
-    static ResourceDefinition getServerSSLContextBuilder() {
-        final SimpleAttributeDefinition providerLoaderDefinition = setCapabilityReference(PROVIDERS_CAPABILITY, SSL_CONTEXT_CAPABILITY, PROVIDER_LOADER);
+    private static class SSLContextDefinition extends TrivialResourceDefinition {
+
+        private SSLContextDefinition(String pathKey, AbstractAddStepHandler addHandler, AttributeDefinition[] attributes) {
+            super(pathKey, addHandler, attributes, SSL_CONTEXT_RUNTIME_CAPABILITY);
+        }
+
+        @Override
+        public void registerAttributes(ManagementResourceRegistration resourceRegistration) {
+            super.registerAttributes(resourceRegistration);
+
+            resourceRegistration.registerReadOnlyAttribute(ACTIVE_SESSION_COUNT, new SSLContextRuntimeHandler() {
+                @Override
+                protected void performRuntime(ModelNode result, ModelNode operation, SSLContext sslContext) throws OperationFailedException {
+                    result.set(Collections.list(sslContext.getServerSessionContext().getIds()).stream().mapToInt( (byte[] b)-> 1).sum());
+                }
+            });
+        }
+
+        @Override
+        public void registerChildren(ManagementResourceRegistration resourceRegistration) {
+            super.registerChildren(resourceRegistration);
+
+            resourceRegistration.registerSubModel(new SSLSessionDefinition());
+        }
+    }
+
+    private static <T> InjectedValue<T> addDependency(String baseName, SimpleAttributeDefinition attribute,
+            Class<T> type, ServiceBuilder serviceBuilder, OperationContext context, ModelNode model) throws OperationFailedException {
+
+        String dynamicNameElement = asStringIfDefined(context, attribute, model);
+        InjectedValue<T> injectedValue = new InjectedValue<>();
+
+        if (dynamicNameElement != null) {
+            serviceBuilder.addDependency(context.getCapabilityServiceName(
+                    buildDynamicCapabilityName(baseName, dynamicNameElement), type),
+                    type, injectedValue);
+        }
+        return injectedValue;
+    }
+
+    static ResourceDefinition getServerSSLContextDefinition() {
+
+        final SimpleAttributeDefinition providerLoaderDefinition = new SimpleAttributeDefinitionBuilder(PROVIDER_LOADER)
+                .setCapabilityReference(PROVIDERS_CAPABILITY, SSL_CONTEXT_CAPABILITY, true)
+                .build();
 
         AttributeDefinition[] attributes = new AttributeDefinition[] { SECURITY_DOMAIN, CIPHER_SUITE_FILTER, PROTOCOLS, WANT_CLIENT_AUTH, NEED_CLIENT_AUTH, AUTHENTICATION_OPTIONAL,
                 MAXIMUM_SESSION_CACHE_SIZE, SESSION_TIMEOUT, KEY_MANAGERS, TRUST_MANAGERS, providerLoaderDefinition };
 
-        AbstractAddStepHandler add = new TrivialAddHandler<SSLContext>(SSLContext.class, attributes, SSL_CONTEXT_RUNTIME_CAPABILITY) {
-
+        return new SSLContextDefinition(ElytronDescriptionConstants.SERVER_SSL_CONTEXT, new TrivialAddHandler<SSLContext>(SSLContext.class, attributes, SSL_CONTEXT_RUNTIME_CAPABILITY) {
             @Override
             protected ValueSupplier<SSLContext> getValueSupplier(ServiceBuilder<SSLContext> serviceBuilder, OperationContext context, ModelNode model) throws OperationFailedException {
-                String securityDomain = asStringIfDefined(context, SECURITY_DOMAIN, model);
-                String keyManagers = asStringIfDefined(context, KEY_MANAGERS, model);
-                String trustManagers = asStringIfDefined(context, TRUST_MANAGERS, model);
-                String providerLoaders = asStringIfDefined(context, providerLoaderDefinition, model);
+
+                final InjectedValue<SecurityDomain> securityDomainInjector = addDependency(SECURITY_DOMAIN_CAPABILITY, SECURITY_DOMAIN, SecurityDomain.class, serviceBuilder, context, model);
+                final InjectedValue<KeyManager[]> keyManagersInjector = addDependency(KEY_MANAGERS_CAPABILITY, KEY_MANAGERS, KeyManager[].class, serviceBuilder, context, model);
+                final InjectedValue<TrustManager[]> trustManagersInjector = addDependency(TRUST_MANAGERS_CAPABILITY, TRUST_MANAGERS, TrustManager[].class, serviceBuilder, context, model);
+                final InjectedValue<Provider[]> providersInjector = addDependency(PROVIDERS_CAPABILITY, providerLoaderDefinition, Provider[].class, serviceBuilder, context, model);
 
                 final List<String> protocols = PROTOCOLS.unwrap(context, model);
                 final String cipherSuiteFilter = asStringIfDefined(context, CIPHER_SUITE_FILTER, model);
@@ -343,69 +395,26 @@ class SSLDefinitions {
                 final int maximumSessionCacheSize = MAXIMUM_SESSION_CACHE_SIZE.resolveModelAttribute(context, model).asInt();
                 final int sessionTimeout = SESSION_TIMEOUT.resolveModelAttribute(context, model).asInt();
 
-                final InjectedValue<SecurityDomain> securityDomainInjector = new InjectedValue<>();
-                final InjectedValue<KeyManager[]> keyManagersInjector = new InjectedValue<>();
-                final InjectedValue<TrustManager[]> trustManagersInjector = new InjectedValue<>();
-                final InjectedValue<Provider[]> providersInjector = new InjectedValue<>();
-
-                if (securityDomain != null) {
-                    serviceBuilder.addDependency(context.getCapabilityServiceName(
-                            buildDynamicCapabilityName(SECURITY_DOMAIN_CAPABILITY, securityDomain), SecurityDomain.class),
-                            SecurityDomain.class, securityDomainInjector);
-                }
-
-                if (keyManagers != null) {
-                    serviceBuilder.addDependency(context.getCapabilityServiceName(
-                            buildDynamicCapabilityName(KEY_MANAGERS_CAPABILITY, keyManagers), KeyManager[].class),
-                            KeyManager[].class, keyManagersInjector);
-                }
-
-                if (trustManagers != null) {
-                    serviceBuilder.addDependency(context.getCapabilityServiceName(
-                            buildDynamicCapabilityName(TRUST_MANAGERS_CAPABILITY, trustManagers), TrustManager[].class),
-                            TrustManager[].class, trustManagersInjector);
-                }
-
-                if (providerLoaders != null) {
-                    serviceBuilder.addDependency(context.getCapabilityServiceName(
-                            buildDynamicCapabilityName(PROVIDERS_CAPABILITY, providerLoaders), Provider[].class),
-                            Provider[].class, providersInjector);
-                }
-
                 return () -> {
-                    SecurityDomain securityDomainRef = securityDomainInjector.getOptionalValue();
+                    SecurityDomain securityDomain = securityDomainInjector.getOptionalValue();
                     X509ExtendedKeyManager keyManager = getX509KeyManager(keyManagersInjector.getOptionalValue());
                     X509ExtendedTrustManager trustManager = getX509TrustManager(trustManagersInjector.getOptionalValue());
-                    Provider[] providersRef = providersInjector.getOptionalValue();
+                    Provider[] providers = providersInjector.getOptionalValue();
 
                     SSLContextBuilder builder = new SSLContextBuilder();
-                    if (securityDomainRef != null) {
-                        builder.setSecurityDomain(securityDomainRef);
-                    }
-                    if (keyManager != null) {
-                        builder.setKeyManager(keyManager);
-                    }
-                    if (trustManager != null) {
-                        builder.setTrustManager(trustManager);
-                    }
-                    if (providersRef != null) {
-                        builder.setProviderSupplier(() -> providersRef);
-                    }
-
-                    if (cipherSuiteFilter != null) {
-                        builder.setCipherSuiteSelector(CipherSuiteSelector.fromString(cipherSuiteFilter));
-                    }
-
-                    if (protocols.isEmpty() == false) {
-                        builder.setProtocolSelector(ProtocolSelector.empty()
-                                .add(EnumSet.copyOf(protocols.stream().map(Protocol::valueOf).collect(Collectors.toList()))));
-                    }
-
+                    if (securityDomain != null) builder.setSecurityDomain(securityDomain);
+                    if (keyManager != null) builder.setKeyManager(keyManager);
+                    if (trustManager != null) builder.setTrustManager(trustManager);
+                    if (providers != null) builder.setProviderSupplier(() -> providers);
+                    if (cipherSuiteFilter != null) builder.setCipherSuiteSelector(CipherSuiteSelector.fromString(cipherSuiteFilter));
+                    if ( ! protocols.isEmpty()) builder.setProtocolSelector(ProtocolSelector.empty().add(
+                            EnumSet.copyOf(protocols.stream().map(Protocol::valueOf).collect(Collectors.toList()))
+                    ));
                     builder.setWantClientAuth(wantClientAuth)
-                        .setNeedClientAuth(needClientAuth)
-                        .setAuthenticationOptional(authenticationOptional)
-                        .setSessionCacheSize(maximumSessionCacheSize)
-                        .setSessionTimeout(sessionTimeout);
+                           .setNeedClientAuth(needClientAuth)
+                           .setAuthenticationOptional(authenticationOptional)
+                           .setSessionCacheSize(maximumSessionCacheSize)
+                           .setSessionTimeout(sessionTimeout);
 
                     try {
                         return builder.build().create();
@@ -413,48 +422,57 @@ class SSLDefinitions {
                         throw new StartException(e);
                     }
                 };
-
             }
+        }, attributes);
+    }
 
+    static ResourceDefinition getClientSSLContextDefinition() {
+
+        final SimpleAttributeDefinition providerLoaderDefinition = new SimpleAttributeDefinitionBuilder(PROVIDER_LOADER)
+                .setCapabilityReference(PROVIDERS_CAPABILITY, SSL_CONTEXT_CAPABILITY, true)
+                .build();
+
+        AttributeDefinition[] attributes = new AttributeDefinition[] { CIPHER_SUITE_FILTER, PROTOCOLS,
+                MAXIMUM_SESSION_CACHE_SIZE, SESSION_TIMEOUT, KEY_MANAGERS, TRUST_MANAGERS, providerLoaderDefinition };
+
+        return new SSLContextDefinition(ElytronDescriptionConstants.CLIENT_SSL_CONTEXT, new TrivialAddHandler<SSLContext>(SSLContext.class, attributes, SSL_CONTEXT_RUNTIME_CAPABILITY) {
             @Override
-            protected void installedForResource(ServiceController<SSLContext> serviceController, Resource resource) {
-                assert resource instanceof SSLContextResource;
-                ((SSLContextResource)resource).setSSLContextServiceController(serviceController);
-            }
+            protected ValueSupplier<SSLContext> getValueSupplier(ServiceBuilder<SSLContext> serviceBuilder, OperationContext context, ModelNode model) throws OperationFailedException {
 
-            @Override
-            protected Resource createResource(OperationContext context) {
-                SSLContextResource resource = new SSLContextResource(Resource.Factory.create());
-                context.addResource(PathAddress.EMPTY_ADDRESS, resource);
+                final InjectedValue<KeyManager[]> keyManagersInjector = addDependency(KEY_MANAGERS_CAPABILITY, KEY_MANAGERS, KeyManager[].class, serviceBuilder, context, model);
+                final InjectedValue<TrustManager[]> trustManagersInjector = addDependency(TRUST_MANAGERS_CAPABILITY, TRUST_MANAGERS, TrustManager[].class, serviceBuilder, context, model);
+                final InjectedValue<Provider[]> providersInjector = addDependency(PROVIDERS_CAPABILITY, providerLoaderDefinition, Provider[].class, serviceBuilder, context, model);
 
-                return resource;
-            }
+                final List<String> protocols = PROTOCOLS.unwrap(context, model);
+                final String cipherSuiteFilter = asStringIfDefined(context, CIPHER_SUITE_FILTER, model);
+                final int maximumSessionCacheSize = MAXIMUM_SESSION_CACHE_SIZE.resolveModelAttribute(context, model).asInt(); // client+server
+                final int sessionTimeout = SESSION_TIMEOUT.resolveModelAttribute(context, model).asInt(); // client+server
 
-        };
+                return () -> {
+                    X509ExtendedKeyManager keyManager = getX509KeyManager(keyManagersInjector.getOptionalValue());
+                    X509ExtendedTrustManager trustManager = getX509TrustManager(trustManagersInjector.getOptionalValue());
+                    Provider[] providers = providersInjector.getOptionalValue();
 
-        return new TrivialResourceDefinition(ElytronDescriptionConstants.SERVER_SSL_CONTEXT, add, attributes, SSL_CONTEXT_RUNTIME_CAPABILITY) {
+                    SSLContextBuilder builder = new SSLContextBuilder();
+                    if (keyManager != null) builder.setKeyManager(keyManager);
+                    if (trustManager != null) builder.setTrustManager(trustManager);
+                    if (providers != null) builder.setProviderSupplier(() -> providers);
+                    if (cipherSuiteFilter != null) builder.setCipherSuiteSelector(CipherSuiteSelector.fromString(cipherSuiteFilter));
+                    if ( ! protocols.isEmpty()) builder.setProtocolSelector(ProtocolSelector.empty().add(
+                            EnumSet.copyOf(protocols.stream().map(Protocol::valueOf).collect(Collectors.toList()))
+                    ));
+                    builder.setClientMode(true)
+                           .setSessionCacheSize(maximumSessionCacheSize)
+                           .setSessionTimeout(sessionTimeout);
 
-            @Override
-            public void registerAttributes(ManagementResourceRegistration resourceRegistration) {
-                super.registerAttributes(resourceRegistration);
-
-                resourceRegistration.registerReadOnlyAttribute(ACTIVE_SESSION_COUNT, new SSLContextRuntimeHandler() {
-
-                    @Override
-                    protected void performRuntime(ModelNode result, ModelNode operation, SSLContext sslContext) throws OperationFailedException {
-                        result.set(Collections.list(sslContext.getServerSessionContext().getIds()).stream().mapToInt( (byte[] b)-> 1).sum());
+                    try {
+                        return builder.build().create();
+                    } catch (GeneralSecurityException e) {
+                        throw new StartException(e);
                     }
-                });
+                };
             }
-
-            @Override
-            public void registerChildren(ManagementResourceRegistration resourceRegistration) {
-                super.registerChildren(resourceRegistration);
-
-                resourceRegistration.registerSubModel(new SSLSessionDefinition());
-            }
-
-        };
+        }, attributes);
     }
 
     private static X509ExtendedKeyManager getX509KeyManager(KeyManager[] keyManagers) throws StartException {
@@ -485,25 +503,18 @@ class SSLDefinitions {
         throw ROOT_LOGGER.noTypeFound(X509ExtendedTrustManager.class.getSimpleName());
     }
 
-    private static SimpleAttributeDefinition setCapabilityReference(String referencedCapability, String dependentCapability, SimpleAttributeDefinition attribute) {
-        return new SimpleAttributeDefinitionBuilder(attribute)
-                .setCapabilityReference(referencedCapability, dependentCapability, true)
-                .build();
-    }
-
     abstract static class SSLContextRuntimeHandler extends AbstractRuntimeOnlyHandler {
-
         @Override
         protected void executeRuntimeStep(OperationContext context, ModelNode operation) throws OperationFailedException {
-            ServiceName serverSSLContextName = SERVER_SSL_CONTEXT.serviceName(operation);
+            ServiceName serviceName = SSL_CONTEXT_SERVICE_UTIL.serviceName(operation);
 
-            ServiceController<SSLContext> serviceContainer = getRequiredService(context.getServiceRegistry(false), serverSSLContextName, SSLContext.class);
+            ServiceController<SSLContext> serviceController = getRequiredService(context.getServiceRegistry(false), serviceName, SSLContext.class);
             State serviceState;
-            if ((serviceState = serviceContainer.getState()) != State.UP) {
-                    throw ROOT_LOGGER.requiredServiceNotUp(serverSSLContextName, serviceState);
+            if ((serviceState = serviceController.getState()) != State.UP) {
+                    throw ROOT_LOGGER.requiredServiceNotUp(serviceName, serviceState);
             }
 
-            performRuntime(context.getResult(), operation, serviceContainer.getService().getValue());
+            performRuntime(context.getResult(), operation, serviceController.getService().getValue());
         }
 
         protected abstract void performRuntime(ModelNode result, ModelNode operation, SSLContext sslContext) throws OperationFailedException;

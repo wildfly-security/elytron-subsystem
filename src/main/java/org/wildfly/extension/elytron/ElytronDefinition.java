@@ -160,7 +160,8 @@ class ElytronDefinition extends SimpleResourceDefinition {
         resourceRegistration.registerSubModel(new KeyStoreDefinition());
         resourceRegistration.registerSubModel(SSLDefinitions.getKeyManagerDefinition());
         resourceRegistration.registerSubModel(SSLDefinitions.getTrustManagerDefinition());
-        resourceRegistration.registerSubModel(SSLDefinitions.getServerSSLContextBuilder());
+        resourceRegistration.registerSubModel(SSLDefinitions.getServerSSLContextDefinition());
+        resourceRegistration.registerSubModel(SSLDefinitions.getClientSSLContextDefinition());
 
         // Dir-Context
         resourceRegistration.registerSubModel(new DirContextDefinition());

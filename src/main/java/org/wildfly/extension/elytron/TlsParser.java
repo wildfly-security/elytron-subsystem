@@ -50,6 +50,8 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REQUIRED
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SECURITY_DOMAIN;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SERVER_SSL_CONTEXT;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SERVER_SSL_CONTEXTS;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CLIENT_SSL_CONTEXT;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CLIENT_SSL_CONTEXTS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SESSION_TIMEOUT;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.TLS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.TRUST_MANAGER;
@@ -82,6 +84,7 @@ class TlsParser {
         boolean keyStoresFound = false;
         boolean trustManagersFound = false;
         boolean serverSSLContextsFound = false;
+        boolean clientSSLContextsFound = false;
 
         while(reader.hasNext() && reader.nextTag() != END_ELEMENT) {
             verifyNamespace(reader);
@@ -98,6 +101,9 @@ class TlsParser {
             } else if (SERVER_SSL_CONTEXTS.equals(localName) && serverSSLContextsFound == false) {
                 serverSSLContextsFound = true;
                 readServerSSLContexts(parentAddress, reader, operations);
+            } else if (CLIENT_SSL_CONTEXTS.equals(localName) && clientSSLContextsFound == false) {
+                clientSSLContextsFound = true;
+                readClientSSLContexts(parentAddress, reader, operations);
             } else {
                 throw unexpectedElement(reader);
             }
@@ -301,6 +307,88 @@ class TlsParser {
         requireNoContent(reader);
     }
 
+    private void readClientSSLContexts(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations) throws XMLStreamException {
+        requireNoAttributes(reader);
+        while(reader.hasNext() && reader.nextTag() != END_ELEMENT) {
+            verifyNamespace(reader);
+            String localName = reader.getLocalName();
+            if (CLIENT_SSL_CONTEXT.equals(localName)) {
+                readClientSSLContext(parentAddress, reader, operations);
+            } else {
+                throw unexpectedElement(reader);
+            }
+        }
+    }
+
+    private void readClientSSLContext(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> list) throws XMLStreamException {
+        ModelNode addServerSSLContext = new ModelNode();
+        addServerSSLContext.get(OP).set(ADD);
+        Set<String> requiredAttributes = new HashSet<String>(Arrays.asList(new String[] { NAME }));
+        String name = null;
+
+        final int count = reader.getAttributeCount();
+        for (int i = 0; i < count; i++) {
+            final String value = reader.getAttributeValue(i);
+            if (!isNoNamespaceAttribute(reader, i)) {
+                throw unexpectedAttribute(reader, i);
+            } else {
+                String attribute = reader.getAttributeLocalName(i);
+                requiredAttributes.remove(attribute);
+                switch (attribute) {
+                    case NAME:
+                        name = value;
+                        break;
+                    case SECURITY_DOMAIN:
+                        SSLDefinitions.SECURITY_DOMAIN.parseAndSetParameter(value, addServerSSLContext, reader);
+                        break;
+                    case CIPHER_SUITE_FILTER:
+                        SSLDefinitions.CIPHER_SUITE_FILTER.parseAndSetParameter(value, addServerSSLContext, reader);
+                        break;
+                    case PROTOCOLS:
+                        for (String protocol : reader.getListAttributeValue(i)) {
+                            SSLDefinitions.PROTOCOLS.parseAndAddParameterElement(protocol, addServerSSLContext, reader);
+                        }
+                        break;
+                    case WANT_CLIENT_AUTH:
+                        SSLDefinitions.WANT_CLIENT_AUTH.parseAndSetParameter(value, addServerSSLContext, reader);
+                        break;
+                    case NEED_CLIENT_AUTH:
+                        SSLDefinitions.NEED_CLIENT_AUTH.parseAndSetParameter(value, addServerSSLContext, reader);
+                        break;
+                    case AUTHENTICATION_OPTIONAL:
+                        SSLDefinitions.AUTHENTICATION_OPTIONAL.parseAndSetParameter(value, addServerSSLContext, reader);
+                        break;
+                    case MAXIMUM_SESSION_CACHE_SIZE:
+                        SSLDefinitions.MAXIMUM_SESSION_CACHE_SIZE.parseAndSetParameter(value, addServerSSLContext, reader);
+                        break;
+                    case SESSION_TIMEOUT:
+                        SSLDefinitions.SESSION_TIMEOUT.parseAndSetParameter(value, addServerSSLContext, reader);
+                        break;
+                    case KEY_MANAGERS:
+                        SSLDefinitions.KEY_MANAGERS.parseAndSetParameter(value, addServerSSLContext, reader);
+                        break;
+                    case TRUST_MANAGERS:
+                        SSLDefinitions.TRUST_MANAGERS.parseAndSetParameter(value, addServerSSLContext, reader);
+                        break;
+                    case PROVIDER:
+                        SSLDefinitions.PROVIDER_LOADER.parseAndSetParameter(value, addServerSSLContext, reader);
+                        break;
+                    default:
+                        throw unexpectedAttribute(reader, i);
+                }
+            }
+        }
+
+        if (requiredAttributes.isEmpty() == false) {
+            throw missingRequired(reader, requiredAttributes);
+        }
+
+        addServerSSLContext.get(OP_ADDR).set(parentAddress).add(CLIENT_SSL_CONTEXT, name);
+        list.add(addServerSSLContext);
+
+        requireNoContent(reader);
+    }
+
     private void readKeyStores(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations) throws XMLStreamException {
         requireNoAttributes(reader);
         while(reader.hasNext() && reader.nextTag() != END_ELEMENT) {
@@ -417,6 +505,7 @@ class TlsParser {
         tlsStarted = tlsStarted | writeKeyManagers(tlsStarted, subsystem, writer);
         tlsStarted = tlsStarted | writeTrustManagers(tlsStarted, subsystem, writer);
         tlsStarted = tlsStarted | writeServerSSLContext(tlsStarted, subsystem, writer);
+        tlsStarted = tlsStarted | writeClientSSLContext(tlsStarted, subsystem, writer);
 
         if (tlsStarted) {
             writer.writeEndElement();
@@ -486,6 +575,35 @@ class TlsParser {
                 SSLDefinitions.WANT_CLIENT_AUTH.marshallAsAttribute(serverSSLContext, writer);
                 SSLDefinitions.NEED_CLIENT_AUTH.marshallAsAttribute(serverSSLContext, writer);
                 SSLDefinitions.AUTHENTICATION_OPTIONAL.marshallAsAttribute(serverSSLContext, writer);
+                SSLDefinitions.MAXIMUM_SESSION_CACHE_SIZE.marshallAsAttribute(serverSSLContext, writer);
+                SSLDefinitions.SESSION_TIMEOUT.marshallAsAttribute(serverSSLContext, writer);
+                SSLDefinitions.KEY_MANAGERS.marshallAsAttribute(serverSSLContext, writer);
+                SSLDefinitions.TRUST_MANAGERS.marshallAsAttribute(serverSSLContext, writer);
+                SSLDefinitions.PROVIDER_LOADER.marshallAsAttribute(serverSSLContext, writer);
+
+                writer.writeEndElement();
+            }
+
+            writer.writeEndElement();
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean writeClientSSLContext(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
+        if (subsystem.hasDefined(CLIENT_SSL_CONTEXT)) {
+            startTLS(started, writer);
+            writer.writeStartElement(CLIENT_SSL_CONTEXTS);
+            ModelNode serverSSLContexts = subsystem.require(CLIENT_SSL_CONTEXT);
+
+            for (String name : serverSSLContexts.keys()) {
+                ModelNode serverSSLContext = serverSSLContexts.require(name);
+                writer.writeStartElement(CLIENT_SSL_CONTEXT);
+                writer.writeAttribute(NAME, name);
+                SSLDefinitions.SECURITY_DOMAIN.marshallAsAttribute(serverSSLContext, writer);
+                SSLDefinitions.CIPHER_SUITE_FILTER.marshallAsAttribute(serverSSLContext, writer);
+                SSLDefinitions.PROTOCOLS.getAttributeMarshaller().marshallAsAttribute(SSLDefinitions.PROTOCOLS, serverSSLContext, false, writer);
                 SSLDefinitions.MAXIMUM_SESSION_CACHE_SIZE.marshallAsAttribute(serverSSLContext, writer);
                 SSLDefinitions.SESSION_TIMEOUT.marshallAsAttribute(serverSSLContext, writer);
                 SSLDefinitions.KEY_MANAGERS.marshallAsAttribute(serverSSLContext, writer);

@@ -19,22 +19,22 @@ package org.wildfly.extension.elytron;
 
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
-import java.security.cert.X509Certificate;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 
 import org.jboss.as.subsystem.test.AbstractSubsystemTest;
 import org.jboss.as.subsystem.test.KernelServices;
 import org.jboss.msc.service.ServiceName;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -50,73 +50,110 @@ public class TlsTestCase extends AbstractSubsystemTest {
 
     private KernelServices services = null;
 
-    @Test
-    public void testSslService() throws Exception {
+    @Before
+    public void prepare() throws Throwable {
+        if (services != null) return;
         services = super.createKernelServicesBuilder(new TestEnvironment()).setSubsystemXmlResource("tls-test.xml").build();
         if (!services.isSuccessfulBoot()) {
             Assert.fail(services.getBootError().toString());
         }
+    }
 
-        ServiceName serverServiceName = Capabilities.SSL_CONTEXT_RUNTIME_CAPABILITY.getCapabilityServiceName("ServerSslContext");
-        SSLContext serverSslContext = (SSLContext) services.getContainer().getService(serverServiceName).getValue();
-        Assert.assertNotNull(serverSslContext);
-        SSLServerSocketFactory serverSocketFactory = serverSslContext.getServerSocketFactory();
-
-        SSLSocketFactory clientSocketFactory = getClientFactory();
+    @Test
+    public void testSslServiceNoAuth() throws Throwable {
+        SSLServerSocketFactory serverSocketFactory = getSslContext("ServerSslContextNoAuth").getServerSocketFactory();
+        SSLSocketFactory clientSocketFactory = getSslContext("ClientSslContextNoAuth").getSocketFactory();
 
         ServerSocket listeningSocket = serverSocketFactory.createServerSocket();
         listeningSocket.bind(new InetSocketAddress("localhost", TESTING_PORT));
-
         SSLSocket clientSocket = (SSLSocket) clientSocketFactory.createSocket("localhost", TESTING_PORT);
-        clientSocket.setUseClientMode(true);
         SSLSocket serverSocket = (SSLSocket) listeningSocket.accept();
-        serverSocket.setUseClientMode(false);
 
-        ExecutorService clientExecutorService = Executors.newSingleThreadExecutor();
-        Future<byte[]> clientFuture = clientExecutorService.submit(() -> {
-            try {
-                byte[] received = new byte[2];
-                clientSocket.getOutputStream().write(new byte[]{0x12, 0x34});
-                serverSocket.getInputStream().read(received);
-                return received;
-            } catch (Exception e) {
-                throw new RuntimeException("Client exception", e);
-            }
-        });
+        testCommunication(listeningSocket, serverSocket, clientSocket, "OU=Elytron,O=Elytron,C=UK,ST=Elytron,CN=Firefly", null);
+    }
+
+    @Test
+    public void testSslServiceAuth() throws Throwable {
+        SSLServerSocketFactory serverSocketFactory = getSslContext("ServerSslContextAuth").getServerSocketFactory();
+        SSLSocketFactory clientSocketFactory = getSslContext("ClientSslContextAuth").getSocketFactory();
+
+        ServerSocket listeningSocket = serverSocketFactory.createServerSocket();
+        listeningSocket.bind(new InetSocketAddress("localhost", TESTING_PORT));
+        SSLSocket clientSocket = (SSLSocket) clientSocketFactory.createSocket("localhost", TESTING_PORT);
+        SSLSocket serverSocket = (SSLSocket) listeningSocket.accept();
+
+        testCommunication(listeningSocket, serverSocket, clientSocket, "OU=Elytron,O=Elytron,C=UK,ST=Elytron,CN=Firefly", "OU=Elytron,O=Elytron,C=UK,ST=Elytron,CN=Firefly");
+    }
+
+    @Test(expected = SSLPeerUnverifiedException.class)
+    public void testSslServiceAuthRequiredButNotProvided() throws Throwable {
+        SSLServerSocketFactory serverSocketFactory = getSslContext("ServerSslContextAuth").getServerSocketFactory();
+        SSLSocketFactory clientSocketFactory = getSslContext("ClientSslContextNoAuth").getSocketFactory();
+
+        ServerSocket listeningSocket = serverSocketFactory.createServerSocket();
+        listeningSocket.bind(new InetSocketAddress("localhost", TESTING_PORT));
+        SSLSocket clientSocket = (SSLSocket) clientSocketFactory.createSocket("localhost", TESTING_PORT);
+        SSLSocket serverSocket = (SSLSocket) listeningSocket.accept();
+
+        testCommunication(listeningSocket, serverSocket, clientSocket, "OU=Elytron,O=Elytron,C=UK,ST=Elytron,CN=Firefly", "");
+    }
+
+    private SSLContext getSslContext(String contextName) {
+        ServiceName serviceName = Capabilities.SSL_CONTEXT_RUNTIME_CAPABILITY.getCapabilityServiceName(contextName);
+        SSLContext sslContext = (SSLContext) services.getContainer().getService(serviceName).getValue();
+        Assert.assertNotNull(sslContext);
+        return sslContext;
+    }
+
+    private void testCommunication(ServerSocket listeningSocket, SSLSocket serverSocket, SSLSocket clientSocket, String expectedServerPrincipal, String expectedClientPrincipal) throws Throwable {
 
         ExecutorService serverExecutorService = Executors.newSingleThreadExecutor();
         Future<byte[]> serverFuture = serverExecutorService.submit(() -> {
             try {
                 byte[] received = new byte[2];
                 serverSocket.getInputStream().read(received);
-                clientSocket.getOutputStream().write(new byte[]{0x56, 0x78});
+                serverSocket.getOutputStream().write(new byte[]{0x56, 0x78});
+
+                if (expectedClientPrincipal != null) {
+                    Assert.assertEquals(expectedClientPrincipal, serverSocket.getSession().getPeerPrincipal().getName());
+                }
+
                 return received;
             } catch (Exception e) {
                 throw new RuntimeException("Server exception", e);
             }
         });
 
-        Assert.assertArrayEquals(new byte[]{0x12, 0x34}, serverFuture.get());
-        Assert.assertArrayEquals(new byte[]{0x56, 0x78}, clientFuture.get());
+        ExecutorService clientExecutorService = Executors.newSingleThreadExecutor();
+        Future<byte[]> clientFuture = clientExecutorService.submit(() -> {
+            try {
+                byte[] received = new byte[2];
+                clientSocket.getOutputStream().write(new byte[]{0x12, 0x34});
+                clientSocket.getInputStream().read(received);
 
-        serverSocket.close();
-        listeningSocket.close();
-        clientSocket.close();
-    }
-
-    // TODO replace by factory from elytron when will be SSL client side available in Elytron
-    private SSLSocketFactory getClientFactory() throws Exception {
-        TrustManager[] trustAllCerts = new TrustManager[]{
-                new X509TrustManager() {
-                    public X509Certificate[] getAcceptedIssuers() {
-                        return null;
-                    }
-                    public void checkClientTrusted(X509Certificate[] certs, String authType) {}
-                    public void checkServerTrusted(X509Certificate[] certs, String authType) {}
+                if (expectedServerPrincipal != null) {
+                    Assert.assertEquals(expectedServerPrincipal, clientSocket.getSession().getPeerPrincipal().getName());
                 }
-        };
-        SSLContext clientContext = SSLContext.getInstance("TLS");
-        clientContext.init(null, trustAllCerts, null);
-        return clientContext.getSocketFactory();
+
+                return received;
+            } catch (Exception e) {
+                throw new RuntimeException("Client exception", e);
+            }
+        });
+
+        try {
+            Assert.assertArrayEquals(new byte[]{0x12, 0x34}, serverFuture.get());
+            Assert.assertArrayEquals(new byte[]{0x56, 0x78}, clientFuture.get());
+        } catch (ExecutionException e) {
+            if (e.getCause() != null && e.getCause() instanceof RuntimeException && e.getCause().getCause() != null) {
+                throw e.getCause().getCause(); // unpack
+            } else {
+                throw e;
+            }
+        } finally {
+            serverSocket.close();
+            clientSocket.close();
+            listeningSocket.close();
+        }
     }
 }

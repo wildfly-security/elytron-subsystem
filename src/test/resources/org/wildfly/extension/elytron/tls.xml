@@ -15,13 +15,17 @@
         </key-stores>
         <key-managers>
             <key-manager name="serverKey" algorithm="SunX509" key-store="jks_store" password="password" />
+            <key-manager name="clientKey" algorithm="SunX509" key-store="jks_store" password="password" />
         </key-managers>
         <trust-managers>
             <trust-manager name="serverTrust" algorithm="SunX509" key-store="jks_store" />
         </trust-managers>
         <server-ssl-contexts>
-            <server-ssl-context name="server" protocols="TLSv1_2" want-client-auth="true" need-client-auth="true" authentication-optional="true" maximum-session-cache-size="10" 
+            <server-ssl-context name="server" protocols="TLSv1_2" want-client-auth="true" need-client-auth="true" authentication-optional="true" maximum-session-cache-size="10"
                 session-timeout="120" key-managers="serverKey" trust-managers="serverTrust" />
         </server-ssl-contexts>
+        <client-ssl-contexts>
+            <client-ssl-context name="client" protocols="TLSv1_3 TLSv1_2" key-managers="clientKey" trust-managers="serverTrust" />
+        </client-ssl-contexts>
     </tls>
 </subsystem>

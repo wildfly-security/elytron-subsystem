@@ -16,7 +16,13 @@
             <trust-manager name="MyTrustManager" algorithm="SunX509" key-store="ElytronCaTruststore"/>
         </trust-managers>
         <server-ssl-contexts>
-            <server-ssl-context name="ServerSslContext" protocols="SSLv2 SSLv3 TLSv1 TLSv1_3 TLSv1_2 TLSv1_1" key-managers="MyKeyManager" trust-managers="MyTrustManager"/>
+            <server-ssl-context name="ServerSslContextNoAuth" protocols="SSLv2 SSLv3 TLSv1 TLSv1_3 TLSv1_2 TLSv1_1" key-managers="MyKeyManager" trust-managers="MyTrustManager"/>
+            <server-ssl-context name="ServerSslContextAuth" protocols="TLSv1_3 TLSv1_2 TLSv1_1" key-managers="MyKeyManager" trust-managers="MyTrustManager"
+                                want-client-auth="true" need-client-auth="true" authentication-optional="false"/>
         </server-ssl-contexts>
+        <client-ssl-contexts>
+            <client-ssl-context name="ClientSslContextNoAuth" protocols="SSLv2 SSLv3 TLSv1 TLSv1_3 TLSv1_2 TLSv1_1" trust-managers="MyTrustManager" />
+            <client-ssl-context name="ClientSslContextAuth" protocols="SSLv2 SSLv3 TLSv1 TLSv1_3 TLSv1_2" key-managers="MyKeyManager" trust-managers="MyTrustManager" />
+        </client-ssl-contexts>
     </tls>
 </subsystem>
