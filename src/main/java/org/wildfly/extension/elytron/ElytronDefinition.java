@@ -200,7 +200,7 @@ class ElytronDefinition extends SimpleResourceDefinition {
 
         @Override
         protected void populateModel(ModelNode operation, ModelNode model) throws OperationFailedException {
-            ROOT_LOGGER.iAmElytron();
+            ROOT_LOGGER.activatingElytronSubsystem(org.wildfly.security.Version.getVersion(), Version.getVersion());
         }
 
         @Override

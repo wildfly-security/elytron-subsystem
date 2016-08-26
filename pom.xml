@@ -81,6 +81,19 @@
     </licenses>
 
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+            <resource>
+                <directory>${project.build.sourceDirectory}</directory>
+                <includes>
+                    <include>**/*.properties</include>
+                </includes>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+
         <!-- Maven will append the version to the finalName (which is the name
            given to the generated war, and hence the context root) -->
         <finalName>${project.artifactId}</finalName>

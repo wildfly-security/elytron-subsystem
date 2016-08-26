@@ -52,8 +52,8 @@ public interface ElytronSubsystemMessages extends BasicLogger {
     ElytronSubsystemMessages ROOT_LOGGER = Logger.getMessageLogger(ElytronSubsystemMessages.class, "org.wildfly.extension.elytron");
 
     @LogMessage(level = INFO)
-    @Message(id = 1, value = "I am Elytron, nice to meet you.")
-    void iAmElytron();
+    @Message(id = 1, value = "Activating Elytron Subsystem Elytron Version=%s, Subsystem Version=%s")
+    void activatingElytronSubsystem(String elytronVersion, String subsystemVersion);
 
     /**
      * {@link OperationFailedException} if the same realm is injected multiple times for a single domain.
