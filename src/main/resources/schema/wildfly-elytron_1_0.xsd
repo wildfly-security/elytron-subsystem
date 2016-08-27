@@ -428,16 +428,14 @@
                 The authentication query used to authenticate users based on specific key types.
             </xs:documentation>
         </xs:annotation>
-        <xs:choice minOccurs="1">
-            <xs:sequence>
-                <xs:element name="clear-password-mapper" type="clearPasswordMapperType" minOccurs="0"/>
-                <xs:element name="bcrypt-mapper" type="bcryptMapperType" minOccurs="0"/>
-                <xs:element name="simple-digest-mapper" type="simpleDigestMapperType" minOccurs="0"/>
-                <xs:element name="salted-simple-digest-mapper" type="saltedSimpleDigestMapperType" minOccurs="0"/>
-                <xs:element name="scram-mapper" type="scramMapperType" minOccurs="0"/>
-                <xs:element name="attribute-mapping" type="jdbcAttributeMappingType" minOccurs="0"/>
-            </xs:sequence>
-        </xs:choice>
+        <xs:sequence>
+            <xs:element name="clear-password-mapper" type="clearPasswordMapperType" minOccurs="0"/>
+            <xs:element name="bcrypt-mapper" type="bcryptMapperType" minOccurs="0"/>
+            <xs:element name="simple-digest-mapper" type="simpleDigestMapperType" minOccurs="0"/>
+            <xs:element name="salted-simple-digest-mapper" type="saltedSimpleDigestMapperType" minOccurs="0"/>
+            <xs:element name="scram-mapper" type="scramMapperType" minOccurs="0"/>
+            <xs:element name="attribute-mapping" type="jdbcAttributeMappingType" minOccurs="0"/>
+        </xs:sequence>
         <xs:attribute name="sql" type="xs:string" use="required">
             <xs:annotation>
                 <xs:documentation>
@@ -788,36 +786,36 @@
                 The configuration options that define how principals are mapped to their corresponding entries in the underlying LDAP server.
             </xs:documentation>
         </xs:annotation>
-        <xs:sequence>
-            <xs:element name="attribute-mapping" type="ldapAttributeMappingType" minOccurs="0" maxOccurs="unbounded">
+        <xs:all>
+            <xs:element name="attribute-mapping" type="ldapAttributeMappingType" minOccurs="0">
                 <xs:annotation>
                     <xs:documentation>
                         The attribute mappings defined for this resource.
                     </xs:documentation>
                 </xs:annotation>
             </xs:element>
-            <xs:element name="user-password-mapper" type="userPasswordMapperType" minOccurs="0" maxOccurs="1">
+            <xs:element name="user-password-mapper" type="userPasswordMapperType" minOccurs="0">
                 <xs:annotation>
                     <xs:documentation>
                         The user password credential mapping defined for this resource.
                     </xs:documentation>
                 </xs:annotation>
             </xs:element>
-            <xs:element name="otp-credential-mapper" type="otpCredentialMapperType" minOccurs="0" maxOccurs="1">
+            <xs:element name="otp-credential-mapper" type="otpCredentialMapperType" minOccurs="0">
                 <xs:annotation>
                     <xs:documentation>
                         The user password credential mapping defined for this resource.
                     </xs:documentation>
                 </xs:annotation>
             </xs:element>
-            <xs:element name="new-identity-attributes" type="ldapNewIdentityAttributesType" minOccurs="0" maxOccurs="unbounded">
+            <xs:element name="new-identity-attributes" type="ldapNewIdentityAttributesType" minOccurs="0">
                 <xs:annotation>
                     <xs:documentation>
                         The attributes of newly created identities. Required for modifiability.
                     </xs:documentation>
                 </xs:annotation>
             </xs:element>
-        </xs:sequence>
+        </xs:all>
         <xs:attribute name="rdn-identifier" type="xs:string" use="required">
             <xs:annotation>
                 <xs:documentation>
@@ -2029,18 +2027,19 @@
             </xs:documentation>
         </xs:annotation>
         <xs:sequence>
-    <xs:element name="mechanism" type="mechanismType"
-        maxOccurs="unbounded">
-        <xs:annotation>
-            <xs:documentation>
-                An ordered list of mechanism configurations, at the time of authentication the mechanism name, host name, and
-                protocol as specified by the mechanism will be compared against this list for a first match.
-                
-                To configure a default configuration provide a definition with no mechanism-name, host-name, or protocol and 
-                place it at the end of the list.  Any definitions after a default definition will never match.
-            </xs:documentation>
-        </xs:annotation>
-    </xs:element>
+            <xs:element name="mechanism" type="mechanismType" maxOccurs="unbounded">
+                <xs:annotation>
+                    <xs:documentation>
+                        An ordered list of mechanism configurations, at the time of authentication the mechanism name,
+                        host name, and protocol as specified by the mechanism will be compared against this list
+                        for a first match.
+
+                        To configure a default configuration provide a definition with no mechanism-name, host-name, or
+                        protocol and place it at the end of the list. Any definitions after a default definition will
+                        never match.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
         </xs:sequence>
     </xs:complexType>
 
@@ -2051,7 +2050,7 @@
             </xs:documentation>
         </xs:annotation>
         <xs:sequence>
-            <xs:element name="mechanism-realm" type="mechanismRealmType" maxOccurs="unbounded" />
+            <xs:element name="mechanism-realm" type="mechanismRealmType" minOccurs="0" maxOccurs="unbounded" />
         </xs:sequence>
         <xs:attribute name="mechanism-name" type="xs:string">
             <xs:annotation>
@@ -2249,7 +2248,7 @@
         </xs:annotation>
         <xs:complexContent>
             <xs:extension base="httpServerMechanismFactoryType">
-                <xs:sequence>
+                <xs:all>
                     <xs:element name="filters" minOccurs="0">
                         <xs:annotation>
                             <xs:documentation>
@@ -2304,8 +2303,8 @@
                             </xs:sequence>
                         </xs:complexType>
                     </xs:element>
-                </xs:sequence>
-                <xs:attribute name="http-server-factory" type="xs:string" use="required">
+                </xs:all>
+                <xs:attribute name="http-server-mechanism-factory" type="xs:string" use="required">
                     <xs:annotation>
                         <xs:documentation>
                             Reference to the HTTP server factory to be wrapped by this configuration.
@@ -3108,6 +3107,106 @@
                 An individual names LdapKeyStore definition.
             </xs:documentation>
         </xs:annotation>
+        <xs:all>
+            <xs:element name="new-item-template" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>
+                        Configuration for item creation. Define how will look LDAP entry of newly created keystore item.
+                    </xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:sequence>
+                    <xs:element name="attribute" minOccurs="0" maxOccurs="unbounded">
+                        <xs:annotation>
+                            <xs:documentation>
+                                Attribute of newly created entry. At least objectClass attribute and required
+                                attributes (which are not part of keystore item) should be defined here.
+                            </xs:documentation>
+                        </xs:annotation>
+                        <xs:complexType>
+                            <xs:attribute name="name" type="xs:string" use="required">
+                                <xs:annotation>
+                                    <xs:documentation>
+                                        The LDAP attribute name.
+                                    </xs:documentation>
+                                </xs:annotation>
+                            </xs:attribute>
+                            <xs:attribute name="value" type="xs:string" use="required">
+                                <xs:annotation>
+                                    <xs:documentation>
+                                        The LDAP attribute default value.
+                                    </xs:documentation>
+                                </xs:annotation>
+                            </xs:attribute>
+                        </xs:complexType>
+                    </xs:element>
+                    </xs:sequence>
+                    <xs:attribute name="new-item-path" type="xs:string" use="required">
+                        <xs:annotation>
+                            <xs:documentation>
+                                The LDAP path, where will be newly created keystore items created.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute name="new-item-rdn" type="xs:string" use="required">
+                        <xs:annotation>
+                            <xs:documentation>
+                                The LDAP attribute name, which will be part of new entry path.
+                                Into value of this attribute will be passed alias of the keystore item.
+                                (Can be independent on alias-attribute - alias is used here only as initial entry name,
+                                as it is only identification of item, which keystore has.)
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:attribute>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="ldap-mapping" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>
+                        Mapping of keystore item parts to LDAP attributes.
+                    </xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:attribute name="alias-attribute" type="xs:string" use="optional" default="cn">
+                        <xs:annotation>
+                            <xs:documentation>
+                                The LDAP attribute, where is item alias expected.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute name="certificate-attribute" type="xs:string" use="optional" default="usercertificate">
+                        <xs:annotation>
+                            <xs:documentation>
+                                The LDAP attribute, where is encoded certificate expected.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute name="certificate-type" type="xs:string" use="optional" default="X.509">
+                        <xs:annotation>
+                            <xs:documentation>
+                                The type of certificate. Used for decoding of byte array from certificate-attribute.
+                                For possible values see <a href="https://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html#CertificateFactory">CertificateFactory types</a>.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute name="certificate-chain-attribute" type="xs:string" use="optional" default="userSMIMECertificate">
+                        <xs:annotation>
+                            <xs:documentation>
+                                The LDAP attribute, where is encoded certificate expected.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute name="certificate-chain-encoding" type="xs:string" use="optional" default="PKCS7">
+                        <xs:annotation>
+                            <xs:documentation>
+                                The encoding of CertPath, which is used to store certificate chain into certificate-chain-attribute.
+                                For possible values see <a href="https://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html#CertPathEncodings">CertPath Encodings</a>.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:attribute>
+                </xs:complexType>
+            </xs:element>
+        </xs:all>
         <xs:attribute name="name" type="xs:string" use="required">
             <xs:annotation>
                 <xs:documentation>
@@ -3166,104 +3265,6 @@
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
-        <xs:all>
-            <xs:element name="new-item-template" minOccurs="0">
-                <xs:annotation>
-                    <xs:documentation>
-                        Configuration for item creation. Define how will look LDAP entry of newly created keystore item.
-                    </xs:documentation>
-                </xs:annotation>
-                <xs:complexType>
-                    <xs:attribute name="new-item-path" type="xs:string" use="required">
-                        <xs:annotation>
-                            <xs:documentation>
-                                The LDAP path, where will be newly created keystore items created.
-                            </xs:documentation>
-                        </xs:annotation>
-                    </xs:attribute>
-                    <xs:attribute name="new-item-rdn" type="xs:string" use="required">
-                        <xs:annotation>
-                            <xs:documentation>
-                                The LDAP attribute name, which will be part of new entry path.
-                                Into value of this attribute will be passed alias of the keystore item.
-                                (Can be independent on alias-attribute - alias is used here only as initial entry name,
-                                as it is only identification of item, which keystore has.)
-                            </xs:documentation>
-                        </xs:annotation>
-                    </xs:attribute>
-                    <xs:element name="attribute" minOccurs="0">
-                        <xs:annotation>
-                            <xs:documentation>
-                                Attribute of newly created entry. At least objectClass attribute and required
-                                attributes (which are not part of keystore item) should be defined here.
-                            </xs:documentation>
-                        </xs:annotation>
-                        <xs:complexType>
-                            <xs:attribute name="name" type="xs:string" use="required">
-                                <xs:annotation>
-                                    <xs:documentation>
-                                        The LDAP attribute name.
-                                    </xs:documentation>
-                                </xs:annotation>
-                            </xs:attribute>
-                            <xs:attribute name="value" type="xs:string" use="required">
-                                <xs:annotation>
-                                    <xs:documentation>
-                                        The LDAP attribute default value.
-                                    </xs:documentation>
-                                </xs:annotation>
-                            </xs:attribute>
-                        </xs:complexType>
-                    </xs:element>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="ldap-mapping" minOccurs="0">
-                <xs:annotation>
-                    <xs:documentation>
-                        Mapping of keystore item parts to LDAP attributes.
-                    </xs:documentation>
-                </xs:annotation>
-                <xs:complexType>
-                    <xs:attribute name="alias-attribute" type="xs:string" use="optional" default="cn">
-                        <xs:annotation>
-                            <xs:documentation>
-                                The LDAP attribute, where is item alias expected.
-                            </xs:documentation>
-                        </xs:annotation>
-                    </xs:attribute>
-                    <xs:attribute name="certificate-attribute" type="xs:string" use="optional" default="usercertificate">
-                        <xs:annotation>
-                            <xs:documentation>
-                                The LDAP attribute, where is encoded certificate expected.
-                            </xs:documentation>
-                        </xs:annotation>
-                    </xs:attribute>
-                    <xs:attribute name="certificate-type" type="xs:string" use="optional" default="X.509">
-                        <xs:annotation>
-                            <xs:documentation>
-                                The type of certificate. Used for decoding of byte array from certificate-attribute.
-                                For possible values see <a href="https://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html#CertificateFactory">CertificateFactory types</a>.
-                            </xs:documentation>
-                        </xs:annotation>
-                    </xs:attribute>
-                    <xs:attribute name="certificate-chain-attribute" type="xs:string" use="optional" default="userSMIMECertificate">
-                        <xs:annotation>
-                            <xs:documentation>
-                                The LDAP attribute, where is encoded certificate expected.
-                            </xs:documentation>
-                        </xs:annotation>
-                    </xs:attribute>
-                    <xs:attribute name="certificate-chain-encoding" type="xs:string" use="optional" default="PKCS7">
-                        <xs:annotation>
-                            <xs:documentation>
-                                The encoding of CertPath, which is used to store certificate chain into certificate-chain-attribute.
-                                For possible values see <a href="https://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html#CertPathEncodings">CertPath Encodings</a>.
-                            </xs:documentation>
-                        </xs:annotation>
-                    </xs:attribute>
-                </xs:complexType>
-            </xs:element>
-        </xs:all>
     </xs:complexType>
 
     <xs:complexType name="filteringKeyStoreType">

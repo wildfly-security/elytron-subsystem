@@ -223,6 +223,38 @@
                 </configuration>
             </plugin>
 
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>xml-maven-plugin</artifactId>
+                <version>1.0.1</version>
+                <configuration>
+                    <validationSets>
+                        <validationSet>
+                            <dir>src/test/resources/org/wildfly/extension/elytron</dir>
+                            <includes>
+                                <include>*.xml</include>
+                            </includes>
+                            <systemId>src/main/resources/schema/wildfly-elytron_1_0.xsd</systemId>
+                        </validationSet>
+                        <validationSet>
+                            <dir>src/main/resources/subsystem-templates</dir>
+                        </validationSet>
+                        <validationSet>
+                            <dir>src/main/resources/schema</dir>
+                        </validationSet>
+                    </validationSets>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>xml-validation</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>validate</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
             <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
             <plugin>
                 <groupId>org.eclipse.m2e</groupId>
