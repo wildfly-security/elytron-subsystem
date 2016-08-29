@@ -356,7 +356,7 @@ class SSLDefinitions {
     }
 
     private static <T> InjectedValue<T> addDependency(String baseName, SimpleAttributeDefinition attribute,
-            Class<T> type, ServiceBuilder serviceBuilder, OperationContext context, ModelNode model) throws OperationFailedException {
+            Class<T> type, ServiceBuilder<SSLContext> serviceBuilder, OperationContext context, ModelNode model) throws OperationFailedException {
 
         String dynamicNameElement = asStringIfDefined(context, attribute, model);
         InjectedValue<T> injectedValue = new InjectedValue<>();

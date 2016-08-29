@@ -258,7 +258,7 @@ class DomainService implements Service<SecurityDomain> {
 
     }
 
-    private static class TrustedSecurityDomainsService<Void> implements Service<Void> {
+    private static class TrustedSecurityDomainsService implements Service<SecurityDomain> {
         private final List<InjectedValue<SecurityDomain>> trustedSecurityDomainInjectors = new ArrayList<>();
         private HashSet<SecurityDomain> trustedSecurityDomains;
 
@@ -280,7 +280,7 @@ class DomainService implements Service<SecurityDomain> {
         }
 
         @Override
-        public Void getValue() throws IllegalStateException, IllegalArgumentException {
+        public SecurityDomain getValue() throws IllegalStateException, IllegalArgumentException {
             return null;
         }
 

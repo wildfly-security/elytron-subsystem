@@ -28,36 +28,7 @@ import static org.jboss.as.controller.parsing.ParseUtils.requireNoAttributes;
 import static org.jboss.as.controller.parsing.ParseUtils.requireNoContent;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedAttribute;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedElement;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ALGORITHM;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ALIAS_FILTER;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AUTHENTICATION_OPTIONAL;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CIPHER_SUITE_FILTER;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.FILE;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEY_MANAGER;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEY_MANAGERS;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEY_STORE;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEY_STORES;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MAXIMUM_SESSION_CACHE_SIZE;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NEED_CLIENT_AUTH;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PASSWORD;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PATH;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROTOCOLS;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDER;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDER_LOADER;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.RELATIVE_TO;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REQUIRED;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SECURITY_DOMAIN;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SERVER_SSL_CONTEXT;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SERVER_SSL_CONTEXTS;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CLIENT_SSL_CONTEXT;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CLIENT_SSL_CONTEXTS;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SESSION_TIMEOUT;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.TLS;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.TRUST_MANAGER;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.TRUST_MANAGERS;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.TYPE;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.WANT_CLIENT_AUTH;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.*;
 import static org.wildfly.extension.elytron.ElytronSubsystemParser.verifyNamespace;
 
 import java.util.Arrays;
@@ -396,6 +367,8 @@ class TlsParser {
             String localName = reader.getLocalName();
             if (KEY_STORE.equals(localName)) {
                 readKeyStore(parentAddress, reader, operations);
+            } else if (LDAP_KEY_STORE.equals(localName)) {
+                readLdapKeyStore(parentAddress, reader, operations);
             } else {
                 throw unexpectedElement(reader);
             }
@@ -457,7 +430,6 @@ class TlsParser {
                 throw unexpectedElement(reader);
             }
         }
-
     }
 
     private void readFile(ModelNode addOp, XMLExtendedStreamReader reader, List<ModelNode> list) throws XMLStreamException {
@@ -489,6 +461,181 @@ class TlsParser {
         if (pathFound == false) {
             throw missingRequired(reader, PATH);
         }
+        requireNoContent(reader);
+    }
+
+    private void readLdapKeyStore(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> list) throws XMLStreamException {
+        ModelNode addKeyStore = new ModelNode();
+        addKeyStore.get(OP).set(ADD);
+        Set<String> requiredAttributes = new HashSet<String>(Arrays.asList(new String[] { NAME, DIR_CONTEXT, SEARCH_PATH }));
+        String name = null;
+
+        final int count = reader.getAttributeCount();
+        for (int i = 0; i < count; i++) {
+            final String value = reader.getAttributeValue(i);
+            if (!isNoNamespaceAttribute(reader, i)) {
+                throw unexpectedAttribute(reader, i);
+            } else {
+                String attribute = reader.getAttributeLocalName(i);
+                requiredAttributes.remove(attribute);
+                switch (attribute) {
+                    case NAME:
+                        name = value;
+                        break;
+                    case DIR_CONTEXT:
+                        LdapKeyStoreDefinition.DIR_CONTEXT.parseAndSetParameter(value, addKeyStore, reader);
+                        break;
+                    case SEARCH_PATH:
+                        LdapKeyStoreDefinition.SEARCH_PATH.parseAndSetParameter(value, addKeyStore, reader);
+                        break;
+                    case SEARCH_RECURSIVE:
+                        LdapKeyStoreDefinition.SEARCH_RECURSIVE.parseAndSetParameter(value, addKeyStore, reader);
+                        break;
+                    case SEARCH_TIME_LIMIT:
+                        LdapKeyStoreDefinition.SEARCH_TIME_LIMIT.parseAndSetParameter(value, addKeyStore, reader);
+                        break;
+                    case FILTER_ALIAS:
+                        LdapKeyStoreDefinition.FILTER_ALIAS.parseAndSetParameter(value, addKeyStore, reader);
+                        break;
+                    case FILTER_CERTIFICATE:
+                        LdapKeyStoreDefinition.FILTER_CERTIFICATE.parseAndSetParameter(value, addKeyStore, reader);
+                        break;
+                    case FILTER_ITERATE:
+                        LdapKeyStoreDefinition.FILTER_ITERATE.parseAndSetParameter(value, addKeyStore, reader);
+                        break;
+                    default:
+                        throw unexpectedAttribute(reader, i);
+                }
+            }
+        }
+
+        if (requiredAttributes.isEmpty() == false) {
+            throw missingRequired(reader, requiredAttributes);
+        }
+
+        addKeyStore.get(OP_ADDR).set(parentAddress).add(LDAP_KEY_STORE, name);
+        list.add(addKeyStore);
+
+        while(reader.hasNext() && reader.nextTag() != END_ELEMENT) {
+            verifyNamespace(reader);
+            String localName = reader.getLocalName();
+            if (NEW_ITEM_TEMPLATE.equals(localName)) {
+                readNewItemTemplate(addKeyStore, reader, list);
+            } else if (LDAP_MAPPING.equals(localName)) {
+                readLdapMapping(addKeyStore, reader, list);
+            } else {
+                throw unexpectedElement(reader);
+            }
+        }
+    }
+
+    private void readNewItemTemplate(ModelNode addKeyStore, XMLExtendedStreamReader reader, List<ModelNode> list) throws XMLStreamException {
+        Set<String> requiredAttributes = new HashSet<String>(Arrays.asList(new String[] {NEW_ITEM_PATH, NEW_ITEM_RDN}));
+        final int count = reader.getAttributeCount();
+        for (int i = 0; i < count; i++) {
+            final String value = reader.getAttributeValue(i);
+            if (!isNoNamespaceAttribute(reader, i)) {
+                throw unexpectedAttribute(reader, i);
+            } else {
+                String attribute = reader.getAttributeLocalName(i);
+                requiredAttributes.remove(attribute);
+                switch (attribute) {
+                    case NEW_ITEM_PATH:
+                        LdapKeyStoreDefinition.NEW_ITEM_PATH.parseAndSetParameter(value, addKeyStore, reader);
+                        break;
+                    case NEW_ITEM_RDN:
+                        LdapKeyStoreDefinition.NEW_ITEM_RDN.parseAndSetParameter(value, addKeyStore, reader);
+                        break;
+                    default:
+                        throw unexpectedAttribute(reader, i);
+                }
+            }
+        }
+
+        if (requiredAttributes.isEmpty() == false) {
+            throw missingRequired(reader, requiredAttributes);
+        }
+
+        while(reader.hasNext() && reader.nextTag() != END_ELEMENT) {
+            verifyNamespace(reader);
+            if (ATTRIBUTE.equals(reader.getLocalName())) {
+                ModelNode attribute = new ModelNode();
+                readLdapAttribute(attribute, reader);
+                addKeyStore.get(NEW_ITEM_ATTRIBUTES).add(attribute);
+            } else {
+                throw unexpectedElement(reader);
+            }
+        }
+    }
+
+    private void readLdapAttribute(ModelNode attribute, XMLExtendedStreamReader reader) throws XMLStreamException {
+        Set<String> requiredAttributes = new HashSet<>(Arrays.asList(new String[]{NAME, VALUE}));
+        final int count = reader.getAttributeCount();
+        for (int i = 0; i < count; i++) {
+            if (!isNoNamespaceAttribute(reader, i)) {
+                throw unexpectedAttribute(reader, i);
+            } else {
+                String attributeName = reader.getAttributeLocalName(i);
+                requiredAttributes.remove(attributeName);
+                switch (attributeName) {
+                    case NAME:
+                        String value = reader.getAttributeValue(i);
+                        LdapKeyStoreDefinition.NewItemTemplateAttributeObjectDefinition.NAME.parseAndSetParameter(value, attribute, reader);
+                        break;
+                    case VALUE:
+                        for (String val : reader.getListAttributeValue(i)) {
+                            LdapKeyStoreDefinition.NewItemTemplateAttributeObjectDefinition.VALUE.parseAndAddParameterElement(val, attribute, reader);
+                        }
+                        break;
+                    default:
+                        throw unexpectedAttribute(reader, i);
+                }
+            }
+        }
+
+        if (requiredAttributes.isEmpty() == false) {
+            throw missingRequired(reader, requiredAttributes);
+        }
+
+        requireNoContent(reader);
+    }
+
+    private void readLdapMapping(ModelNode addKeyStore, XMLExtendedStreamReader reader, List<ModelNode> list) throws XMLStreamException {
+        final int count = reader.getAttributeCount();
+        for (int i = 0; i < count; i++) {
+            final String value = reader.getAttributeValue(i);
+            if (!isNoNamespaceAttribute(reader, i)) {
+                throw unexpectedAttribute(reader, i);
+            } else {
+                String attribute = reader.getAttributeLocalName(i);
+                switch (attribute) {
+                    case ALIAS_ATTRIBUTE:
+                        LdapKeyStoreDefinition.ALIAS_ATTRIBUTE.parseAndSetParameter(value, addKeyStore, reader);
+                        break;
+                    case CERTIFICATE_ATTRIBUTE:
+                        LdapKeyStoreDefinition.CERTIFICATE_ATTRIBUTE.parseAndSetParameter(value, addKeyStore, reader);
+                        break;
+                    case CERTIFICATE_TYPE:
+                        LdapKeyStoreDefinition.CERTIFICATE_TYPE.parseAndSetParameter(value, addKeyStore, reader);
+                        break;
+                    case CERTIFICATE_CHAIN_ATTRIBUTE:
+                        LdapKeyStoreDefinition.CERTIFICATE_CHAIN_ATTRIBUTE.parseAndSetParameter(value, addKeyStore, reader);
+                        break;
+                    case CERTIFICATE_CHAIN_ENCODING:
+                        LdapKeyStoreDefinition.CERTIFICATE_CHAIN_ENCODING.parseAndSetParameter(value, addKeyStore, reader);
+                        break;
+                    case KEY_ATTRIBUTE:
+                        LdapKeyStoreDefinition.KEY_ATTRIBUTE.parseAndSetParameter(value, addKeyStore, reader);
+                        break;
+                    case KEY_TYPE:
+                        LdapKeyStoreDefinition.KEY_TYPE.parseAndSetParameter(value, addKeyStore, reader);
+                        break;
+                    default:
+                        throw unexpectedAttribute(reader, i);
+                }
+            }
+        }
+
         requireNoContent(reader);
     }
 
@@ -621,29 +768,83 @@ class TlsParser {
     }
 
     private boolean writeKeyStores(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
-        if (subsystem.hasDefined(KEY_STORE)) {
+        if (subsystem.hasDefined(KEY_STORE) || subsystem.hasDefined(LDAP_KEY_STORE)) {
             startTLS(started, writer);
             writer.writeStartElement(KEY_STORES);
-            ModelNode keystores = subsystem.require(KEY_STORE);
-            for (String name : keystores.keys()) {
-                ModelNode keyStore = keystores.require(name);
-                writer.writeStartElement(KEY_STORE);
-                writer.writeAttribute(NAME, name);
-                KeyStoreDefinition.TYPE.marshallAsAttribute(keyStore, writer);
-                KeyStoreDefinition.PROVIDER.marshallAsAttribute(keyStore, writer);
-                KeyStoreDefinition.PROVIDER_LOADER.marshallAsAttribute(keyStore, writer);
-                KeyStoreDefinition.PASSWORD.marshallAsAttribute(keyStore, writer);
-                KeyStoreDefinition.ALIAS_FILTER.marshallAsAttribute(keyStore, writer);
 
-                if (keyStore.hasDefined(PATH)) {
-                    writer.writeStartElement(FILE);
-                    FileAttributeDefinitions.RELATIVE_TO.marshallAsAttribute(keyStore, writer);
-                    FileAttributeDefinitions.PATH.marshallAsAttribute(keyStore, writer);
-                    KeyStoreDefinition.REQUIRED.marshallAsAttribute(keyStore, writer);
+            ModelNode keystores = subsystem.get(KEY_STORE);
+            if (keystores.isDefined()) {
+                for (String name : keystores.keys()) {
+                    ModelNode keyStore = keystores.require(name);
+                    writer.writeStartElement(KEY_STORE);
+                    writer.writeAttribute(NAME, name);
+                    KeyStoreDefinition.TYPE.marshallAsAttribute(keyStore, writer);
+                    KeyStoreDefinition.PROVIDER.marshallAsAttribute(keyStore, writer);
+                    KeyStoreDefinition.PROVIDER_LOADER.marshallAsAttribute(keyStore, writer);
+                    KeyStoreDefinition.PASSWORD.marshallAsAttribute(keyStore, writer);
+                    KeyStoreDefinition.ALIAS_FILTER.marshallAsAttribute(keyStore, writer);
 
+                    if (keyStore.hasDefined(PATH)) {
+                        writer.writeStartElement(FILE);
+                        FileAttributeDefinitions.RELATIVE_TO.marshallAsAttribute(keyStore, writer);
+                        FileAttributeDefinitions.PATH.marshallAsAttribute(keyStore, writer);
+                        KeyStoreDefinition.REQUIRED.marshallAsAttribute(keyStore, writer);
+
+                        writer.writeEndElement();
+                    }
                     writer.writeEndElement();
                 }
-                writer.writeEndElement();
+            }
+
+            ModelNode ldapKeystores = subsystem.get(LDAP_KEY_STORE);
+            if (ldapKeystores.isDefined()) {
+                for (String name : ldapKeystores.keys()) {
+                    ModelNode keyStore = ldapKeystores.require(name);
+                    writer.writeStartElement(LDAP_KEY_STORE);
+                    writer.writeAttribute(NAME, name);
+                    LdapKeyStoreDefinition.DIR_CONTEXT.marshallAsAttribute(keyStore, writer);
+                    LdapKeyStoreDefinition.SEARCH_PATH.marshallAsAttribute(keyStore, writer);
+                    LdapKeyStoreDefinition.SEARCH_RECURSIVE.marshallAsAttribute(keyStore, writer);
+                    LdapKeyStoreDefinition.SEARCH_TIME_LIMIT.marshallAsAttribute(keyStore, writer);
+                    LdapKeyStoreDefinition.FILTER_ALIAS.marshallAsAttribute(keyStore, writer);
+                    LdapKeyStoreDefinition.FILTER_CERTIFICATE.marshallAsAttribute(keyStore, writer);
+                    LdapKeyStoreDefinition.FILTER_ITERATE.marshallAsAttribute(keyStore, writer);
+
+                    if (keyStore.hasDefined(NEW_ITEM_PATH)) {
+                        writer.writeStartElement(NEW_ITEM_TEMPLATE);
+                        LdapKeyStoreDefinition.NEW_ITEM_PATH.marshallAsAttribute(keyStore, writer);
+                        LdapKeyStoreDefinition.NEW_ITEM_RDN.marshallAsAttribute(keyStore, writer);
+
+                        ModelNode newItemAttributes = keyStore.get(NEW_ITEM_ATTRIBUTES);
+                        if (newItemAttributes.isDefined()) {
+                            for (ModelNode newItemAttribute : newItemAttributes.asList()) {
+                                writer.writeStartElement(ATTRIBUTE);
+                                LdapKeyStoreDefinition.NewItemTemplateAttributeObjectDefinition.NAME.marshallAsAttribute(newItemAttribute, writer);
+                                LdapKeyStoreDefinition.NewItemTemplateAttributeObjectDefinition.VALUE.getAttributeMarshaller().marshallAsAttribute(LdapKeyStoreDefinition.NewItemTemplateAttributeObjectDefinition.VALUE, newItemAttribute, false, writer);
+                                writer.writeEndElement();
+                            }
+                        }
+                        writer.writeEndElement();
+                    }
+
+                    if (hasDefinedAny(keyStore, new String[]{
+                            ALIAS_ATTRIBUTE,
+                            CERTIFICATE_ATTRIBUTE, CERTIFICATE_TYPE,
+                            CERTIFICATE_CHAIN_ATTRIBUTE, CERTIFICATE_CHAIN_ENCODING,
+                            KEY_ATTRIBUTE, KEY_TYPE
+                    })) {
+                        writer.writeStartElement(LDAP_MAPPING);
+                        LdapKeyStoreDefinition.ALIAS_ATTRIBUTE.marshallAsAttribute(keyStore, writer);
+                        LdapKeyStoreDefinition.CERTIFICATE_ATTRIBUTE.marshallAsAttribute(keyStore, writer);
+                        LdapKeyStoreDefinition.CERTIFICATE_TYPE.marshallAsAttribute(keyStore, writer);
+                        LdapKeyStoreDefinition.CERTIFICATE_CHAIN_ATTRIBUTE.marshallAsAttribute(keyStore, writer);
+                        LdapKeyStoreDefinition.CERTIFICATE_CHAIN_ENCODING.marshallAsAttribute(keyStore, writer);
+                        LdapKeyStoreDefinition.KEY_ATTRIBUTE.marshallAsAttribute(keyStore, writer);
+                        LdapKeyStoreDefinition.KEY_TYPE.marshallAsAttribute(keyStore, writer);
+                        writer.writeEndElement();
+                    }
+                    writer.writeEndElement();
+                }
             }
 
             writer.writeEndElement();
@@ -653,5 +854,11 @@ class TlsParser {
         return false;
     }
 
+    private boolean hasDefinedAny(ModelNode node, String[] keys) {
+        for (String key : keys) {
+            if (node.hasDefined(key)) return true;
+        }
+        return false;
+    }
 
 }

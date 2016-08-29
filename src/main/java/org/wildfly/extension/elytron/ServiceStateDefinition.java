@@ -41,7 +41,7 @@ class ServiceStateDefinition {
      * Populate the supplied response {@link ModelNode} with information about the supplied {@link ServiceController}
      *
      * @param response the response to populate.
-     * @param provider the {@link ServiceController} to use when populating the response.
+     * @param serviceController the {@link ServiceController} to use when populating the response.
      */
     static void populateResponse(final ModelNode response, final ServiceController<?> serviceController) {
         response.set(serviceController.getState().toString());

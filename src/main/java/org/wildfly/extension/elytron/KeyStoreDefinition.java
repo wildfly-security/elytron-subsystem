@@ -76,7 +76,7 @@ import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.ServiceTarget;
 import org.wildfly.extension.elytron.KeyStoreService.LoadKey;
 /**
- * A {@link ResourceDefinition} for a single KeyStore.
+ * A {@link ResourceDefinition} for a single {@link KeyStore}.
  *
  * @author <a href="mailto:darran.lofthouse@jboss.com">Darran Lofthouse</a>
  */

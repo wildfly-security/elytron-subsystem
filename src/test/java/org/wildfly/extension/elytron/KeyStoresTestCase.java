@@ -24,6 +24,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.KeyStore;
 import java.security.cert.Certificate;
+import java.security.cert.X509Certificate;
 import java.util.List;
 
 import org.jboss.as.controller.client.helpers.ClientConstants;
@@ -71,15 +72,18 @@ public class KeyStoresTestCase extends AbstractSubsystemTest {
 
         Assert.assertTrue(keyStore.containsAlias("firefly"));
         Assert.assertTrue(keyStore.isKeyEntry("firefly"));
-        Assert.assertEquals(2, keyStore.getCertificateChain("firefly").length); // has CA in chain
-        Certificate cert = keyStore.getCertificate("firefly");
-        Assert.assertNotNull(cert);
+        X509Certificate cert = (X509Certificate) keyStore.getCertificate("firefly");
+        Assert.assertEquals("OU=Elytron, O=Elytron, C=UK, ST=Elytron, CN=Firefly", cert.getSubjectDN().getName());
         Assert.assertEquals("firefly", keyStore.getCertificateAlias(cert));
+
+        Certificate[] chain = keyStore.getCertificateChain("firefly");
+        Assert.assertEquals("OU=Elytron, O=Elytron, C=UK, ST=Elytron, CN=Firefly", ((X509Certificate) chain[0]).getSubjectDN().getName());
+        Assert.assertEquals("O=Root Certificate Authority, EMAILADDRESS=elytron@wildfly.org, C=UK, ST=Elytron, CN=Elytron CA", ((X509Certificate) chain[1]).getSubjectDN().getName());
 
         Assert.assertTrue(keyStore.containsAlias("ca"));
         Assert.assertTrue(keyStore.isCertificateEntry("ca"));
-        Certificate certCa = keyStore.getCertificate("ca");
-        Assert.assertNotNull(certCa);
+        X509Certificate certCa = (X509Certificate) keyStore.getCertificate("ca");
+        Assert.assertEquals("O=Root Certificate Authority, EMAILADDRESS=elytron@wildfly.org, C=UK, ST=Elytron, CN=Elytron CA", certCa.getSubjectDN().getName());
         Assert.assertEquals("ca", keyStore.getCertificateAlias(certCa));
     }
 

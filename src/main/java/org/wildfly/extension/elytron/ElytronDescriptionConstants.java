@@ -37,6 +37,7 @@ interface ElytronDescriptionConstants {
     String AGGREGATE_ROLE_MAPPER = "aggregate-role-mapper";
     String AGGREGATE_SASL_SERVER_FACTORY = "aggregate-sasl-server-factory";
     String ALIAS = "alias";
+    String ALIAS_ATTRIBUTE = "alias-attribute";
     String ALIAS_FILTER = "alias-filter";
     String ALGORITHM = "algorithm";
     String ALGORITHM_FROM = "algorithm-from";
@@ -57,8 +58,11 @@ interface ElytronDescriptionConstants {
     String BCRYPT_MAPPER = "bcrypt-mapper";
 
     String CERTIFICATE = "certificate";
+    String CERTIFICATE_ATTRIBUTE = "certificate-attribute";
     String CERTIFICATE_CHAIN = "certificate-chain";
-    String CERTIFICATES = "certificates";
+    String CERTIFICATE_CHAIN_ATTRIBUTE = "certificate-chain-attribute";
+    String CERTIFICATE_CHAIN_ENCODING = "certificate-chain-encoding";
+    String CERTIFICATE_TYPE = "certificate-type";
     String CHAINED_NAME_REWRITER = "chained-name-rewriter";
     String CIPHER_SUITE = "cipher-suite";
     String CIPHER_SUITE_FILTER = "cipher-suite-filter";
@@ -107,7 +111,6 @@ interface ElytronDescriptionConstants {
     String DIR_CONTEXTS = "dir-contexts";
     String DIRECT_VERIFICATION = "direct-verification";
 
-    String EMPTY = "empty";
     String EMPTY_ROLE_DECODER = "empty-role-decoder";
     String ENABLE_CONNECTION_POOLING = "enable-connection-pooling";
     String ENABLING = "enabling";
@@ -117,7 +120,10 @@ interface ElytronDescriptionConstants {
     String FILE = "file";
     String FILESYSTEM_REALM = "filesystem-realm";
     String FILTER = "filter";
+    String FILTER_ALIAS = "filter-alias";
     String FILTER_BASE_DN = "filter-base-dn";
+    String FILTER_CERTIFICATE = "filter-certificate";
+    String FILTER_ITERATE = "filter-iterate";
     String FILTERS = "filters";
     String FINAL_NAME_REWRITER = "final-name-rewriter";
     String FINGER_PRINT = "finger-print";
@@ -148,13 +154,14 @@ interface ElytronDescriptionConstants {
     String ITERATION_COUNT = "iteration-count";
     String ITERATION_COUNT_INDEX = "iteration-count-index";
     String ITERATOR_FILTER = "iterator-filter";
-    String ITERATOR_FILTER_ARGS = "iterator-filter-args";
 
     String JDBC_REALM = "jdbc-realm";
     String JOINER = "joiner";
 
     String KERBEROS_SECURITY_FACTORY = "kerberos-security-factory";
     String KEY = "key";
+    String KEY_ATTRIBUTE = "key-attribute";
+    String KEY_TYPE = "key-type";
     String KEY_MANAGER = "key-manager";
     String KEY_MANAGERS = "key-managers";
     String KEY_STORE = "key-store";
@@ -162,6 +169,8 @@ interface ElytronDescriptionConstants {
     String KEY_STORES = "key-stores";
 
     String LAST_ACCESSED_TIME = "last-accessed-time";
+    String LDAP_KEY_STORE = "ldap-key-store";
+    String LDAP_MAPPING = "ldap-mapping";
     String LDAP_REALM = "ldap-realm";
     String LEFT = "left";
     String LESS_THAN = "less-than";
@@ -196,7 +205,6 @@ interface ElytronDescriptionConstants {
     String MODIFIABLE_SECURITY_REALM = "modifiable-security-realm";
     String MODIFIED = "modified";
     String MODULE = "module";
-    String MODULE_REFERENCE = "module-reference";
 
     String NAME = "name";
     String NAME_REWRITER = "name-rewriter";
@@ -204,6 +212,10 @@ interface ElytronDescriptionConstants {
     String NEED_CLIENT_AUTH = "need-client-auth";
     String NEW_IDENTITY_ATTRIBUTES = "new-identity-attributes";
     String NEW_IDENTITY_PARENT_DN = "new-identity-parent-dn";
+    String NEW_ITEM_ATTRIBUTES = "new-item-attributes";
+    String NEW_ITEM_TEMPLATE = "new-item-template";
+    String NEW_ITEM_PATH = "new-item-path";
+    String NEW_ITEM_RDN = "new-item-rdn";
     String NOT_AFTER = "not-after";
     String NOT_BEFORE = "not-before";
 
@@ -287,7 +299,11 @@ interface ElytronDescriptionConstants {
     String SASL_SERVER_FACTORIES = "sasl-server-factories";
     String SASL_SERVER_FACTORY = "sasl-server-factory";
     String SCRAM_MAPPER = "scram-mapper";
+    String SEARCH = "search";
     String SEARCH_BASE_DN = "search-base-dn";
+    String SEARCH_PATH = "search-path";
+    String SEARCH_RECURSIVE = "search-recursive";
+    String SEARCH_TIME_LIMIT = "search-time-limit";
     String SECURITY_DOMAIN = "security-domain";
     String SECURITY_DOMAINS = "security-domains";
     String SECURITY_PROPERTIES = "security-properties";

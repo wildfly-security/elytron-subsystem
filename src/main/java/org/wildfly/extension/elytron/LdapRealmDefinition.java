@@ -318,7 +318,7 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
     static final SimpleAttributeDefinition DIR_CONTEXT = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.DIR_CONTEXT, ModelType.STRING, false)
             .setAllowExpression(true)
             .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
-            .setCapabilityReference(DIR_CONTEXT_CAPABILITY, SECURITY_REALM_CAPABILITY, true) // or MODIFIABLE_SECURITY_REALM_CAPABILITY ?
+            .setCapabilityReference(DIR_CONTEXT_CAPABILITY, SECURITY_REALM_CAPABILITY, true)
             .build();
 
     static final SimpleAttributeDefinition DIRECT_VERIFICATION = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.DIRECT_VERIFICATION, ModelType.BOOLEAN, true)
@@ -482,11 +482,11 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
                     ModelNode valuesNode = NewIdentityAttributeObjectDefinition.VALUE.resolveModelAttribute(context, attributeNode);
 
                     if (valuesNode.getType() == ModelType.LIST) {
-                        BasicAttribute objectClass = new BasicAttribute(nameNode.asString());
+                        BasicAttribute listAttribute = new BasicAttribute(nameNode.asString());
                         for (ModelNode valueNode : valuesNode.asList()) {
-                            objectClass.add(valueNode.asString());
+                            listAttribute.add(valueNode.asString());
                         }
-                        attributes.put(objectClass);
+                        attributes.put(listAttribute);
                     } else {
                         attributes.put(new BasicAttribute(nameNode.asString(), valuesNode.asString()));
                     }
