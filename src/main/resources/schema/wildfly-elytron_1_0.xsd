@@ -781,7 +781,7 @@
                 The configuration options that define how principals are mapped to their corresponding entries in the underlying LDAP server.
             </xs:documentation>
         </xs:annotation>
-        <xs:all>
+        <xs:sequence>
             <xs:element name="attribute-mapping" type="ldapAttributeMappingType" minOccurs="0" maxOccurs="unbounded">
                 <xs:annotation>
                     <xs:documentation>
@@ -810,7 +810,7 @@
                     </xs:documentation>
                 </xs:annotation>
             </xs:element>
-        </xs:all>
+        </xs:sequence>
         <xs:attribute name="rdn-identifier" type="xs:string" use="required">
             <xs:annotation>
                 <xs:documentation>
