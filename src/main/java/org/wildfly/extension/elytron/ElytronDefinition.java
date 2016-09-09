@@ -159,6 +159,7 @@ class ElytronDefinition extends SimpleResourceDefinition {
         // TLS Building Blocks
         resourceRegistration.registerSubModel(new KeyStoreDefinition());
         resourceRegistration.registerSubModel(new LdapKeyStoreDefinition());
+        resourceRegistration.registerSubModel(new FilteringKeyStoreDefinition());
         resourceRegistration.registerSubModel(SSLDefinitions.getKeyManagerDefinition());
         resourceRegistration.registerSubModel(SSLDefinitions.getTrustManagerDefinition());
         resourceRegistration.registerSubModel(SSLDefinitions.getServerSSLContextDefinition());

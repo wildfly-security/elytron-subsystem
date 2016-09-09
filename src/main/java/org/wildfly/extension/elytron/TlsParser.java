@@ -369,6 +369,8 @@ class TlsParser {
                 readKeyStore(parentAddress, reader, operations);
             } else if (LDAP_KEY_STORE.equals(localName)) {
                 readLdapKeyStore(parentAddress, reader, operations);
+            } else if (FILTERING_KEY_STORE.equals(localName)) {
+                readFilteringKeyStore(parentAddress, reader, operations);
             } else {
                 throw unexpectedElement(reader);
             }
@@ -639,6 +641,46 @@ class TlsParser {
         requireNoContent(reader);
     }
 
+    private void readFilteringKeyStore(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> list) throws XMLStreamException {
+        ModelNode addKeyStore = new ModelNode();
+        addKeyStore.get(OP).set(ADD);
+        Set<String> requiredAttributes = new HashSet<String>(Arrays.asList(new String[] { NAME, KEY_STORE, ALIAS_FILTER }));
+        String name = null;
+
+        final int count = reader.getAttributeCount();
+        for (int i = 0; i < count; i++) {
+            final String value = reader.getAttributeValue(i);
+            if (!isNoNamespaceAttribute(reader, i)) {
+                throw unexpectedAttribute(reader, i);
+            } else {
+                String attribute = reader.getAttributeLocalName(i);
+                requiredAttributes.remove(attribute);
+                switch (attribute) {
+                    case NAME:
+                        name = value;
+                        break;
+                    case KEY_STORE:
+                        FilteringKeyStoreDefinition.KEY_STORE.parseAndSetParameter(value, addKeyStore, reader);
+                        break;
+                    case ALIAS_FILTER:
+                        FilteringKeyStoreDefinition.ALIAS_FILTER.parseAndSetParameter(value, addKeyStore, reader);
+                        break;
+                    default:
+                        throw unexpectedAttribute(reader, i);
+                }
+            }
+        }
+
+        if (requiredAttributes.isEmpty() == false) {
+            throw missingRequired(reader, requiredAttributes);
+        }
+
+        addKeyStore.get(OP_ADDR).set(parentAddress).add(FILTERING_KEY_STORE, name);
+        list.add(addKeyStore);
+
+        requireNoContent(reader);
+    }
+
     private void startTLS(boolean started, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (started == false) {
             writer.writeStartElement(TLS);
@@ -768,7 +810,7 @@ class TlsParser {
     }
 
     private boolean writeKeyStores(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
-        if (subsystem.hasDefined(KEY_STORE) || subsystem.hasDefined(LDAP_KEY_STORE)) {
+        if (subsystem.hasDefined(KEY_STORE) || subsystem.hasDefined(LDAP_KEY_STORE) || subsystem.hasDefined(FILTERING_KEY_STORE)) {
             startTLS(started, writer);
             writer.writeStartElement(KEY_STORES);
 
@@ -792,7 +834,7 @@ class TlsParser {
 
                         writer.writeEndElement();
                     }
-                    writer.writeEndElement();
+                    writer.writeEndElement(); // end of KEY_STORE
                 }
             }
 
@@ -843,14 +885,25 @@ class TlsParser {
                         LdapKeyStoreDefinition.KEY_TYPE.marshallAsAttribute(keyStore, writer);
                         writer.writeEndElement();
                     }
-                    writer.writeEndElement();
+                    writer.writeEndElement(); // end of LDAP_KEY_STORE
                 }
             }
 
-            writer.writeEndElement();
+            ModelNode filteringKeystores = subsystem.get(FILTERING_KEY_STORE);
+            if (filteringKeystores.isDefined()) {
+                for (String name : filteringKeystores.keys()) {
+                    ModelNode keyStore = filteringKeystores.require(name);
+                    writer.writeStartElement(FILTERING_KEY_STORE);
+                    writer.writeAttribute(NAME, name);
+                    FilteringKeyStoreDefinition.KEY_STORE.marshallAsAttribute(keyStore, writer);
+                    FilteringKeyStoreDefinition.ALIAS_FILTER.marshallAsAttribute(keyStore, writer);
+                    writer.writeEndElement(); // end of FILTERING_KEY_STORE
+                }
+            }
+
+            writer.writeEndElement(); // end of KEY_STORES
             return true;
         }
-
         return false;
     }
 

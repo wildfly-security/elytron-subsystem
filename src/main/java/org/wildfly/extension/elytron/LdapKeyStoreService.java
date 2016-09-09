@@ -41,7 +41,7 @@ import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.RO
  *
  * @author <a href="mailto:jkalina@redhat.com">Jan Kalina</a>
  */
-class LdapKeyStoreService implements Service<KeyStore> {
+class LdapKeyStoreService implements ModifiableKeyStoreService {
 
     private final InjectedValue<ExceptionSupplier> dirContextSupplierInjector = new InjectedValue<>();
 
@@ -135,7 +135,7 @@ class LdapKeyStoreService implements Service<KeyStore> {
         return unmodifiableKeyStore;
     }
 
-    KeyStore getModifiableValue() {
+    public KeyStore getModifiableValue() {
         return modifiableKeyStore;
     }
 }

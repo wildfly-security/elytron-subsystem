@@ -24,6 +24,7 @@ import static org.wildfly.extension.elytron.CertificateChainAttributeDefinitions
 import static org.wildfly.extension.elytron.CertificateChainAttributeDefinitions.writeCertificate;
 import static org.wildfly.extension.elytron.CertificateChainAttributeDefinitions.writeCertificates;
 import static org.wildfly.extension.elytron.ElytronExtension.ISO_8601_FORMAT;
+import static org.wildfly.extension.elytron.ElytronExtension.getRequiredService;
 import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
 
 import java.security.KeyStore;
@@ -37,6 +38,8 @@ import java.security.cert.CertificateEncodingException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import org.jboss.as.controller.AbstractRuntimeOnlyHandler;
+import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
 import org.jboss.as.controller.PathAddress;
 import org.jboss.as.controller.PathElement;
@@ -48,6 +51,8 @@ import org.jboss.as.controller.registry.ManagementResourceRegistration;
 import org.jboss.as.controller.registry.OperationEntry;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
+import org.jboss.msc.service.ServiceController;
+import org.jboss.msc.service.ServiceName;
 import org.wildfly.extension.elytron.KeyStoreDefinition.KeyStoreRuntimeOnlyHandler;
 import org.wildfly.security.keystore.PasswordEntry;
 
@@ -57,6 +62,8 @@ import org.wildfly.security.keystore.PasswordEntry;
  * @author <a href="mailto:darran.lofthouse@jboss.com">Darran Lofthouse</a>
  */
 class KeyStoreAliasDefinition extends SimpleResourceDefinition {
+
+    private final ServiceUtil<KeyStore> keyStoreServiceUtil;
 
     static final SimpleAttributeDefinition CREATION_DATE = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.CREATION_DATE, ModelType.STRING)
         .setStorageRuntime()
@@ -68,20 +75,21 @@ class KeyStoreAliasDefinition extends SimpleResourceDefinition {
                           SecretKeyEntry.class.getSimpleName(), TrustedCertificateEntry.class.getSimpleName(), "Other")
         .build();
 
-    KeyStoreAliasDefinition() {
+    KeyStoreAliasDefinition(final ServiceUtil<KeyStore> keyStoreServiceUtil) {
         super(new Parameters(PathElement.pathElement(ElytronDescriptionConstants.ALIAS), ElytronExtension.getResourceDescriptionResolver(ElytronDescriptionConstants.KEY_STORE, ElytronDescriptionConstants.ALIAS))
-            .setRemoveHandler(new RemoveHandler())
+            .setRemoveHandler(new RemoveHandler(keyStoreServiceUtil))
             .setAddRestartLevel(OperationEntry.Flag.RESTART_NONE)
             .setRemoveRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
             .setRuntime());
+        this.keyStoreServiceUtil = keyStoreServiceUtil;
     }
 
     @Override
     public void registerAttributes(ManagementResourceRegistration resourceRegistration) {
-        resourceRegistration.registerReadOnlyAttribute(CREATION_DATE, new KeyStoreRuntimeOnlyHandler(false) {
+        resourceRegistration.registerReadOnlyAttribute(CREATION_DATE, new KeyStoreRuntimeOnlyHandler(false, false, keyStoreServiceUtil) {
 
             @Override
-            protected void performRuntime(ModelNode result, ModelNode operation, KeyStoreService keyStoreService) throws OperationFailedException {
+            protected void performRuntime(ModelNode result, ModelNode operation, ModifiableKeyStoreService keyStoreService) throws OperationFailedException {
                 SimpleDateFormat sdf = new SimpleDateFormat(ISO_8601_FORMAT);
 
                 String alias = alias(operation);
@@ -100,10 +108,10 @@ class KeyStoreAliasDefinition extends SimpleResourceDefinition {
             }
         });
 
-        resourceRegistration.registerReadOnlyAttribute(ENTRY_TYPE, new KeyStoreRuntimeOnlyHandler(false) {
+        resourceRegistration.registerReadOnlyAttribute(ENTRY_TYPE, new KeyStoreRuntimeOnlyHandler(false, false, keyStoreServiceUtil) {
 
             @Override
-            protected void performRuntime(ModelNode result, ModelNode operation, KeyStoreService keyStoreService)
+            protected void performRuntime(ModelNode result, ModelNode operation, ModifiableKeyStoreService keyStoreService)
                     throws OperationFailedException {
                 KeyStore keyStore = keyStoreService.getValue();
                 String alias = alias(operation);
@@ -127,10 +135,10 @@ class KeyStoreAliasDefinition extends SimpleResourceDefinition {
             }
         });
 
-        resourceRegistration.registerReadOnlyAttribute(CERTIFICATE, new KeyStoreRuntimeOnlyHandler(false) {
+        resourceRegistration.registerReadOnlyAttribute(CERTIFICATE, new KeyStoreRuntimeOnlyHandler(false, false, keyStoreServiceUtil) {
 
             @Override
-            protected void performRuntime(ModelNode result, ModelNode operation, KeyStoreService keyStoreService) throws OperationFailedException {
+            protected void performRuntime(ModelNode result, ModelNode operation, ModifiableKeyStoreService keyStoreService) throws OperationFailedException {
                 String alias = alias(operation);
 
                 KeyStore keyStore = keyStoreService.getValue();
@@ -149,10 +157,10 @@ class KeyStoreAliasDefinition extends SimpleResourceDefinition {
             }
         });
 
-        resourceRegistration.registerReadOnlyAttribute(getNamedCertificateList(ElytronDescriptionConstants.CERTIFICATE_CHAIN), new KeyStoreRuntimeOnlyHandler(false) {
+        resourceRegistration.registerReadOnlyAttribute(getNamedCertificateList(ElytronDescriptionConstants.CERTIFICATE_CHAIN), new KeyStoreRuntimeOnlyHandler(false, false, keyStoreServiceUtil) {
 
             @Override
-            protected void performRuntime(ModelNode result, ModelNode operation, KeyStoreService keyStoreService) throws OperationFailedException {
+            protected void performRuntime(ModelNode result, ModelNode operation, ModifiableKeyStoreService keyStoreService) throws OperationFailedException {
                 String alias = alias(operation);
 
                 KeyStore keyStore = keyStoreService.getValue();
@@ -189,14 +197,50 @@ class KeyStoreAliasDefinition extends SimpleResourceDefinition {
         return aliasName;
     }
 
-    private static class RemoveHandler extends KeyStoreRuntimeOnlyHandler {
+    abstract static class KeyStoreRuntimeOnlyHandler extends AbstractRuntimeOnlyHandler {
 
-        RemoveHandler() {
-            super(true, true);
+        private final boolean serviceMustBeUp;
+        private final boolean writeAccess;
+        private final ServiceUtil<KeyStore> keyStoreServiceUtil;
+
+        KeyStoreRuntimeOnlyHandler(final boolean serviceMustBeUp, final boolean writeAccess, final ServiceUtil<KeyStore> keyStoreServiceUtil) {
+            this.serviceMustBeUp = serviceMustBeUp;
+            this.writeAccess = writeAccess;
+            this.keyStoreServiceUtil = keyStoreServiceUtil;
         }
 
         @Override
-        protected void performRuntime(ModelNode result, ModelNode operation, KeyStoreService keyStoreService) throws OperationFailedException {
+        protected void executeRuntimeStep(OperationContext context, ModelNode operation) throws OperationFailedException {
+            ServiceName serviceName = keyStoreServiceUtil.serviceName(operation);
+
+            ServiceController<KeyStore> serviceContainer = getRequiredService(context.getServiceRegistry(writeAccess), serviceName, KeyStore.class);
+            ServiceController.State serviceState;
+            if ((serviceState = serviceContainer.getState()) != ServiceController.State.UP) {
+                if (serviceMustBeUp) {
+                    throw ROOT_LOGGER.requiredServiceNotUp(serviceName, serviceState);
+                }
+                return;
+            }
+
+            performRuntime(context.getResult(), context, operation, (ModifiableKeyStoreService) serviceContainer.getService());
+        }
+
+        protected void performRuntime(ModelNode result, ModelNode operation,  ModifiableKeyStoreService keyStoreService) throws OperationFailedException {}
+
+        protected void performRuntime(ModelNode result, OperationContext context, ModelNode operation,  ModifiableKeyStoreService keyStoreService) throws OperationFailedException {
+            performRuntime(result, operation, keyStoreService);
+        }
+
+    }
+
+    private static class RemoveHandler extends KeyStoreRuntimeOnlyHandler {
+
+        RemoveHandler(final ServiceUtil<KeyStore> keyStoreServiceUtil) {
+            super(true, true, keyStoreServiceUtil);
+        }
+
+        @Override
+        protected void performRuntime(ModelNode result, ModelNode operation, ModifiableKeyStoreService keyStoreService) throws OperationFailedException {
             String alias = alias(operation);
 
             KeyStore keyStore = keyStoreService.getModifiableValue();

@@ -49,7 +49,6 @@ interface ElytronDescriptionConstants {
     String ATTRIBUTES = "attributes";
     String AUTHENTICATION_LEVEL = "authentication-level";
     String AUTHENTICATION_OPTIONAL = "authentication-optional";
-    String AUTHENTICATION_QUERY = "authentication-query";
     String AUTHENTICATION_REALM = "authentication-realm";
     String AUTHORIZATION_REALM = "authorization-realm";
     String AVAILABLE_MECHANISMS = "available-mechanisms";
@@ -87,8 +86,6 @@ interface ElytronDescriptionConstants {
     String CREATION_DATE = "creation-date";
     String CREATION_TIME = "creation-time";
     String CREDENTIAL = "credential";
-    String CREDENTIAL_MAPPING = "credential-mapping";
-    String CREDENTIAL_NAME = "credential-name";
     String CREDENTIAL_SECURITY_FACTORIES = "credential-security-factories";
     String CREDENTIAL_SECURITY_FACTORY = "credential-security-factory";
     String CREDENTIALS = "credentials";
@@ -124,6 +121,7 @@ interface ElytronDescriptionConstants {
     String FILTER_BASE_DN = "filter-base-dn";
     String FILTER_CERTIFICATE = "filter-certificate";
     String FILTER_ITERATE = "filter-iterate";
+    String FILTERING_KEY_STORE = "filtering-key-store";
     String FILTERS = "filters";
     String FINAL_NAME_REWRITER = "final-name-rewriter";
     String FINGER_PRINT = "finger-print";
@@ -339,8 +337,6 @@ interface ElytronDescriptionConstants {
     String STORE = "store";
     String SUBJECT = "subject";
     String SUFFIX = "suffix";
-    String SUPPORTED_CREDENTIAL = "supported-credential";
-    String SUPPORTED_CREDENTIALS = "supported-credentials";
     String SYNCHRONIZED = "synchronized";
 
     String TARGET_NAME = "target-name";
@@ -364,11 +360,9 @@ interface ElytronDescriptionConstants {
     String VERSION_COMPARISON = "version-comparison";
 
     String WANT_CLIENT_AUTH = "want-client-auth";
-    String WATCH = "watch";
     String WRITABLE = "writable";
 
     String X500_ATTRIBUTE_PRINCIPAL_DECODER = "x500-attribute-principal-decoder";
     String XOR = "xor";
 
 }
-

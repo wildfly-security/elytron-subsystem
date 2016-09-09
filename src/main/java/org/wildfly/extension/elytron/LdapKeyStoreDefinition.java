@@ -246,7 +246,7 @@ final class LdapKeyStoreDefinition extends SimpleResourceDefinition {
 
     @Override
     public void registerChildren(ManagementResourceRegistration resourceRegistration) {
-        resourceRegistration.registerSubModel(new LdapKeyStoreAliasDefinition());
+        resourceRegistration.registerSubModel(new KeyStoreAliasDefinition(LDAP_KEY_STORE_UTIL));
     }
 
     private static class KeyStoreAddHandler extends BaseAddHandler {

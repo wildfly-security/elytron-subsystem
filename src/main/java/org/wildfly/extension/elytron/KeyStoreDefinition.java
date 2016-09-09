@@ -237,7 +237,7 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
 
     @Override
     public void registerChildren(ManagementResourceRegistration resourceRegistration) {
-        resourceRegistration.registerSubModel(new KeyStoreAliasDefinition());
+        resourceRegistration.registerSubModel(new KeyStoreAliasDefinition(KEY_STORE_UTIL));
     }
 
     private static class KeyStoreAddHandler extends BaseAddHandler {

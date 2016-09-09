@@ -11,6 +11,7 @@
             <key-store name="ElytronCaTruststore" type="JKS" password="Elytron">
                 <file path="target/test-classes/org/wildfly/extension/elytron/ca.truststore"/>
             </key-store>
+            <filtering-key-store name="FilteringKeyStore" key-store="FireflyKeystore" alias-filter="NONE:+firefly"/>
         </key-stores>
         <key-managers>
             <key-manager name="ServerKeyManager" algorithm="SunX509" key-store="LocalhostKeystore" password="Elytron"/>

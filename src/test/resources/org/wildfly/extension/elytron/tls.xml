@@ -12,6 +12,7 @@
                 <file relative-to="jboss.server.config.dir" path="keystore.jceks" />
             </key-store>
             <key-store name="Custom_PKCS_11" type="PKCS#11" provider="SunPKCS#11" provider-loader="custom-loader" password="password" />
+            <filtering-key-store name="FilteringKeyStore" key-store="FireflyKeystore" alias-filter="NONE:+firefly"/>
         </key-stores>
         <key-managers>
             <key-manager name="serverKey" algorithm="SunX509" key-store="jks_store" password="password" />
