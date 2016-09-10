@@ -1,5 +1,10 @@
 <!-- for needs of SaslTestCase and KeyStoresTestCase -->
 <subsystem xmlns="urn:wildfly:elytron:1.0">
+    <provider-loaders>
+        <provider-loader name="ManagerProviderLoader">
+            <provider class-names="com.sun.net.ssl.internal.ssl.Provider"/>
+        </provider-loader>
+    </provider-loaders>
     <tls>
         <key-stores>
             <key-store name="FireflyKeystore" type="JKS" password="Elytron">
@@ -16,9 +21,11 @@
         <key-managers>
             <key-manager name="ServerKeyManager" algorithm="SunX509" key-store="LocalhostKeystore" password="Elytron"/>
             <key-manager name="ClientKeyManager" algorithm="SunX509" key-store="FireflyKeystore" password="Elytron"/>
+            <key-manager name="MyKeyManager" algorithm="SunX509" key-store="FireflyKeystore" password="Elytron" provider-loader="ManagerProviderLoader" provider="SunJSSE"/>
         </key-managers>
         <trust-managers>
             <trust-manager name="CaTrustManager" algorithm="SunX509" key-store="ElytronCaTruststore"/>
+            <trust-manager name="MyTrustManager" algorithm="SunX509" key-store="ElytronCaTruststore" provider-loader="ManagerProviderLoader" provider="SunJSSE"/>
         </trust-managers>
         <server-ssl-contexts>
             <server-ssl-context name="ServerSslContextNoAuth" key-managers="ServerKeyManager" trust-managers="CaTrustManager"/>
