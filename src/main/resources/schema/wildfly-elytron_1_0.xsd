@@ -334,6 +334,7 @@
             <xs:element name="properties-realm" type="propertiesRealmType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="ldap-realm" type="ldapRealmType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="filesystem-realm" type="fileSystemRealmType" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="token-realm" type="tokenRealmType" minOccurs="0" maxOccurs="unbounded" />
         </xs:choice>
     </xs:complexType>
 
@@ -707,6 +708,101 @@
         </xs:complexContent>
     </xs:complexType>
 
+    <xs:complexType name="tokenRealmType">
+        <xs:annotation>
+            <xs:documentation>
+                Realm definition for a token realm where authenticaton and authorization are handled by
+                a given token validator.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="realmType">
+                <xs:choice>
+                    <xs:element name="jwt" type="jwtTokenRealmValidatorType"/>
+                    <xs:element name="oauth2-introspection" type="oauth2IntrospectionTokenRealmValidatorType"/>
+                </xs:choice>
+                <xs:attribute name="principal-claim" type="xs:string" use="optional">
+                    <xs:annotation>
+                        <xs:documentation>
+                            The name of the claim that should be used to obtain the principal's name. Defaults to 'username'.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="jwtTokenRealmValidatorType">
+        <xs:annotation>
+            <xs:documentation>
+                A token validator to be used in conjunction with a token-based realm that handles security tokens based on the JWT/JWS standard.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="issuer" type="stringListType" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    A list of strings representing the issuers supported by this configuration. During validation JWT tokens must have an <code>iss</code> claim that contains one of the values defined here.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="audience" type="stringListType" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    A list of strings representing the audiences supported by this configuration. During validation JWT tokens must have an <code>aud</code> claim that contains one of the values defined here.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="public-key" type="xs:string" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    A public key in PEM Format. During validation, if a public key is provided, signature will be verified based on the key you provided here.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="oauth2IntrospectionTokenRealmValidatorType">
+        <xs:annotation>
+            <xs:documentation>
+                A token validator to be used in conjunction with a token-based realm that handles OAuth2 Access Tokens and validate them based on RFC-7662 (OAuth2 Token Introspection).
+            </xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="client-id" type="xs:string" use="required">
+            <xs:annotation>
+                <xs:documentation>
+                    The identifier of a client registered within the OAuth2 Authorization Server that will be used to authenticate this server in order to validate bearer tokens arriving to this server.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="client-secret" type="stringListType" use="required">
+            <xs:annotation>
+                <xs:documentation>
+                    The secret of the client identified by the given client-id.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="introspection-url" type="xs:string" use="required">
+            <xs:annotation>
+                <xs:documentation>
+                    An URL pointing to a RFC-7662 OAuth2 Token Introspection compatible endpoint.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="client-ssl-context" type="xs:string" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    A predefined client-ssl-context that will be used to connect to the token introspection endpoint when using SSL/TLS. This configuration is mandatory if the given token introspection url is using SSL/TLS.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="host-name-verification-policy" type="xs:string" use="optional" default="ANY">
+            <xs:annotation>
+                <xs:documentation>
+                    A policy that defines how host names should be verified when using HTTPS.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:complexType>
 
     <xs:complexType name="dirContextsType">
         <xs:annotation>

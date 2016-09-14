@@ -47,6 +47,7 @@ interface ElytronDescriptionConstants {
     String ATTRIBUTE = "attribute";
     String ATTRIBUTE_MAPPING = "attribute-mapping";
     String ATTRIBUTES = "attributes";
+    String AUDIENCE = "audience";
     String AUTHENTICATION_LEVEL = "authentication-level";
     String AUTHENTICATION_OPTIONAL = "authentication-optional";
     String AUTHENTICATION_REALM = "authentication-realm";
@@ -70,6 +71,8 @@ interface ElytronDescriptionConstants {
     String CLASS_NAMES = "class-names";
     String CLEAR = "clear";
     String CLEAR_PASSWORD_MAPPER = "clear-password-mapper";
+    String CLIENT_ID = "client-id";
+    String CLIENT_SECRET = "client-secret";
     String CLIENT_SSL_CONTEXT = "client-ssl-context";
     String CLIENT_SSL_CONTEXTS = "client-ssl-contexts";
     String CONCATENATING_PRINCIPAL_DECODER = "concatenating-principal-decoder";
@@ -136,6 +139,7 @@ interface ElytronDescriptionConstants {
     String GROUPS_PROPERTIES = "groups-properties";
 
     String HOST_NAME = "host-name";
+    String HOST_NAME_VERIFICATION_POLICY = "host-name-verification-policy";
     String HASH_FROM = "hash-from";
     String HTTP = "http";
     String HTTP_AUTHENTICATION_FACTORY = "http-authentication-factory";
@@ -147,6 +151,7 @@ interface ElytronDescriptionConstants {
     String IMPLEMENTATION = "implementation";
     String INDEX = "index";
     String INFO = "info";
+    String INTROSPECTION_URL = "introspection-url";
     String INVALIDATE = "invalidate";
     String ISSUER = "issuer";
     String ITERATION_COUNT = "iteration-count";
@@ -155,6 +160,7 @@ interface ElytronDescriptionConstants {
 
     String JDBC_REALM = "jdbc-realm";
     String JOINER = "joiner";
+    String JWT = "jwt";
 
     String KERBEROS_SECURITY_FACTORY = "kerberos-security-factory";
     String KEY = "key";
@@ -217,6 +223,7 @@ interface ElytronDescriptionConstants {
     String NOT_AFTER = "not-after";
     String NOT_BEFORE = "not-before";
 
+    String OAUTH2_INTROSPECTION = "oauth2-introspection";
     String OID = "oid";
     String OTP_CREDENTIAL_MAPPER = "otp-credential-mapper";
     String OR = "or";
@@ -243,6 +250,7 @@ interface ElytronDescriptionConstants {
     String PREFIX = "prefix";
     String PRINCIPAL = "principal";
     String PRINCIPALS = "principals";
+    String PRINCIPAL_CLAIM = "principal-claim";
     String PRINCIPAL_DECODER = "principal-decoder";
     String PRINCIPAL_DECODERS = "principal-decoders";
     String PRINCIPAL_QUERY = "principal-query";
@@ -342,6 +350,7 @@ interface ElytronDescriptionConstants {
     String TARGET_NAME = "target-name";
     String TLS = "tls";
     String TO = "to";
+    String TOKEN_REALM = "token-realm";
     String TRUST_MANAGER = "trust-manager";
     String TRUST_MANAGERS = "trust-managers";
     String TRUSTED_SECURITY_DOMAINS = "trusted-security-domains";

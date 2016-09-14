@@ -99,6 +99,22 @@ public class RealmsTestCase extends AbstractSubsystemTest {
         testModifiability(securityRealm);
     }
 
+    @Test
+    public void testJwtRealm() throws Exception {
+        KernelServices services = super.createKernelServicesBuilder(new TestEnvironment()).setSubsystemXmlResource("realms-test.xml").build();
+        if (!services.isSuccessfulBoot()) {
+            Assert.fail(services.getBootError().toString());
+        }
+
+        ServiceName serviceName = Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY.getCapabilityServiceName("JwtRealm");
+        SecurityRealm securityRealm = (SecurityRealm) services.getContainer().getService(serviceName).getValue();
+        Assert.assertNotNull(securityRealm);
+
+        serviceName = Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY.getCapabilityServiceName("EmptyJwtRealm");
+        securityRealm = (SecurityRealm) services.getContainer().getService(serviceName).getValue();
+        Assert.assertNotNull(securityRealm);
+    }
+
     static void testModifiability(ModifiableSecurityRealm securityRealm) throws Exception {
 
         // obtain original count of identities

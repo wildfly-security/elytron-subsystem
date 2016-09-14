@@ -44,6 +44,7 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.GROUPS_A
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.GROUPS_PROPERTIES;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.IDENTITY_MAPPING;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.JDBC_REALM;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.JWT;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEY_STORE;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEY_STORE_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.LDAP_REALM;
@@ -51,12 +52,15 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.LEVELS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME_REWRITER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NEW_IDENTITY_ATTRIBUTES;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.OAUTH2_INTROSPECTION;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PATH;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PLAIN_TEXT;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PRINCIPAL_CLAIM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PRINCIPAL_QUERY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROPERTIES_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.RELATIVE_TO;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SECURITY_REALMS;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.TOKEN_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.USERS_PROPERTIES;
 import static org.wildfly.extension.elytron.ElytronSubsystemParser.readCustomComponent;
 import static org.wildfly.extension.elytron.ElytronSubsystemParser.verifyNamespace;
@@ -118,6 +122,9 @@ class RealmParser {
                     break;
                 case FILESYSTEM_REALM:
                     readFileSystemRealm(parentAddress, reader, operations);
+                    break;
+                case TOKEN_REALM:
+                    readTokenRealm(parentAddress, reader, operations);
                     break;
                 default:
                     throw unexpectedElement(reader);
@@ -395,6 +402,69 @@ class RealmParser {
         if (!hasFile) {
             throw missingRequiredElement(reader, Collections.singleton(FILE));
         }
+    }
+
+    private void readTokenRealm(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations) throws XMLStreamException {
+        ModelNode addRealm = new ModelNode();
+        addRealm.get(OP).set(ADD);
+
+        String name = null;
+
+        final int count = reader.getAttributeCount();
+        for (int i = 0; i < count; i++) {
+            final String value = reader.getAttributeValue(i);
+            if (!isNoNamespaceAttribute(reader, i)) {
+                throw unexpectedAttribute(reader, i);
+            } else {
+                String attribute = reader.getAttributeLocalName(i);
+                switch (attribute) {
+                    case NAME:
+                        name = value;
+                        break;
+                    case PRINCIPAL_CLAIM:
+                        TokenRealmDefinition.PRINCIPAL_CLAIM.parseAndSetParameter(value, addRealm, reader);
+                        break;
+                    default:
+                        throw unexpectedAttribute(reader, i);
+                }
+            }
+        }
+
+        if (name == null) {
+            throw missingRequired(reader, NAME);
+        }
+
+        addRealm.get(OP_ADDR).set(parentAddress).add(TOKEN_REALM, name);
+
+        while (reader.hasNext() && reader.nextTag() != END_ELEMENT) {
+            verifyNamespace(reader);
+            String localName = reader.getLocalName();
+            switch (localName) {
+                case JWT:
+                    ModelNode jwtValidator = readModelNode(TokenRealmDefinition.JwtValidatorAttributes.ATTRIBUTES, reader, (parentNode, reader1) -> {});
+
+                    if (!jwtValidator.isDefined()) {
+                        jwtValidator.setEmptyObject();
+                    }
+
+                    addRealm.get(JWT).set(jwtValidator);
+                    break;
+                case OAUTH2_INTROSPECTION:
+                    addRealm.get(OAUTH2_INTROSPECTION).set(readModelNode(TokenRealmDefinition.OAuth2IntrospectionValidatorAttributes.ATTRIBUTES, reader, (parentNode, reader1) -> {}));
+                    break;
+                default:
+                    throw unexpectedElement(reader);
+            }
+        }
+
+        if (!addRealm.hasDefined(JWT) && !addRealm.hasDefined(OAUTH2_INTROSPECTION)) {
+            HashSet<String> required = new HashSet<>();
+            required.add(JWT);
+            required.add(OAUTH2_INTROSPECTION);
+            throw missingRequiredElement(reader, required);
+        }
+
+        operations.add(addRealm);
     }
 
     private void readNameRewriterReference(ModelNode addRealm, XMLExtendedStreamReader reader) throws XMLStreamException {
@@ -691,6 +761,36 @@ class RealmParser {
         return false;
     }
 
+    private boolean writeTokenRealms(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
+        if (subsystem.hasDefined(TOKEN_REALM)) {
+            startRealms(started, writer);
+
+            ModelNode realms = subsystem.require(TOKEN_REALM);
+
+            for (String name : realms.keys()) {
+                writer.writeStartElement(TOKEN_REALM);
+                writer.writeAttribute(NAME, name);
+
+                ModelNode tokenRealm = realms.require(name);
+
+                TokenRealmDefinition.PRINCIPAL_CLAIM.marshallAsAttribute(tokenRealm, writer);
+
+                if (tokenRealm.hasDefined(JWT)) {
+                    ModelNode jwtValidator = tokenRealm.get(JWT);
+                    writeObjectTypeAttribute(JWT, TokenRealmDefinition.JwtValidatorAttributes.ATTRIBUTES, jwtValidator, writer, null);
+                } else if (tokenRealm.hasDefined(OAUTH2_INTROSPECTION)) {
+                    ModelNode oauth2Validator = tokenRealm.get(OAUTH2_INTROSPECTION);
+                    writeObjectTypeAttribute(OAUTH2_INTROSPECTION, TokenRealmDefinition.OAuth2IntrospectionValidatorAttributes.ATTRIBUTES, oauth2Validator, writer, null);
+                }
+
+                writer.writeEndElement();
+            }
+
+            return true;
+        }
+        return false;
+    }
+
     private boolean writeKeyStoreRealms(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (subsystem.hasDefined(KEY_STORE_REALM)) {
             startRealms(started, writer);
@@ -857,6 +957,7 @@ class RealmParser {
         realmsStarted = realmsStarted | writePropertiesRealms(realmsStarted, subsystem, writer);
         realmsStarted = realmsStarted | writeLdapRealms(realmsStarted, subsystem, writer);
         realmsStarted = realmsStarted | writeFileSystemRealms(realmsStarted, subsystem, writer);
+        realmsStarted = realmsStarted | writeTokenRealms(realmsStarted, subsystem, writer);
 
         if (realmsStarted) {
             writer.writeEndElement();

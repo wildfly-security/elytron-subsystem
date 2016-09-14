@@ -10,5 +10,16 @@
             <file path="filesystem-realm" relative-to="jboss.server.config.dir" />
         </filesystem-realm>
 
+        <token-realm name="JwtRealm" principal-claim="sub">
+            <jwt issuer="some-issuer-a some-issuer-b" audience="some-audience-a some-audience-b some-audience-c" public-key="-----BEGIN PUBLIC KEY-----MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCqGKukO1De7zhZj6+H0qtjTkVxwTCpvKe4eCZ0FPqri0cb2JZfXJ/DgYSF6vUpwmJG8wVQZKjeGcjDOL5UlsuusFncCzWBQ7RKNUSesmQRMSGkVb1/3j+skZ6UtW+5u09lHNsj6tQ51s1SPrCBkedbNf0Tp0GbMJDyR4e9T04ZZwIDAQAB-----END PUBLIC KEY-----"/>
+        </token-realm>
+
+        <token-realm name="EmptyJwtRealm" principal-claim="sub">
+            <jwt/>
+        </token-realm>
+
+        <token-realm name="OAuth2Realm" principal-claim="sub">
+            <oauth2-introspection client-id="a" client-secret="b" introspection-url="https://localhost/token/introspect"/>
+        </token-realm>
     </security-realms>
 </subsystem>

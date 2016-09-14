@@ -99,6 +99,18 @@
         <filesystem-realm name="RealmEight">
             <file relative-to="jboss.server.config.dir" path="test"/>
         </filesystem-realm>
+        <token-realm name="JwtRealmOne" principal-claim="sub">
+            <jwt issuer="some-issuer-a some-issuer-b" audience="some-audience-a some-audience-b some-audience-c" public-key="MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCrVrCuTtArbgaZzL1hvh0xtL5mc7o0NqPVnYXkLvgcwiC3BjLGw1tGEGoJaXDuSaRllobm53JBhjx33UNv+5z/UMG4kytBWxheNVKnL6GgqlNabMaFfPLPCF8kAgKnsi79NMo+n6KnSY8YeUmec/p2vjO2NjsSAVcWEQMVhJ31LwIDAQAB"/>
+        </token-realm>
+        <token-realm name="JwtRealmTwo">
+            <jwt issuer="issuer-a issuer-b issuer-c" audience="audience-a audience-b audience-c" public-key="MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCrVrCuTtArbgaZzL1hvh0xtL5mc7o0NqPVnYXkLvgcwiC3BjLGw1tGEGoJaXDuSaRllobm53JBhjx33UNv+5z/UMG4kytBWxheNVKnL6GgqlNabMaFfPLPCF8kAgKnsi79NMo+n6KnSY8YeUmec/p2vjO2NjsSAVcWEQMVhJ31LwIDAQAB"/>
+        </token-realm>
+        <token-realm name="EmptyJwtRealmTwo">
+            <jwt/>
+        </token-realm>
+        <token-realm name="OAuth2Realm" principal-claim="sub">
+            <oauth2-introspection client-id="a" client-secret="b" introspection-url="https://localhost/token/introspect"/>
+        </token-realm>
     </security-realms>
     <!-- Needed by the filesystem-realms -->
     <mappers>
