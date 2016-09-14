@@ -25,6 +25,9 @@
         <properties-realm name="PropRealm">
             <users-properties path="testingrealm1-users.properties" relative-to="jboss.server.config.dir" />
         </properties-realm>
+        <properties-realm name="NonDomainRealm">
+            <users-properties path="testingrealm1-users.properties" relative-to="jboss.server.config.dir" />
+        </properties-realm>
     </security-realms>
     <mappers>
         <regex-name-rewriter name="NameRewriterXY" pattern="x(.*)" replacement="y$1"/>

@@ -62,7 +62,6 @@ import org.jboss.msc.service.ServiceController.Mode;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.ServiceTarget;
 import org.wildfly.extension.elytron.DomainService.RealmDependency;
-import org.wildfly.extension.elytron.IdentityResourceDefinition.AuthenticatorOperationHandler;
 import org.wildfly.security.auth.server.NameRewriter;
 import org.wildfly.security.auth.server.PrincipalDecoder;
 import org.wildfly.security.auth.server.RealmMapper;
@@ -159,7 +158,6 @@ class DomainDefinition extends SimpleResourceDefinition {
     private static final DomainAddHandler ADD = new DomainAddHandler();
     private static final OperationStepHandler REMOVE = new TrivialCapabilityServiceRemoveHandler(ADD, SECURITY_DOMAIN_RUNTIME_CAPABILITY);
     private static final WriteAttributeHandler WRITE = new WriteAttributeHandler(ElytronDescriptionConstants.SECURITY_DOMAIN);
-    private static final AuthenticatorOperationHandler AUTHENTICATE = new AuthenticatorOperationHandler();
 
     DomainDefinition() {
         super(new Parameters(PathElement.pathElement(ElytronDescriptionConstants.SECURITY_DOMAIN), ElytronExtension.getResourceDescriptionResolver(ElytronDescriptionConstants.SECURITY_DOMAIN))
@@ -317,23 +315,7 @@ class DomainDefinition extends SimpleResourceDefinition {
         protected void populateModel(final OperationContext context, final ModelNode operation, final Resource resource)
                 throws OperationFailedException {
             super.populateModel(context, operation, resource);
-
-            ModelNode model = resource.getModel();
-            String defaultRealm = DomainDefinition.DEFAULT_REALM.resolveModelAttribute(context, model).asString();
-
-            List<ModelNode> realms = REALMS.resolveModelAttribute(context, model).asList();
-            boolean defaultFound = false;
-            for (ModelNode current : realms) {
-                String realmName = REALM_NAME.resolveModelAttribute(context, current).asString();
-                if (defaultRealm.equals(realmName)) {
-                    defaultFound = true;
-                    break;
-                }
-            }
-
-            if (defaultFound == false) {
-                throw ROOT_LOGGER.defaultRealmNotReferenced(defaultRealm);
-            }
+            validateDefaultRealmInRealms(context, resource);
         }
 
         @Override
@@ -358,13 +340,36 @@ class DomainDefinition extends SimpleResourceDefinition {
             return SECURITY_DOMAIN_RUNTIME_CAPABILITY.fromBaseCapability(pathAddress.getLastElement().getValue()).getCapabilityServiceName(SecurityDomain.class);
         }
 
-
         @Override
         protected void recreateParentService(OperationContext context, PathAddress parentAddress, ModelNode parentModel)
                 throws OperationFailedException {
             installService(context, getParentServiceName(parentAddress), parentModel);
         }
 
+        protected void validateUpdatedModel(final OperationContext context, final Resource resource) throws OperationFailedException {
+            validateDefaultRealmInRealms(context, resource);
+        }
+
+    }
+
+    private static void validateDefaultRealmInRealms(final OperationContext context, final Resource resource) throws OperationFailedException {
+        ModelNode model = resource.getModel();
+        String defaultRealm = DomainDefinition.DEFAULT_REALM.resolveModelAttribute(context, model).asString();
+        List<ModelNode> realms = REALMS.resolveModelAttribute(context, model).asList();
+
+        for(ModelNode realm : realms) {
+            String realmName = REALM_NAME.resolveModelAttribute(context, realm).asString();
+            if (defaultRealm.equals(realmName)) {
+                return;
+            }
+        }
+
+        StringBuilder realmsStringBuilder = new StringBuilder();
+        for(ModelNode realm : realms) {
+            if (realmsStringBuilder.length() != 0) realmsStringBuilder.append(", ");
+            realmsStringBuilder.append(realm.get(ElytronDescriptionConstants.REALM).asString());
+        }
+        throw ROOT_LOGGER.defaultRealmNotReferenced(defaultRealm, realmsStringBuilder.toString());
     }
 }
 
