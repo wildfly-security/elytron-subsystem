@@ -1934,13 +1934,19 @@
         </xs:annotation>
         <xs:complexContent>
             <xs:extension base="roleMapperType">
-                <xs:attribute name="roles" type="stringListType" use="required">
-                    <xs:annotation>
-                        <xs:documentation>
-                            The list of roles to be returned by the RoleMapper.
-                        </xs:documentation>
-                    </xs:annotation>
-                </xs:attribute>
+                <xs:sequence>
+                    <xs:element name="role" minOccurs="1" maxOccurs="unbounded">
+                        <xs:complexType>
+                            <xs:attribute name="name" type="xs:string">
+                                <xs:annotation>
+                                    <xs:documentation>
+                                        The role to be returned by the RoleMapper.
+                                    </xs:documentation>
+                                </xs:annotation>
+                            </xs:attribute>
+                        </xs:complexType>
+                    </xs:element>
+                </xs:sequence>
             </xs:extension>
         </xs:complexContent>
     </xs:complexType>

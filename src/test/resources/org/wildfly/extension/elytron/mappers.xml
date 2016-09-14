@@ -68,7 +68,10 @@
             <role-mapper name="AddPrefix" />
             <role-mapper name="AddSuffix" />
         </aggregate-role-mapper>
-        <constant-role-mapper name="ConstantRoles" roles="a b c" />
+        <constant-role-mapper name="ConstantRoles">
+            <role name="JBoss Admin" />
+            <role name="Manager" />
+        </constant-role-mapper>
         <custom-role-mapper name="CustomRoleOne" class-name="org.wildfly.elytron.CustomRoleMapper" module="i.j" />
         <logical-role-mapper name="AdditionalRoles" logical-operation="and" left="ConstantRoles" right="CustomRoleOne" />
     </mappers>

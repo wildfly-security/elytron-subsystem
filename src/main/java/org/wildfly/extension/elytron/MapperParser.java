@@ -21,6 +21,7 @@ import static javax.xml.stream.XMLStreamConstants.END_ELEMENT;
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.ADD;
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP;
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP_ADDR;
+import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.ROLE;
 import static org.jboss.as.controller.parsing.ParseUtils.isNoNamespaceAttribute;
 import static org.jboss.as.controller.parsing.ParseUtils.missingRequired;
 import static org.jboss.as.controller.parsing.ParseUtils.missingRequiredElement;
@@ -1137,7 +1138,8 @@ class MapperParser {
         ModelNode addRoleMapper = new ModelNode();
         addRoleMapper.get(OP).set(ADD);
 
-        Set<String> requiredAttributes = new HashSet<String>(Arrays.asList(new String[] { NAME, ROLES }));
+        Set<String> requiredAttributes = new HashSet<String>(Arrays.asList(new String[] { NAME }));
+        Set<String> requiredElements = new HashSet<String>(Arrays.asList(new String[] { ROLE }));
 
         String name = null;
 
@@ -1153,11 +1155,6 @@ class MapperParser {
                     case NAME:
                         name = value;
                         break;
-                    case ROLES:
-                        for (String role : reader.getListAttributeValue(i)) {
-                            RoleMapperDefinitions.ROLES.parseAndAddParameterElement(role, addRoleMapper, reader);
-                        }
-                        break;
                     default:
                         throw unexpectedAttribute(reader, i);
                 }
@@ -1168,9 +1165,25 @@ class MapperParser {
             throw missingRequired(reader, requiredAttributes);
         }
 
-        requireNoContent(reader);
-
         addRoleMapper.get(OP_ADDR).set(parentAddress).add(CONSTANT_ROLE_MAPPER, name);
+
+        while (reader.hasNext() && reader.nextTag() != END_ELEMENT) {
+            verifyNamespace(reader);
+            String localName = reader.getLocalName();
+            requiredElements.remove(localName);
+            switch (localName) {
+                case ROLE:
+                    requireSingleAttribute(reader, NAME);
+                    String roleName = reader.getAttributeValue(0);
+                    RoleMapperDefinitions.ROLES.parseAndAddParameterElement(roleName, addRoleMapper, reader);
+                    break;
+                default:
+                    throw unexpectedElement(reader);
+            }
+            requireNoContent(reader);
+        }
+
+        if ( ! requiredElements.isEmpty()) throw missingRequiredElement(reader, requiredElements);
         operations.add(addRoleMapper);
     }
 
@@ -1700,7 +1713,11 @@ class MapperParser {
                 ModelNode roleMapper = roleMappers.require(name);
                 writer.writeStartElement(CONSTANT_ROLE_MAPPER);
                 writer.writeAttribute(NAME, name);
-                RoleMapperDefinitions.ROLES.getAttributeMarshaller().marshallAsAttribute(RoleMapperDefinitions.ROLES, roleMapper, false, writer);
+                for(ModelNode role : roleMapper.require(ROLES).asList()) {
+                    writer.writeStartElement(ROLE);
+                    writer.writeAttribute(NAME, role.asString());
+                    writer.writeEndElement();
+                }
                 writer.writeEndElement();
             }
 
