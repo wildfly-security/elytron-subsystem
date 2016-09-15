@@ -64,7 +64,7 @@ class CertificateChainAttributeDefinitions {
     private static final ObjectTypeAttributeDefinition FINGER_PRINT = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.FINGER_PRINT, ALGORITHM, VALUE).build();
 
     // Should this me a map so we don't need to specify the algorithm?
-    private static final ObjectListAttributeDefinition FINGER_PRINTS = new ObjectListAttributeDefinition.Builder(ElytronDescriptionConstants.FINGER_PRINTS, FINGER_PRINT).build();
+    private static final ObjectListAttributeDefinition FINGER_PRINTS = new ObjectListAttributeDefinition.Builder(ElytronDescriptionConstants.FINGER_PRINTS, FINGER_PRINT).setAllowNull(false).build();
 
     /*
      * X509 Certificate Specific Attributes
@@ -111,6 +111,7 @@ class CertificateChainAttributeDefinitions {
 
     static ObjectListAttributeDefinition getNamedCertificateList(final String name) {
         return new ObjectListAttributeDefinition.Builder(name, CERTIFICATE)
+                .setAllowNull(true)
                 .setStorageRuntime()
                 .build();
     }
