@@ -55,7 +55,7 @@ import org.wildfly.security.keystore.UnmodifiableKeyStore;
  *
  * @author <a href="mailto:darran.lofthouse@jboss.com">Darran Lofthouse</a>
  */
-class KeyStoreService implements Service<KeyStore> {
+class KeyStoreService implements ModifiableKeyStoreService {
 
     private final String provider;
     private final String type;
@@ -154,7 +154,7 @@ class KeyStoreService implements Service<KeyStore> {
         return unmodifiableKeyStore;
     }
 
-    KeyStore getModifiableValue() {
+    public KeyStore getModifiableValue() {
         return trackingKeyStore;
     }
 

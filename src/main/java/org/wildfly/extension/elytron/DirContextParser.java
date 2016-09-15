@@ -39,6 +39,7 @@ import static org.jboss.as.controller.parsing.ParseUtils.requireNoContent;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedAttribute;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedElement;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SSL_CONTEXT;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.URL;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AUTHENTICATION_LEVEL;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PRINCIPAL;
@@ -48,7 +49,6 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REFERRAL
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.DIR_CONTEXT;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.DIR_CONTEXTS;
 import static org.wildfly.extension.elytron.ElytronSubsystemParser.verifyNamespace;
-
 
 /**
  * A parser for the DirContext definition.
@@ -106,6 +106,9 @@ public class DirContextParser {
                         break;
                     case REFERRAL_MODE:
                         DirContextDefinition.REFERRAL_MODE.parseAndSetParameter(value, addDirContext, reader);
+                        break;
+                    case SSL_CONTEXT:
+                        DirContextDefinition.SSL_CONTEXT.parseAndSetParameter(value, addDirContext, reader);
                         break;
                     default:
                         throw unexpectedAttribute(reader, i);

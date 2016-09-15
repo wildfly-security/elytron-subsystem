@@ -17,20 +17,11 @@
  */
 package org.wildfly.extension.elytron;
 
-import static org.wildfly.security.auth.server.IdentityLocator.fromName;
-
-import java.security.spec.KeySpec;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-
 import org.jboss.as.subsystem.test.AbstractSubsystemTest;
 import org.jboss.as.subsystem.test.KernelServices;
 import org.jboss.msc.service.ServiceName;
 import org.junit.Assert;
 import org.junit.Test;
-import org.wildfly.common.function.ExceptionSupplier;
-import org.wildfly.security.auth.realm.ldap.DelegatingLdapContext;
 import org.wildfly.security.auth.server.ModifiableRealmIdentity;
 import org.wildfly.security.auth.server.ModifiableSecurityRealm;
 import org.wildfly.security.auth.server.RealmIdentity;
@@ -44,8 +35,12 @@ import org.wildfly.security.password.interfaces.OneTimePassword;
 import org.wildfly.security.password.spec.ClearPasswordSpec;
 import org.wildfly.security.password.spec.OneTimePasswordSpec;
 
-import javax.naming.NamingException;
-import javax.naming.directory.DirContext;
+import java.security.spec.KeySpec;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+
+import static org.wildfly.security.auth.server.IdentityLocator.fromName;
 
 /**
  * @author <a href="mailto:jkalina@redhat.com">Jan Kalina</a>
@@ -104,35 +99,8 @@ public class RealmsTestCase extends AbstractSubsystemTest {
         testModifiability(securityRealm);
     }
 
-    @Test
-    public void testLdapRealm() throws Exception {
-        TestEnvironment.startLdapService();
-        KernelServices services = super.createKernelServicesBuilder(new TestEnvironment()).setSubsystemXmlResource("realms-test.xml").build();
-        if (!services.isSuccessfulBoot()) {
-            Assert.fail(services.getBootError().toString());
-        }
+    static void testModifiability(ModifiableSecurityRealm securityRealm) throws Exception {
 
-        // test DirContext first
-        ServiceName serviceNameDirContext = Capabilities.DIR_CONTEXT_RUNTIME_CAPABILITY.getCapabilityServiceName("ldap1");
-        ExceptionSupplier<DirContext, NamingException> dirContextSup = (ExceptionSupplier<DirContext, NamingException>) services.getContainer().getService(serviceNameDirContext).getValue();
-        DirContext dirContext = dirContextSup.get();
-        Assert.assertNotNull(dirContext);
-        Assert.assertTrue(dirContext instanceof DelegatingLdapContext);
-        dirContext.close();
-
-        // test LdapRealm
-        ServiceName serviceName = Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY.getCapabilityServiceName("LdapRealm");
-        ModifiableSecurityRealm securityRealm = (ModifiableSecurityRealm) services.getContainer().getService(serviceName).getValue();
-        Assert.assertNotNull(securityRealm);
-
-        RealmIdentity identity1 = securityRealm.getRealmIdentity(fromName("plainUser"));
-        Assert.assertTrue(identity1.exists());
-        identity1.dispose();
-
-        testModifiability(securityRealm);
-    }
-
-    private void testModifiability(ModifiableSecurityRealm securityRealm) throws Exception {
         // obtain original count of identities
         int oldCount = getRealmIdentityCount(securityRealm);
         Assert.assertTrue(oldCount > 0);
@@ -181,7 +149,7 @@ public class RealmsTestCase extends AbstractSubsystemTest {
         identity1.dispose();
     }
 
-    private int getRealmIdentityCount(final ModifiableSecurityRealm securityRealm) throws Exception {
+    private static int getRealmIdentityCount(final ModifiableSecurityRealm securityRealm) throws Exception {
         int count = 0;
         Iterator<ModifiableRealmIdentity> it = securityRealm.getRealmIdentityIterator();
         while (it.hasNext()) {

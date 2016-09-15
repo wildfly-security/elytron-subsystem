@@ -18,7 +18,10 @@
 
 package org.wildfly.extension.elytron;
 
+import static org.wildfly.extension.elytron.Capabilities.DIR_CONTEXT_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.DIR_CONTEXT_RUNTIME_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.SSL_CONTEXT_CAPABILITY;
+import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
 import static org.wildfly.security.auth.realm.ldap.DirContextFactory.ReferralMode;
 
 import org.jboss.as.controller.AbstractAddStepHandler;
@@ -40,13 +43,14 @@ import org.jboss.dmr.ModelType;
 import org.jboss.msc.service.ServiceBuilder;
 import org.jboss.msc.service.ServiceController;
 import org.jboss.msc.service.ServiceName;
+import org.jboss.msc.value.InjectedValue;
 import org.wildfly.common.function.ExceptionSupplier;
-import org.wildfly.security.auth.realm.ldap.DelegatingLdapContext;
 import org.wildfly.security.auth.realm.ldap.DirContextFactory;
 import org.wildfly.security.auth.realm.ldap.SimpleDirContextFactoryBuilder;
 
 import javax.naming.NamingException;
 import javax.naming.directory.DirContext;
+import javax.net.ssl.SSLContext;
 import java.util.Properties;
 
 /**
@@ -93,7 +97,13 @@ public class DirContextDefinition extends SimpleResourceDefinition {
             .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
             .build();
 
-    static final SimpleAttributeDefinition[] ATTRIBUTES = new SimpleAttributeDefinition[] {URL, AUTHENTICATION_LEVEL, PRINCIPAL, CREDENTIAL, ENABLE_CONNECTION_POOLING, REFERRAL_MODE};
+    static final SimpleAttributeDefinition SSL_CONTEXT = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.SSL_CONTEXT, ModelType.STRING, true)
+            .setAllowExpression(true)
+            .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+            .setCapabilityReference(SSL_CONTEXT_CAPABILITY, DIR_CONTEXT_CAPABILITY, true)
+            .build();
+
+    static final SimpleAttributeDefinition[] ATTRIBUTES = new SimpleAttributeDefinition[] {URL, AUTHENTICATION_LEVEL, PRINCIPAL, CREDENTIAL, ENABLE_CONNECTION_POOLING, REFERRAL_MODE, SSL_CONTEXT};
 
     DirContextDefinition() {
         super(new SimpleResourceDefinition.Parameters(PathElement.pathElement(ElytronDescriptionConstants.DIR_CONTEXT), ElytronExtension.getResourceDescriptionResolver(ElytronDescriptionConstants.DIR_CONTEXT))
@@ -111,22 +121,32 @@ public class DirContextDefinition extends SimpleResourceDefinition {
         }
     }
 
-    private static TrivialService.ValueSupplier<ExceptionSupplier<DirContext, NamingException>> obtainDirContextSupplier(final OperationContext context, final ModelNode model) throws OperationFailedException {
+    private static TrivialService.ValueSupplier<ExceptionSupplier<DirContext, NamingException>> obtainDirContextSupplier(final OperationContext context, final ModelNode model, final InjectedValue<SSLContext> sslContextInjector) throws OperationFailedException {
+
+        String url = URL.resolveModelAttribute(context, model).asString();
+        String authenticationLevel = AUTHENTICATION_LEVEL.resolveModelAttribute(context, model).asString();
+        String principal = PRINCIPAL.resolveModelAttribute(context, model).asString();
+        String credential = CREDENTIAL.resolveModelAttribute(context, model).asString();
 
         Properties connectionProperties = new Properties();
         ModelNode enableConnectionPoolingNode = ENABLE_CONNECTION_POOLING.resolveModelAttribute(context, model);
         connectionProperties.put(CONNECTION_POOLING_PROPERTY, enableConnectionPoolingNode.asBoolean());
         ReferralMode referralMode = ReferralMode.valueOf(REFERRAL_MODE.resolveModelAttribute(context, model).asString());
 
-        DirContextFactory dirContextFactory = SimpleDirContextFactoryBuilder.builder()
-                .setProviderUrl(URL.resolveModelAttribute(context, model).asString())
-                .setSecurityAuthentication(AUTHENTICATION_LEVEL.resolveModelAttribute(context, model).asString())
-                .setSecurityPrincipal(PRINCIPAL.resolveModelAttribute(context, model).asString())
-                .setSecurityCredential(CREDENTIAL.resolveModelAttribute(context, model).asString())
-                .setConnectionProperties(connectionProperties)
-                .build();
+        return () -> {
+            SimpleDirContextFactoryBuilder builder = SimpleDirContextFactoryBuilder.builder()
+                    .setProviderUrl(url)
+                    .setSecurityAuthentication(authenticationLevel)
+                    .setSecurityPrincipal(principal)
+                    .setSecurityCredential(credential)
+                    .setConnectionProperties(connectionProperties);
 
-        return () -> () -> new DelegatingLdapContext(dirContextFactory, referralMode);
+            SSLContext sslContext = sslContextInjector.getOptionalValue();
+            if (sslContext != null) builder.setSocketFactory(sslContext.getSocketFactory());
+
+            DirContextFactory dirContextFactory = builder.build();
+            return () -> dirContextFactory.obtainDirContext(referralMode);
+        };
     }
 
     private static final AbstractAddStepHandler ADD = new AbstractAddStepHandler(DIR_CONTEXT_RUNTIME_CAPABILITY, ATTRIBUTES) {
@@ -135,8 +155,17 @@ public class DirContextDefinition extends SimpleResourceDefinition {
             RuntimeCapability<Void> runtimeCapability = DIR_CONTEXT_RUNTIME_CAPABILITY.fromBaseCapability(context.getCurrentAddressValue());
             ServiceName serviceName = runtimeCapability.getCapabilityServiceName(ExceptionSupplier.class);
 
-            TrivialService<ExceptionSupplier<DirContext, NamingException>> service = new TrivialService<>(obtainDirContextSupplier(context, model));
+            final InjectedValue<SSLContext> sslContextInjector = new InjectedValue<>();
+
+            TrivialService<ExceptionSupplier<DirContext, NamingException>> service = new TrivialService<>(obtainDirContextSupplier(context, model, sslContextInjector));
             ServiceBuilder<ExceptionSupplier<DirContext, NamingException>> serviceBuilder = context.getServiceTarget().addService(serviceName, service);
+
+            String sslContextName = asStringIfDefined(context, SSL_CONTEXT, model);
+            if (sslContextName != null) {
+                String sslCapability = RuntimeCapability.buildDynamicCapabilityName(SSL_CONTEXT_CAPABILITY, sslContextName);
+                ServiceName sslServiceName = context.getCapabilityServiceName(sslCapability, SSLContext.class);
+                serviceBuilder.addDependency(sslServiceName, SSLContext.class, sslContextInjector);
+            }
 
             serviceBuilder
                     .setInitialMode(ServiceController.Mode.ACTIVE)
