@@ -30,6 +30,9 @@
         <empty-role-decoder name="EmptyRoleDecoder" />
         
         <add-prefix-role-mapper name="PrefixRoleMapper" prefix="X" />
-        <constant-role-mapper name="ConstantRoleMapper" roles="a b c" />       
+        <constant-role-mapper name="ConstantRoleMapper">
+            <role name="JBoss Admin" />
+            <role name="Manager" />
+        </constant-role-mapper>
     </mappers>
 </subsystem>
