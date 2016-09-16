@@ -94,6 +94,12 @@ class SSLDefinitions {
             .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
             .build();
 
+    static final SimpleAttributeDefinition PROVIDER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PROVIDER, ModelType.STRING, true)
+            .setAllowExpression(true)
+            .setMinSize(1)
+            .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+            .build();
+
     static final SimpleAttributeDefinition PROVIDER_LOADER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PROVIDER_LOADER, ModelType.STRING, true)
             .setAllowExpression(true)
             .setMinSize(1)
@@ -198,13 +204,14 @@ class SSLDefinitions {
                 .setCapabilityReference(KEY_STORE_CAPABILITY, KEY_MANAGERS_CAPABILITY, true)
                 .build();
 
-        AttributeDefinition[] attributes = new AttributeDefinition[] { ALGORITHM, providerLoaderDefinition, keystoreDefinition, PASSWORD };
+        AttributeDefinition[] attributes = new AttributeDefinition[] { ALGORITHM, providerLoaderDefinition, PROVIDER, keystoreDefinition, PASSWORD };
 
         AbstractAddStepHandler add = new TrivialAddHandler<KeyManager[]>(KeyManager[].class, attributes, KEY_MANAGERS_RUNTIME_CAPABILITY) {
 
             @Override
             protected ValueSupplier<KeyManager[]> getValueSupplier(ServiceBuilder<KeyManager[]> serviceBuilder, OperationContext context, ModelNode model) throws OperationFailedException {
                 final String algorithm = ALGORITHM.resolveModelAttribute(context, model).asString();
+                final String provider = PROVIDER.resolveModelAttribute(context, model).isDefined() ? PROVIDER.resolveModelAttribute(context, model).asString() : null;
                 final String password = asStringIfDefined(context, PASSWORD, model);
 
                 String providerLoader = asStringIfDefined(context, providerLoaderDefinition, model);
@@ -228,15 +235,17 @@ class SSLDefinitions {
                     KeyManagerFactory keyManagerFactory = null;
                     if (providers != null) {
                         for (Provider current : providers) {
-                            try {
-                                // TODO - We could check the Services within each Provider to check there is one of the required type/algorithm
-                                // However the same loop would need to remain as it is still possible a specific provider can't create it.
-                                keyManagerFactory = KeyManagerFactory.getInstance(algorithm, current);
-                                break;
-                            } catch (NoSuchAlgorithmException ignored) {
+                            if (provider == null || provider.equals(current.getName())) {
+                                try {
+                                    // TODO - We could check the Services within each Provider to check there is one of the required type/algorithm
+                                    // However the same loop would need to remain as it is still possible a specific provider can't create it.
+                                    keyManagerFactory = KeyManagerFactory.getInstance(algorithm, current);
+                                    break;
+                                } catch (NoSuchAlgorithmException ignored) {
+                                }
                             }
                         }
-                        throw ROOT_LOGGER.unableToCreateManagerFactory(KeyManagerFactory.class.getSimpleName(), algorithm);
+                        if (keyManagerFactory == null) throw ROOT_LOGGER.unableToCreateManagerFactory(KeyManagerFactory.class.getSimpleName(), algorithm);
                     } else {
                         try {
                             keyManagerFactory = KeyManagerFactory.getInstance(algorithm);
@@ -270,13 +279,14 @@ class SSLDefinitions {
                 .setCapabilityReference(KEY_STORE_CAPABILITY, TRUST_MANAGERS_CAPABILITY, true)
                 .build();
 
-        AttributeDefinition[] attributes = new AttributeDefinition[] { ALGORITHM, providerLoaderDefinition, keystoreDefinition };
+        AttributeDefinition[] attributes = new AttributeDefinition[] { ALGORITHM, providerLoaderDefinition, PROVIDER, keystoreDefinition };
 
         AbstractAddStepHandler add = new TrivialAddHandler<TrustManager[]>(TrustManager[].class, attributes, TRUST_MANAGERS_RUNTIME_CAPABILITY) {
 
             @Override
             protected ValueSupplier<TrustManager[]> getValueSupplier(ServiceBuilder<TrustManager[]> serviceBuilder, OperationContext context, ModelNode model) throws OperationFailedException {
                 final String algorithm = ALGORITHM.resolveModelAttribute(context, model).asString();
+                final String provider = PROVIDER.resolveModelAttribute(context, model).isDefined() ? PROVIDER.resolveModelAttribute(context, model).asString() : null;
 
                 String providerLoader = asStringIfDefined(context, providerLoaderDefinition, model);
                 final InjectedValue<Provider[]> providersInjector = new InjectedValue<>();
@@ -297,17 +307,20 @@ class SSLDefinitions {
                 return () -> {
                     Provider[] providers = providersInjector.getOptionalValue();
                     TrustManagerFactory trustManagerFactory = null;
+
                     if (providers != null) {
                         for (Provider current : providers) {
-                            try {
-                                // TODO - We could check the Services within each Provider to check there is one of the required type/algorithm
-                                // However the same loop would need to remain as it is still possible a specific provider can't create it.
-                                trustManagerFactory = TrustManagerFactory.getInstance(algorithm, current);
-                                break;
-                            } catch (NoSuchAlgorithmException ignored) {
+                            if (provider == null || provider.equals(current.getName())) {
+                                try {
+                                    // TODO - We could check the Services within each Provider to check there is one of the required type/algorithm
+                                    // However the same loop would need to remain as it is still possible a specific provider can't create it.
+                                    trustManagerFactory = TrustManagerFactory.getInstance(algorithm, current);
+                                    break;
+                                } catch (NoSuchAlgorithmException ignored) {
+                                }
                             }
                         }
-                        throw ROOT_LOGGER.unableToCreateManagerFactory(TrustManagerFactory.class.getSimpleName(), algorithm);
+                        if (trustManagerFactory == null) throw ROOT_LOGGER.unableToCreateManagerFactory(TrustManagerFactory.class.getSimpleName(), algorithm);
                     } else {
                         try {
                             trustManagerFactory = TrustManagerFactory.getInstance(algorithm);

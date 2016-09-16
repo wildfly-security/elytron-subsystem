@@ -2776,7 +2776,21 @@
         <xs:attribute name="provider" type="xs:string" use="optional">
             <xs:annotation>
                 <xs:documentation>
-                    Reference to the Provider[] to use when loaind the KeyManagerFactory.
+                    The name of the provider to use to
+                    instantiate the KeyManagerFactory, if the provider is not
+                    specified then the first provider found that can
+                    create an instance of the specified 'type' will be
+                    used.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="provider-loader" type="xs:string" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    The name of the provider-loader defined within the subsystem to obtain the Providers
+                    to search for the one that can create the required KeyManagerFactory type.
+
+                    If this is not specified then the global list of Providers is used instead.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
@@ -2830,7 +2844,21 @@
         <xs:attribute name="provider" type="xs:string" use="optional">
             <xs:annotation>
                 <xs:documentation>
-                    Reference to the Provider[] to use when loaind the TrustManagerFactory.
+                    The name of the provider to use to
+                    instantiate the TrustManagerFactory, if the provider is not
+                    specified then the first provider found that can
+                    create an instance of the specified 'type' will be
+                    used.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="provider-loader" type="xs:string" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    The name of the provider-loader defined within the subsystem to obtain the Providers
+                    to search for the one that can create the required TrustManagerFactory type.
+
+                    If this is not specified then the global list of Providers is used instead.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
