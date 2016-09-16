@@ -31,7 +31,9 @@
         <mappers>
             <simple-role-decoder name="groups-to-roles" attribute="groups" />
 
-            <constant-role-mapper name="constant-roles" roles="All" />
+            <constant-role-mapper name="constant-roles">
+                <role name="All" />
+            </constant-role-mapper>
 
             <logical-role-mapper name="combined-role-mapper" logical-operation="or" left="constant-roles" />
 
