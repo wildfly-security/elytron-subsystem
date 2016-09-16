@@ -114,7 +114,6 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
         static final SimpleAttributeDefinition[] ATTRIBUTES = new SimpleAttributeDefinition[] {FROM, TO, FILTER, FILTER_BASE_DN, AS_RDN};
 
         static final ObjectTypeAttributeDefinition OBJECT_DEFINITION = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.ATTRIBUTE, ATTRIBUTES)
-                .setAllowNull(true)
                 .build();
     }
 
@@ -146,7 +145,6 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
         static final SimpleAttributeDefinition[] ATTRIBUTES = new SimpleAttributeDefinition[] {FROM, WRITABLE, VERIFIABLE};
 
         static final ObjectTypeAttributeDefinition OBJECT_DEFINITION = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.USER_PASSWORD_MAPPER, ATTRIBUTES)
-                .setAllowNull(true)
                 .build();
 
         @Override
@@ -198,7 +196,6 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
         static final SimpleAttributeDefinition[] ATTRIBUTES = new SimpleAttributeDefinition[] {ALGORITHM_FROM, HASH_FROM, SEED_FROM, SEQUENCE_FROM};
 
         static final ObjectTypeAttributeDefinition OBJECT_DEFINITION = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.OTP_CREDENTIAL_MAPPER, ATTRIBUTES)
-                .setAllowNull(true)
                 .build();
 
         @Override
@@ -253,7 +250,6 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
         static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] {NAME, VALUE};
 
         static final ObjectTypeAttributeDefinition OBJECT_DEFINITION = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.ATTRIBUTE, ATTRIBUTES)
-                .setAllowNull(true)
                 .build();
     }
 

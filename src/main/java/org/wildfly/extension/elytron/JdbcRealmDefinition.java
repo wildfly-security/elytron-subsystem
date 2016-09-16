@@ -393,7 +393,6 @@ class JdbcRealmDefinition extends SimpleResourceDefinition {
         static final SimpleAttributeDefinition[] ATTRIBUTES = new SimpleAttributeDefinition[] {TO, INDEX};
 
         static final ObjectTypeAttributeDefinition OBJECT_DEFINITION = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.ATTRIBUTE, ATTRIBUTES)
-                .setAllowNull(true)
                 .build();
     }
 
@@ -445,7 +444,7 @@ class JdbcRealmDefinition extends SimpleResourceDefinition {
                 SaltedSimpleDigestObjectDefinition.OBJECT_DEFINITION,
                 SimpleDigestMapperObjectDefinition.OBJECT_DEFINITION,
                 ScramMapperObjectDefinition.OBJECT_DEFINITION)
-                .setAllowNull(false)
+                .setAllowNull(true)
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
 

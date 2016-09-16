@@ -120,12 +120,14 @@ class PermissionMapperDefinitions {
             .build();
 
     static final ObjectListAttributeDefinition PERMISSIONS = new ObjectListAttributeDefinition.Builder(ElytronDescriptionConstants.PERMISSIONS, PERMISSION)
+            .setAllowNull(true)
             .build();
 
     static final ObjectTypeAttributeDefinition PERMISSION_MAPPING = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.PERMISSION_MAPPING, PRINCIPALS, ROLES, PERMISSIONS)
             .build();
 
     static final ObjectListAttributeDefinition PERMISSION_MAPPINGS = new ObjectListAttributeDefinition.Builder(ElytronDescriptionConstants.PERMISSION_MAPPINGS, PERMISSION_MAPPING)
+            .setAllowNull(true)
             .build();
 
     static ResourceDefinition getLogicalPermissionMapper() {
