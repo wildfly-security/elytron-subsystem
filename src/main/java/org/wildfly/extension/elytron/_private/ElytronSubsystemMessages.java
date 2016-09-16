@@ -163,8 +163,8 @@ public interface ElytronSubsystemMessages extends BasicLogger {
      * @param defaultRealm the name of the default_realm specified.
      * @return The {@link OperationFailedException} for the error.
      */
-    @Message(id = 13, value = "The default_realm '%s' is not in the list or realms referenced by this domain.")
-    OperationFailedException defaultRealmNotReferenced(String defaultRealm);
+    @Message(id = 13, value = "The default-realm '%s' is not in the list of realms [%s] referenced by this domain.")
+    OperationFailedException defaultRealmNotReferenced(String defaultRealm, String realms);
 
     /**
      * A {@link StartException} for when the properties file backed realm can not be started due to problems loading the

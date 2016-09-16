@@ -21,8 +21,10 @@ import java.io.FilePermission;
 
 import javax.security.auth.x500.X500Principal;
 
+import org.jboss.as.controller.client.helpers.ClientConstants;
 import org.jboss.as.subsystem.test.AbstractSubsystemTest;
 import org.jboss.as.subsystem.test.KernelServices;
+import org.jboss.dmr.ModelNode;
 import org.jboss.msc.service.ServiceName;
 import org.junit.Assert;
 import org.junit.Test;
@@ -42,6 +44,9 @@ import org.wildfly.security.permission.PermissionVerifier;
 
 import mockit.integration.junit4.JMockit;
 
+import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OUTCOME;
+import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.SUCCESS;
+
 
 /**
  * @author <a href="mailto:jkalina@redhat.com">Jan Kalina</a>
@@ -54,6 +59,20 @@ public class DomainTestCase extends AbstractSubsystemTest {
     }
 
     private KernelServices services = null;
+
+    private ModelNode assertSuccess(ModelNode response) {
+        if (!response.get(OUTCOME).asString().equals(SUCCESS)) {
+            Assert.fail(response.toJSONString(false));
+        }
+        return response;
+    }
+
+    private ModelNode assertFail(ModelNode response) {
+        if (response.get(OUTCOME).asString().equals(SUCCESS)) {
+            Assert.fail(response.toJSONString(false));
+        }
+        return response;
+    }
 
     private void init() throws Exception {
         TestEnvironment.mockCallerModuleClassloader();
@@ -172,6 +191,42 @@ public class DomainTestCase extends AbstractSubsystemTest {
         authenticationContext = x500Domain.createNewAuthenticationContext();
         // X500Domain does not trust AnotherDomain
         Assert.assertFalse(authenticationContext.importIdentity(establishedIdentity));
+    }
+    @Test
+    public void testDomainRealmsAndDefaultRealmValidation() throws Exception {
+        init();
+
+        ModelNode operation = new ModelNode();
+        operation.get(ClientConstants.OP_ADDR).add("subsystem","elytron").add(ElytronDescriptionConstants.SECURITY_DOMAIN,"MyDomain");
+        operation.get(ClientConstants.OP).set(ClientConstants.WRITE_ATTRIBUTE_OPERATION);
+        operation.get(ClientConstants.NAME).set(ElytronDescriptionConstants.DEFAULT_REALM);
+        operation.get(ClientConstants.VALUE).set("PropRealm");
+        Assert.assertNotNull(assertSuccess(services.executeOperation(operation)).get(ClientConstants.RESULT).asString());
+
+        operation = new ModelNode();
+        operation.get(ClientConstants.OP_ADDR).add("subsystem","elytron").add(ElytronDescriptionConstants.SECURITY_DOMAIN,"MyDomain");
+        operation.get(ClientConstants.OP).set(ClientConstants.WRITE_ATTRIBUTE_OPERATION);
+        operation.get(ClientConstants.NAME).set(ElytronDescriptionConstants.DEFAULT_REALM);
+        operation.get(ClientConstants.VALUE).set("NonDomainRealm");
+        Assert.assertNotNull(assertFail(services.executeOperation(operation)).get(ClientConstants.RESULT).asString());
+
+        operation = new ModelNode();
+        operation.get(ClientConstants.OP_ADDR).add("subsystem","elytron").add(ElytronDescriptionConstants.SECURITY_DOMAIN,"MyDomain");
+        operation.get(ClientConstants.OP).set(ClientConstants.WRITE_ATTRIBUTE_OPERATION);
+        operation.get(ClientConstants.NAME).set(ElytronDescriptionConstants.REALMS);
+        ModelNode valueRealms = new ModelNode();
+        valueRealms.add(new ModelNode().set(ElytronDescriptionConstants.REALM, "PropRealm"));
+        operation.get(ClientConstants.VALUE).set(valueRealms);
+        Assert.assertNotNull(assertSuccess(services.executeOperation(operation)).get(ClientConstants.RESULT).asString());
+
+        operation = new ModelNode();
+        operation.get(ClientConstants.OP_ADDR).add("subsystem","elytron").add(ElytronDescriptionConstants.SECURITY_DOMAIN,"MyDomain");
+        operation.get(ClientConstants.OP).set(ClientConstants.WRITE_ATTRIBUTE_OPERATION);
+        operation.get(ClientConstants.NAME).set(ElytronDescriptionConstants.REALMS);
+        valueRealms = new ModelNode();
+        valueRealms.add(new ModelNode().set(ElytronDescriptionConstants.REALM, "FileRealm"));
+        operation.get(ClientConstants.VALUE).set(valueRealms);
+        Assert.assertNotNull(assertFail(services.executeOperation(operation)).get(ClientConstants.RESULT).asString());
     }
 
     public static class MyPermissionMapper implements PermissionMapper {
