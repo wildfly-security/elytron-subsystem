@@ -1721,7 +1721,7 @@
     <xs:complexType name="mappedRegexRealmMapperType">
         <xs:annotation>
             <xs:documentation>
-              A RealmMapper implementaion that first uses a regular expression to extract the realm name, this is then converted using the configured mapping of realm names.
+              A RealmMapper implementation that first uses a regular expression to extract the realm name, this is then converted using the configured mapping of realm names.
             </xs:documentation>
         </xs:annotation>
         <xs:complexContent>
@@ -1976,6 +1976,8 @@
                     <xs:annotation>
                         <xs:documentation>
                             The logicial operation to perform using the two referenced RoleMappers.
+
+                            Allowed values: "and", "minus", "or", "xor".
                         </xs:documentation>
                     </xs:annotation>
                 </xs:attribute>
