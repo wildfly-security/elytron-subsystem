@@ -19,6 +19,7 @@
 package org.wildfly.extension.elytron._private;
 
 import static org.jboss.logging.Logger.Level.INFO;
+import static org.jboss.logging.Logger.Level.WARN;
 
 import java.security.KeyStore;
 import java.security.NoSuchProviderException;
@@ -237,6 +238,13 @@ public interface ElytronSubsystemMessages extends BasicLogger {
      */
     @Message(id = 21, value = "Exception while creating the permission object for the permission mapping. Please check [class-name], [target-name] (name of permission) and [action] of [%s].")
     StartException exceptionWhileCreatingPermission(String permissionClassName, @Cause Throwable cause);
+
+    @Message(id = 22, value = "KeyStore file '%s' does not exists and required.")
+    StartException keyStoreFileNotExists(final String file);
+
+    @LogMessage(level = WARN)
+    @Message(id = 23, value = "KeyStore file '%s' does not exists. Used blank.")
+    void keyStoreFileNotExistsButIgnored(final String file);
 
     // CREDENTIAL_STORE section
     @Message(id = 909, value = "Credential store '%s' does not support given credential store entry type '%s'")

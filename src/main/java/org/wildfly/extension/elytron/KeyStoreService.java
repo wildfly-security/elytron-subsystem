@@ -121,6 +121,14 @@ class KeyStoreService implements ModifiableKeyStoreService {
             }
 
             synched = System.currentTimeMillis();
+            if (resolvedPath != null && ! resolvedPath.exists()) {
+                if (required) {
+                    throw ROOT_LOGGER.keyStoreFileNotExists(resolvedPath.getAbsolutePath());
+                } else {
+                    ROOT_LOGGER.keyStoreFileNotExistsButIgnored(resolvedPath.getAbsolutePath());
+                    resolvedPath = null;
+                }
+            }
             try (InputStream is = resolvedPath != null ? new FileInputStream(resolvedPath) : null) {
                 keyStore.load(is, resolvePassword());
             }
