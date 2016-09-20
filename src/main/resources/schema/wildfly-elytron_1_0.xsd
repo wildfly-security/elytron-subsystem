@@ -1303,7 +1303,7 @@
     <xs:complexType name="regexNameValidatingRewriter">
         <xs:annotation>
             <xs:documentation>
-                A NameWriter that instead of rewriting the name validates that it is
+                A NameRewriter that instead of rewriting the name validates that it is
                 correct according to the supplied regular expression.
             </xs:documentation>
         </xs:annotation>
@@ -1321,8 +1321,7 @@
                     default="true">
                     <xs:annotation>
                         <xs:documentation>
-                            Is the name being checked required to be matched by the regular
-                            expression.
+                            If the name must match the pattern. Otherwise the name must not match the pattern.
                         </xs:documentation>
                     </xs:annotation>
                 </xs:attribute>
