@@ -19,6 +19,7 @@
 package org.wildfly.extension.elytron;
 
 import static org.wildfly.security.credential.store.impl.KeystorePasswordStore.KEY_STORE_PASSWORD_STORE;
+import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
 
 import java.io.File;
 import java.net.URISyntaxException;
@@ -52,6 +53,7 @@ class CredentialStoreService implements Service<CredentialStoreClient> {
     private CredentialStore credentialStore;
     private final String type;
     private final String provider;
+    private final String providerLoaderName;
     private final String relativeTo;
     private final String name;
     private final Map<String, String> credentialStoreAttributes;
@@ -63,15 +65,16 @@ class CredentialStoreService implements Service<CredentialStoreClient> {
 
     private Handle callbackHandle;
 
-    private CredentialStoreService(String name, Map<String, String> credentialStoreAttributes, String type, String provider, String relativeTo) throws CredentialStoreException {
+    private CredentialStoreService(String name, Map<String, String> credentialStoreAttributes, String type, String provider, String relativeTo, String providerLoaderName) throws CredentialStoreException {
         this.name = name;
         this.type = type != null ? type : KEY_STORE_PASSWORD_STORE;
         this.provider = provider;
         this.relativeTo = relativeTo;
         this.credentialStoreAttributes = credentialStoreAttributes;
+        this.providerLoaderName = providerLoaderName;
     }
 
-    static CredentialStoreService createCredentialStoreService(String name, String uri, String type, String provider, String relativeTo) throws CredentialStoreException {
+    static CredentialStoreService createCredentialStoreService(String name, String uri, String type, String provider, String relativeTo, String providerLoaderName) throws CredentialStoreException {
         try {
             CredentialStoreURIParser credentialStoreURIParser = new CredentialStoreURIParser(uri);
             String nameToSet = name != null ? name : credentialStoreURIParser.getName(); // once we specify name, the name from uri is ignored
@@ -81,7 +84,7 @@ class CredentialStoreService implements Service<CredentialStoreClient> {
             if (storageFile != null) {
                 credentialStoreAttributes.put(ElytronDescriptionConstants.CREDENTIAL_STORE_FILE, storageFile);
             }
-            return new CredentialStoreService(nameToSet, credentialStoreAttributes, type, provider, relativeTo);
+            return new CredentialStoreService(nameToSet, credentialStoreAttributes, type, provider, relativeTo, providerLoaderName);
         } catch (URISyntaxException e) {
             throw new CredentialStoreException(e);
         }
@@ -95,7 +98,7 @@ class CredentialStoreService implements Service<CredentialStoreClient> {
     public void start(StartContext startContext) throws StartException {
         resolveFileLocation();
         try {
-            credentialStore = provider != null ? CredentialStore.getInstance(type, provider) : CredentialStore.getInstance(type);
+            credentialStore = getCredentialStoreInstance();
             credentialStore.initialize(credentialStoreAttributes);
         } catch (CredentialStoreException | NoSuchAlgorithmException | NoSuchProviderException e) {
             throw ElytronSubsystemMessages.ROOT_LOGGER.unableToStartService(e);
@@ -138,6 +141,29 @@ class CredentialStoreService implements Service<CredentialStoreClient> {
         }
         if (baseDir != null) {
             credentialStoreAttributes.put(ElytronDescriptionConstants.CREDENTIAL_STORE_BASE, baseDir.getAbsolutePath());
+        }
+    }
+
+    private CredentialStore getCredentialStoreInstance() throws CredentialStoreException, NoSuchAlgorithmException, NoSuchProviderException {
+        if (provider != null) {
+            // directly specified provider
+            return CredentialStore.getInstance(type, provider);
+        }
+
+        Provider[] injectedProviders = providers.getOptionalValue();
+        if (injectedProviders != null) {
+            // injected provider list, select the first provider with corresponding type
+            for (Provider p: injectedProviders) {
+                try {
+                    return CredentialStore.getInstance(type, p);
+                } catch (NoSuchAlgorithmException e) {
+                    // ignore
+                }
+            }
+            throw ROOT_LOGGER.providerLoaderCannotSupplyProvider(providerLoaderName, type);
+        } else {
+            // default provider
+            return CredentialStore.getInstance(type);
         }
     }
 

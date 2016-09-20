@@ -191,7 +191,7 @@ final class CredentialStoreResourceDefinition extends SimpleResourceDefinition {
             // ----------- credential store service ----------------
             final CredentialStoreService csService;
             try {
-                csService = CredentialStoreService.createCredentialStoreService(name, uri, type, provider, relativeTo);
+                csService = CredentialStoreService.createCredentialStoreService(name, uri, type, provider, relativeTo, providerLoader);
             } catch (CredentialStoreException e) {
                 throw new OperationFailedException(e);
             }

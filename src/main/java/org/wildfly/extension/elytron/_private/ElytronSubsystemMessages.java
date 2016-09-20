@@ -21,6 +21,7 @@ package org.wildfly.extension.elytron._private;
 import static org.jboss.logging.Logger.Level.INFO;
 
 import java.security.KeyStore;
+import java.security.NoSuchProviderException;
 import java.security.Provider;
 
 import org.jboss.as.controller.OperationFailedException;
@@ -242,6 +243,9 @@ public interface ElytronSubsystemMessages extends BasicLogger {
 
     @Message(id = 913, value = "Credential alias not specified in URI reference '%s'")
     OperationFailedException credentialAliasNotSpecifiedInUriReference(String uriReference);
+
+    @Message(id = 914, value = "Provider loader '%s' cannot supply Credential Store provider of type '%s'")
+    NoSuchProviderException providerLoaderCannotSupplyProvider(String providerLoader, String type);
 
     /*
      * Identity Resource Messages - 1000
