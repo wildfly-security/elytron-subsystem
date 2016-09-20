@@ -3459,15 +3459,6 @@
         </xs:annotation>
         <xs:complexContent>
             <xs:extension base="basicFileType">
-                <xs:attribute name="read-only" type="xs:boolean"
-                    use="optional" default="false">
-                    <xs:annotation>
-                        <xs:documentation>
-                            When set to 'true' this attribute prevents the in-memory
-                            representation of the file from being written back to the file.
-                        </xs:documentation>
-                    </xs:annotation>
-                </xs:attribute>
                 <xs:attribute name="required" type="xs:boolean"
                     use="optional" default="false">
                     <xs:annotation>
