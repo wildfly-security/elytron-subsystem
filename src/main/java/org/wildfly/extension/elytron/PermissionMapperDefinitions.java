@@ -55,7 +55,6 @@ import org.jboss.msc.value.InjectedValue;
 import org.wildfly.extension.elytron.TrivialService.ValueSupplier;
 import org.wildfly.security.authz.PermissionMapper;
 import org.wildfly.security.authz.SimplePermissionMapper;
-import org.wildfly.security.authz.SimplePermissionMapper.Builder;
 import org.wildfly.security.permission.PermissionUtil;
 import org.wildfly.security.permission.PermissionVerifier;
 
@@ -195,7 +194,7 @@ class PermissionMapperDefinitions {
     }
 
     private static PermissionMapper createSimplePermissionMapper(MappingMode mappingMode, List<Mapping> mappings) throws StartException {
-        Builder builder  = SimplePermissionMapper.builder();
+        SimplePermissionMapper.Builder builder = SimplePermissionMapper.builder();
         builder.setMappingMode(mappingMode.convert());
         for (Mapping current : mappings) {
 
@@ -221,6 +220,50 @@ class PermissionMapperDefinitions {
 
         return builder.build();
 
+    }
+
+    static ResourceDefinition getConstantPermissionMapper() {
+        final AttributeDefinition[] attributes = new AttributeDefinition[] { PERMISSIONS };
+        TrivialAddHandler<PermissionMapper>  add = new TrivialAddHandler<PermissionMapper>(PermissionMapper.class, attributes, PERMISSION_MAPPER_RUNTIME_CAPABILITY) {
+
+            @Override
+            protected ValueSupplier<PermissionMapper> getValueSupplier(ServiceBuilder<PermissionMapper> serviceBuilder,
+                                                                       OperationContext context, ModelNode model) throws OperationFailedException {
+
+                List<Permission> permissions = new ArrayList<>();
+                if (model.hasDefined(ElytronDescriptionConstants.PERMISSIONS)) {
+                    for (ModelNode permission : model.require(ElytronDescriptionConstants.PERMISSIONS).asList()) {
+                        permissions.add(new Permission(CLASS_NAME.resolveModelAttribute(context, permission).asString(),
+                                asStringIfDefined(context, MODULE, permission),
+                                asStringIfDefined(context, TARGET_NAME, permission),
+                                asStringIfDefined(context, ACTION, permission)));
+                    }
+                }
+
+                return () -> createConstantPermissionMapper(permissions);
+            }
+        };
+
+        return new TrivialResourceDefinition(ElytronDescriptionConstants.CONSTANT_PERMISSION_MAPPER, add, attributes, PERMISSION_MAPPER_RUNTIME_CAPABILITY);
+    }
+
+    private static PermissionMapper createConstantPermissionMapper(List<Permission> permissionsList) throws StartException {
+        Permissions permissions = new Permissions();
+        for (Permission permission : permissionsList) {
+            Module currentModule = Module.getCallerModule();
+            if (permission.getModule() != null) {
+                ModuleIdentifier mi = ModuleIdentifier.fromString(permission.getModule());
+                try {
+                    currentModule = currentModule.getModule(mi);
+                } catch (ModuleLoadException e) {
+                    throw new StartException(e);
+                }
+            }
+
+            ClassLoader classLoader = currentModule != null ? currentModule.getClassLoader() : PermissionMapperDefinitions.class.getClassLoader();
+            permissions.add(PermissionUtil.createPermission(classLoader, permission.getClassName(), permission.getTargetName(), permission.getAction()));
+        }
+        return PermissionMapper.createConstant(PermissionVerifier.from(permissions));
     }
 
 

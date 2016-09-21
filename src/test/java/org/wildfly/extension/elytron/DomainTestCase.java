@@ -18,6 +18,8 @@
 package org.wildfly.extension.elytron;
 
 import java.io.FilePermission;
+import java.util.Arrays;
+import java.util.HashSet;
 
 import javax.security.auth.x500.X500Principal;
 
@@ -227,6 +229,28 @@ public class DomainTestCase extends AbstractSubsystemTest {
         valueRealms.add(new ModelNode().set(ElytronDescriptionConstants.REALM, "FileRealm"));
         operation.get(ClientConstants.VALUE).set(valueRealms);
         Assert.assertNotNull(assertFail(services.executeOperation(operation)).get(ClientConstants.RESULT).asString());
+    }
+
+    @Test
+    public void testPermissionMappers() throws Exception {
+        init();
+
+        ServiceName serviceName = Capabilities.SECURITY_DOMAIN_RUNTIME_CAPABILITY.getCapabilityServiceName("MyDomain");
+        SecurityDomain myDomain = (SecurityDomain) services.getContainer().getService(serviceName).getValue();
+        SecurityIdentity firstUser = getIdentityFromDomain(myDomain, "firstUser");
+        Roles roles = Roles.fromSet(new HashSet<>(Arrays.asList(new String[]{"role1", "role2"})));
+
+        serviceName = Capabilities.PERMISSION_MAPPER_RUNTIME_CAPABILITY.getCapabilityServiceName("SimplePermissionMapperRole");
+        PermissionMapper mapper = (PermissionMapper) services.getContainer().getService(serviceName).getValue();
+        PermissionVerifier verifier = mapper.mapPermissions(firstUser, roles);
+        Assert.assertTrue(verifier.implies(new LoginPermission()));
+        Assert.assertFalse(verifier.implies(new FilePermission("aaa", "read")));
+
+        serviceName = Capabilities.PERMISSION_MAPPER_RUNTIME_CAPABILITY.getCapabilityServiceName("SimplePermissionMapperPrincipal");
+        mapper = (PermissionMapper) services.getContainer().getService(serviceName).getValue();
+        verifier = mapper.mapPermissions(firstUser, roles);
+        Assert.assertTrue(verifier.implies(new LoginPermission()));
+        Assert.assertFalse(verifier.implies(new FilePermission("aaa", "read")));
     }
 
     public static class MyPermissionMapper implements PermissionMapper {

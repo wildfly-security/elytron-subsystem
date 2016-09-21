@@ -42,6 +42,7 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CLASS_NA
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CONCATENATING_PRINCIPAL_DECODER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CONSTANT;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CONSTANT_NAME_REWRITER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CONSTANT_PERMISSION_MAPPER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CONSTANT_PRINCIPAL_DECODER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CONSTANT_ROLE_MAPPER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CUSTOM_NAME_REWRITER;
@@ -155,6 +156,9 @@ class MapperParser {
                     break;
                 case SIMPLE_PERMISSION_MAPPER:
                     readSimplePermissionMapper(parentAddress, reader, operations);
+                    break;
+                case CONSTANT_PERMISSION_MAPPER:
+                    readConstantPermissionMapper(parentAddress, reader, operations);
                     break;
                 // Principal Decoders
                 case AGGREGATE_PRINCIPAL_DECODER:
@@ -537,6 +541,49 @@ class MapperParser {
 
         addPermissionMapper.get(OP_ADDR).set(parentAddress).add(SIMPLE_PERMISSION_MAPPER, name);
         addPermissionMapper.get(PERMISSION_MAPPINGS).set(permissionMappings);
+        operations.add(addPermissionMapper);
+    }
+
+    private void readConstantPermissionMapper(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations) throws XMLStreamException {
+        ModelNode addPermissionMapper = new ModelNode();
+        addPermissionMapper.get(OP).set(ADD);
+
+        String name = null;
+
+        final int count = reader.getAttributeCount();
+        for (int i = 0; i < count; i++) {
+            final String value = reader.getAttributeValue(i);
+            if (!isNoNamespaceAttribute(reader, i)) {
+                throw unexpectedAttribute(reader, i);
+            } else {
+                String attribute = reader.getAttributeLocalName(i);
+                switch (attribute) {
+                    case NAME:
+                        name = value;
+                        break;
+                    default:
+                        throw unexpectedAttribute(reader, i);
+                }
+            }
+        }
+
+        if (name == null) {
+            throw missingRequired(reader, NAME);
+        }
+
+        ModelNode permissions = new ModelNode();
+
+        while (reader.hasNext() && reader.nextTag() != END_ELEMENT) {
+            verifyNamespace(reader);
+            String localName = reader.getLocalName();
+            if (PERMISSION.equals(localName) == false) {
+                throw unexpectedElement(reader);
+            }
+            permissions.add(readPermission(reader));
+        }
+
+        addPermissionMapper.get(OP_ADDR).set(parentAddress).add(CONSTANT_PERMISSION_MAPPER, name);
+        addPermissionMapper.get(PERMISSIONS).set(permissions);
         operations.add(addPermissionMapper);
     }
 
@@ -1435,6 +1482,36 @@ class MapperParser {
         return false;
     }
 
+    private boolean writeConstantPermissionMappers(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
+        if (subsystem.hasDefined(CONSTANT_PERMISSION_MAPPER)) {
+            startMappers(started, writer);
+            ModelNode permissionMappers = subsystem.require(CONSTANT_PERMISSION_MAPPER);
+
+            for (String name : permissionMappers.keys()) {
+                ModelNode permissionMapper = permissionMappers.require(name);
+                writer.writeStartElement(CONSTANT_PERMISSION_MAPPER);
+                writer.writeAttribute(NAME, name);
+
+                if (permissionMapper.hasDefined(PERMISSIONS)) {
+                    for (ModelNode permission : permissionMapper.get(PERMISSIONS).asList()) {
+                        writer.writeStartElement(PERMISSION);
+                        ClassLoadingAttributeDefinitions.CLASS_NAME.marshallAsAttribute(permission, writer);
+                        ClassLoadingAttributeDefinitions.MODULE.marshallAsAttribute(permission, writer);
+                        PermissionMapperDefinitions.TARGET_NAME.marshallAsAttribute(permission, writer);
+                        PermissionMapperDefinitions.ACTION.marshallAsAttribute(permission, writer);
+                        writer.writeEndElement();
+                    }
+                }
+
+                writer.writeEndElement();
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
     private boolean writeAggregatePrincipalDecoders(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (subsystem.hasDefined(AGGREGATE_PRINCIPAL_DECODER)) {
             startMappers(started, writer);
@@ -1776,6 +1853,7 @@ class MapperParser {
         mappersStarted = mappersStarted | writeCustomPermissionMappers(mappersStarted, subsystem, writer);
         mappersStarted = mappersStarted | writeLogicalPermissionMappers(mappersStarted, subsystem, writer);
         mappersStarted = mappersStarted | writeSimplePermissionMappers(mappersStarted, subsystem, writer);
+        mappersStarted = mappersStarted | writeConstantPermissionMappers(mappersStarted, subsystem, writer);
 
         mappersStarted = mappersStarted | writeAggregatePrincipalDecoders(mappersStarted, subsystem, writer);
         mappersStarted = mappersStarted | writeConcatenatingPrincipalDecoders(mappersStarted, subsystem, writer);

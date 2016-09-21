@@ -1235,6 +1235,7 @@
             <xs:element name="custom-permission-mapper" type="customPermissionMapperType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="logical-permission-mapper" type="logicalPermissionMapperType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="simple-permission-mapper" type="simplePermissionMapperType" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="constant-permission-mapper" type="constantPermissionMapperType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="custom-realm-mapper" type="customRealmMapperType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="simple-regex-realm-mapper" type="simpleRegexRealmMapperType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="mapped-regex-realm-mapper" type="mappedRegexRealmMapperType" minOccurs="0" maxOccurs="unbounded" />
@@ -1513,7 +1514,7 @@
                     <xs:element name="permission-mapping" maxOccurs="unbounded">
                         <xs:complexType>
                             <xs:sequence>
-                                <xs:element name="permission" maxOccurs="unbounded" >
+                                <xs:element name="permission" maxOccurs="unbounded">
                                     <xs:complexType>
                                         <xs:attribute name="class-name" type="xs:string" use="required">
                                             <xs:annotation>
@@ -1565,6 +1566,52 @@
                     </xs:element>
                 </xs:sequence>
                 <xs:attribute name="mapping-mode" type="simpleMappingMode" default="first" />
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="constantPermissionMapperType">
+        <xs:annotation>
+            <xs:documentation>
+                A RoleMapper definition that always returns a pre-defined set of permissions.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="permissionMapperType">
+                <xs:sequence>
+                    <xs:element name="permission" maxOccurs="unbounded">
+                        <xs:complexType>
+                            <xs:attribute name="class-name" type="xs:string" use="required">
+                                <xs:annotation>
+                                    <xs:documentation>
+                                        The fully qualified class name of the permission.
+                                    </xs:documentation>
+                                </xs:annotation>
+                            </xs:attribute>
+                            <xs:attribute name="module" type="xs:string">
+                                <xs:annotation>
+                                    <xs:documentation>
+                                        The module to use to load the permission class.
+                                    </xs:documentation>
+                                </xs:annotation>
+                            </xs:attribute>
+                            <xs:attribute name="target-name" type="xs:string">
+                                <xs:annotation>
+                                    <xs:documentation>
+                                        The target-name to pass to the constructor of the permission.
+                                    </xs:documentation>
+                                </xs:annotation>
+                            </xs:attribute>
+                            <xs:attribute name="action" type="xs:string">
+                                <xs:annotation>
+                                    <xs:documentation>
+                                        The action to pass to the constructor of the permission.
+                                    </xs:documentation>
+                                </xs:annotation>
+                            </xs:attribute>
+                        </xs:complexType>
+                    </xs:element>
+                </xs:sequence>
             </xs:extension>
         </xs:complexContent>
     </xs:complexType>
