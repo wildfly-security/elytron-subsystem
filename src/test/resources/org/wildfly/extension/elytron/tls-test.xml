@@ -1,5 +1,21 @@
 <!-- for needs of SaslTestCase and KeyStoresTestCase -->
 <subsystem xmlns="urn:wildfly:elytron:1.0">
+    <security-domains>
+        <security-domain name="MyDomain" default-realm="FileRealm">
+            <realm name="FileRealm"/>
+        </security-domain>
+    </security-domains>
+    <security-realms>
+        <filesystem-realm name="FileRealm" levels="2">
+            <file path="filesystem-realm" relative-to="jboss.server.config.dir" />
+        </filesystem-realm>
+        <properties-realm name="PropRealm">
+            <users-properties path="testingrealm1-users.properties" relative-to="jboss.server.config.dir" />
+        </properties-realm>
+        <properties-realm name="NonDomainRealm">
+            <users-properties path="testingrealm1-users.properties" relative-to="jboss.server.config.dir" />
+        </properties-realm>
+    </security-realms>
     <provider-loaders>
         <provider-loader name="ManagerProviderLoader">
             <provider class-names="com.sun.net.ssl.internal.ssl.Provider"/>
@@ -49,11 +65,11 @@
         <server-ssl-contexts>
             <server-ssl-context name="ServerSslContextNoAuth" key-managers="ServerKeyManager" trust-managers="CaTrustManager"/>
             <server-ssl-context name="ServerSslContextAuth" protocols="TLSv1.3 TLSv1.2 TLSv1.1" key-managers="ServerKeyManager" trust-managers="CaTrustManager"
-                                want-client-auth="true" need-client-auth="true" authentication-optional="false" use-cipher-suites-order="false"/>
+                                want-client-auth="true" need-client-auth="true" authentication-optional="false" use-cipher-suites-order="false" provider-loader="ManagerProviderLoader" provider="SunJSSE"/>
         </server-ssl-contexts>
         <client-ssl-contexts>
             <client-ssl-context name="ClientSslContextNoAuth" trust-managers="CaTrustManager" />
-            <client-ssl-context name="ClientSslContextAuth" protocols="SSLv2 SSLv3 TLSv1 TLSv1.3 TLSv1.2" key-managers="ClientKeyManager" trust-managers="CaTrustManager" use-cipher-suites-order="false"/>
+            <client-ssl-context name="ClientSslContextAuth" protocols="SSLv2 SSLv3 TLSv1 TLSv1.3 TLSv1.2" key-managers="ClientKeyManager" trust-managers="CaTrustManager" use-cipher-suites-order="false" provider-loader="ManagerProviderLoader"/>
         </client-ssl-contexts>
     </tls>
 </subsystem>

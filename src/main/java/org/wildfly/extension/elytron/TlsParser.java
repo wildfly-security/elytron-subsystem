@@ -327,8 +327,11 @@ class TlsParser {
                     case TRUST_MANAGERS:
                         SSLDefinitions.TRUST_MANAGERS.parseAndSetParameter(value, addServerSSLContext, reader);
                         break;
-                    case PROVIDER:
+                    case PROVIDER_LOADER:
                         SSLDefinitions.PROVIDER_LOADER.parseAndSetParameter(value, addServerSSLContext, reader);
+                        break;
+                    case PROVIDER:
+                        SSLDefinitions.PROVIDER.parseAndSetParameter(value, addServerSSLContext, reader);
                         break;
                     default:
                         throw unexpectedAttribute(reader, i);
@@ -400,8 +403,11 @@ class TlsParser {
                     case TRUST_MANAGERS:
                         SSLDefinitions.TRUST_MANAGERS.parseAndSetParameter(value, addServerSSLContext, reader);
                         break;
-                    case PROVIDER:
+                    case PROVIDER_LOADER:
                         SSLDefinitions.PROVIDER_LOADER.parseAndSetParameter(value, addServerSSLContext, reader);
+                        break;
+                    case PROVIDER:
+                        SSLDefinitions.PROVIDER.parseAndSetParameter(value, addServerSSLContext, reader);
                         break;
                     default:
                         throw unexpectedAttribute(reader, i);
@@ -838,6 +844,7 @@ class TlsParser {
                 SSLDefinitions.KEY_MANAGERS.marshallAsAttribute(serverSSLContext, writer);
                 SSLDefinitions.TRUST_MANAGERS.marshallAsAttribute(serverSSLContext, writer);
                 SSLDefinitions.PROVIDER_LOADER.marshallAsAttribute(serverSSLContext, writer);
+                SSLDefinitions.PROVIDER.marshallAsAttribute(serverSSLContext, writer);
 
                 writer.writeEndElement();
             }
@@ -867,6 +874,7 @@ class TlsParser {
                 SSLDefinitions.KEY_MANAGERS.marshallAsAttribute(serverSSLContext, writer);
                 SSLDefinitions.TRUST_MANAGERS.marshallAsAttribute(serverSSLContext, writer);
                 SSLDefinitions.PROVIDER_LOADER.marshallAsAttribute(serverSSLContext, writer);
+                SSLDefinitions.PROVIDER.marshallAsAttribute(serverSSLContext, writer);
 
                 writer.writeEndElement();
             }
