@@ -2898,7 +2898,7 @@
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
-        <xs:attribute name="password" type="xs:string" use="optional">
+        <xs:attribute name="key-password" type="xs:string" use="required">
             <xs:annotation>
                 <xs:documentation>
                     Password to be used by the underlying KeyManager when accessing the entires in the underlying KeyStore.

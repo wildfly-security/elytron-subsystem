@@ -124,8 +124,8 @@ class TlsParser {
                     case PROVIDER:
                         SSLDefinitions.PROVIDER.parseAndSetParameter(value, addKeyManager, reader);
                         break;
-                    case PASSWORD:
-                        SSLDefinitions.PASSWORD.parseAndSetParameter(value, addKeyManager, reader);
+                    case KEY_PASSWORD:
+                        SSLDefinitions.KEY_PASSWORD.parseAndSetParameter(value, addKeyManager, reader);
                         break;
                     default:
                         throw unexpectedAttribute(reader, i);
@@ -720,7 +720,7 @@ class TlsParser {
                 SSLDefinitions.KEYSTORE.marshallAsAttribute(keyManager, writer);
                 SSLDefinitions.PROVIDER_LOADER.marshallAsAttribute(keyManager, writer);
                 SSLDefinitions.PROVIDER.marshallAsAttribute(keyManager, writer);
-                SSLDefinitions.PASSWORD.marshallAsAttribute(keyManager, writer);
+                SSLDefinitions.KEY_PASSWORD.marshallAsAttribute(keyManager, writer);
 
                 writer.writeEndElement();
             }
