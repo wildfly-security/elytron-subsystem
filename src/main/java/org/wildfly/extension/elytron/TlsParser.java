@@ -469,7 +469,7 @@ class TlsParser {
             if (FILE.equals(localName)) {
                 readFile(addKeyStore, reader, list);
             } else if (CredentialReference.CREDENTIAL_REFERENCE.equals(localName)) {
-                CredentialReference.readCredentialReference(addKeyStore, reader);
+                CredentialReference.getAttributeDefinition().getParser().parseElement(CredentialReference.getAttributeDefinition(), reader, addKeyStore);
             } else {
                 throw unexpectedElement(reader);
             }
@@ -880,7 +880,7 @@ class TlsParser {
                         writer.writeEndElement();
                     }
                     if (keyStore.hasDefined(CredentialReference.CREDENTIAL_REFERENCE)) {
-                        CredentialReference.marshallAsElement(keyStore.get(CredentialReference.CREDENTIAL_REFERENCE), writer);
+                        KeyStoreDefinition.CREDENTIAL_REFERENCE.marshallAsElement(keyStore.get(CredentialReference.CREDENTIAL_REFERENCE), writer);
                     }
 
                     writer.writeEndElement(); // end of KEY_STORE
