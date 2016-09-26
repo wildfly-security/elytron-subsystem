@@ -70,7 +70,7 @@ class NameRewriterDefinitions {
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
         .build();
 
-    static final SimpleAttributeDefinition MATCH = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.MATCH, ModelType.BOOLEAN, false)
+    static final SimpleAttributeDefinition MATCH = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.MATCH, ModelType.BOOLEAN, true)
         .setAllowExpression(true)
         .setDefaultValue(new ModelNode(true))
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
