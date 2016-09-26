@@ -228,6 +228,16 @@ public interface ElytronSubsystemMessages extends BasicLogger {
     @Message(id = 20, value = "Unable to reload the properties files required to by the properties file backed realm.")
     OperationFailedException unableToReLoadPropertiesFiles(@Cause Exception cause);
 
+    /**
+     * A {@link StartException} for when creating of the {@link java.security.Permission} will fail.
+     *
+     * @param permissionClassName class-name of the created permission
+     * @param cause the underlying cause of the error.
+     * @return The {@link OperationFailedException} for the error.
+     */
+    @Message(id = 21, value = "Exception while creating the permission object for the permission mapping. Please check [class-name], [target-name] (name of permission) and [action] of [%s].")
+    StartException exceptionWhileCreatingPermission(String permissionClassName, @Cause Throwable cause);
+
     // CREDENTIAL_STORE section
     @Message(id = 909, value = "Credential store '%s' does not support given credential store entry type '%s'")
     IllegalArgumentException credentialStoreEntryTypeNotSupported(String credentialStoreName, String entryType);
