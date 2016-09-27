@@ -25,7 +25,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLPeerUnverifiedException;
+import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
@@ -85,7 +85,7 @@ public class TlsTestCase extends AbstractSubsystemTest {
         testCommunication(listeningSocket, serverSocket, clientSocket, "OU=Elytron,O=Elytron,C=CZ,ST=Elytron,CN=localhost", "OU=Elytron,O=Elytron,C=UK,ST=Elytron,CN=Firefly");
     }
 
-    @Test(expected = SSLPeerUnverifiedException.class)
+    @Test(expected = SSLHandshakeException.class)
     public void testSslServiceAuthRequiredButNotProvided() throws Throwable {
         SSLServerSocketFactory serverSocketFactory = getSslContext("ServerSslContextAuth").getServerSocketFactory();
         SSLSocketFactory clientSocketFactory = getSslContext("ClientSslContextNoAuth").getSocketFactory();

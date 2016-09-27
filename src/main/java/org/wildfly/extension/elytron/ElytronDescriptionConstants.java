@@ -359,6 +359,7 @@ interface ElytronDescriptionConstants {
     String UNLESS = "unless";
     String URL = "url";
     String USE_RECURSIVE_SEARCH = "use-recursive-search";
+    String USE_CIPHER_SUITES_ORDER = "use-cipher-suites-order";
     String USERS_PROPERTIES = "users-properties";
     String USER_PASSWORD_MAPPER = "user-password-mapper";
 

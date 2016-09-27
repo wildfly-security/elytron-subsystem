@@ -253,6 +253,9 @@ class TlsParser {
                     case AUTHENTICATION_OPTIONAL:
                         SSLDefinitions.AUTHENTICATION_OPTIONAL.parseAndSetParameter(value, addServerSSLContext, reader);
                         break;
+                    case USE_CIPHER_SUITES_ORDER:
+                        SSLDefinitions.USE_CIPHER_SUITES_ORDER.parseAndSetParameter(value, addServerSSLContext, reader);
+                        break;
                     case MAXIMUM_SESSION_CACHE_SIZE:
                         SSLDefinitions.MAXIMUM_SESSION_CACHE_SIZE.parseAndSetParameter(value, addServerSSLContext, reader);
                         break;
@@ -334,6 +337,9 @@ class TlsParser {
                         break;
                     case AUTHENTICATION_OPTIONAL:
                         SSLDefinitions.AUTHENTICATION_OPTIONAL.parseAndSetParameter(value, addServerSSLContext, reader);
+                        break;
+                    case USE_CIPHER_SUITES_ORDER:
+                        SSLDefinitions.USE_CIPHER_SUITES_ORDER.parseAndSetParameter(value, addServerSSLContext, reader);
                         break;
                     case MAXIMUM_SESSION_CACHE_SIZE:
                         SSLDefinitions.MAXIMUM_SESSION_CACHE_SIZE.parseAndSetParameter(value, addServerSSLContext, reader);
@@ -772,6 +778,7 @@ class TlsParser {
                 SSLDefinitions.WANT_CLIENT_AUTH.marshallAsAttribute(serverSSLContext, writer);
                 SSLDefinitions.NEED_CLIENT_AUTH.marshallAsAttribute(serverSSLContext, writer);
                 SSLDefinitions.AUTHENTICATION_OPTIONAL.marshallAsAttribute(serverSSLContext, writer);
+                SSLDefinitions.USE_CIPHER_SUITES_ORDER.marshallAsAttribute(serverSSLContext, writer);
                 SSLDefinitions.MAXIMUM_SESSION_CACHE_SIZE.marshallAsAttribute(serverSSLContext, writer);
                 SSLDefinitions.SESSION_TIMEOUT.marshallAsAttribute(serverSSLContext, writer);
                 SSLDefinitions.KEY_MANAGERS.marshallAsAttribute(serverSSLContext, writer);
@@ -802,6 +809,7 @@ class TlsParser {
                 SSLDefinitions.CIPHER_SUITE_FILTER.marshallAsAttribute(serverSSLContext, writer);
                 SSLDefinitions.PROTOCOLS.getAttributeMarshaller().marshallAsAttribute(SSLDefinitions.PROTOCOLS, serverSSLContext, false, writer);
                 SSLDefinitions.MAXIMUM_SESSION_CACHE_SIZE.marshallAsAttribute(serverSSLContext, writer);
+                SSLDefinitions.USE_CIPHER_SUITES_ORDER.marshallAsAttribute(serverSSLContext, writer);
                 SSLDefinitions.SESSION_TIMEOUT.marshallAsAttribute(serverSSLContext, writer);
                 SSLDefinitions.KEY_MANAGERS.marshallAsAttribute(serverSSLContext, writer);
                 SSLDefinitions.TRUST_MANAGERS.marshallAsAttribute(serverSSLContext, writer);
