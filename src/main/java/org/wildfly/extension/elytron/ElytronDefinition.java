@@ -230,11 +230,15 @@ class ElytronDefinition extends SimpleResourceDefinition {
 
         @Override
         protected void performRuntime(OperationContext context, ModelNode operation, ModelNode model) throws OperationFailedException {
-            SecurityPropertyService securityPropertyService = uninstallSecurityPropertyService(context);
-            if (securityPropertyService != null) {
-                context.attach(SECURITY_PROPERTY_SERVICE_KEY, securityPropertyService);
+            if (context.isResourceServiceRestartAllowed()) {
+                SecurityPropertyService securityPropertyService = uninstallSecurityPropertyService(context);
+                if (securityPropertyService != null) {
+                    context.attach(SECURITY_PROPERTY_SERVICE_KEY, securityPropertyService);
+                }
+                context.removeService(CoreService.SERVICE_NAME);
+            } else {
+                context.reloadRequired();
             }
-            context.removeService(CoreService.SERVICE_NAME);
         }
 
         @Override
