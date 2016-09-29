@@ -62,7 +62,6 @@
         </mapped-regex-realm-mapper>
         
         <custom-role-decoder name="CustomDecoderOne" class-name="org.wildfly.elytron.CustomRoleDecoder" module="f.g" />
-        <empty-role-decoder name="EmptyRoleDecoder" />
         <simple-role-decoder name="SimpleRoleDecoder" attribute="groups" />
         
         <add-prefix-role-mapper name="AddPrefix" prefix="p" />

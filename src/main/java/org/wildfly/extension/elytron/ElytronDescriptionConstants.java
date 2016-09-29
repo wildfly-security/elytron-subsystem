@@ -112,7 +112,6 @@ interface ElytronDescriptionConstants {
     String DIR_CONTEXTS = "dir-contexts";
     String DIRECT_VERIFICATION = "direct-verification";
 
-    String EMPTY_ROLE_DECODER = "empty-role-decoder";
     String ENABLE_CONNECTION_POOLING = "enable-connection-pooling";
     String ENABLING = "enabling";
     String ENCODED = "encoded";

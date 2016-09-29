@@ -1241,7 +1241,6 @@
             <xs:element name="mapped-regex-realm-mapper" type="mappedRegexRealmMapperType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="custom-role-decoder" type="customRoleDecoderType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="simple-role-decoder" type="simpleRoleDecoderType" minOccurs="0" maxOccurs="unbounded" />
-            <xs:element name="empty-role-decoder" type="emptyRoleDecoderType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="add-prefix-role-mapper" type="addPrefixRoleMapperType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="add-suffix-role-mapper" type="addSuffixRoleMapperType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="aggregate-role-mapper" type="aggregateRoleMapperType" minOccurs="0" maxOccurs="unbounded" />
@@ -1944,18 +1943,6 @@
                     </xs:element>
                 </xs:sequence>
                 <xs:attributeGroup ref="customComponentAttributes" />
-            </xs:extension>
-        </xs:complexContent>
-    </xs:complexType>
-
-    <xs:complexType name="emptyRoleDecoderType">
-        <xs:annotation>
-            <xs:documentation>
-                A RoleDecoder definition that returns no roles.
-            </xs:documentation>
-        </xs:annotation>
-        <xs:complexContent>
-            <xs:extension base="roleDecoderType">
             </xs:extension>
         </xs:complexContent>
     </xs:complexType>

@@ -52,7 +52,6 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CUSTOM_R
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CUSTOM_ROLE_DECODER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CUSTOM_ROLE_MAPPER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.DELEGATE_REALM_MAPPER;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.EMPTY_ROLE_DECODER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.FROM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.JOINER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.LEFT;
@@ -189,9 +188,6 @@ class MapperParser {
                 // Role Decoders
                 case CUSTOM_ROLE_DECODER:
                     readCustomComponent(CUSTOM_ROLE_DECODER, parentAddress, reader, operations);
-                    break;
-                case EMPTY_ROLE_DECODER:
-                    readEmptyRoleDecoder(parentAddress, reader, operations);
                     break;
                 case SIMPLE_ROLE_DECODER:
                     readSimpleRoleDecoder(parentAddress, reader, operations);
@@ -1002,18 +998,6 @@ class MapperParser {
         realmNameMap.add(from, to);
     }
 
-    private void readEmptyRoleDecoder(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations) throws XMLStreamException {
-        requireSingleAttribute(reader, NAME);
-        String name = reader.getAttributeValue(0);
-
-        requireNoContent(reader);
-
-        ModelNode addRoleDecoder = new ModelNode();
-        addRoleDecoder.get(OP).set(ADD);
-        addRoleDecoder.get(OP_ADDR).set(parentAddress).add(EMPTY_ROLE_DECODER, name);
-        operations.add(addRoleDecoder);
-    }
-
     private void readSimpleRoleDecoder(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations) throws XMLStreamException {
         ModelNode addRoleDecoder = new ModelNode();
         addRoleDecoder.get(OP).set(ADD);
@@ -1687,22 +1671,6 @@ class MapperParser {
         return false;
     }
 
-    private boolean writeEmptyRoleDecoders(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
-        if (subsystem.hasDefined(EMPTY_ROLE_DECODER)) {
-            startMappers(started, writer);
-            ModelNode roleDecoders = subsystem.require(EMPTY_ROLE_DECODER);
-            for (String name : roleDecoders.keys()) {
-                writer.writeStartElement(EMPTY_ROLE_DECODER);
-                writer.writeAttribute(NAME, name);
-                writer.writeEndElement();
-            }
-
-            return true;
-        }
-
-        return false;
-    }
-
     private boolean writeSimpleRoleDecoders(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (subsystem.hasDefined(SIMPLE_ROLE_DECODER)) {
             startMappers(started, writer);
@@ -1866,7 +1834,6 @@ class MapperParser {
         mappersStarted = mappersStarted | writeMapRegexRealmMappers(mappersStarted, subsystem, writer);
 
         mappersStarted = mappersStarted | writeCustomRoleDecoders(mappersStarted, subsystem, writer);
-        mappersStarted = mappersStarted | writeEmptyRoleDecoders(mappersStarted, subsystem, writer);
         mappersStarted = mappersStarted | writeSimpleRoleDecoders(mappersStarted, subsystem, writer);
 
         mappersStarted = mappersStarted | writeAddPrefixRoleMappers(mappersStarted, subsystem, writer);
