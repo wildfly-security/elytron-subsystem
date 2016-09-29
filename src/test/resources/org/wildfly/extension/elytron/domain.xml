@@ -25,7 +25,7 @@
         
         <custom-permission-mapper name="PermissionMapper" class-name="org.wildfly.elytron.PermissionMapper" />
         <custom-principal-decoder name="CustomPrincipalDecoder" class-name="org.wildfly.elytron.PrincipalDecoder" />
-        <simple-regex-realm-mapper name="RegexMapper" pattern="f" />
+        <simple-regex-realm-mapper name="RegexMapper" pattern="(f)" />
         
         <empty-role-decoder name="EmptyRoleDecoder" />
         
