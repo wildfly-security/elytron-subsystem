@@ -269,5 +269,6 @@ public interface ElytronSubsystemMessages extends BasicLogger {
     @Message(id = 1012, value = "Unexpected password type [%s].")
     OperationFailedException unexpectedPasswordType(final String passwordType);
 
-
+    @Message(id = 1013, value = "Pattern [%s] requires a capture group")
+    OperationFailedException patternRequiresCaptureGroup(final String pattern);
 }

@@ -887,7 +887,7 @@ class MapperParser {
                         name = value;
                         break;
                     case PATTERN:
-                        RegexAttributeDefinitions.PATTERN.parseAndSetParameter(value, addRealmMapper, reader);
+                        RegexAttributeDefinitions.PATTERN_CAPTURE_GROUP.parseAndSetParameter(value, addRealmMapper, reader);
                         break;
                     case DELEGATE_REALM_MAPPER:
                         RealmMapperDefinitions.DELEGATE_REALM_MAPPER.parseAndSetParameter(value, addRealmMapper, reader);
@@ -931,7 +931,7 @@ class MapperParser {
                         name = value;
                         break;
                     case PATTERN:
-                        RegexAttributeDefinitions.PATTERN.parseAndSetParameter(value, addRealmMapper, reader);
+                        RegexAttributeDefinitions.PATTERN_CAPTURE_GROUP.parseAndSetParameter(value, addRealmMapper, reader);
                         break;
                     case DELEGATE_REALM_MAPPER:
                         RealmMapperDefinitions.DELEGATE_REALM_MAPPER.parseAndSetParameter(value, addRealmMapper, reader);
@@ -1640,7 +1640,7 @@ class MapperParser {
                 ModelNode realmMapper = nameRewriters.require(name);
                 writer.writeStartElement(SIMPLE_REGEX_REALM_MAPPER);
                 writer.writeAttribute(NAME, name);
-                RegexAttributeDefinitions.PATTERN.marshallAsAttribute(realmMapper, writer);
+                RegexAttributeDefinitions.PATTERN_CAPTURE_GROUP.marshallAsAttribute(realmMapper, writer);
                 RealmMapperDefinitions.DELEGATE_REALM_MAPPER.marshallAsAttribute(realmMapper, writer);
                 writer.writeEndElement();
             }
@@ -1659,7 +1659,7 @@ class MapperParser {
                 ModelNode realmMapper = nameRewriters.require(name);
                 writer.writeStartElement(MAPPED_REGEX_REALM_MAPPER);
                 writer.writeAttribute(NAME, name);
-                RegexAttributeDefinitions.PATTERN.marshallAsAttribute(realmMapper, writer);
+                RegexAttributeDefinitions.PATTERN_CAPTURE_GROUP.marshallAsAttribute(realmMapper, writer);
                 RealmMapperDefinitions.DELEGATE_REALM_MAPPER.marshallAsAttribute(realmMapper, writer);
                 RealmMapperDefinitions.REALM_REALM_MAP.marshallAsElement(realmMapper, writer);
                 writer.writeEndElement();

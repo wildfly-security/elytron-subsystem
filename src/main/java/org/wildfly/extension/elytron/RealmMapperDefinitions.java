@@ -24,7 +24,7 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.FROM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REALM_MAPPING;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.TO;
 import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
-import static org.wildfly.extension.elytron.RegexAttributeDefinitions.PATTERN;
+import static org.wildfly.extension.elytron.RegexAttributeDefinitions.PATTERN_CAPTURE_GROUP;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -108,7 +108,7 @@ class RealmMapperDefinitions {
 
     private static class SimpleRegexRealmMapperDefinition extends SimpleResourceDefinition {
 
-        private static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] { PATTERN, DELEGATE_REALM_MAPPER };
+        private static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] { PATTERN_CAPTURE_GROUP, DELEGATE_REALM_MAPPER };
 
         private static final AbstractAddStepHandler ADD = new SimpleRegexRealmMapperAddHandler(ATTRIBUTES);
         private static final OperationStepHandler REMOVE = new TrivialCapabilityServiceRemoveHandler(ADD, REALM_MAPPER_RUNTIME_CAPABILITY);
@@ -145,7 +145,7 @@ class RealmMapperDefinitions {
             RuntimeCapability<Void> runtimeCapability = REALM_MAPPER_RUNTIME_CAPABILITY.fromBaseCapability(context.getCurrentAddressValue());
             ServiceName realmMapperName = runtimeCapability.getCapabilityServiceName(RealmMapper.class);
 
-            final String pattern = PATTERN.resolveModelAttribute(context, model).asString();
+            final String pattern = PATTERN_CAPTURE_GROUP.resolveModelAttribute(context, model).asString();
             String delegateRealmMapper = asStringIfDefined(context, DELEGATE_REALM_MAPPER, model);
 
             final InjectedValue<RealmMapper> delegateRealmMapperInjector = new InjectedValue<RealmMapper>();
@@ -178,7 +178,7 @@ class RealmMapperDefinitions {
 
     private static class MappedRegexRealmMapperDefinition extends SimpleResourceDefinition {
 
-        private static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] { PATTERN, REALM_REALM_MAP, DELEGATE_REALM_MAPPER };
+        private static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] { PATTERN_CAPTURE_GROUP, REALM_REALM_MAP, DELEGATE_REALM_MAPPER };
 
         private static final AbstractAddStepHandler ADD = new MappedRegexRealmMapperAddHandler(ATTRIBUTES);
         private static final OperationStepHandler REMOVE = new TrivialCapabilityServiceRemoveHandler(ADD, REALM_MAPPER_RUNTIME_CAPABILITY);
@@ -215,7 +215,7 @@ class RealmMapperDefinitions {
             RuntimeCapability<Void> runtimeCapability = REALM_MAPPER_RUNTIME_CAPABILITY.fromBaseCapability(context.getCurrentAddressValue());
             ServiceName realmMapperName = runtimeCapability.getCapabilityServiceName(RealmMapper.class);
 
-            final String pattern = PATTERN.resolveModelAttribute(context, model).asString();
+            final String pattern = PATTERN_CAPTURE_GROUP.resolveModelAttribute(context, model).asString();
 
             ModelNode realmMapList = REALM_REALM_MAP.resolveModelAttribute(context, model);
             Set<String> names = realmMapList.keys();
