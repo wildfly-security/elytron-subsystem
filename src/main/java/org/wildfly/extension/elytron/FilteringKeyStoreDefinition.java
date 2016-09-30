@@ -70,7 +70,7 @@ public class FilteringKeyStoreDefinition extends SimpleResourceDefinition {
             .setCapabilityReference(KEY_STORE_CAPABILITY, KEY_STORE_CAPABILITY, true)
             .build();
 
-    static final SimpleAttributeDefinition ALIAS_FILTER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ALIAS_FILTER, ModelType.STRING, true)
+    static final SimpleAttributeDefinition ALIAS_FILTER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ALIAS_FILTER, ModelType.STRING, false)
             .setAllowExpression(true)
             .setMinSize(1)
             .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)

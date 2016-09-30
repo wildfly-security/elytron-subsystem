@@ -77,7 +77,7 @@ class RealmMapperDefinitions {
         .setCapabilityReference(REALM_MAPPER_CAPABILITY, REALM_MAPPER_CAPABILITY, true)
         .build();
 
-    static final SimpleMapAttributeDefinition REALM_REALM_MAP = new SimpleMapAttributeDefinition.Builder(ElytronDescriptionConstants.REALM_MAP, ModelType.STRING, true)
+    static final SimpleMapAttributeDefinition REALM_REALM_MAP = new SimpleMapAttributeDefinition.Builder(ElytronDescriptionConstants.REALM_MAP, ModelType.STRING, false)
         .setAttributeMarshaller(new AttributeMarshaller() {
 
                 @Override
@@ -94,6 +94,7 @@ class RealmMapperDefinitions {
                     }
 
                 })
+        .setMinSize(1)
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
         .build();
 

@@ -3473,7 +3473,7 @@
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
-        <xs:attribute name="alias-filter" type="xs:string" use="optional">
+        <xs:attribute name="alias-filter" type="xs:string" use="required">
             <xs:annotation>
                 <xs:documentation>
                     A filter to apply to the aliases made available by this KeyStore.
