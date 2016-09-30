@@ -43,6 +43,19 @@
         </aggregate-role-mapper>
         <custom-permission-mapper name="MyPermissionMapper" class-name="org.wildfly.extension.elytron.DomainTestCase$MyPermissionMapper"/>
         <custom-permission-mapper name="LoginPermissionMapper" class-name="org.wildfly.extension.elytron.DomainTestCase$LoginPermissionMapper"/>
+        <simple-permission-mapper name="SimplePermissionMapperRole">
+            <permission-mapping roles="role2">
+                <permission class-name="org.wildfly.security.auth.permission.LoginPermission"/>
+            </permission-mapping>
+        </simple-permission-mapper>
+        <simple-permission-mapper name="SimplePermissionMapperPrincipal">
+            <permission-mapping principals="firstUser">
+                <permission class-name="org.wildfly.security.auth.permission.LoginPermission"/>
+            </permission-mapping>
+        </simple-permission-mapper>
+        <constant-permission-mapper name="ConstantPermissionMapper">
+            <permission class-name="org.wildfly.security.auth.permission.LoginPermission"/>
+        </constant-permission-mapper>
         <x500-attribute-principal-decoder name="MyX500PrincipalDecoder" oid="2.5.4.3" joiner="," maximum-segments="6" />
         <x500-attribute-principal-decoder name="MyX500PrincipalDecoderTwo" oid="2.5.4.3" joiner="," start-segment="2" maximum-segments="1" reverse="true" required-oids="2.5.4.3 2.5.4.11" />
         <x500-attribute-principal-decoder name="MyCnDecoder" oid="2.5.4.3" start-segment="1" maximum-segments="1" />
