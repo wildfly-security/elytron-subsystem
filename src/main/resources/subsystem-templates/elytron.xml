@@ -49,7 +49,7 @@
 
     <supplement name="domain">
         <replacement placeholder="DOMAIN_DEFINITIONS">
-            <security-domain name="ApplicationDomain" default-realm="ApplicationRealm" role-mapper="combined-role-mapper" permission-mapper="login-permission-mapper">
+            <security-domain name="ApplicationDomain" default-realm="ApplicationRealm" permission-mapper="login-permission-mapper">
                 <realm name="ApplicationRealm" role-decoder="groups-to-roles" />
             </security-domain>
         </replacement>
@@ -76,7 +76,7 @@
 
     <supplement name="host">
         <replacement placeholder="DOMAIN_DEFINITIONS">
-            <security-domain name="ManagementDomain" default-realm="ManagementRealm" role-mapper="combined-role-mapper" permission-mapper="login-permission-mapper">
+            <security-domain name="ManagementDomain" default-realm="ManagementRealm" permission-mapper="login-permission-mapper">
                 <realm name="ManagementRealm" role-decoder="groups-to-roles" />
             </security-domain>
         </replacement>
@@ -102,11 +102,11 @@
 
     <supplement name="standalone">
         <replacement placeholder="DOMAIN_DEFINITIONS">
-            <security-domain name="ApplicationDomain" default-realm="ApplicationRealm" role-mapper="combined-role-mapper" permission-mapper="login-permission-mapper">
+            <security-domain name="ApplicationDomain" default-realm="ApplicationRealm" permission-mapper="login-permission-mapper">
                 <realm name="ApplicationRealm" role-decoder="groups-to-roles" />
             </security-domain>
 
-            <security-domain name="ManagementDomain" default-realm="ManagementRealm" role-mapper="combined-role-mapper" permission-mapper="login-permission-mapper">
+            <security-domain name="ManagementDomain" default-realm="ManagementRealm" permission-mapper="login-permission-mapper">
                 <realm name="ManagementRealm" role-decoder="groups-to-roles" />
             </security-domain>
         </replacement>
