@@ -126,7 +126,6 @@ public class FilteringKeyStoreDefinition extends SimpleResourceDefinition {
         @Override
         protected void performRuntime(OperationContext context, ModelNode operation, Resource resource) throws OperationFailedException {
             ModelNode model = resource.getModel();
-            InjectedValue<KeyStore> filteredKeyStoreInjector = new InjectedValue<>();
 
             String sourceKeyStoreName = asStringIfDefined(context, KEY_STORE, model);
             String aliasFilter = asStringIfDefined(context, ALIAS_FILTER, model);
@@ -166,7 +165,7 @@ public class FilteringKeyStoreDefinition extends SimpleResourceDefinition {
     private static class WriteAttributeHandler extends RestartParentWriteAttributeHandler {
 
         WriteAttributeHandler() {
-            super(ElytronDescriptionConstants.KEY_STORE, CONFIG_ATTRIBUTES);
+            super(ElytronDescriptionConstants.FILTERING_KEY_STORE, CONFIG_ATTRIBUTES);
         }
 
         @Override
