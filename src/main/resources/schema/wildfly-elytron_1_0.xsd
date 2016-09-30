@@ -3037,6 +3037,13 @@
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
+        <xs:attribute name="use-cipher-suites-order" type="xs:boolean" default="true">
+            <xs:annotation>
+                <xs:documentation>
+                    Configure the SSLContext to honor local cipher suites preference.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
         <xs:attribute name="maximum-session-cache-size" type="xs:int" default="0">
             <xs:annotation>
                 <xs:documentation>
@@ -3116,6 +3123,13 @@
             <xs:annotation>
                 <xs:documentation>
                     List of protocols supported by this SSLContext.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="use-cipher-suites-order" type="xs:boolean" default="true">
+            <xs:annotation>
+                <xs:documentation>
+                    Configure the SSLContext to honor local cipher suites preference.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
