@@ -13,6 +13,7 @@
         <custom-name-rewriter name="CustomOne" class-name="org.wildfly.elytron.CustomRewriter" module="a.b" />
         <regex-name-rewriter name="RegexOne" pattern=".?" replacement="X" replace-all="true" />
         <regex-name-validating-rewriter name="RegexTwo" pattern="p*" match="false" />
+        <regex-name-validating-rewriter name="RegexThree" pattern="p*" />
 
         <custom-permission-mapper name="CustomPermissionMapper" class-name="org.wildfly.elytron.CustomPermissionMapper" module="l.m" />
         <custom-permission-mapper name="CustomPermissionMapper2" class-name="org.wildfly.elytron.CustomPermissionMapper" module="l.m" />
