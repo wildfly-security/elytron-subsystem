@@ -15,9 +15,9 @@
             <filtering-key-store name="FilteringKeyStore" key-store="FireflyKeystore" alias-filter="NONE:+firefly"/>
         </key-stores>
         <key-managers>
-            <key-manager name="serverKey" algorithm="SunX509" key-store="jks_store" password="password" />
-            <key-manager name="serverKey2" algorithm="SunX509" key-store="jks_store" password="password" provider-loader="test" provider="first" />
-            <key-manager name="clientKey" algorithm="SunX509" key-store="jks_store" password="password" />
+            <key-manager name="serverKey" algorithm="SunX509" key-store="jks_store" key-password="password" />
+            <key-manager name="serverKey2" algorithm="SunX509" key-store="jks_store" key-password="password" provider-loader="test" provider="first" />
+            <key-manager name="clientKey" algorithm="SunX509" key-store="jks_store" key-password="password" />
         </key-managers>
         <trust-managers>
             <trust-manager name="serverTrust" algorithm="SunX509" key-store="jks_store" />

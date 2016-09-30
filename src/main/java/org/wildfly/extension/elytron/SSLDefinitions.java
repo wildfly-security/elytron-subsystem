@@ -112,7 +112,7 @@ class SSLDefinitions {
             .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
             .build();
 
-    static final SimpleAttributeDefinition PASSWORD = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PASSWORD, ModelType.STRING, true)
+    static final SimpleAttributeDefinition KEY_PASSWORD = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.KEY_PASSWORD, ModelType.STRING, false)
             .setAllowExpression(true)
             .setMinSize(1)
             .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
@@ -211,7 +211,7 @@ class SSLDefinitions {
                 .setCapabilityReference(KEY_STORE_CAPABILITY, KEY_MANAGERS_CAPABILITY, true)
                 .build();
 
-        AttributeDefinition[] attributes = new AttributeDefinition[] { ALGORITHM, providerLoaderDefinition, PROVIDER, keystoreDefinition, PASSWORD };
+        AttributeDefinition[] attributes = new AttributeDefinition[] { ALGORITHM, providerLoaderDefinition, PROVIDER, keystoreDefinition, KEY_PASSWORD};
 
         AbstractAddStepHandler add = new TrivialAddHandler<KeyManager[]>(KeyManager[].class, attributes, KEY_MANAGERS_RUNTIME_CAPABILITY) {
 
@@ -219,7 +219,7 @@ class SSLDefinitions {
             protected ValueSupplier<KeyManager[]> getValueSupplier(ServiceBuilder<KeyManager[]> serviceBuilder, OperationContext context, ModelNode model) throws OperationFailedException {
                 final String algorithm = ALGORITHM.resolveModelAttribute(context, model).asString();
                 final String provider = PROVIDER.resolveModelAttribute(context, model).isDefined() ? PROVIDER.resolveModelAttribute(context, model).asString() : null;
-                final String password = asStringIfDefined(context, PASSWORD, model);
+                final String password = asStringIfDefined(context, KEY_PASSWORD, model);
 
                 String providerLoader = asStringIfDefined(context, providerLoaderDefinition, model);
                 final InjectedValue<Provider[]> providersInjector = new InjectedValue<>();

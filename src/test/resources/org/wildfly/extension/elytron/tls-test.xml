@@ -19,9 +19,9 @@
             <filtering-key-store name="FilteringKeyStore" key-store="FireflyKeystore" alias-filter="NONE:+firefly"/>
         </key-stores>
         <key-managers>
-            <key-manager name="ServerKeyManager" algorithm="SunX509" key-store="LocalhostKeystore" password="Elytron"/>
-            <key-manager name="ClientKeyManager" algorithm="SunX509" key-store="FireflyKeystore" password="Elytron"/>
-            <key-manager name="MyKeyManager" algorithm="SunX509" key-store="FireflyKeystore" password="Elytron" provider-loader="ManagerProviderLoader" provider="SunJSSE"/>
+            <key-manager name="ServerKeyManager" algorithm="SunX509" key-store="LocalhostKeystore" key-password="Elytron"/>
+            <key-manager name="ClientKeyManager" algorithm="SunX509" key-store="FireflyKeystore" key-password="Elytron"/>
+            <key-manager name="MyKeyManager" algorithm="SunX509" key-store="FireflyKeystore" key-password="Elytron" provider-loader="ManagerProviderLoader" provider="SunJSSE"/>
         </key-managers>
         <trust-managers>
             <trust-manager name="CaTrustManager" algorithm="SunX509" key-store="ElytronCaTruststore"/>
