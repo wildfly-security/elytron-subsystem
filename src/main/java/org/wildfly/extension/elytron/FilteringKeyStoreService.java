@@ -28,6 +28,8 @@ import org.wildfly.security.keystore.FilteringKeyStore;
 
 import java.security.KeyStore;
 
+import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
+
 /**
  * A {@link Service} responsible for a single {@link KeyStore} instance.
  *
@@ -57,6 +59,10 @@ public class FilteringKeyStoreService implements ModifiableKeyStoreService {
             KeyStore unmodifiable = keyStoreService.getValue();
             KeyStore modifiable = keyStoreService.getModifiableValue();
 
+            ROOT_LOGGER.tracef(
+                    "starting:  aliasFilter = %s  filter = %s  unmodifiable = %s  modifiable = %s",
+                    aliasFilter, filter, unmodifiable, modifiable);
+
             filteringKeyStore = FilteringKeyStore.filteringKeyStore(unmodifiable, filter);
             if (modifiableFilteringKeyStore != null) {
                 modifiableFilteringKeyStore = FilteringKeyStore.filteringKeyStore(modifiable, filter);
@@ -68,6 +74,12 @@ public class FilteringKeyStoreService implements ModifiableKeyStoreService {
 
     @Override
     public void stop(StopContext stopContext) {
+
+        ROOT_LOGGER.tracef(
+                "stopping:  filteringKeyStore = %s  modifiableFilteringKeyStore = %s",
+                filteringKeyStore, modifiableFilteringKeyStore
+        );
+
         filteringKeyStore = null;
         modifiableFilteringKeyStore = null;
     }
