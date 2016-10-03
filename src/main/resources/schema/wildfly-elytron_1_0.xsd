@@ -19,7 +19,6 @@
   -->
 
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
-           xmlns:jd="urn:jboss:domain:5.0"
             targetNamespace="urn:wildfly:elytron:1.0"
             xmlns="urn:wildfly:elytron:1.0"
             elementFormDefault="qualified"
@@ -3249,7 +3248,7 @@
                     </xs:documentation>
                 </xs:annotation>
             </xs:element>
-            <xs:element name="credential-reference" type="jd:credentialReferenceType" minOccurs="0" maxOccurs="1">
+            <xs:element name="credential-reference" type="credentialReferenceType" minOccurs="0" maxOccurs="1">
                 <xs:annotation>
                     <xs:documentation>
                         The credential reference to credential store or clear text (password)
@@ -3657,5 +3656,48 @@
         </xs:annotation>
         <xs:list itemType="xs:string"/>
     </xs:simpleType>
+
+    <!-- Credential Reference Types -->
+    <xs:attributeGroup name="credentialReferenceStoreBased">
+        <xs:annotation>
+            <xs:documentation>
+                Group of attributes used when referencing credential through credential store.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="store" type="xs:string" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    Credential store name used to fetch credential with given 'alias' from.
+                    Credential store name has to be defined elsewhere.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="alias" type="xs:string" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    Alias of credential in the credential store.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="type" type="xs:string" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    Type of credential to be fetched from credential store.
+                    It is usually fully qualified class name.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:attributeGroup>
+    <xs:complexType name="credentialReferenceType">
+        <xs:attributeGroup ref="credentialReferenceStoreBased"/>
+        <xs:attribute name="clear-text" type="xs:string" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    Credential/password in clear text. Use just for testing purpose.
+                    Otherwise use credential store to mask the actual credential from your configuration.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:complexType>
 
 </xs:schema>
