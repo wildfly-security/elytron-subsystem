@@ -120,7 +120,7 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
     interface CredentialMappingObjectDefinition {
         ObjectTypeAttributeDefinition getObjectDefinition();
         SimpleAttributeDefinition[] getAttributes();
-        void configure(LdapSecurityRealmBuilder builder, ModelNode node);
+        void configure(LdapSecurityRealmBuilder builder, OperationContext context, ModelNode model) throws OperationFailedException;
     }
 
     static class UserPasswordCredentialMappingObjectDefinition implements CredentialMappingObjectDefinition {
@@ -158,10 +158,10 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
         }
 
         @Override
-        public void configure(LdapSecurityRealmBuilder builder, ModelNode node) {
-            String from = node.get(ElytronDescriptionConstants.FROM).asString();
-            boolean writable = node.get(ElytronDescriptionConstants.WRITABLE).asBoolean();
-            boolean verifiable = node.get(ElytronDescriptionConstants.VERIFIABLE).asBoolean();
+        public void configure(LdapSecurityRealmBuilder builder, OperationContext context, ModelNode model) throws OperationFailedException {
+            String from = FROM.resolveModelAttribute(context, model).asString();
+            boolean writable = WRITABLE.resolveModelAttribute(context, model).asBoolean();
+            boolean verifiable = VERIFIABLE.resolveModelAttribute(context, model).asBoolean();
 
             LdapSecurityRealmBuilder.UserPasswordCredentialLoaderBuilder b = builder.userPasswordCredentialLoader();
             if (from != null) b.setUserPasswordAttribute(from);
@@ -209,11 +209,11 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
         }
 
         @Override
-        public void configure(LdapSecurityRealmBuilder builder, ModelNode node) {
-            String algorithmFrom = node.get(ElytronDescriptionConstants.ALGORITHM_FROM).asString();
-            String hashFrom = node.get(ElytronDescriptionConstants.HASH_FROM).asString();
-            String seedFrom = node.get(ElytronDescriptionConstants.SEED_FROM).asString();
-            String sequenceFrom = node.get(ElytronDescriptionConstants.SEQUENCE_FROM).asString();
+        public void configure(LdapSecurityRealmBuilder builder, OperationContext context, ModelNode model) throws OperationFailedException {
+            String algorithmFrom = ALGORITHM_FROM.resolveModelAttribute(context, model).asString();
+            String hashFrom = HASH_FROM.resolveModelAttribute(context, model).asString();
+            String seedFrom = SEED_FROM.resolveModelAttribute(context, model).asString();
+            String sequenceFrom = SEQUENCE_FROM.resolveModelAttribute(context, model).asString();
 
             LdapSecurityRealmBuilder.OtpCredentialLoaderBuilder b = builder.otpCredentialLoader();
             if (algorithmFrom != null) b.setOtpAlgorithmAttribute(algorithmFrom);
@@ -417,7 +417,7 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
 
             for (Map.Entry<String, CredentialMappingObjectDefinition> entry : SUPPORTED_CREDENTIAL_MAPPERS.entrySet()) {
                 ModelNode node = model.get(IDENTITY_MAPPING).get(entry.getKey());
-                entry.getValue().configure(builder, node);
+                if (node.isDefined()) entry.getValue().configure(builder, context, node);
             }
 
             ModelNode attributeMappingNode = IdentityMappingObjectDefinition.ATTRIBUTE_MAPPINGS.resolveModelAttribute(context, principalMappingNode);
