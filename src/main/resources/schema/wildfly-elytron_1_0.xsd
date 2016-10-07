@@ -2905,6 +2905,15 @@
                 Definition of a single KeyManager.
             </xs:documentation>
         </xs:annotation>
+        <xs:all>
+            <xs:element name="credential-reference" type="credentialReferenceType">
+                <xs:annotation>
+                    <xs:documentation>
+                        Credential to be used by the underlying KeyManager when accessing the entries in the underlying KeyStore.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:all>
         <xs:attribute name="name" type="xs:string" use="required">
             <xs:annotation>
                 <xs:documentation>
@@ -2944,13 +2953,6 @@
                     to search for the one that can create the required KeyManagerFactory type.
 
                     If this is not specified then the global list of Providers is used instead.
-                </xs:documentation>
-            </xs:annotation>
-        </xs:attribute>
-        <xs:attribute name="key-password" type="xs:string" use="required">
-            <xs:annotation>
-                <xs:documentation>
-                    Password to be used by the underlying KeyManager when accessing the entires in the underlying KeyStore.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>

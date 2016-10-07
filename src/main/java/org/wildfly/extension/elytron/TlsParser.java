@@ -49,7 +49,6 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.FILTER_I
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEY_ATTRIBUTE;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEY_MANAGER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEY_MANAGERS;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEY_PASSWORD;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEY_STORE;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEY_STORES;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEY_TYPE;
@@ -179,9 +178,6 @@ class TlsParser {
                     case PROVIDER:
                         SSLDefinitions.PROVIDER.parseAndSetParameter(value, addKeyManager, reader);
                         break;
-                    case KEY_PASSWORD:
-                        SSLDefinitions.KEY_PASSWORD.parseAndSetParameter(value, addKeyManager, reader);
-                        break;
                     default:
                         throw unexpectedAttribute(reader, i);
                 }
@@ -195,7 +191,15 @@ class TlsParser {
         addKeyManager.get(OP_ADDR).set(parentAddress).add(KEY_MANAGERS, name);
         list.add(addKeyManager);
 
-        requireNoContent(reader);
+        while(reader.hasNext() && reader.nextTag() != END_ELEMENT) {
+            verifyNamespace(reader);
+            String localName = reader.getLocalName();
+            if (CredentialReference.CREDENTIAL_REFERENCE.equals(localName)) {
+                CredentialReference.getAttributeDefinition().getParser().parseElement(CredentialReference.getAttributeDefinition(), reader, addKeyManager);
+            } else {
+                throw unexpectedElement(reader);
+            }
+        }
     }
 
     private void readTrustManagers(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations) throws XMLStreamException {
@@ -783,7 +787,10 @@ class TlsParser {
                 SSLDefinitions.KEYSTORE.marshallAsAttribute(keyManager, writer);
                 SSLDefinitions.PROVIDER_LOADER.marshallAsAttribute(keyManager, writer);
                 SSLDefinitions.PROVIDER.marshallAsAttribute(keyManager, writer);
-                SSLDefinitions.KEY_PASSWORD.marshallAsAttribute(keyManager, writer);
+
+                if (keyManager.hasDefined(CredentialReference.CREDENTIAL_REFERENCE)) {
+                    CredentialReference.getAttributeDefinition().marshallAsElement(keyManager.get(CredentialReference.CREDENTIAL_REFERENCE), writer);
+                }
 
                 writer.writeEndElement();
             }

@@ -50,7 +50,9 @@ import org.wildfly.security.WildFlyElytronProvider;
  */
 public class KeyStoresTestCase extends AbstractSubsystemTest {
 
-   private static final Provider wildFlyElytronProvider = new WildFlyElytronProvider();
+    private static final Provider wildFlyElytronProvider = new WildFlyElytronProvider();
+    private static CredentialStoreUtility csUtil = null;
+    private static final String CS_PASSWORD = "super_secret";
 
 
     public KeyStoresTestCase() {
@@ -68,16 +70,20 @@ public class KeyStoresTestCase extends AbstractSubsystemTest {
     }
 
     @BeforeClass
-    public static void registerProvider() {
+    public static void initTests() {
         AccessController.doPrivileged(new PrivilegedAction<Integer>() {
             public Integer run() {
                 return Security.insertProviderAt(wildFlyElytronProvider, 1);
             }
         });
+        csUtil = new CredentialStoreUtility("target/tlstest.keystore", CS_PASSWORD);
+        csUtil.addEntry("the-key-alias", "Elytron");
+        csUtil.addEntry("master-password-alias", "Elytron");
     }
 
     @AfterClass
-    public static void removeProvider() {
+    public static void cleanUpTests() {
+        csUtil.cleanUp();
         AccessController.doPrivileged(new PrivilegedAction<Void>() {
             public Void run() {
                 Security.removeProvider(wildFlyElytronProvider.getName());
@@ -89,18 +95,10 @@ public class KeyStoresTestCase extends AbstractSubsystemTest {
 
     @Before
     public void init() throws Exception {
-      //  prepareFiles();
         services = super.createKernelServicesBuilder(new TestEnvironment()).setSubsystemXmlResource("tls-test.xml").build();
         if (!services.isSuccessfulBoot()) {
             Assert.fail(services.getBootError().toString());
         }
-    }
-
-    private void prepareFiles() {
-        KeyStoreUtility credentialStoreUtil = new KeyStoreUtility("test", "credential_store_secret", "JCEKS", null);
-        credentialStoreUtil.createCredentialStore();
-
-        // TODO: create also keystore needed by this test case
     }
 
     @Test

@@ -19,6 +19,10 @@ package org.wildfly.extension.elytron;
 
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+import java.security.Provider;
+import java.security.Security;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -33,14 +37,21 @@ import javax.net.ssl.SSLSocketFactory;
 import org.jboss.as.subsystem.test.AbstractSubsystemTest;
 import org.jboss.as.subsystem.test.KernelServices;
 import org.jboss.msc.service.ServiceName;
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
+import org.wildfly.security.WildFlyElytronProvider;
 
 /**
  * @author <a href="mailto:jkalina@redhat.com">Jan Kalina</a>
  */
 public class TlsTestCase extends AbstractSubsystemTest {
+
+    private static final Provider wildFlyElytronProvider = new WildFlyElytronProvider();
+    private static CredentialStoreUtility csUtil = null;
+    private static final String CS_PASSWORD = "super_secret";
 
     private final int TESTING_PORT = 18201;
 
@@ -50,6 +61,31 @@ public class TlsTestCase extends AbstractSubsystemTest {
 
     private KernelServices services = null;
 
+
+    @BeforeClass
+    public static void initTests() {
+        AccessController.doPrivileged(new PrivilegedAction<Integer>() {
+            public Integer run() {
+                return Security.insertProviderAt(wildFlyElytronProvider, 1);
+            }
+        });
+        csUtil = new CredentialStoreUtility("target/tlstest.keystore", CS_PASSWORD);
+        csUtil.addEntry("the-key-alias", "Elytron");
+        csUtil.addEntry("master-password-alias", "Elytron");
+    }
+
+    @AfterClass
+    public static void cleanUpTests() {
+        csUtil.cleanUp();
+        AccessController.doPrivileged(new PrivilegedAction<Void>() {
+            public Void run() {
+                Security.removeProvider(wildFlyElytronProvider.getName());
+
+                return null;
+            }
+        });
+    }
+
     @Before
     public void prepare() throws Throwable {
         if (services != null) return;
@@ -58,6 +94,7 @@ public class TlsTestCase extends AbstractSubsystemTest {
             Assert.fail(services.getBootError().toString());
         }
     }
+
 
     @Test
     public void testSslServiceNoAuth() throws Throwable {
