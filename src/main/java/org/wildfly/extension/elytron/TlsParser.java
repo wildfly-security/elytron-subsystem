@@ -318,9 +318,6 @@ class TlsParser {
                     case NAME:
                         name = value;
                         break;
-                    case SECURITY_DOMAIN:
-                        SSLDefinitions.SECURITY_DOMAIN.parseAndSetParameter(value, addServerSSLContext, reader);
-                        break;
                     case CIPHER_SUITE_FILTER:
                         SSLDefinitions.CIPHER_SUITE_FILTER.parseAndSetParameter(value, addServerSSLContext, reader);
                         break;
@@ -328,15 +325,6 @@ class TlsParser {
                         for (String protocol : reader.getListAttributeValue(i)) {
                             SSLDefinitions.PROTOCOLS.parseAndAddParameterElement(protocol, addServerSSLContext, reader);
                         }
-                        break;
-                    case WANT_CLIENT_AUTH:
-                        SSLDefinitions.WANT_CLIENT_AUTH.parseAndSetParameter(value, addServerSSLContext, reader);
-                        break;
-                    case NEED_CLIENT_AUTH:
-                        SSLDefinitions.NEED_CLIENT_AUTH.parseAndSetParameter(value, addServerSSLContext, reader);
-                        break;
-                    case AUTHENTICATION_OPTIONAL:
-                        SSLDefinitions.AUTHENTICATION_OPTIONAL.parseAndSetParameter(value, addServerSSLContext, reader);
                         break;
                     case USE_CIPHER_SUITES_ORDER:
                         SSLDefinitions.USE_CIPHER_SUITES_ORDER.parseAndSetParameter(value, addServerSSLContext, reader);
@@ -805,11 +793,10 @@ class TlsParser {
                 ModelNode serverSSLContext = serverSSLContexts.require(name);
                 writer.writeStartElement(CLIENT_SSL_CONTEXT);
                 writer.writeAttribute(NAME, name);
-                SSLDefinitions.SECURITY_DOMAIN.marshallAsAttribute(serverSSLContext, writer);
                 SSLDefinitions.CIPHER_SUITE_FILTER.marshallAsAttribute(serverSSLContext, writer);
                 SSLDefinitions.PROTOCOLS.getAttributeMarshaller().marshallAsAttribute(SSLDefinitions.PROTOCOLS, serverSSLContext, false, writer);
-                SSLDefinitions.MAXIMUM_SESSION_CACHE_SIZE.marshallAsAttribute(serverSSLContext, writer);
                 SSLDefinitions.USE_CIPHER_SUITES_ORDER.marshallAsAttribute(serverSSLContext, writer);
+                SSLDefinitions.MAXIMUM_SESSION_CACHE_SIZE.marshallAsAttribute(serverSSLContext, writer);
                 SSLDefinitions.SESSION_TIMEOUT.marshallAsAttribute(serverSSLContext, writer);
                 SSLDefinitions.KEY_MANAGERS.marshallAsAttribute(serverSSLContext, writer);
                 SSLDefinitions.TRUST_MANAGERS.marshallAsAttribute(serverSSLContext, writer);
