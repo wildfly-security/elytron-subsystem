@@ -36,6 +36,8 @@ import java.security.Security;
 import java.security.cert.CertificateException;
 
 import org.jboss.as.controller.OperationFailedException;
+import org.jboss.as.controller.security.CredentialReference;
+import org.jboss.as.controller.security.CredentialStoreClient;
 import org.jboss.as.controller.services.path.PathManager;
 import org.jboss.msc.inject.Injector;
 import org.jboss.msc.service.Service;
@@ -59,14 +61,15 @@ class KeyStoreService implements ModifiableKeyStoreService {
 
     private final String provider;
     private final String type;
-    private final char[] password;
     private final String path;
     private final String relativeTo;
     private final boolean required;
     private final String aliasFilter;
+    private final CredentialReference credentialReference;
 
-    private final InjectedValue<PathManager> pathManager = new InjectedValue<PathManager>();
-    private final InjectedValue<Provider[]> providers = new InjectedValue<Provider[]>();
+    private final InjectedValue<PathManager> pathManager = new InjectedValue<>();
+    private final InjectedValue<Provider[]> providers = new InjectedValue<>();
+    private final InjectedValue<CredentialStoreClient> injectedCredentialStoreClient = new InjectedValue<>();
 
     private PathResolver pathResolver;
     private File resolvedPath;
@@ -76,22 +79,22 @@ class KeyStoreService implements ModifiableKeyStoreService {
     private volatile ModifyTrackingKeyStore trackingKeyStore = null;
     private volatile KeyStore unmodifiableKeyStore = null;
 
-    private KeyStoreService(String provider, String type, char[] password, String relativeTo, String path, boolean required, String aliasFilter) {
+    private KeyStoreService(String provider, String type, String relativeTo, String path, boolean required, String aliasFilter, CredentialReference credentialReference) {
         this.provider = provider;
         this.type = type;
-        this.password = password != null ? password.clone() : null;
         this.relativeTo = relativeTo;
         this.path = path;
         this.required = required;
         this.aliasFilter = aliasFilter;
+        this.credentialReference = credentialReference;
     }
 
-    static KeyStoreService createFileLessKeyStoreService(String provider, String type, char[] password, String aliasFilter) {
-        return new KeyStoreService(provider, type, password, null, null, false, aliasFilter);
+    static KeyStoreService createFileLessKeyStoreService(String provider, String type, String aliasFilter, CredentialReference credentialReference) {
+        return new KeyStoreService(provider, type, null, null, false, aliasFilter, credentialReference);
     }
 
-    static KeyStoreService createFileBasedKeyStoreService(String provider, String type, char[] password, String relativeTo, String path, boolean required, String aliasFilter) {
-        return new KeyStoreService(provider, type, password, relativeTo, path, required, aliasFilter);
+    static KeyStoreService createFileBasedKeyStoreService(String provider, String type, String relativeTo, String path, boolean required, String aliasFilter, CredentialReference credentialReference) {
+        return new KeyStoreService(provider, type, relativeTo, path, required, aliasFilter, credentialReference);
     }
 
     /*
@@ -111,9 +114,15 @@ class KeyStoreService implements ModifiableKeyStoreService {
                 resolvedPath = pathResolver.resolve();
             }
 
+            try {
+                CredentialReference.reinjectCredentialStoreClient(injectedCredentialStoreClient, credentialReference);
+            } catch (ClassNotFoundException e) {
+                throw ROOT_LOGGER.unableToStartService(e);
+            }
+
             synched = System.currentTimeMillis();
             try (InputStream is = resolvedPath != null ? new FileInputStream(resolvedPath) : null) {
-                keyStore.load(is, password);
+                keyStore.load(is, resolvePassword());
             }
 
             this.keyStore = keyStore;
@@ -136,7 +145,7 @@ class KeyStoreService implements ModifiableKeyStoreService {
 
     private AtomicLoadKeyStore.LoadKey load(AtomicLoadKeyStore keyStore) throws GeneralSecurityException, IOException {
         try (InputStream is = resolvedPath != null ? new FileInputStream(resolvedPath) : null) {
-            return keyStore.revertibleLoad(is, password);
+            return keyStore.revertibleLoad(is, resolvePassword());
         }
     }
 
@@ -166,6 +175,10 @@ class KeyStoreService implements ModifiableKeyStoreService {
         return providers;
     }
 
+    Injector<CredentialStoreClient> getCredentialStoreClientInjector() {
+        return injectedCredentialStoreClient;
+    }
+
     /*
      * OperationStepHandler Access Methods
      */
@@ -183,7 +196,7 @@ class KeyStoreService implements ModifiableKeyStoreService {
             trackingKeyStore.setModified(false);
             return new LoadKey(loadKey, originalSynced, originalModified);
         } catch (GeneralSecurityException | IOException e) {
-            throw ROOT_LOGGER.unableToCompleteOperation(e);
+            throw ROOT_LOGGER.unableToCompleteOperation(e, e.getLocalizedMessage());
         }
     }
 
@@ -198,16 +211,21 @@ class KeyStoreService implements ModifiableKeyStoreService {
             throw ROOT_LOGGER.cantSaveWithoutFile();
         }
         try (FileOutputStream fos = new FileOutputStream(resolvedPath)) {
-            keyStore.store(fos, password);
+            keyStore.store(fos, resolvePassword());
             synched = System.currentTimeMillis();
             trackingKeyStore.setModified(false);
         } catch (IOException | KeyStoreException | NoSuchAlgorithmException | CertificateException e) {
-            throw ROOT_LOGGER.unableToCompleteOperation(e);
+            throw ROOT_LOGGER.unableToCompleteOperation(e, e.getLocalizedMessage());
         }
     }
 
     boolean isModified() {
         return trackingKeyStore.isModified();
+    }
+
+    private char[] resolvePassword() {
+        CredentialStoreClient credentialStoreClient = injectedCredentialStoreClient.getValue();
+        return credentialStoreClient.getSecret();
     }
 
     class LoadKey {

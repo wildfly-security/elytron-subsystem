@@ -22,25 +22,36 @@ import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.SUC
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.security.AccessController;
 import java.security.KeyStore;
+import java.security.PrivilegedAction;
+import java.security.Provider;
+import java.security.Security;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
 import org.jboss.as.controller.client.helpers.ClientConstants;
+import org.jboss.as.controller.security.CredentialReference;
 import org.jboss.as.subsystem.test.AbstractSubsystemTest;
 import org.jboss.as.subsystem.test.KernelServices;
 import org.jboss.dmr.ModelNode;
 import org.jboss.msc.service.ServiceName;
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
+import org.wildfly.security.WildFlyElytronProvider;
 
 
 /**
  * @author <a href="mailto:jkalina@redhat.com">Jan Kalina</a>
  */
 public class KeyStoresTestCase extends AbstractSubsystemTest {
+
+   private static final Provider wildFlyElytronProvider = new WildFlyElytronProvider();
+
 
     public KeyStoresTestCase() {
         super(ElytronExtension.SUBSYSTEM_NAME, new ElytronExtension());
@@ -56,12 +67,40 @@ public class KeyStoresTestCase extends AbstractSubsystemTest {
         return response;
     }
 
+    @BeforeClass
+    public static void registerProvider() {
+        AccessController.doPrivileged(new PrivilegedAction<Integer>() {
+            public Integer run() {
+                return Security.insertProviderAt(wildFlyElytronProvider, 1);
+            }
+        });
+    }
+
+    @AfterClass
+    public static void removeProvider() {
+        AccessController.doPrivileged(new PrivilegedAction<Void>() {
+            public Void run() {
+                Security.removeProvider(wildFlyElytronProvider.getName());
+
+                return null;
+            }
+        });
+    }
+
     @Before
     public void init() throws Exception {
+      //  prepareFiles();
         services = super.createKernelServicesBuilder(new TestEnvironment()).setSubsystemXmlResource("tls-test.xml").build();
         if (!services.isSuccessfulBoot()) {
             Assert.fail(services.getBootError().toString());
         }
+    }
+
+    private void prepareFiles() {
+        KeyStoreUtility credentialStoreUtil = new KeyStoreUtility("test", "credential_store_secret", "JCEKS", null);
+        credentialStoreUtil.createCredentialStore();
+
+        // TODO: create also keystore needed by this test case
     }
 
     @Test
@@ -93,11 +132,11 @@ public class KeyStoresTestCase extends AbstractSubsystemTest {
 
         ModelNode operation = new ModelNode(); // add keystore
         operation.get(ClientConstants.OPERATION_HEADERS).get("allow-resource-service-restart").set(Boolean.TRUE);
-        operation.get(ClientConstants.OP_ADDR).add("subsystem","elytron").add("key-store","ModifiedKeyStore");
+        operation.get(ClientConstants.OP_ADDR).add("subsystem","elytron").add("key-store", "ModifiedKeyStore");
         operation.get(ClientConstants.OP).set(ClientConstants.ADD);
         operation.get(ElytronDescriptionConstants.PATH).set(resources + "/firefly-copy.keystore");
         operation.get(ElytronDescriptionConstants.TYPE).set("JKS");
-        operation.get(ElytronDescriptionConstants.PASSWORD).set("Elytron");
+        operation.get(CredentialReference.CREDENTIAL_REFERENCE).get(CredentialReference.CLEAR_TEXT).set("Elytron");
         assertSuccess(services.executeOperation(operation));
 
         operation = new ModelNode();

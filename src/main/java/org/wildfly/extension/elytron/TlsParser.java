@@ -28,7 +28,61 @@ import static org.jboss.as.controller.parsing.ParseUtils.requireNoAttributes;
 import static org.jboss.as.controller.parsing.ParseUtils.requireNoContent;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedAttribute;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedElement;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.*;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ALGORITHM;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ALIAS_ATTRIBUTE;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ALIAS_FILTER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ATTRIBUTE;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AUTHENTICATION_OPTIONAL;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CERTIFICATE_ATTRIBUTE;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CERTIFICATE_CHAIN_ATTRIBUTE;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CERTIFICATE_CHAIN_ENCODING;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CERTIFICATE_TYPE;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CIPHER_SUITE_FILTER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CLIENT_SSL_CONTEXT;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CLIENT_SSL_CONTEXTS;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.DIR_CONTEXT;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.FILE;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.FILTERING_KEY_STORE;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.FILTER_ALIAS;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.FILTER_CERTIFICATE;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.FILTER_ITERATE;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEY_ATTRIBUTE;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEY_MANAGER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEY_MANAGERS;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEY_PASSWORD;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEY_STORE;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEY_STORES;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEY_TYPE;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.LDAP_KEY_STORE;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.LDAP_MAPPING;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MAXIMUM_SESSION_CACHE_SIZE;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NEED_CLIENT_AUTH;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NEW_ITEM_ATTRIBUTES;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NEW_ITEM_PATH;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NEW_ITEM_RDN;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NEW_ITEM_TEMPLATE;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PASSWORD;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PATH;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROTOCOLS;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDER_LOADER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.RELATIVE_TO;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REQUIRED;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SEARCH_PATH;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SEARCH_RECURSIVE;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SEARCH_TIME_LIMIT;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SECURITY_DOMAIN;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SERVER_SSL_CONTEXT;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SERVER_SSL_CONTEXTS;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SESSION_TIMEOUT;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.TLS;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.TRUST_MANAGER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.TRUST_MANAGERS;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.TYPE;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.USE_CIPHER_SUITES_ORDER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.VALUE;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.WANT_CLIENT_AUTH;
 import static org.wildfly.extension.elytron.ElytronSubsystemParser.verifyNamespace;
 
 import java.util.Arrays;
@@ -38,6 +92,7 @@ import java.util.Set;
 
 import javax.xml.stream.XMLStreamException;
 
+import org.jboss.as.controller.security.CredentialReference;
 import org.jboss.dmr.ModelNode;
 import org.jboss.staxmapper.XMLExtendedStreamReader;
 import org.jboss.staxmapper.XMLExtendedStreamWriter;
@@ -417,7 +472,7 @@ class TlsParser {
                         KeyStoreDefinition.PROVIDER_LOADER.parseAndSetParameter(value, addKeyStore, reader);
                         break;
                     case PASSWORD:
-                        KeyStoreDefinition.PASSWORD.parseAndSetParameter(value, addKeyStore, reader);
+                        KeyStoreDefinition.CREDENTIAL_REFERENCE.parseAndSetParameter(value, addKeyStore, reader);
                         break;
                     case ALIAS_FILTER:
                         KeyStoreDefinition.ALIAS_FILTER.parseAndSetParameter(value, addKeyStore, reader);
@@ -440,6 +495,8 @@ class TlsParser {
             String localName = reader.getLocalName();
             if (FILE.equals(localName)) {
                 readFile(addKeyStore, reader, list);
+            } else if (CredentialReference.CREDENTIAL_REFERENCE.equals(localName)) {
+                CredentialReference.getAttributeDefinition().getParser().parseElement(CredentialReference.getAttributeDefinition(), reader, addKeyStore);
             } else {
                 throw unexpectedElement(reader);
             }
@@ -839,7 +896,6 @@ class TlsParser {
                     KeyStoreDefinition.TYPE.marshallAsAttribute(keyStore, writer);
                     KeyStoreDefinition.PROVIDER.marshallAsAttribute(keyStore, writer);
                     KeyStoreDefinition.PROVIDER_LOADER.marshallAsAttribute(keyStore, writer);
-                    KeyStoreDefinition.PASSWORD.marshallAsAttribute(keyStore, writer);
                     KeyStoreDefinition.ALIAS_FILTER.marshallAsAttribute(keyStore, writer);
 
                     if (keyStore.hasDefined(PATH)) {
@@ -850,6 +906,10 @@ class TlsParser {
 
                         writer.writeEndElement();
                     }
+                    if (keyStore.hasDefined(CredentialReference.CREDENTIAL_REFERENCE)) {
+                        KeyStoreDefinition.CREDENTIAL_REFERENCE.marshallAsElement(keyStore.get(CredentialReference.CREDENTIAL_REFERENCE), writer);
+                    }
+
                     writer.writeEndElement(); // end of KEY_STORE
                 }
             }

@@ -36,9 +36,10 @@
             <xs:element name="security-realms" type="realmsType" minOccurs="0" />
             <xs:element name="credential-security-factories" type="credentialSecurityFactoriesType" minOccurs="0" />
             <xs:element name="mappers" type="mappersType" minOccurs="0" />
-            <xs:element name="http" type="httpType" minOccurs="0" />    
+            <xs:element name="http" type="httpType" minOccurs="0" />
             <xs:element name="sasl" type="saslType" minOccurs="0" />
             <xs:element name="tls" type="tlsType" minOccurs="0" />
+            <xs:element name="credential-stores" type="credentialStoresType" minOccurs="0" />
             <xs:element name="dir-contexts" type="dirContextsType" minOccurs="0" />
         </xs:all>
     </xs:complexType>
@@ -314,7 +315,7 @@
                 <xs:annotation>
                     <xs:documentation>
                       Custom realm definitions can implement either the SecurityRealm interface or the ModifiableSecurityRealm interface.
-                      
+
                       Regardless of which interface is implemented management operations will not be exposed to manage the realm.  However other
                       services that depend on the realm will still be able to perform a type check and cast to gain access to the modification API.
                     </xs:documentation>
@@ -324,8 +325,8 @@
                 <xs:annotation>
                     <xs:documentation>
                       Realms configured as being modifiable will be expected to implement the ModifiableSecurityRealm interface.
-                      
-                      By configuring a realm as being modifiable management operations will be made available to manipulate the realm.  
+
+                      By configuring a realm as being modifiable management operations will be made available to manipulate the realm.
                     </xs:documentation>
                 </xs:annotation>
             </xs:element>
@@ -1095,7 +1096,7 @@
     <xs:complexType name="credentialSecurityFactoriesType">
         <xs:annotation>
             <xs:documentation>
-                A container type to hold SecurityFactory definitions to obtain Credential instances. 
+                A container type to hold SecurityFactory definitions to obtain Credential instances.
             </xs:documentation>
         </xs:annotation>
         <xs:choice maxOccurs="unbounded">
@@ -1428,7 +1429,7 @@
             </xs:annotation>
         </xs:attribute>
     </xs:complexType>
-    
+
     <xs:complexType name="customPermissionMapperType">
         <xs:annotation>
             <xs:documentation>
@@ -1546,7 +1547,7 @@
                                     </xs:complexType>
                                 </xs:element>
                             </xs:sequence>
-                
+
                             <xs:attribute name="principals" type="stringListType">
                                 <xs:annotation>
                                     <xs:documentation>
@@ -2166,7 +2167,7 @@
         </xs:attribute>
     </xs:complexType>
 
-    <!-- 
+    <!--
         Mechanism Configuration
     -->
 
@@ -2206,7 +2207,7 @@
             <xs:annotation>
                 <xs:documentation>
                     This configuration will only apply where a mechanism with the name specified is used.
-                    
+
                     If this attribute is omited then this will match any mechanism name.
                 </xs:documentation>
             </xs:annotation>
@@ -2215,7 +2216,7 @@
             <xs:annotation>
                 <xs:documentation>
                     This configuration will only apply when the host name specified is provided by the mechanism.
-                    
+
                     If this attribute is omited then this will match any host name.
                 </xs:documentation>
             </xs:annotation>
@@ -2224,11 +2225,11 @@
             <xs:annotation>
                 <xs:documentation>
                     This configuration will only apply when the protocol specified is provided by the mechanism.
-                    
+
                     If this attributed is omited then this will match any protocol.
                 </xs:documentation>
             </xs:annotation>
-        </xs:attribute>        
+        </xs:attribute>
         <xs:attribute name="pre-realm-name-rewriter" type="xs:string" >
             <xs:annotation>
                 <xs:documentation>
@@ -2431,7 +2432,7 @@
                                             <xs:annotation>
                                                 <xs:documentation>
                                                     When set to true all mechanisms are disabled unless enabled by matching one of the defined fiters.
-                                                    
+
                                                     When set to false all mechanisms are enabled unless disabled by matching one of the defined filters.
                                                 </xs:documentation>
                                             </xs:annotation>
@@ -2477,7 +2478,7 @@
                     <xs:annotation>
                         <xs:documentation>
                             Reference to the Provider[] capability to obtain the array of Providers to use.
-                            
+
                             If not specified the system registered Providers are used instead.
                         </xs:documentation>
                     </xs:annotation>
@@ -2516,14 +2517,14 @@
         <xs:attribute name="name" type="xs:string" use="required" />
     </xs:complexType>
 
-    <!-- 
+    <!--
         SASL Components
      -->
 
     <xs:complexType name="saslType">
         <xs:annotation>
             <xs:documentation>
-                Complex type definition type to hold the various SASL definitions within the subsystem. 
+                Complex type definition type to hold the various SASL definitions within the subsystem.
             </xs:documentation>
         </xs:annotation>
         <xs:choice maxOccurs="unbounded">
@@ -2539,7 +2540,7 @@
     <xs:complexType name="saslAuthenticationFactoryType">
         <xs:annotation>
             <xs:documentation>
-                The SASL authentication policy for the server side. 
+                The SASL authentication policy for the server side.
             </xs:documentation>
         </xs:annotation>
         <xs:sequence>
@@ -2649,7 +2650,7 @@
                                             <xs:annotation>
                                                 <xs:documentation>
                                                     When set to true all mechanisms are disabled unless enabled by matching one of the defined fiters.
-                                                    
+
                                                     When set to false all mechanisms are enabled unless disabled by matching one of the defined filters.
                                                 </xs:documentation>
                                             </xs:annotation>
@@ -2724,7 +2725,7 @@
         <xs:annotation>
             <xs:documentation>
                 A SaslServerFactory definition that wraps another SaslServerFactory and enables filtering of mechanisms based on the mechanism name and Provider name and version.
-                
+
                 Any mechanisms loaded by factories not located using a Provider will not be filtered by this definition.
             </xs:documentation>
         </xs:annotation>
@@ -2790,9 +2791,9 @@
                     <xs:annotation>
                         <xs:documentation>
                             When set to true all provider loaded mechanisms are disabled unless macthed by one of the filters defined here.
-                            
+
                             When set to false all provider loaded mechanisms are enabled unless matched.
-                            
+
                             Any mechansims from a factory not loaded by a Provider are unaffected.
                         </xs:documentation>
                     </xs:annotation>
@@ -2825,7 +2826,7 @@
                     <xs:annotation>
                         <xs:documentation>
                             Reference to the Provider[] capability to obtain the array of Providers to use.
-                            
+
                             If not specified the system registered Providers are used instead.
                         </xs:documentation>
                     </xs:annotation>
@@ -2854,7 +2855,7 @@
             </xs:extension>
         </xs:complexContent>
     </xs:complexType>
-    
+
     <xs:complexType name="saslServerFactoryRefType">
         <xs:annotation>
             <xs:documentation>
@@ -3245,6 +3246,14 @@
                     </xs:documentation>
                 </xs:annotation>
             </xs:element>
+            <xs:element name="credential-reference" type="credentialReferenceType" minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>
+                        The credential reference to credential store or clear text (password)
+                        to use to initialize or load the KeyStore.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
         </xs:sequence>
         <xs:attribute name="name" type="xs:string" use="required" />
         <xs:attribute name="type" type="xs:string" use="required">
@@ -3286,7 +3295,7 @@
             <xs:annotation>
                 <xs:documentation>
                     A filter to apply to the aliases made available by this KeyStore.
-                    
+
                     Can either be a comma separated list of aliases to return or one of the following formats ALL:-alias1:-alias2, NONE:+alias1:+alias2
                 </xs:documentation>
             </xs:annotation>
@@ -3485,6 +3494,74 @@
     </xs:complexType>
 
     <!--
+        Credential Store Components
+     -->
+
+    <xs:complexType name="credentialStoresType">
+        <xs:annotation>
+            <xs:documentation>
+                Complex type to contain the definitions of the credential stores.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="credential-store" type="credentialStoreType" minOccurs="0" />
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="credentialStoreType">
+        <xs:annotation>
+            <xs:documentation>
+                An individual credential store definition.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:choice>
+            <xs:element name="uri" type="xs:string">
+                <xs:annotation>
+                    <xs:documentation>
+                        The URI for credential store definition.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:choice>
+        <xs:attribute name="name" type="xs:string" use="required" />
+        <xs:attribute name="type" type="xs:string" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    The credential store type, e.g. KeyStorePasswordStore.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="provider" type="xs:string" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    The name of the provider to use to
+                    instantiate the CredentialStoreSpi, if the provider is not
+                    specified then the first provider found that can
+                    create an instance of the specified 'type' will be
+                    used.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="provider-loader" type="xs:string" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    The name of the provider-loader defined within the subsystem to obtain the Providers
+                    to search for the one that can create the required CredentialStore type.
+                    If this is not specified then the global list of Providers is used instead.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="relative-to" type="xs:string" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    A reference to a previously defined path that the file name is
+                    relative to.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:complexType>
+
+    <!--
         General Types
      -->
 
@@ -3577,5 +3654,48 @@
         </xs:annotation>
         <xs:list itemType="xs:string"/>
     </xs:simpleType>
+
+    <!-- Credential Reference Types -->
+    <xs:attributeGroup name="credentialReferenceStoreBased">
+        <xs:annotation>
+            <xs:documentation>
+                Group of attributes used when referencing credential through credential store.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="store" type="xs:string" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    Credential store name used to fetch credential with given 'alias' from.
+                    Credential store name has to be defined elsewhere.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="alias" type="xs:string" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    Alias of credential in the credential store.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="type" type="xs:string" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    Type of credential to be fetched from credential store.
+                    It is usually fully qualified class name.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:attributeGroup>
+    <xs:complexType name="credentialReferenceType">
+        <xs:attributeGroup ref="credentialReferenceStoreBased"/>
+        <xs:attribute name="clear-text" type="xs:string" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    Credential/password in clear text. Use just for testing purpose.
+                    Otherwise use credential store to mask the actual credential from your configuration.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:complexType>
 
 </xs:schema>
