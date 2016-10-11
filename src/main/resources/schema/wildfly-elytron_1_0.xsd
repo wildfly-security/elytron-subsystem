@@ -3052,24 +3052,27 @@
         <xs:attribute name="want-client-auth" type="xs:boolean" default="false">
             <xs:annotation>
                 <xs:documentation>
-                    Configure the SSLContext to want client authentication - if a security domain is referenced this is automatically interpreted as true.
+                    To request (but not to require) a client certificate on SSL handshake.
+                    If a security domain is referenced and supports X509 evidence, this will be set to true automatically.
+                    Ignored when need-client-auth is set.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
         <xs:attribute name="need-client-auth" type="xs:boolean" default="false">
             <xs:annotation>
                 <xs:documentation>
-                    Configure the SSLContext to need client authentication.
+                    To require a client certificate on SSL handshake.
+                    Connection without trusted client certificate (see trust-managers) will be rejected.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
         <xs:attribute name="authentication-optional" type="xs:boolean" default="false">
             <xs:annotation>
                 <xs:documentation>
-                    Allow for an SSLSession to still be established even if client authentication based on the supplied certificate is not successful.
-
-                    This does not bypass the underlying trust manager check but it does allow the connection to be established so another authentication
-                    mechanism can be used.
+                    Rejecting of the client certificate by the security domain will not prevent the connection.
+                    Allows a fall through to use other authentication mechanisms (like form login) when the client certificate is rejected by security domain.
+                    Has an effect only when the security domain is set.
+                    This does not bypass the underlying trust manager check - see need-client-auth to allow connection without client certificate.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
