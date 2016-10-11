@@ -53,6 +53,7 @@ import org.jboss.msc.service.ServiceBuilder;
 import org.jboss.msc.service.StartException;
 import org.jboss.msc.value.InjectedValue;
 import org.wildfly.extension.elytron.TrivialService.ValueSupplier;
+import org.wildfly.extension.elytron._private.ElytronSubsystemMessages;
 import org.wildfly.security.authz.PermissionMapper;
 import org.wildfly.security.authz.SimplePermissionMapper;
 import org.wildfly.security.permission.PermissionUtil;
@@ -199,20 +200,8 @@ class PermissionMapperDefinitions {
         for (Mapping current : mappings) {
 
             Permissions permissions = new Permissions();
-
             for (Permission permission : current.getPermissions()) {
-                Module currentModule = Module.getCallerModule();
-                if (permission.getModule() != null) {
-                    ModuleIdentifier mi = ModuleIdentifier.fromString(permission.getModule());
-                    try {
-                        currentModule = currentModule.getModule(mi);
-                    } catch (ModuleLoadException e) {
-                        throw new StartException(e);
-                    }
-                }
-
-                ClassLoader classLoader = currentModule != null ? currentModule.getClassLoader() : PermissionMapperDefinitions.class.getClassLoader();
-                permissions.add(PermissionUtil.createPermission(classLoader, permission.getClassName(), permission.getTargetName(), permission.getAction()));
+                permissions.add(createPermission(permission));
             }
 
             builder.addMapping(current.getPrincipals(), current.getRoles(), PermissionVerifier.from(permissions));
@@ -250,20 +239,28 @@ class PermissionMapperDefinitions {
     private static PermissionMapper createConstantPermissionMapper(List<Permission> permissionsList) throws StartException {
         Permissions permissions = new Permissions();
         for (Permission permission : permissionsList) {
-            Module currentModule = Module.getCallerModule();
-            if (permission.getModule() != null) {
-                ModuleIdentifier mi = ModuleIdentifier.fromString(permission.getModule());
-                try {
-                    currentModule = currentModule.getModule(mi);
-                } catch (ModuleLoadException e) {
-                    throw new StartException(e);
-                }
-            }
-
-            ClassLoader classLoader = currentModule != null ? currentModule.getClassLoader() : PermissionMapperDefinitions.class.getClassLoader();
-            permissions.add(PermissionUtil.createPermission(classLoader, permission.getClassName(), permission.getTargetName(), permission.getAction()));
+            permissions.add(createPermission(permission));
         }
         return PermissionMapper.createConstant(PermissionVerifier.from(permissions));
+    }
+
+    private static java.security.Permission createPermission(Permission permission) throws StartException {
+        Module currentModule = Module.getCallerModule();
+        if (permission.getModule() != null) {
+            ModuleIdentifier mi = ModuleIdentifier.fromString(permission.getModule());
+            try {
+                currentModule = currentModule.getModule(mi);
+            } catch (ModuleLoadException e) {
+                throw new StartException(e);
+            }
+        }
+
+        ClassLoader classLoader = currentModule != null ? currentModule.getClassLoader() : PermissionMapperDefinitions.class.getClassLoader();
+        try {
+            return PermissionUtil.createPermission(classLoader, permission.getClassName(), permission.getTargetName(), permission.getAction());
+        } catch (Throwable e) {
+            throw ElytronSubsystemMessages.ROOT_LOGGER.exceptionWhileCreatingPermission(permission.getClassName(), e);
+        }
     }
 
 
