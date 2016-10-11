@@ -93,7 +93,6 @@ class CredentialStoreAliasDefinition extends SimpleResourceDefinition {
             .build();
 
     private static final AttributeDefinition[] CONFIG_ATTRIBUTES = new AttributeDefinition[] {SECRET_VALUE, ENTRY_TYPE};
-    //private static final WriteAttributeHandler WRITE = new WriteAttributeHandler();
 
     private static final SimpleOperationDefinition ADD_DEFINITION = new SimpleOperationDefinitionBuilder(ModelDescriptionConstants.ADD,
             RESOURCE_DESCRIPTION_RESOLVER)
@@ -109,6 +108,7 @@ class CredentialStoreAliasDefinition extends SimpleResourceDefinition {
                 .setRuntime()
         );
     }
+
 
     @Override
     public void registerOperations(ManagementResourceRegistration resourceRegistration) {

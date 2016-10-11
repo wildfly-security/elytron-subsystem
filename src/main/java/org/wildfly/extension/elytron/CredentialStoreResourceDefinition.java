@@ -34,13 +34,13 @@ import java.security.Provider;
 import org.jboss.as.controller.AbstractAddStepHandler;
 import org.jboss.as.controller.AbstractRuntimeOnlyHandler;
 import org.jboss.as.controller.AttributeDefinition;
+import org.jboss.as.controller.ModelOnlyWriteAttributeHandler;
 import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
 import org.jboss.as.controller.OperationStepHandler;
 import org.jboss.as.controller.PathAddress;
 import org.jboss.as.controller.PathElement;
 import org.jboss.as.controller.ResourceDefinition;
-import org.jboss.as.controller.RestartParentWriteAttributeHandler;
 import org.jboss.as.controller.ServiceRemoveStepHandler;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
@@ -115,8 +115,6 @@ final class CredentialStoreResourceDefinition extends SimpleResourceDefinition {
 
     // Resource Resolver
     static final StandardResourceDescriptionResolver RESOURCE_RESOLVER = ElytronExtension.getResourceDescriptionResolver(ElytronDescriptionConstants.CREDENTIAL_STORE);
-
-    // Runtime Attributes
 
     // Operations
     static final SimpleOperationDefinition RELOAD = new SimpleOperationDefinitionBuilder(ElytronDescriptionConstants.RELOAD, RESOURCE_RESOLVER)
@@ -239,16 +237,12 @@ final class CredentialStoreResourceDefinition extends SimpleResourceDefinition {
         }
     }
 
-    private static class WriteAttributeHandler extends RestartParentWriteAttributeHandler {
+    private static class WriteAttributeHandler extends ModelOnlyWriteAttributeHandler {
 
         WriteAttributeHandler() {
-            super(ElytronDescriptionConstants.CREDENTIAL_STORE, CONFIG_ATTRIBUTES);
+            super(CONFIG_ATTRIBUTES);
         }
 
-        @Override
-        protected ServiceName getParentServiceName(PathAddress arg0) {
-            return null;
-        }
     }
 
     /*

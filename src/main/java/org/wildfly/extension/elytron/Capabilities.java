@@ -57,14 +57,13 @@ class Capabilities {
 
     private static final String CAPABILITY_BASE = "org.wildfly.security.";
 
-    static final String HTTP_AUTHENTICATION_FACTORY_CAPABILITY = CAPABILITY_BASE + "http-authentication-factory";
     static final String CREDENTIAL_STORE_CLIENT_CAPABILITY = CAPABILITY_BASE + "credential-store-client";
 
     static final RuntimeCapability<Void> CREDENTIAL_STORE_CLIENT_RUNTIME_CAPABILITY =  RuntimeCapability
             .Builder.of(CREDENTIAL_STORE_CLIENT_CAPABILITY, true, CredentialStoreClient.class)
             .build();
 
-    static final String HTTP_SERVER_AUTHENTICATION_CAPABILITY = CAPABILITY_BASE + "http-server-authentication";
+    static final String HTTP_AUTHENTICATION_FACTORY_CAPABILITY = CAPABILITY_BASE + "http-authentication-factory";
 
     static final RuntimeCapability<Void> HTTP_AUTHENTICATION_FACTORY_RUNTIME_CAPABILITY = RuntimeCapability
             .Builder.of(HTTP_AUTHENTICATION_FACTORY_CAPABILITY, true, HttpAuthenticationFactory.class)
