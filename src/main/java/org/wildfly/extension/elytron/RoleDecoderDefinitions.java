@@ -57,10 +57,6 @@ class RoleDecoderDefinitions {
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
         .build();
 
-    static ResourceDefinition getEmptyRoleDecoderDefinition() {
-        return EmptyResourceDefinition.create(RoleDecoder.class, ElytronDescriptionConstants.EMPTY_ROLE_DECODER, ROLE_DECODER_RUNTIME_CAPABILITY, () -> RoleDecoder.EMPTY);
-    }
-
     static ResourceDefinition getSimpleRoleDecoderDefinition() {
         return new SimpleRoleDecoderDefinition();
     }

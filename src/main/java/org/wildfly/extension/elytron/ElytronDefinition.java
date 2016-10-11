@@ -134,7 +134,6 @@ class ElytronDefinition extends SimpleResourceDefinition {
 
         // Role Decoders
         resourceRegistration.registerSubModel(new CustomComponentDefinition<RoleDecoder>(RoleDecoder.class, ElytronDescriptionConstants.CUSTOM_ROLE_DECODER, ROLE_DECODER_RUNTIME_CAPABILITY));
-        resourceRegistration.registerSubModel(RoleDecoderDefinitions.getEmptyRoleDecoderDefinition());
         resourceRegistration.registerSubModel(RoleDecoderDefinitions.getSimpleRoleDecoderDefinition());
 
         // Role Mappers
