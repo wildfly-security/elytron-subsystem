@@ -366,10 +366,11 @@ class DomainDefinition extends SimpleResourceDefinition {
             }
         }
 
+        // validation failed
         StringBuilder realmsStringBuilder = new StringBuilder();
         for(ModelNode realm : realms) {
             if (realmsStringBuilder.length() != 0) realmsStringBuilder.append(", ");
-            realmsStringBuilder.append(realm.get(ElytronDescriptionConstants.REALM).asString());
+            realmsStringBuilder.append(REALM_NAME.resolveModelAttribute(context, realm).asString());
         }
         throw ROOT_LOGGER.defaultRealmNotReferenced(defaultRealm, realmsStringBuilder.toString());
     }
