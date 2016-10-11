@@ -49,6 +49,7 @@ class TestEnvironment extends AdditionalInitialization {
 
         try {
             initializer.addPath("jboss.server.config.dir", getClass().getResource(".").getFile(), null);
+            initializer.addPath("jboss.server.data.dir", "target", null);
         } catch (Exception e) {
             throw new RuntimeException("Could not create test config directory", e);
         }

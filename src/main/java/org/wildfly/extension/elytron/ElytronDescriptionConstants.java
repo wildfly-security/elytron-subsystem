@@ -173,7 +173,6 @@ interface ElytronDescriptionConstants {
     String KEY_TYPE = "key-type";
     String KEY_MANAGER = "key-manager";
     String KEY_MANAGERS = "key-managers";
-    String KEY_PASSWORD = "key-password";
     String KEY_STORE = "key-store";
     String KEY_STORE_REALM = "key-store-realm";
     String KEY_STORES = "key-stores";

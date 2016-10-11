@@ -5,15 +5,20 @@
             <provider class-names="com.sun.net.ssl.internal.ssl.Provider"/>
         </provider-loader>
     </provider-loaders>
+    <credential-stores>
+        <credential-store name="test">
+            <uri>cr-store://test/tlstest.keystore?store.password='super_secret'</uri>
+        </credential-store>
+    </credential-stores>
     <tls>
         <key-stores>
             <key-store name="FireflyKeystore" type="JKS">
                 <file path="firefly.keystore" relative-to="jboss.server.config.dir"/>
-                <credential-reference clear-text="Elytron"/>
+                <credential-reference store="test" alias="master-password-alias"/>
             </key-store>
             <key-store name="LocalhostKeystore" type="JKS">
                 <file path="localhost.keystore" relative-to="jboss.server.config.dir"/>
-                <credential-reference clear-text="Elytron"/>
+                <credential-reference store="test" alias="master-password-alias"/>
             </key-store>
             <key-store name="ElytronCaTruststore" type="JKS">
                 <file path="target/test-classes/org/wildfly/extension/elytron/ca.truststore"/>
@@ -22,9 +27,15 @@
             <filtering-key-store name="FilteringKeyStore" key-store="FireflyKeystore" alias-filter="NONE:+firefly"/>
         </key-stores>
         <key-managers>
-            <key-manager name="ServerKeyManager" algorithm="SunX509" key-store="LocalhostKeystore" key-password="Elytron"/>
-            <key-manager name="ClientKeyManager" algorithm="SunX509" key-store="FireflyKeystore" key-password="Elytron"/>
-            <key-manager name="MyKeyManager" algorithm="SunX509" key-store="FireflyKeystore" key-password="Elytron" provider-loader="ManagerProviderLoader" provider="SunJSSE"/>
+            <key-manager name="ServerKeyManager" algorithm="SunX509" key-store="LocalhostKeystore">
+                <credential-reference store="test" alias="the-key-alias"/>
+            </key-manager>
+            <key-manager name="ClientKeyManager" algorithm="SunX509" key-store="FireflyKeystore">
+                <credential-reference clear-text="Elytron"/>
+            </key-manager>
+            <key-manager name="MyKeyManager" algorithm="SunX509" key-store="FireflyKeystore" provider-loader="ManagerProviderLoader" provider="SunJSSE">
+                <credential-reference store="test" alias="the-key-alias"/>
+            </key-manager>
         </key-managers>
         <trust-managers>
             <trust-manager name="CaTrustManager" algorithm="SunX509" key-store="ElytronCaTruststore"/>
