@@ -30,7 +30,6 @@ import static org.wildfly.extension.elytron.Capabilities.SSL_CONTEXT_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SSL_CONTEXT_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.TRUST_MANAGERS_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.TRUST_MANAGERS_RUNTIME_CAPABILITY;
-import static org.wildfly.extension.elytron.ElytronExtension.allowedValues;
 import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
 import static org.wildfly.extension.elytron.ElytronExtension.getRequiredService;
 import static org.wildfly.extension.elytron.KeyStoreDefinition.CREDENTIAL_REFERENCE;
@@ -43,6 +42,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.Provider;
 import java.security.UnrecoverableKeyException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -68,7 +68,9 @@ import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
 import org.jboss.as.controller.StringListAttributeDefinition;
 import org.jboss.as.controller.capability.RuntimeCapability;
-import org.jboss.as.controller.operations.validation.EnumValidator;
+import org.jboss.as.controller.logging.ControllerLogger;
+import org.jboss.as.controller.operations.validation.AllowedValuesValidator;
+import org.jboss.as.controller.operations.validation.ModelTypeValidator;
 import org.jboss.as.controller.registry.AttributeAccess;
 import org.jboss.as.controller.registry.ManagementResourceRegistration;
 import org.jboss.as.controller.security.CredentialReference;
@@ -133,12 +135,14 @@ class SSLDefinitions {
             .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
             .build();
 
+    static final String[] ALLOWED_PROTOCOLS = { "SSLv2", "SSLv3", "TLSv1", "TLSv1.1", "TLSv1.2", "TLSv1.3" };
+
     static final StringListAttributeDefinition PROTOCOLS = new StringListAttributeDefinition.Builder(ElytronDescriptionConstants.PROTOCOLS)
             .setAllowExpression(true)
             .setMinSize(1)
             .setAllowNull(true)
-            .setAllowedValues(allowedValues(Protocol.values()))
-            .setValidator(new EnumValidator<>(Protocol.class, false, true))
+            .setAllowedValues(ALLOWED_PROTOCOLS)
+            .setValidator(new StringValuesValidator(ALLOWED_PROTOCOLS))
             .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
             .build();
 
@@ -201,6 +205,38 @@ class SSLDefinitions {
     private static SimpleAttributeDefinition ACTIVE_SESSION_COUNT = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ACTIVE_SESSION_COUNT, ModelType.INT)
             .setStorageRuntime()
             .build();
+
+    /**
+     * A simple {@link ModelTypeValidator} that requires that values are contained on a pre-defined list of string.
+     *
+     * //TODO: couldn't find a built-in validator for that. see if there is one or even if it can be moved to its own file.
+     */
+    static class StringValuesValidator extends ModelTypeValidator implements AllowedValuesValidator {
+
+        private List<ModelNode> allowedValues = new ArrayList<>();
+
+        public StringValuesValidator(String... values) {
+            super(ModelType.STRING);
+            for (String value : values) {
+                allowedValues.add(new ModelNode().set(value));
+            }
+        }
+
+        @Override
+        public void validateParameter(String parameterName, ModelNode value) throws OperationFailedException {
+            super.validateParameter(parameterName, value);
+            if (value.isDefined()) {
+                if (!allowedValues.contains(value)) {
+                    throw new OperationFailedException(ControllerLogger.ROOT_LOGGER.invalidValue(value.asString(), parameterName, allowedValues));
+                }
+            }
+        }
+
+        @Override
+        public List<ModelNode> getAllowedValues() {
+            return this.allowedValues;
+        }
+    }
 
 
     static ResourceDefinition getKeyManagerDefinition() {
@@ -473,7 +509,7 @@ class SSLDefinitions {
                     if (providers != null) builder.setProviderSupplier(() -> providers);
                     if (cipherSuiteFilter != null) builder.setCipherSuiteSelector(CipherSuiteSelector.fromString(cipherSuiteFilter));
                     if ( ! protocols.isEmpty()) builder.setProtocolSelector(ProtocolSelector.empty().add(
-                            EnumSet.copyOf(protocols.stream().map(Protocol::valueOf).collect(Collectors.toList()))
+                            EnumSet.copyOf(protocols.stream().map(Protocol::forName).collect(Collectors.toList()))
                     ));
                     builder.setWantClientAuth(wantClientAuth)
                            .setNeedClientAuth(needClientAuth)
@@ -522,8 +558,8 @@ class SSLDefinitions {
                 final List<String> protocols = PROTOCOLS.unwrap(context, model);
                 final String cipherSuiteFilter = asStringIfDefined(context, CIPHER_SUITE_FILTER, model);
                 final boolean useCipherSuitesOrder = USE_CIPHER_SUITES_ORDER.resolveModelAttribute(context, model).asBoolean();
-                final int maximumSessionCacheSize = MAXIMUM_SESSION_CACHE_SIZE.resolveModelAttribute(context, model).asInt(); // client+server
-                final int sessionTimeout = SESSION_TIMEOUT.resolveModelAttribute(context, model).asInt(); // client+server
+                final int maximumSessionCacheSize = MAXIMUM_SESSION_CACHE_SIZE.resolveModelAttribute(context, model).asInt();
+                final int sessionTimeout = SESSION_TIMEOUT.resolveModelAttribute(context, model).asInt();
 
                 return () -> {
                     X509ExtendedKeyManager keyManager = getX509KeyManager(keyManagersInjector.getOptionalValue());
@@ -536,7 +572,7 @@ class SSLDefinitions {
                     if (providers != null) builder.setProviderSupplier(() -> providers);
                     if (cipherSuiteFilter != null) builder.setCipherSuiteSelector(CipherSuiteSelector.fromString(cipherSuiteFilter));
                     if ( ! protocols.isEmpty()) builder.setProtocolSelector(ProtocolSelector.empty().add(
-                            EnumSet.copyOf(protocols.stream().map(Protocol::valueOf).collect(Collectors.toList()))
+                            EnumSet.copyOf(protocols.stream().map(Protocol::forName).collect(Collectors.toList()))
                     ));
                     builder.setClientMode(true)
                            .setUseCipherSuitesOrder(useCipherSuitesOrder)
