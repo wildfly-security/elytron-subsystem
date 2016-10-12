@@ -430,14 +430,14 @@
                 The authentication query used to authenticate users based on specific key types.
             </xs:documentation>
         </xs:annotation>
-        <xs:sequence>
+        <xs:all>
             <xs:element name="clear-password-mapper" type="clearPasswordMapperType" minOccurs="0"/>
             <xs:element name="bcrypt-mapper" type="bcryptMapperType" minOccurs="0"/>
             <xs:element name="simple-digest-mapper" type="simpleDigestMapperType" minOccurs="0"/>
             <xs:element name="salted-simple-digest-mapper" type="saltedSimpleDigestMapperType" minOccurs="0"/>
             <xs:element name="scram-mapper" type="scramMapperType" minOccurs="0"/>
             <xs:element name="attribute-mapping" type="jdbcAttributeMappingType" minOccurs="0"/>
-        </xs:sequence>
+        </xs:all>
         <xs:attribute name="sql" type="xs:string" use="required">
             <xs:annotation>
                 <xs:documentation>
@@ -473,7 +473,7 @@
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
-        <xs:attribute name="to" type="xs:string" use="optional">
+        <xs:attribute name="to" type="xs:string" use="required">
             <xs:annotation>
                 <xs:documentation>
                     The name of the identity attribute mapped from a column returned from a SQL query.
@@ -532,6 +532,27 @@
                 A key mapper that maps a column returned from a SQL query to a Salted Simple Digest key type.
             </xs:documentation>
         </xs:annotation>
+        <xs:attribute name="algorithm" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    The encryption algorithm name to use.
+                </xs:documentation>
+            </xs:annotation>
+            <xs:simpleType>
+            	<xs:restriction base="xs:string">
+                	<xs:enumeration value="password-salt-digest-md5" />
+            		<xs:enumeration value="password-salt-digest-sha-1" />
+            		<xs:enumeration value="password-salt-digest-sha-256" />
+            		<xs:enumeration value="password-salt-digest-sha-384" />
+            		<xs:enumeration value="password-salt-digest-sha-512" />
+            		<xs:enumeration value="salt-password-digest-md5" />
+            		<xs:enumeration value="salt-password-digest-sha-1" />
+            		<xs:enumeration value="salt-password-digest-sha-256" />
+            		<xs:enumeration value="salt-password-digest-sha-384" />
+            		<xs:enumeration value="salt-password-digest-sha-512" />
+            	</xs:restriction>
+        	</xs:simpleType>
+        </xs:attribute>
         <xs:attribute name="password-index" type="xs:int" use="required">
             <xs:annotation>
                 <xs:documentation>
@@ -554,6 +575,23 @@
                 A key mapper that maps a column returned from a SQL query to a Simple Digest key type.
             </xs:documentation>
         </xs:annotation>
+        <xs:attribute name="algorithm" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    The encryption algorithm name to use.
+                </xs:documentation>
+            </xs:annotation>
+            <xs:simpleType>
+            	<xs:restriction base="xs:string">
+                	<xs:enumeration value="simple-digest-md2" />
+            		<xs:enumeration value="simple-digest-md5" />
+            		<xs:enumeration value="simple-digest-sha-1" />
+            		<xs:enumeration value="simple-digest-sha-256" />
+            		<xs:enumeration value="simple-digest-sha-384" />
+            		<xs:enumeration value="simple-digest-sha-512" />
+            	</xs:restriction>
+        	</xs:simpleType>
+        </xs:attribute>
         <xs:attribute name="password-index" type="xs:int" use="required">
             <xs:annotation>
                 <xs:documentation>
@@ -569,6 +607,19 @@
                 A key mapper that maps a column returned from a SQL query to a Scram key type.
             </xs:documentation>
         </xs:annotation>
+        <xs:attribute name="algorithm" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    The encryption algorithm name to use.
+                </xs:documentation>
+            </xs:annotation>
+            <xs:simpleType>
+            	<xs:restriction base="xs:string">
+                	<xs:enumeration value="scram-sha-1" />
+            		<xs:enumeration value="scram-sha-256" />
+            	</xs:restriction>
+        	</xs:simpleType>
+        </xs:attribute>
         <xs:attribute name="password-index" type="xs:int" use="required">
             <xs:annotation>
                 <xs:documentation>
