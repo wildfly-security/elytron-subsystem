@@ -594,6 +594,8 @@ class TlsParser {
 
     private void readNewItemTemplate(ModelNode addKeyStore, XMLExtendedStreamReader reader, List<ModelNode> list) throws XMLStreamException {
         Set<String> requiredAttributes = new HashSet<String>(Arrays.asList(new String[] {NEW_ITEM_PATH, NEW_ITEM_RDN}));
+        ModelNode newItemTemplate = addKeyStore.get(NEW_ITEM_TEMPLATE);
+
         final int count = reader.getAttributeCount();
         for (int i = 0; i < count; i++) {
             final String value = reader.getAttributeValue(i);
@@ -604,10 +606,10 @@ class TlsParser {
                 requiredAttributes.remove(attribute);
                 switch (attribute) {
                     case NEW_ITEM_PATH:
-                        LdapKeyStoreDefinition.NEW_ITEM_PATH.parseAndSetParameter(value, addKeyStore, reader);
+                        LdapKeyStoreDefinition.NewItemTemplateObjectDefinition.NEW_ITEM_PATH.parseAndSetParameter(value, newItemTemplate, reader);
                         break;
                     case NEW_ITEM_RDN:
-                        LdapKeyStoreDefinition.NEW_ITEM_RDN.parseAndSetParameter(value, addKeyStore, reader);
+                        LdapKeyStoreDefinition.NewItemTemplateObjectDefinition.NEW_ITEM_RDN.parseAndSetParameter(value, newItemTemplate, reader);
                         break;
                     default:
                         throw unexpectedAttribute(reader, i);
@@ -624,7 +626,7 @@ class TlsParser {
             if (ATTRIBUTE.equals(reader.getLocalName())) {
                 ModelNode attribute = new ModelNode();
                 readLdapAttribute(attribute, reader);
-                addKeyStore.get(NEW_ITEM_ATTRIBUTES).add(attribute);
+                newItemTemplate.get(NEW_ITEM_ATTRIBUTES).add(attribute);
             } else {
                 throw unexpectedElement(reader);
             }
@@ -922,12 +924,13 @@ class TlsParser {
                     LdapKeyStoreDefinition.FILTER_CERTIFICATE.marshallAsAttribute(keyStore, writer);
                     LdapKeyStoreDefinition.FILTER_ITERATE.marshallAsAttribute(keyStore, writer);
 
-                    if (keyStore.hasDefined(NEW_ITEM_PATH)) {
+                    ModelNode newItemTemplate = keyStore.get(NEW_ITEM_TEMPLATE);
+                    if (newItemTemplate.isDefined()) {
                         writer.writeStartElement(NEW_ITEM_TEMPLATE);
-                        LdapKeyStoreDefinition.NEW_ITEM_PATH.marshallAsAttribute(keyStore, writer);
-                        LdapKeyStoreDefinition.NEW_ITEM_RDN.marshallAsAttribute(keyStore, writer);
+                        LdapKeyStoreDefinition.NewItemTemplateObjectDefinition.NEW_ITEM_PATH.marshallAsAttribute(newItemTemplate, writer);
+                        LdapKeyStoreDefinition.NewItemTemplateObjectDefinition.NEW_ITEM_RDN.marshallAsAttribute(newItemTemplate, writer);
 
-                        ModelNode newItemAttributes = keyStore.get(NEW_ITEM_ATTRIBUTES);
+                        ModelNode newItemAttributes = newItemTemplate.get(NEW_ITEM_ATTRIBUTES);
                         if (newItemAttributes.isDefined()) {
                             for (ModelNode newItemAttribute : newItemAttributes.asList()) {
                                 writer.writeStartElement(ATTRIBUTE);
