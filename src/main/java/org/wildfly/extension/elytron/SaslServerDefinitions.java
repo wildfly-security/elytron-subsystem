@@ -32,6 +32,7 @@ import static org.wildfly.extension.elytron.ElytronExtension.asDoubleIfDefined;
 import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
 import static org.wildfly.extension.elytron.ElytronExtension.getRequiredService;
 import static org.wildfly.extension.elytron.SecurityActions.doPrivileged;
+import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
 
 import java.security.PrivilegedExceptionAction;
 import java.security.Provider;
@@ -62,6 +63,7 @@ import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
 import org.jboss.as.controller.SimpleResourceDefinition;
 import org.jboss.as.controller.capability.RuntimeCapability;
 import org.jboss.as.controller.operations.validation.EnumValidator;
+import org.jboss.as.controller.operations.validation.ObjectTypeValidator;
 import org.jboss.as.controller.registry.AttributeAccess;
 import org.jboss.as.controller.registry.ManagementResourceRegistration;
 import org.jboss.as.controller.registry.OperationEntry;
@@ -179,7 +181,25 @@ class SaslServerDefinitions {
 
     static final ObjectListAttributeDefinition CONFIGURED_FILTERS = new ObjectListAttributeDefinition.Builder(ElytronDescriptionConstants.FILTERS, CONFIGURED_FILTER)
         .setAllowNull(true)
+        .setValidator(new FiltersValidator())
         .build();
+
+    private static class FiltersValidator extends ObjectTypeValidator {
+
+        private FiltersValidator() {
+            super(true, PREDEFINED_FILTER, PATTERN_FILTER, ENABLING);
+        }
+
+        @Override
+        public void validateParameter(final String parameterName, final ModelNode value) throws OperationFailedException {
+            super.validateParameter(parameterName, value);
+
+            if (value.hasDefined(ElytronDescriptionConstants.PREDEFINED_FILTER)
+                    && value.hasDefined(ElytronDescriptionConstants.PATTERN_FILTER)) {
+                throw ROOT_LOGGER.invalidDefinition(ElytronDescriptionConstants.FILTERS);
+            }
+        }
+    }
 
     private static final AggregateComponentDefinition<SaslServerFactory> AGGREGATE_SASL_SERVER_FACTORY = AggregateComponentDefinition.create(SaslServerFactory.class,
             ElytronDescriptionConstants.AGGREGATE_SASL_SERVER_FACTORY, ElytronDescriptionConstants.SASL_SERVER_FACTORIES, SASL_SERVER_FACTORY_RUNTIME_CAPABILITY,
