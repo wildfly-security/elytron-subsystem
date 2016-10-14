@@ -122,18 +122,21 @@ final class LdapKeyStoreDefinition extends SimpleResourceDefinition {
             .setAttributeGroup(ElytronDescriptionConstants.NEW_ITEM_TEMPLATE)
             .setAllowExpression(true)
             .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+            .setRequires(ElytronDescriptionConstants.NEW_ITEM_RDN, ElytronDescriptionConstants.NEW_ITEM_ATTRIBUTES)
             .build();
 
     static final SimpleAttributeDefinition NEW_ITEM_RDN = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.NEW_ITEM_RDN, ModelType.STRING, true)
             .setAttributeGroup(ElytronDescriptionConstants.NEW_ITEM_TEMPLATE)
             .setAllowExpression(true)
             .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+            .setRequires(ElytronDescriptionConstants.NEW_ITEM_PATH, ElytronDescriptionConstants.NEW_ITEM_ATTRIBUTES)
             .build();
 
     static final ObjectListAttributeDefinition NEW_ITEM_ATTRIBUTES = new ObjectListAttributeDefinition.Builder(ElytronDescriptionConstants.NEW_ITEM_ATTRIBUTES, NewItemTemplateAttributeObjectDefinition.OBJECT_DEFINITION)
             .setAttributeGroup(ElytronDescriptionConstants.NEW_ITEM_TEMPLATE)
             .setAllowNull(true)
             .setAllowDuplicates(true)
+            .setRequires(ElytronDescriptionConstants.NEW_ITEM_PATH, ElytronDescriptionConstants.NEW_ITEM_RDN)
             .build();
 
     static final SimpleAttributeDefinition ALIAS_ATTRIBUTE = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ALIAS_ATTRIBUTE, ModelType.STRING, true)

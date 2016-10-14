@@ -139,6 +139,7 @@ public class DirContextParser {
                 DirContextDefinition.CREDENTIAL.marshallAsAttribute(dirContext, writer);
                 DirContextDefinition.ENABLE_CONNECTION_POOLING.marshallAsAttribute(dirContext, writer);
                 DirContextDefinition.REFERRAL_MODE.marshallAsAttribute(dirContext, writer);
+                DirContextDefinition.SSL_CONTEXT.marshallAsAttribute(dirContext, writer);
                 writer.writeEndElement();
             }
             writer.writeEndElement();

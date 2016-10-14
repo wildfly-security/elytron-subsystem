@@ -185,6 +185,16 @@ public class SubsystemParsingTestCase extends AbstractSubsystemTest {
         testParseAndMarshalModel("security-properties.xml");
     }
 
+    @Test
+    public void testParseAndMarshalModel_Ldap() throws Exception {
+        testParseAndMarshalModel("ldap.xml");
+    }
+
+    @Test
+    public void testParseAndMarshalModel_IdentityManagement() throws Exception {
+        testParseAndMarshalModel("identity-management.xml");
+    }
+
     /**
      * Tests that the subsystem can be removed
      */
