@@ -985,6 +985,14 @@
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
+        <xs:attribute name="filter-name" type="xs:string" use="optional" default="(rdn-identifier={0})">
+            <xs:annotation>
+                <xs:documentation>
+                    The LDAP filter for getting identity by name.
+                    The string "{0}" will by replaced by searched identity name.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
         <xs:attribute name="iterator-filter" type="xs:string" use="optional">
             <xs:annotation>
                 <xs:documentation>

@@ -8,7 +8,7 @@
 
     <security-realms>
         <ldap-realm name="LdapRealm" direct-verification="false" dir-context="DirContextSsl">
-            <identity-mapping rdn-identifier="uid" search-base-dn="dc=elytron,dc=wildfly,dc=org" use-recursive-search="true" iterator-filter="(uid=*)" new-identity-parent-dn="dc=elytron,dc=wildfly,dc=org">
+            <identity-mapping rdn-identifier="uid" search-base-dn="dc=elytron,dc=wildfly,dc=org" use-recursive-search="true" filter-name="(uid={0})" iterator-filter="(uid=*)" new-identity-parent-dn="dc=elytron,dc=wildfly,dc=org">
                 <attribute-mapping>
                     <attribute from="uid" to="userName"/>
                     <attribute from="cn" to="firstName"/>

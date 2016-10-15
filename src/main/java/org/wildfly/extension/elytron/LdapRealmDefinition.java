@@ -284,6 +284,11 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
                 .setAllowDuplicates(true)
                 .build();
 
+        static final SimpleAttributeDefinition FILTER_NAME = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.FILTER_NAME, ModelType.STRING, true)
+                .setAllowExpression(true)
+                .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+                .build();
+
         static final SimpleAttributeDefinition ITERATOR_FILTER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ITERATOR_FILTER, ModelType.STRING, true)
                 .setAllowExpression(true)
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
@@ -297,13 +302,13 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
         static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] {
                 RDN_IDENTIFIER, USE_RECURSIVE_SEARCH, SEARCH_BASE_DN,
                 ATTRIBUTE_MAPPINGS,
-                ITERATOR_FILTER, NEW_IDENTITY_PARENT_DN, NEW_IDENTITY_ATTRIBUTES
+                FILTER_NAME, ITERATOR_FILTER, NEW_IDENTITY_PARENT_DN, NEW_IDENTITY_ATTRIBUTES
         };
 
         static final ObjectTypeAttributeDefinition OBJECT_DEFINITION = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.IDENTITY_MAPPING,
                     RDN_IDENTIFIER, USE_RECURSIVE_SEARCH, SEARCH_BASE_DN,
                     ATTRIBUTE_MAPPINGS,
-                    ITERATOR_FILTER, NEW_IDENTITY_PARENT_DN, NEW_IDENTITY_ATTRIBUTES,
+                FILTER_NAME, ITERATOR_FILTER, NEW_IDENTITY_PARENT_DN, NEW_IDENTITY_ATTRIBUTES,
                     UserPasswordCredentialMappingObjectDefinition.OBJECT_DEFINITION,
                     OtpCredentialMappingObjectDefinition.OBJECT_DEFINITION
                 )
@@ -453,14 +458,17 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
                 }
             }
 
-            ModelNode iteratorFilterNode = IdentityMappingObjectDefinition.ITERATOR_FILTER.resolveModelAttribute(context, principalMappingNode);
+            ModelNode filterNameNode = IdentityMappingObjectDefinition.FILTER_NAME.resolveModelAttribute(context, principalMappingNode);
+            if (filterNameNode.isDefined()) {
+                identityMappingBuilder.setFilterName(filterNameNode.asString());
+            }
 
+            ModelNode iteratorFilterNode = IdentityMappingObjectDefinition.ITERATOR_FILTER.resolveModelAttribute(context, principalMappingNode);
             if (iteratorFilterNode.isDefined()) {
                 identityMappingBuilder.setIteratorFilter(iteratorFilterNode.asString());
             }
 
             ModelNode newIdentityParentDnNode = IdentityMappingObjectDefinition.NEW_IDENTITY_PARENT_DN.resolveModelAttribute(context, principalMappingNode);
-
             if (newIdentityParentDnNode.isDefined()) {
                 try {
                     identityMappingBuilder.setNewIdentityParent(new LdapName(newIdentityParentDnNode.asString()));
