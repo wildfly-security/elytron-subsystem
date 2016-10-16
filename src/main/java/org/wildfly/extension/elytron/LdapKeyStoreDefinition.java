@@ -118,26 +118,32 @@ final class LdapKeyStoreDefinition extends SimpleResourceDefinition {
             .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
             .build();
 
-    static final SimpleAttributeDefinition NEW_ITEM_PATH = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.NEW_ITEM_PATH, ModelType.STRING, true)
-            .setAttributeGroup(ElytronDescriptionConstants.NEW_ITEM_TEMPLATE)
-            .setAllowExpression(true)
-            .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
-            .setRequires(ElytronDescriptionConstants.NEW_ITEM_RDN, ElytronDescriptionConstants.NEW_ITEM_ATTRIBUTES)
-            .build();
+    static class NewItemTemplateObjectDefinition {
 
-    static final SimpleAttributeDefinition NEW_ITEM_RDN = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.NEW_ITEM_RDN, ModelType.STRING, true)
-            .setAttributeGroup(ElytronDescriptionConstants.NEW_ITEM_TEMPLATE)
-            .setAllowExpression(true)
-            .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
-            .setRequires(ElytronDescriptionConstants.NEW_ITEM_PATH, ElytronDescriptionConstants.NEW_ITEM_ATTRIBUTES)
-            .build();
+        static final SimpleAttributeDefinition NEW_ITEM_PATH = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.NEW_ITEM_PATH, ModelType.STRING, false)
+                .setAllowExpression(true)
+                .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+                .setRequires(ElytronDescriptionConstants.NEW_ITEM_RDN, ElytronDescriptionConstants.NEW_ITEM_ATTRIBUTES)
+                .build();
 
-    static final ObjectListAttributeDefinition NEW_ITEM_ATTRIBUTES = new ObjectListAttributeDefinition.Builder(ElytronDescriptionConstants.NEW_ITEM_ATTRIBUTES, NewItemTemplateAttributeObjectDefinition.OBJECT_DEFINITION)
-            .setAttributeGroup(ElytronDescriptionConstants.NEW_ITEM_TEMPLATE)
-            .setAllowNull(true)
-            .setAllowDuplicates(true)
-            .setRequires(ElytronDescriptionConstants.NEW_ITEM_PATH, ElytronDescriptionConstants.NEW_ITEM_RDN)
-            .build();
+        static final SimpleAttributeDefinition NEW_ITEM_RDN = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.NEW_ITEM_RDN, ModelType.STRING, false)
+                .setAllowExpression(true)
+                .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+                .setRequires(ElytronDescriptionConstants.NEW_ITEM_PATH, ElytronDescriptionConstants.NEW_ITEM_ATTRIBUTES)
+                .build();
+
+        static final ObjectListAttributeDefinition NEW_ITEM_ATTRIBUTES = new ObjectListAttributeDefinition.Builder(ElytronDescriptionConstants.NEW_ITEM_ATTRIBUTES, NewItemTemplateAttributeObjectDefinition.OBJECT_DEFINITION)
+                .setAllowNull(false)
+                .setMinSize(1)
+                .setAllowDuplicates(true)
+                .setRequires(ElytronDescriptionConstants.NEW_ITEM_PATH, ElytronDescriptionConstants.NEW_ITEM_RDN)
+                .build();
+
+        static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] { NEW_ITEM_PATH, NEW_ITEM_RDN, NEW_ITEM_ATTRIBUTES };
+
+        static final ObjectTypeAttributeDefinition OBJECT_DEFINITION = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.NEW_ITEM_TEMPLATE, ATTRIBUTES)
+                .build();
+    }
 
     static final SimpleAttributeDefinition ALIAS_ATTRIBUTE = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ALIAS_ATTRIBUTE, ModelType.STRING, true)
             .setAttributeGroup(ElytronDescriptionConstants.ATTRIBUTE_MAPPING)
@@ -190,7 +196,7 @@ final class LdapKeyStoreDefinition extends SimpleResourceDefinition {
     private static final AttributeDefinition[] CONFIG_ATTRIBUTES = new AttributeDefinition[] {
             DIR_CONTEXT,
             SEARCH_PATH, SEARCH_RECURSIVE, SEARCH_TIME_LIMIT, FILTER_ALIAS, FILTER_CERTIFICATE, FILTER_ITERATE,
-            NEW_ITEM_PATH, NEW_ITEM_RDN, NEW_ITEM_ATTRIBUTES,
+            NewItemTemplateObjectDefinition.OBJECT_DEFINITION,
             ALIAS_ATTRIBUTE,
             CERTIFICATE_ATTRIBUTE, CERTIFICATE_TYPE,
             CERTIFICATE_CHAIN_ATTRIBUTE, CERTIFICATE_CHAIN_ENCODING,
@@ -267,8 +273,6 @@ final class LdapKeyStoreDefinition extends SimpleResourceDefinition {
             String filterAlias = asStringIfDefined(context, FILTER_ALIAS, model);
             String filterCertificate = asStringIfDefined(context, FILTER_CERTIFICATE, model);
             String filterIterate = asStringIfDefined(context, FILTER_ITERATE, model);
-            String createPath = asStringIfDefined(context, NEW_ITEM_PATH, model);
-            String createRdn = asStringIfDefined(context, NEW_ITEM_RDN, model);
             String aliasAttribute = asStringIfDefined(context, ALIAS_ATTRIBUTE, model);
             String certificateAttribute = asStringIfDefined(context, CERTIFICATE_ATTRIBUTE, model);
             String certificateType = asStringIfDefined(context, CERTIFICATE_TYPE, model);
@@ -276,32 +280,39 @@ final class LdapKeyStoreDefinition extends SimpleResourceDefinition {
             String certificateChainEncoding = asStringIfDefined(context, CERTIFICATE_CHAIN_ENCODING, model);
             String keyAttribute = asStringIfDefined(context, KEY_ATTRIBUTE, model);
             String keyType = asStringIfDefined(context, KEY_TYPE, model);
-
             LdapName createPathLdapName = null;
-            if (createPath != null) {
-                try {
-                    createPathLdapName = new LdapName(createPath);
-                } catch (InvalidNameException e) {
-                    throw new OperationFailedException(e);
-                }
-            }
-
+            String createRdn = null;
             Attributes createAttributes = null;
-            ModelNode createAttributesNode = NEW_ITEM_ATTRIBUTES.resolveModelAttribute(context, model);
-            if (createAttributesNode.isDefined()) {
-                createAttributes = new BasicAttributes(true);
-                for (ModelNode attributeNode : createAttributesNode.asList()) {
-                    ModelNode nameNode = NewItemTemplateAttributeObjectDefinition.NAME.resolveModelAttribute(context, attributeNode);
-                    ModelNode valuesNode = NewItemTemplateAttributeObjectDefinition.VALUE.resolveModelAttribute(context, attributeNode);
 
-                    if (valuesNode.getType() == ModelType.LIST) {
-                        BasicAttribute listAttribute = new BasicAttribute(nameNode.asString());
-                        for (ModelNode valueNode : valuesNode.asList()) {
-                            listAttribute.add(valueNode.asString());
+            ModelNode newNode = NewItemTemplateObjectDefinition.OBJECT_DEFINITION.resolveModelAttribute(context, model);
+            if (newNode.isDefined()) {
+
+                String createPath = asStringIfDefined(context, NewItemTemplateObjectDefinition.NEW_ITEM_PATH, newNode);
+                createRdn = asStringIfDefined(context, NewItemTemplateObjectDefinition.NEW_ITEM_RDN, newNode);
+                if (createPath != null) {
+                    try {
+                        createPathLdapName = new LdapName(createPath);
+                    } catch (InvalidNameException e) {
+                        throw new OperationFailedException(e);
+                    }
+                }
+
+                ModelNode createAttributesNode = NewItemTemplateObjectDefinition.NEW_ITEM_ATTRIBUTES.resolveModelAttribute(context, newNode);
+                if (createAttributesNode.isDefined()) {
+                    createAttributes = new BasicAttributes(true);
+                    for (ModelNode attributeNode : createAttributesNode.asList()) {
+                        ModelNode nameNode = NewItemTemplateAttributeObjectDefinition.NAME.resolveModelAttribute(context, attributeNode);
+                        ModelNode valuesNode = NewItemTemplateAttributeObjectDefinition.VALUE.resolveModelAttribute(context, attributeNode);
+
+                        if (valuesNode.getType() == ModelType.LIST) {
+                            BasicAttribute listAttribute = new BasicAttribute(nameNode.asString());
+                            for (ModelNode valueNode : valuesNode.asList()) {
+                                listAttribute.add(valueNode.asString());
+                            }
+                            createAttributes.put(listAttribute);
+                        } else {
+                            createAttributes.put(new BasicAttribute(nameNode.asString(), valuesNode.asString()));
                         }
-                        createAttributes.put(listAttribute);
-                    } else {
-                        createAttributes.put(new BasicAttribute(nameNode.asString(), valuesNode.asString()));
                     }
                 }
             }
