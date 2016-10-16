@@ -890,9 +890,9 @@
         <xs:attribute name="authentication-level" type="xs:string" use="optional" default="simple">
             <xs:annotation>
                 <xs:documentation>
-                    The authentication level (security level) to use.
-                    Corresponds to SECURITY_AUTHENTICATION environment property.
-                    Allowed values: "none", "simple", "strong".
+                    The authentication level (security level/authentication mechanism) to use.
+                    Corresponds to SECURITY_AUTHENTICATION ("java.naming.security.authentication") environment property.
+                    Allowed values: "none", "simple", sasl_mech, where sasl_mech is a space-separated list of SASL mechanism names.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
