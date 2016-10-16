@@ -33,12 +33,18 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.Provider;
 import java.security.Security;
+import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
+import java.security.cert.CertificateExpiredException;
+import java.security.cert.CertificateNotYetValidException;
+import java.security.cert.X509Certificate;
+import java.util.Enumeration;
 
 import org.jboss.as.controller.OperationFailedException;
 import org.jboss.as.controller.security.CredentialReference;
 import org.jboss.as.controller.security.CredentialStoreClient;
 import org.jboss.as.controller.services.path.PathManager;
+import org.jboss.logging.Logger;
 import org.jboss.msc.inject.Injector;
 import org.jboss.msc.service.Service;
 import org.jboss.msc.service.StartContext;
@@ -104,7 +110,8 @@ class KeyStoreService implements ModifiableKeyStoreService {
     @Override
     public void start(StartContext startContext) throws StartException {
         try {
-            AtomicLoadKeyStore keyStore = AtomicLoadKeyStore.newInstance(type, resolveProvider());
+            Provider provider = resolveProvider();
+            AtomicLoadKeyStore keyStore = AtomicLoadKeyStore.newInstance(type, provider);
             if (path != null) {
                 pathResolver = pathResolver();
                 pathResolver.path(path);
@@ -130,7 +137,15 @@ class KeyStoreService implements ModifiableKeyStoreService {
                 }
             }
             try (InputStream is = resolvedPath != null ? new FileInputStream(resolvedPath) : null) {
-                keyStore.load(is, resolvePassword());
+                char[] password = resolvePassword();
+
+                ROOT_LOGGER.tracef(
+                        "starting:  type = %s  provider = %s  path = %s  resolvedPath = %s  password = %b  aliasFilter = %s",
+                        type, provider, path, resolvedPath, password != null, aliasFilter
+                );
+
+                keyStore.load(is, password);
+                checkCertificatesValidity(keyStore);
             }
 
             this.keyStore = keyStore;
@@ -153,13 +168,38 @@ class KeyStoreService implements ModifiableKeyStoreService {
 
     private AtomicLoadKeyStore.LoadKey load(AtomicLoadKeyStore keyStore) throws GeneralSecurityException, IOException {
         try (InputStream is = resolvedPath != null ? new FileInputStream(resolvedPath) : null) {
-            return keyStore.revertibleLoad(is, resolvePassword());
+            AtomicLoadKeyStore.LoadKey loadKey = keyStore.revertibleLoad(is, resolvePassword());
+            checkCertificatesValidity(keyStore);
+            return loadKey;
+        }
+    }
+
+    private void checkCertificatesValidity(KeyStore keyStore) throws KeyStoreException {
+        if (ROOT_LOGGER.isEnabled(Logger.Level.WARN)) {
+            Enumeration<String> aliases = keyStore.aliases();
+            while (aliases.hasMoreElements()) {
+                String alias = aliases.nextElement();
+                Certificate certificate = keyStore.getCertificate(alias);
+                if (certificate != null && certificate instanceof X509Certificate) {
+                    try {
+                        ((X509Certificate) certificate).checkValidity();
+                    } catch (CertificateExpiredException | CertificateNotYetValidException e) {
+                        ROOT_LOGGER.certificateNotValid(alias, e);
+                    }
+                }
+            }
         }
     }
 
     @Override
     public void stop(StopContext stopContext) {
+        ROOT_LOGGER.tracef(
+                "stopping:  keyStore = %s  unmodifiableKeyStore = %s  trackingKeyStore = %s  pathResolver = %s",
+                keyStore, unmodifiableKeyStore, trackingKeyStore, pathResolver
+        );
         keyStore = null;
+        unmodifiableKeyStore = null;
+        trackingKeyStore = null;
         if (pathResolver != null) {
             pathResolver.clear();
             pathResolver = null;
@@ -197,6 +237,7 @@ class KeyStoreService implements ModifiableKeyStoreService {
 
     LoadKey load() throws OperationFailedException {
         try {
+            ROOT_LOGGER.tracef("reloading KeyStore from file [%s]", resolvedPath);
             AtomicLoadKeyStore.LoadKey loadKey = load(keyStore);
             long originalSynced = synched;
             synched = System.currentTimeMillis();
@@ -209,6 +250,7 @@ class KeyStoreService implements ModifiableKeyStoreService {
     }
 
     void revertLoad(final LoadKey loadKey) {
+        ROOT_LOGGER.trace("reverting load of KeyStore");
         keyStore.revert(loadKey.loadKey);
         synched = loadKey.modifiedTime;
         trackingKeyStore.setModified(loadKey.modified);
@@ -218,6 +260,7 @@ class KeyStoreService implements ModifiableKeyStoreService {
         if (resolvedPath == null) {
             throw ROOT_LOGGER.cantSaveWithoutFile();
         }
+        ROOT_LOGGER.tracef("saving KeyStore to the file [%s]", resolvedPath);
         try (FileOutputStream fos = new FileOutputStream(resolvedPath)) {
             keyStore.store(fos, resolvePassword());
             synched = System.currentTimeMillis();

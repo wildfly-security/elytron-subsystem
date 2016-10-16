@@ -43,6 +43,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.Provider;
 import java.security.UnrecoverableKeyException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
@@ -231,11 +232,11 @@ class SSLDefinitions {
                             Provider[].class, providersInjector);
                 }
 
-                String keyStore = asStringIfDefined(context, keystoreDefinition, model);
+                final String keyStoreName = asStringIfDefined(context, keystoreDefinition, model);
                 final InjectedValue<KeyStore> keyStoreInjector = new InjectedValue<>();
-                if (keyStore != null) {
+                if (keyStoreName != null) {
                     serviceBuilder.addDependency(context.getCapabilityServiceName(
-                            buildDynamicCapabilityName(KEY_STORE_CAPABILITY, keyStore), KeyStore.class),
+                            buildDynamicCapabilityName(KEY_STORE_CAPABILITY, keyStoreName), KeyStore.class),
                             KeyStore.class, keyStoreInjector);
                 }
 
@@ -285,7 +286,18 @@ class SSLDefinitions {
                     try {
                         CredentialReference.reinjectCredentialStoreClient(credentialStoreClientInjector, credentialReference);
                         CredentialStoreClient credentialStoreClient = credentialStoreClientInjector.getOptionalValue();
-                        keyManagerFactory.init(keyStoreInjector.getOptionalValue(), credentialStoreClient != null ? credentialStoreClient.getSecret() : credentialReference.getSecret());
+                        KeyStore keyStore = keyStoreInjector.getOptionalValue();
+                        char[] password = credentialStoreClient != null ? credentialStoreClient.getSecret() : credentialReference.getSecret();
+
+                        if (ROOT_LOGGER.isTraceEnabled()) {
+                            ROOT_LOGGER.tracef(
+                                    "KeyManager supplying:  providers = %s  provider = %s  algorithm = %s  keyManagerFactory = %s  " +
+                                            "keyStoreName = %s  keyStore = %s  password (of item) = %b",
+                                    Arrays.toString(providers), provider, algorithm, keyManagerFactory, keyStoreName, keyStore, password != null
+                            );
+                        }
+
+                        keyManagerFactory.init(keyStore, password);
                     } catch (UnrecoverableKeyException | KeyStoreException | NoSuchAlgorithmException | ClassNotFoundException e) {
                         throw new StartException(e);
                     }
@@ -326,11 +338,11 @@ class SSLDefinitions {
                             Provider[].class, providersInjector);
                 }
 
-                String keyStore = asStringIfDefined(context, keystoreDefinition, model);
+                final String keyStoreName = asStringIfDefined(context, keystoreDefinition, model);
                 final InjectedValue<KeyStore> keyStoreInjector = new InjectedValue<>();
-                if (keyStore != null) {
+                if (keyStoreName != null) {
                     serviceBuilder.addDependency(context.getCapabilityServiceName(
-                            buildDynamicCapabilityName(KEY_STORE_CAPABILITY, keyStore), KeyStore.class),
+                            buildDynamicCapabilityName(KEY_STORE_CAPABILITY, keyStoreName), KeyStore.class),
                             KeyStore.class, keyStoreInjector);
                 }
 
@@ -357,6 +369,14 @@ class SSLDefinitions {
                         } catch (NoSuchAlgorithmException e) {
                             throw new StartException(e);
                         }
+                    }
+                    KeyStore keyStore = keyStoreInjector.getOptionalValue();
+
+                    if (ROOT_LOGGER.isTraceEnabled()) {
+                        ROOT_LOGGER.tracef(
+                                "KeyManager supplying:  providers = %s  provider = %s  algorithm = %s  trustManagerFactory = %s  keyStoreName = %s  keyStore = %s",
+                                Arrays.toString(providers), provider, algorithm, trustManagerFactory, keyStoreName, keyStore
+                        );
                     }
 
                     try {
@@ -462,6 +482,16 @@ class SSLDefinitions {
                            .setSessionCacheSize(maximumSessionCacheSize)
                            .setSessionTimeout(sessionTimeout);
 
+                    if (ROOT_LOGGER.isTraceEnabled()) {
+                        ROOT_LOGGER.tracef(
+                                "ServerSSLContext supplying:  securityDomain = %s  keyManager = %s  trustManager = %s  " +
+                                "providers = %s  cipherSuiteFilter = %s  protocols = %s  wantClientAuth = %s  needClientAuth = %s  " +
+                                "authenticationOptional = %s  maximumSessionCacheSize = %s  sessionTimeout = %s",
+                                securityDomain, keyManager, trustManager, Arrays.toString(providers), cipherSuiteFilter,
+                                Arrays.toString(protocols.toArray()), wantClientAuth, needClientAuth, authenticationOptional,
+                                maximumSessionCacheSize, sessionTimeout);
+                    }
+
                     try {
                         return builder.build().create();
                     } catch (GeneralSecurityException e) {
@@ -512,6 +542,15 @@ class SSLDefinitions {
                            .setUseCipherSuitesOrder(useCipherSuitesOrder)
                            .setSessionCacheSize(maximumSessionCacheSize)
                            .setSessionTimeout(sessionTimeout);
+
+                    if (ROOT_LOGGER.isTraceEnabled()) {
+                        ROOT_LOGGER.tracef(
+                                "ClientSSLContext supplying:  keyManager = %s  trustManager = %s  providers = %s  " +
+                                "cipherSuiteFilter = %s  protocols = %s  maximumSessionCacheSize = %s  sessionTimeout = %s",
+                                keyManager, trustManager, Arrays.toString(providers), cipherSuiteFilter,
+                                Arrays.toString(protocols.toArray()), maximumSessionCacheSize, sessionTimeout
+                        );
+                    }
 
                     try {
                         return builder.build().create();
