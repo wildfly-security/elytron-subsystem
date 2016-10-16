@@ -69,7 +69,6 @@ public class DirContextDefinition extends SimpleResourceDefinition {
 
     static final SimpleAttributeDefinition AUTHENTICATION_LEVEL = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.AUTHENTICATION_LEVEL, ModelType.STRING, true)
             .setDefaultValue(new ModelNode("simple"))
-            .setAllowedValues("none", "simple", "strong")
             .setAllowExpression(true)
             .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
             .build();
