@@ -7,7 +7,12 @@ objectclass: top
 objectclass: domain
 dc: elytron
 
-dn: uid=server,dc=elytron,dc=wildfly,dc=org
+dn: dc=users,dc=elytron,dc=wildfly,dc=org
+objectclass: top
+objectclass: domain
+dc: users
+
+dn: uid=server,dc=users,dc=elytron,dc=wildfly,dc=org
 objectClass: top
 objectClass: inetOrgPerson
 objectClass: person
@@ -18,7 +23,7 @@ uid: server
 userPassword:: c2VydmVyUGFzc3dvcmQ=
 # Password serverPassword
 
-dn: uid=plainUser,dc=elytron,dc=wildfly,dc=org
+dn: uid=plainUser,dc=users,dc=elytron,dc=wildfly,dc=org
 objectClass: top
 objectClass: inetOrgPerson
 objectClass: person
@@ -29,16 +34,44 @@ uid: plainUser
 userPassword:: cGxhaW5QYXNzd29yZA==
 # Password plainPassword
 
-dn: ou=Finance,dc=elytron,dc=wildfly,dc=org
+dn: dc=groups,dc=elytron,dc=wildfly,dc=org
+objectclass: top
+objectclass: domain
+dc: groups
+
+dn: ou=Finance,dc=groups,dc=elytron,dc=wildfly,dc=org
 objectclass: top
 objectclass: organizationalUnit
 ou: Finance
 
-dn: cn=Manager,ou=Finance,dc=elytron,dc=wildfly,dc=org
+dn: cn=Manager,ou=Finance,dc=groups,dc=elytron,dc=wildfly,dc=org
 objectClass: top
 objectClass: groupOfNames
 cn: Manager
-member: uid=userWithRdnAttribute,dc=elytron,dc=wildfly,dc=org
+member: uid=userWithRdnAttribute,dc=users,dc=elytron,dc=wildfly,dc=org
+
+dn: ou=refUsers,dc=users,dc=elytron,dc=wildfly,dc=org
+objectClass: extensibleObject
+objectClass: referral
+objectClass: top
+ou: refUsers
+ref: ldaps://localhost:11391/dc=referredUsers,dc=elytron,dc=wildfly,dc=org
+
+dn: dc=referredUsers,dc=elytron,dc=wildfly,dc=org
+objectclass: top
+objectclass: domain
+dc: referredUsers
+
+dn: uid=refUser,dc=referredUsers,dc=elytron,dc=wildfly,dc=org
+objectClass: top
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: organizationalPerson
+cn: refUserCn
+sn: refUserSn
+uid: refUser
+userPassword:: cGxhaW5QYXNzd29yZA==
+# Password plainPassword
 
 # === keystore ===
 # Base64 attributes can be generated from PEMs+keystore using ldap-keystore-gen.sh

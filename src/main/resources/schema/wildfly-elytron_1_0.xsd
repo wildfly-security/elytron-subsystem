@@ -919,6 +919,15 @@
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
+        <xs:attribute name="referral-mode" type="xs:string" default="ignore" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    If LDAP referrals should be followed.
+                    Corresponds to REFERRAL ("java.naming.referral") environment property.
+                    Allowed values: "ignore", "follow", "throw".
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
         <xs:attribute name="ssl-context" type="xs:string" use="optional">
             <xs:annotation>
                 <xs:documentation>

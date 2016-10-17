@@ -82,6 +82,10 @@ public class LdapTestCase extends AbstractSubsystemTest {
         Assert.assertTrue(identity1.exists());
         identity1.dispose();
 
+        RealmIdentity identity2 = securityRealm.getRealmIdentity(fromName("refUser"));
+        Assert.assertTrue(identity2.exists());
+        identity2.dispose();
+
         RealmsTestCase.testModifiability(securityRealm);
     }
 

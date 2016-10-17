@@ -131,7 +131,7 @@ public class DirContextDefinition extends SimpleResourceDefinition {
         Properties connectionProperties = new Properties();
         ModelNode enableConnectionPoolingNode = ENABLE_CONNECTION_POOLING.resolveModelAttribute(context, model);
         connectionProperties.put(CONNECTION_POOLING_PROPERTY, enableConnectionPoolingNode.asBoolean());
-        ReferralMode referralMode = ReferralMode.valueOf(REFERRAL_MODE.resolveModelAttribute(context, model).asString());
+        ReferralMode referralMode = ReferralMode.valueOf(REFERRAL_MODE.resolveModelAttribute(context, model).asString().toUpperCase());
 
         return () -> {
             SimpleDirContextFactoryBuilder builder = SimpleDirContextFactoryBuilder.builder()
