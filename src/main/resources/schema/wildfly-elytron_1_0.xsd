@@ -62,8 +62,7 @@
     <xs:complexType name="propertyType">
         <xs:annotation>
             <xs:documentation>
-                Representation of a key/value property
-                pair.
+                Representation of a key/value property pair.
             </xs:documentation>
         </xs:annotation>
         <xs:attribute name="key" type="xs:string" use="required">
@@ -324,7 +323,7 @@
             <xs:element name="custom-modifiable-realm" type="customRealmType" minOccurs="0" maxOccurs="unbounded">
                 <xs:annotation>
                     <xs:documentation>
-                      Realms configured as being modifiable will be expected to implement the ModifiableSecurityRealm interface.
+                      Custom realm configured as being modifiable will be expected to implement the ModifiableSecurityRealm interface.
 
                       By configuring a realm as being modifiable management operations will be made available to manipulate the realm.
                     </xs:documentation>
@@ -357,8 +356,8 @@
     <xs:complexType name="aggregateRealmType">
         <xs:annotation>
             <xs:documentation>
-                Realm definition for an aggregate realm where authenticaton and authorization are handled by
-                two separate realms.
+                A realm definition that is an aggregation of two realms, one for the authentication steps
+                and one for loading the identity for the authorization steps.
             </xs:documentation>
         </xs:annotation>
         <xs:complexContent>
@@ -1135,7 +1134,7 @@
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
-        <xs:attribute name="value" type="xs:string" use="required">
+        <xs:attribute name="value" type="stringListType" use="required">
             <xs:annotation>
                 <xs:documentation>
                     The value(s) of LDAP attribute delimited by space.
@@ -3375,10 +3374,10 @@
                                     </xs:documentation>
                                 </xs:annotation>
                             </xs:attribute>
-                            <xs:attribute name="value" type="xs:string" use="required">
+                            <xs:attribute name="value" type="stringListType" use="required">
                                 <xs:annotation>
                                     <xs:documentation>
-                                        The LDAP attribute default value.
+                                        The default value(s) of LDAP attribute delimited by space.
                                     </xs:documentation>
                                 </xs:annotation>
                             </xs:attribute>
@@ -3429,7 +3428,7 @@
                         <xs:annotation>
                             <xs:documentation>
                                 The type of certificate. Used for decoding of byte array from certificate-attribute.
-                                For possible values see <a href="https://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html#CertificateFactory">CertificateFactory types</a>.
+                                For possible certificate types see Java documentation of CertificateFactory.
                             </xs:documentation>
                         </xs:annotation>
                     </xs:attribute>
@@ -3444,7 +3443,23 @@
                         <xs:annotation>
                             <xs:documentation>
                                 The encoding of CertPath, which is used to store certificate chain into certificate-chain-attribute.
-                                For possible values see <a href="https://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html#CertPathEncodings">CertPath Encodings</a>.
+                                For possible chain encodings see Java documentation of CertPath.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:attribute>
+
+                    <xs:attribute name="key-attribute" type="xs:string" use="optional" default="userPKCS12">
+                        <xs:annotation>
+                            <xs:documentation>
+                                The LDAP attribute, where is encoded key expected.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute name="key-type" type="xs:string" use="optional" default="PKCS12">
+                        <xs:annotation>
+                            <xs:documentation>
+                                The type of key. Used for decoding of byte array from key-attribute.
+                                For possible KeyStore types see Java documentation of KeyStore.
                             </xs:documentation>
                         </xs:annotation>
                     </xs:attribute>
