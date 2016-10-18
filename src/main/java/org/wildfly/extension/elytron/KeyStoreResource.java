@@ -32,6 +32,7 @@ import org.jboss.as.controller.registry.PlaceholderResource;
 import org.jboss.as.controller.registry.Resource;
 import org.jboss.msc.service.ServiceController;
 import org.jboss.msc.service.ServiceController.State;
+import org.wildfly.extension.elytron._private.ElytronSubsystemMessages;
 
 /**
  * A {@link Resource} to represent a {@link KeyStoreDefinition}, the majority is actually model but child resources are a
@@ -74,7 +75,8 @@ class KeyStoreResource extends DelegatingResource {
         final KeyStore keyStore;
         try {
             return (ElytronDescriptionConstants.ALIAS.equals(element.getKey()) && (keyStore = getKeyStore(keyStoreServiceController)) != null && keyStore.containsAlias(element.getValue()));
-        } catch (KeyStoreException e) {
+        } catch (KeyStoreException | IllegalStateException e) {
+            ElytronSubsystemMessages.ROOT_LOGGER.trace(e);
             return false;
         }
     }
@@ -86,7 +88,8 @@ class KeyStoreResource extends DelegatingResource {
             if (ElytronDescriptionConstants.ALIAS.equals(element.getKey()) && (keyStore = getKeyStore(keyStoreServiceController)) != null && keyStore.containsAlias(element.getValue())) {
                 return PlaceholderResource.INSTANCE;
             }
-        } catch (KeyStoreException e) {
+        } catch (KeyStoreException | IllegalStateException e) {
+            ElytronSubsystemMessages.ROOT_LOGGER.trace(e);
         }
 
         return null;
@@ -114,7 +117,8 @@ class KeyStoreResource extends DelegatingResource {
 
                 return children;
             }
-        } catch (KeyStoreException e) {
+        } catch (KeyStoreException | IllegalStateException e) {
+            ElytronSubsystemMessages.ROOT_LOGGER.trace(e);
         }
 
         return Collections.emptySet();
@@ -133,7 +137,8 @@ class KeyStoreResource extends DelegatingResource {
 
                 return children;
             }
-        } catch (KeyStoreException e) {
+        } catch (KeyStoreException | IllegalStateException e) {
+            ElytronSubsystemMessages.ROOT_LOGGER.trace(e);
         }
 
         return Collections.emptySet();
@@ -161,7 +166,8 @@ class KeyStoreResource extends DelegatingResource {
 
         try {
             return ((keyStore = getKeyStore(keyStoreServiceController)) != null) && keyStore.size() > 0;
-        } catch (KeyStoreException e) {
+        } catch (KeyStoreException | IllegalStateException e) {
+            ElytronSubsystemMessages.ROOT_LOGGER.trace(e);
             return false;
         }
     }
