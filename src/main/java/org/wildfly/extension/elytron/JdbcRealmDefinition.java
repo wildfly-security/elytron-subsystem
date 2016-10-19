@@ -53,6 +53,7 @@ import org.jboss.as.controller.SimpleResourceDefinition;
 import org.jboss.as.controller.capability.RuntimeCapability;
 import org.jboss.as.controller.logging.ControllerLogger;
 import org.jboss.as.controller.operations.validation.AllowedValuesValidator;
+import org.jboss.as.controller.operations.validation.IntRangeValidator;
 import org.jboss.as.controller.operations.validation.ModelTypeValidator;
 import org.jboss.as.controller.registry.AttributeAccess;
 import org.jboss.as.controller.registry.ManagementResourceRegistration;
@@ -101,6 +102,7 @@ class JdbcRealmDefinition extends SimpleResourceDefinition {
 
         static final SimpleAttributeDefinition PASSWORD = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PASSWORD_INDEX, ModelType.INT, false)
                 .setMinSize(1)
+                .setValidator(new IntRangeValidator(1))
                 .setAllowExpression(false)
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
@@ -148,16 +150,19 @@ class JdbcRealmDefinition extends SimpleResourceDefinition {
 
         static final SimpleAttributeDefinition PASSWORD = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PASSWORD_INDEX, ModelType.INT, false)
                 .setMinSize(1)
+                .setValidator(new IntRangeValidator(1))
                 .setAllowExpression(false)
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
 
         static final SimpleAttributeDefinition ITERATION_COUNT = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ITERATION_COUNT_INDEX, ModelType.INT, false)
+                .setValidator(new IntRangeValidator(1))
                 .setAllowExpression(false)
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
 
         static final SimpleAttributeDefinition SALT = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.SALT_INDEX, ModelType.INT, false)
+                .setValidator(new IntRangeValidator(1))
                 .setAllowExpression(false)
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
@@ -219,11 +224,13 @@ class JdbcRealmDefinition extends SimpleResourceDefinition {
 
         static final SimpleAttributeDefinition PASSWORD = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PASSWORD_INDEX, ModelType.INT, false)
                 .setMinSize(1)
+                .setValidator(new IntRangeValidator(1))
                 .setAllowExpression(false)
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
 
         static final SimpleAttributeDefinition SALT = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.SALT_INDEX, ModelType.INT, false)
+                .setValidator(new IntRangeValidator(1))
                 .setAllowExpression(false)
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
@@ -279,6 +286,7 @@ class JdbcRealmDefinition extends SimpleResourceDefinition {
 
         static final SimpleAttributeDefinition PASSWORD = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PASSWORD_INDEX, ModelType.INT, false)
                 .setMinSize(1)
+                .setValidator(new IntRangeValidator(1))
                 .setAllowExpression(false)
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
@@ -328,16 +336,19 @@ class JdbcRealmDefinition extends SimpleResourceDefinition {
 
         static final SimpleAttributeDefinition PASSWORD = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PASSWORD_INDEX, ModelType.INT, false)
                 .setMinSize(1)
+                .setValidator(new IntRangeValidator(1))
                 .setAllowExpression(false)
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
 
         static final SimpleAttributeDefinition ITERATION_COUNT = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ITERATION_COUNT_INDEX, ModelType.INT, false)
+                .setValidator(new IntRangeValidator(1))
                 .setAllowExpression(false)
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
 
         static final SimpleAttributeDefinition SALT = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.SALT_INDEX, ModelType.INT, false)
+                .setValidator(new IntRangeValidator(1))
                 .setAllowExpression(false)
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
