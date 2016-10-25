@@ -3,18 +3,18 @@
 
     <dir-contexts>
         <dir-context name="DirContextInsecure" url="ldap://localhost:11391/" authentication-level="none"/>
-        <dir-context name="DirContextSsl" url="ldaps://localhost:11391/" principal="uid=server,dc=elytron,dc=wildfly,dc=org" credential="serverPassword" ssl-context="LdapSslContext"/>
+        <dir-context name="DirContextSsl" url="ldaps://localhost:11391/" principal="uid=server,dc=users,dc=elytron,dc=wildfly,dc=org" credential="serverPassword" ssl-context="LdapSslContext" referral-mode="follow"/>
     </dir-contexts>
 
     <security-realms>
         <ldap-realm name="LdapRealm" direct-verification="false" dir-context="DirContextSsl">
-            <identity-mapping rdn-identifier="uid" search-base-dn="dc=elytron,dc=wildfly,dc=org" use-recursive-search="true" iterator-filter="(uid=*)" new-identity-parent-dn="dc=elytron,dc=wildfly,dc=org">
+            <identity-mapping rdn-identifier="uid" search-base-dn="dc=users,dc=elytron,dc=wildfly,dc=org" use-recursive-search="true" filter-name="(|(objectclass=referral)(uid={0}))" iterator-filter="(uid=*)" new-identity-parent-dn="dc=users,dc=elytron,dc=wildfly,dc=org">
                 <attribute-mapping>
                     <attribute from="uid" to="userName"/>
                     <attribute from="cn" to="firstName"/>
                     <attribute from="sn" to="lastName"/>
                     <attribute from="telephoneNumber" to="phones"/>
-                    <attribute filter-base-dn="ou=Finance,dc=elytron,dc=wildfly,dc=org" filter="(&amp;(objectClass=groupOfNames)(member={0}))" from="CN" as-rdn="OU"  to="businessArea"/>
+                    <attribute filter-base-dn="ou=Finance,dc=groups,dc=elytron,dc=wildfly,dc=org" filter="(&amp;(objectClass=groupOfNames)(member={0}))" from="CN" as-rdn="OU"  to="businessArea"/>
                 </attribute-mapping>
                 <user-password-mapper from="userPassword" writable="true" verifiable="true"/>
                 <otp-credential-mapper algorithm-from="otpAlgorithm" hash-from="otpHash" seed-from="otpSeed" sequence-from="otpSequence"/>
@@ -34,7 +34,7 @@
             <ldap-key-store name="LdapKeyStoreMaximal" dir-context="DirContextSsl" search-path="dc=elytron,dc=wildfly,dc=org"
                             search-recursive="true" search-time-limit="1000" filter-alias="(&amp;(objectClass=inetOrgPerson)(sn={0}))"
                             filter-certificate="(&amp;(objectClass=inetOrgPerson)(usercertificate={0}))" filter-iterate="(sn=serenity*)">
-                <new-item-template new-item-path="dc=elytron,dc=wildfly,dc=org" new-item-rdn="cn">
+                <new-item-template new-item-path="ou=keystore,dc=elytron,dc=wildfly,dc=org" new-item-rdn="cn">
                     <attribute name="objectClass" value="top inetOrgPerson"/>
                     <attribute name="sn" value="NewKeyStoreItem"/>
                 </new-item-template>

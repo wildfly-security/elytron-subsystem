@@ -919,6 +919,15 @@
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
+        <xs:attribute name="referral-mode" type="xs:string" default="ignore" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    If LDAP referrals should be followed.
+                    Corresponds to REFERRAL ("java.naming.referral") environment property.
+                    Allowed values: "ignore", "follow", "throw".
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
         <xs:attribute name="ssl-context" type="xs:string" use="optional">
             <xs:annotation>
                 <xs:documentation>
@@ -982,6 +991,14 @@
             <xs:annotation>
                 <xs:documentation>
                     Indicates if queries are recursive.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="filter-name" type="xs:string" use="optional" default="(rdn-identifier={0})">
+            <xs:annotation>
+                <xs:documentation>
+                    The LDAP filter for getting identity by name.
+                    The string "{0}" will by replaced by searched identity name.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>

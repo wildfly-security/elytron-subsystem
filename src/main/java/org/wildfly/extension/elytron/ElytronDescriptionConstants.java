@@ -128,6 +128,7 @@ interface ElytronDescriptionConstants {
     String FILTER_ALIAS = "filter-alias";
     String FILTER_BASE_DN = "filter-base-dn";
     String FILTER_CERTIFICATE = "filter-certificate";
+    String FILTER_NAME = "filter-name";
     String FILTER_ITERATE = "filter-iterate";
     String FILTERING_KEY_STORE = "filtering-key-store";
     String FILTERS = "filters";
