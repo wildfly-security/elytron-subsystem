@@ -492,12 +492,17 @@
                 A key mapper that maps a column returned from a SQL query to a Clear Password key type.
             </xs:documentation>
         </xs:annotation>
-        <xs:attribute name="password-index" type="xs:int" use="required">
+        <xs:attribute name="password-index" use="required">
             <xs:annotation>
                 <xs:documentation>
                     The column index from an authentication query that represents the user's password.
                 </xs:documentation>
             </xs:annotation>
+            <xs:simpleType>
+                <xs:restriction base="xs:int">
+                    <xs:minInclusive value="1"/>
+                </xs:restriction>
+            </xs:simpleType>
         </xs:attribute>
     </xs:complexType>
 
@@ -507,26 +512,41 @@
                 A key mapper that maps a column returned from a SQL query to a Bcrypt key type.
             </xs:documentation>
         </xs:annotation>
-        <xs:attribute name="password-index" type="xs:int" use="required">
+        <xs:attribute name="password-index" use="required">
             <xs:annotation>
                 <xs:documentation>
                     The column index from an authentication query that represents the user's password.
                 </xs:documentation>
             </xs:annotation>
+            <xs:simpleType>
+                <xs:restriction base="xs:int">
+                    <xs:minInclusive value="1"/>
+                </xs:restriction>
+            </xs:simpleType>
         </xs:attribute>
-        <xs:attribute name="salt-index" type="xs:int" use="required">
+        <xs:attribute name="salt-index" use="required">
             <xs:annotation>
                 <xs:documentation>
                     The column index from an authentication query that represents the password's salt, if supported.
                 </xs:documentation>
             </xs:annotation>
+            <xs:simpleType>
+                <xs:restriction base="xs:int">
+                    <xs:minInclusive value="1"/>
+                </xs:restriction>
+            </xs:simpleType>
         </xs:attribute>
-        <xs:attribute name="iteration-count-index" type="xs:int" use="required">
+        <xs:attribute name="iteration-count-index" use="required">
             <xs:annotation>
                 <xs:documentation>
                     The column index from an authentication query that represents the password's iteration count, if supported.
                 </xs:documentation>
             </xs:annotation>
+            <xs:simpleType>
+                <xs:restriction base="xs:int">
+                    <xs:minInclusive value="1"/>
+                </xs:restriction>
+            </xs:simpleType>
         </xs:attribute>
     </xs:complexType>
 
@@ -557,19 +577,29 @@
             	</xs:restriction>
         	</xs:simpleType>
         </xs:attribute>
-        <xs:attribute name="password-index" type="xs:int" use="required">
+        <xs:attribute name="password-index" use="required">
             <xs:annotation>
                 <xs:documentation>
                     The column index from an authentication query that represents the user's password.
                 </xs:documentation>
             </xs:annotation>
+            <xs:simpleType>
+                <xs:restriction base="xs:int">
+                    <xs:minInclusive value="1"/>
+                </xs:restriction>
+            </xs:simpleType>
         </xs:attribute>
-        <xs:attribute name="salt-index" type="xs:int" use="required">
+        <xs:attribute name="salt-index" use="required">
             <xs:annotation>
                 <xs:documentation>
                     The column index from an authentication query that represents the password's salt, if supported.
                 </xs:documentation>
             </xs:annotation>
+            <xs:simpleType>
+                <xs:restriction base="xs:int">
+                    <xs:minInclusive value="1"/>
+                </xs:restriction>
+            </xs:simpleType>
         </xs:attribute>
     </xs:complexType>
 
@@ -596,12 +626,17 @@
             	</xs:restriction>
         	</xs:simpleType>
         </xs:attribute>
-        <xs:attribute name="password-index" type="xs:int" use="required">
+        <xs:attribute name="password-index" use="required">
             <xs:annotation>
                 <xs:documentation>
                     The column index from an authentication query that represents the user's password.
                 </xs:documentation>
             </xs:annotation>
+            <xs:simpleType>
+                <xs:restriction base="xs:int">
+                    <xs:minInclusive value="1"/>
+                </xs:restriction>
+            </xs:simpleType>
         </xs:attribute>
     </xs:complexType>
 
@@ -624,26 +659,41 @@
             	</xs:restriction>
         	</xs:simpleType>
         </xs:attribute>
-        <xs:attribute name="password-index" type="xs:int" use="required">
+        <xs:attribute name="password-index" use="required">
             <xs:annotation>
                 <xs:documentation>
                     The column index from an authentication query that represents the user's password.
                 </xs:documentation>
             </xs:annotation>
+            <xs:simpleType>
+                <xs:restriction base="xs:int">
+                    <xs:minInclusive value="1"/>
+                </xs:restriction>
+            </xs:simpleType>
         </xs:attribute>
-        <xs:attribute name="salt-index" type="xs:int" use="required">
+        <xs:attribute name="salt-index" use="required">
             <xs:annotation>
                 <xs:documentation>
                     The column index from an authentication query that represents the password's salt, if supported.
                 </xs:documentation>
             </xs:annotation>
+            <xs:simpleType>
+                <xs:restriction base="xs:int">
+                    <xs:minInclusive value="1"/>
+                </xs:restriction>
+            </xs:simpleType>
         </xs:attribute>
-        <xs:attribute name="iteration-count-index" type="xs:int" use="required">
+        <xs:attribute name="iteration-count-index" use="required">
             <xs:annotation>
                 <xs:documentation>
                     The column index from an authentication query that represents the password's iteration count, if supported.
                 </xs:documentation>
             </xs:annotation>
+            <xs:simpleType>
+                <xs:restriction base="xs:int">
+                    <xs:minInclusive value="1"/>
+                </xs:restriction>
+            </xs:simpleType>
         </xs:attribute>
     </xs:complexType>
 

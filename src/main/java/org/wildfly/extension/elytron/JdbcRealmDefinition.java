@@ -102,6 +102,7 @@ class JdbcRealmDefinition extends SimpleResourceDefinition {
 
         static final SimpleAttributeDefinition PASSWORD = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PASSWORD_INDEX, ModelType.INT, false)
                 .setMinSize(1)
+                .setValidator(new IntRangeValidator(1))
                 .setAllowExpression(false)
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
@@ -149,16 +150,19 @@ class JdbcRealmDefinition extends SimpleResourceDefinition {
 
         static final SimpleAttributeDefinition PASSWORD = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PASSWORD_INDEX, ModelType.INT, false)
                 .setMinSize(1)
+                .setValidator(new IntRangeValidator(1))
                 .setAllowExpression(false)
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
 
         static final SimpleAttributeDefinition ITERATION_COUNT = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ITERATION_COUNT_INDEX, ModelType.INT, false)
+                .setValidator(new IntRangeValidator(1))
                 .setAllowExpression(false)
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
 
         static final SimpleAttributeDefinition SALT = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.SALT_INDEX, ModelType.INT, false)
+                .setValidator(new IntRangeValidator(1))
                 .setAllowExpression(false)
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
@@ -220,11 +224,13 @@ class JdbcRealmDefinition extends SimpleResourceDefinition {
 
         static final SimpleAttributeDefinition PASSWORD = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PASSWORD_INDEX, ModelType.INT, false)
                 .setMinSize(1)
+                .setValidator(new IntRangeValidator(1))
                 .setAllowExpression(false)
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
 
         static final SimpleAttributeDefinition SALT = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.SALT_INDEX, ModelType.INT, false)
+                .setValidator(new IntRangeValidator(1))
                 .setAllowExpression(false)
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
@@ -280,6 +286,7 @@ class JdbcRealmDefinition extends SimpleResourceDefinition {
 
         static final SimpleAttributeDefinition PASSWORD = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PASSWORD_INDEX, ModelType.INT, false)
                 .setMinSize(1)
+                .setValidator(new IntRangeValidator(1))
                 .setAllowExpression(false)
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
@@ -329,16 +336,19 @@ class JdbcRealmDefinition extends SimpleResourceDefinition {
 
         static final SimpleAttributeDefinition PASSWORD = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PASSWORD_INDEX, ModelType.INT, false)
                 .setMinSize(1)
+                .setValidator(new IntRangeValidator(1))
                 .setAllowExpression(false)
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
 
         static final SimpleAttributeDefinition ITERATION_COUNT = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ITERATION_COUNT_INDEX, ModelType.INT, false)
+                .setValidator(new IntRangeValidator(1))
                 .setAllowExpression(false)
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
 
         static final SimpleAttributeDefinition SALT = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.SALT_INDEX, ModelType.INT, false)
+                .setValidator(new IntRangeValidator(1))
                 .setAllowExpression(false)
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
