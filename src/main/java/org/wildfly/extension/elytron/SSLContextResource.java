@@ -44,7 +44,7 @@ class SSLContextResource extends DelegatingResource {
 
     private ServiceController<SSLContext> sslContextServiceController;
 
-    public SSLContextResource(Resource delegate) {
+    SSLContextResource(Resource delegate) {
         super(delegate);
     }
 
@@ -53,7 +53,7 @@ class SSLContextResource extends DelegatingResource {
      *
      * @param sslContextServiceController The {@link ServiceController<SSLContext>} to obtain the {@link SSLContext} from.
      */
-    public void setSSLContextServiceController(ServiceController<SSLContext> sslContextServiceController) {
+    void setSSLContextServiceController(ServiceController<SSLContext> sslContextServiceController) {
         this.sslContextServiceController = sslContextServiceController;
     }
 

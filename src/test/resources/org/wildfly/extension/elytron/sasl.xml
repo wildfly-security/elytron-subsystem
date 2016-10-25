@@ -1,4 +1,9 @@
 <subsystem xmlns="urn:wildfly:elytron:1.0">
+    <provider-loaders>
+         <provider-loader name="TestProviderLoader">
+             <provider module="test.module" />
+         </provider-loader>
+     </provider-loaders>
     <security-domains>
         <security-domain name="MyDomain" default-realm="RealmTwo">
             <realm name="RealmTwo"/>
@@ -9,11 +14,6 @@
             <users-properties path="my.properties" />
         </properties-realm>
     </security-realms>
-    <provider-loaders>
-        <provider-loader name="TestProviderLoader">
-            <provider module="test.module" />
-        </provider-loader>
-    </provider-loaders>
     <mappers>
         <constant-name-rewriter name="PreRealmNameRewriter" constant="constant" />
         <constant-name-rewriter name="PostRealmNameRewriter" constant="constant" />
@@ -32,10 +32,14 @@
                 </mechanism>
             </mechanism-configuration>
         </sasl-authentication-factory>
+        <aggregate-sasl-server-factory name="AggregateSaslFactory">
+            <sasl-server-factory name="ProviderSaslFactory"/>
+            <sasl-server-factory name="ServiceSaslFactory"/>
+        </aggregate-sasl-server-factory>
         <configurable-sasl-server-factory name="ConfigurableSaslServerFactory" server-name="server" protocol="test-protocol" sasl-server-factory="MechFiltering">
             <properties>
-                <property key="a" value="b" />
-                <property key="c" value="d" />
+                <property name="a" value="b" />
+                <property name="c" value="d" />
             </properties>
             <filters>
                 <filter enabling="false">
@@ -52,10 +56,6 @@
                 <filter mechanism-name="Scram" provider-name="Sun" provider-version="1.5" version-comparison="greater-than" />
             </filters>
         </mechanism-provider-filtering-sasl-server-factory>
-        <aggregate-sasl-server-factory name="AggregateSaslFactory">
-            <sasl-server-factory name="ProviderSaslFactory" />
-            <sasl-server-factory name="ServiceSaslFactory" />
-        </aggregate-sasl-server-factory>
         <provider-sasl-server-factory name="ProviderSaslFactory" provider-loader="TestProviderLoader" />
         <service-loader-sasl-server-factory name="ServiceSaslFactory" module="a.b.c" />
     </sasl>

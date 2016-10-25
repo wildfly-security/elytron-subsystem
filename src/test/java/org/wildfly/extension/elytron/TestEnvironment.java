@@ -28,7 +28,6 @@ import java.net.URL;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 
@@ -42,7 +41,7 @@ class TestEnvironment extends AdditionalInitialization {
 
         try {
             URL fsr = getClass().getResource("filesystem-realm-empty");
-            if (fsr != null) emptyDirectory(Paths.get(fsr.getFile()));
+            if (fsr != null) emptyDirectory(new File(fsr.getFile()).toPath());
         } catch (Exception e) {
             throw new RuntimeException("Could ensure empty testing filesystem directory", e);
         }

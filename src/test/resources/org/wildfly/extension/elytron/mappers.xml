@@ -1,4 +1,5 @@
 <subsystem xmlns="urn:wildfly:elytron:1.0">
+    <security-realms/>
     <mappers>
         <aggregate-name-rewriter name="AggregateOne">
             <name-rewriter name="CustomOne" />

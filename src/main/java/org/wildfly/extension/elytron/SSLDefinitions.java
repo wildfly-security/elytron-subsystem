@@ -215,7 +215,7 @@ class SSLDefinitions {
 
         private List<ModelNode> allowedValues = new ArrayList<>();
 
-        public StringValuesValidator(String... values) {
+        StringValuesValidator(String... values) {
             super(ModelType.STRING);
             for (String value : values) {
                 allowedValues.add(new ModelNode().set(value));

@@ -33,7 +33,6 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CONFIGUR
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ENABLING;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.FILTER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.FILTERS;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MECHANISM_NAME;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MECHANISM_PROVIDER_FILTERING_SASL_SERVER_FACTORY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MODULE;
@@ -297,7 +296,7 @@ class SaslParser {
     }
 
     private void parseProperty(ModelNode properties, XMLExtendedStreamReader reader) throws XMLStreamException {
-        Set<String> requiredAttributes = new HashSet<String>(Arrays.asList(new String[] { KEY, VALUE }));
+        Set<String> requiredAttributes = new HashSet<String>(Arrays.asList(new String[] { NAME, VALUE }));
         String key = null;
         String value = null;
 
@@ -310,7 +309,7 @@ class SaslParser {
                 String attribute = reader.getAttributeLocalName(i);
                 requiredAttributes.remove(attribute);
                 switch (attribute) {
-                    case KEY:
+                    case NAME:
                         key = attributeValue;
                         break;
                     case VALUE:

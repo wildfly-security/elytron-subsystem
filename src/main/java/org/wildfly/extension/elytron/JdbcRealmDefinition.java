@@ -462,7 +462,7 @@ class JdbcRealmDefinition extends SimpleResourceDefinition {
 
         static final ObjectListAttributeDefinition PRINCIPAL_QUERIES = new ObjectListAttributeDefinition.Builder(ElytronDescriptionConstants.PRINCIPAL_QUERY, PRINCIPAL_QUERY)
                 .setAllowNull(true)
-                .setAttributeGroup(ElytronDescriptionConstants.ATTRIBUTE)
+                //.setAttributeGroup(ElytronDescriptionConstants.ATTRIBUTE)
                 .setAllowDuplicates(true)
                 .build();
     }
@@ -476,7 +476,7 @@ class JdbcRealmDefinition extends SimpleResourceDefinition {
 
         private List<ModelNode> allowedValues = new ArrayList<>();
 
-        public StringValuesValidator(String... values) {
+        StringValuesValidator(String... values) {
             super(ModelType.STRING);
             for (String value : values) {
                 allowedValues.add(new ModelNode().set(value));
@@ -499,7 +499,7 @@ class JdbcRealmDefinition extends SimpleResourceDefinition {
         }
     }
 
-    private static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] {PrincipalQueryAttributes.PRINCIPAL_QUERIES};
+    static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] {PrincipalQueryAttributes.PRINCIPAL_QUERIES};
 
     private static final AbstractAddStepHandler ADD = new RealmAddHandler();
     private static final OperationStepHandler REMOVE = new TrivialCapabilityServiceRemoveHandler(ADD, SECURITY_REALM_RUNTIME_CAPABILITY);

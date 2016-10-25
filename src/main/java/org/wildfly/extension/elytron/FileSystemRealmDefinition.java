@@ -84,12 +84,11 @@ class FileSystemRealmDefinition extends SimpleResourceDefinition {
 
     static final SimpleAttributeDefinition NAME_REWRITER =
             new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.NAME_REWRITER, ModelType.STRING)
-                    .setXmlName(ElytronDescriptionConstants.NAME)
                     .setCapabilityReference(NAME_REWRITER_CAPABILITY, SECURITY_REALM_CAPABILITY, true)
                     .setAllowNull(true)
                     .build();
 
-    private static final AttributeDefinition[] ATTRIBUTES =
+    static final AttributeDefinition[] ATTRIBUTES =
             new AttributeDefinition[]{PATH, RELATIVE_TO, LEVELS, NAME_REWRITER};
 
     private static final AbstractAddStepHandler ADD = new RealmAddHandler();

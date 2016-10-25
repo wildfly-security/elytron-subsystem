@@ -38,7 +38,7 @@ class BaseAddHandler extends AbstractAddStepHandler {
      *
      * @param attributes  the {@link AttributeDefinition} instances associated with this resource.
      */
-    public BaseAddHandler(AttributeDefinition... attributes) {
+    BaseAddHandler(AttributeDefinition... attributes) {
         super(attributes);
     }
 
@@ -60,7 +60,7 @@ class BaseAddHandler extends AbstractAddStepHandler {
      * @param capabilities a {@link Set} of capabilitiies that will be added.
      * @param attributes the {@link AttributeDefinition} instances associated with this resource.
      */
-    public BaseAddHandler(Set<RuntimeCapability> capabilities, AttributeDefinition... attributes) {
+    BaseAddHandler(Set<RuntimeCapability> capabilities, AttributeDefinition... attributes) {
         super(capabilities, attributes);
     }
 

@@ -328,7 +328,7 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
         .build();
 
-    private static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] {IdentityMappingObjectDefinition.OBJECT_DEFINITION, DIR_CONTEXT, DIRECT_VERIFICATION};
+    static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] {IdentityMappingObjectDefinition.OBJECT_DEFINITION, DIR_CONTEXT, DIRECT_VERIFICATION};
 
     private static final AbstractAddStepHandler ADD = new RealmAddHandler();
     private static final OperationStepHandler REMOVE = new TrivialCapabilityServiceRemoveHandler(ADD, MODIFIABLE_SECURITY_REALM_RUNTIME_CAPABILITY, SECURITY_REALM_RUNTIME_CAPABILITY);

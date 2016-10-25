@@ -21,6 +21,7 @@ import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OUT
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.SUCCESS;
 
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.AccessController;
 import java.security.KeyStore;
@@ -60,7 +61,6 @@ public class KeyStoresTestCase extends AbstractSubsystemTest {
     }
 
     private KernelServices services = null;
-    private String resources = KeyStoresTestCase.class.getResource(".").getFile();
 
     private ModelNode assertSuccess(ModelNode response) {
         if (!response.get(OUTCOME).asString().equals(SUCCESS)) {
@@ -126,7 +126,8 @@ public class KeyStoresTestCase extends AbstractSubsystemTest {
 
     @Test
     public void testKeystoreCli() throws Exception {
-        Files.copy(Paths.get(resources, "firefly.keystore"), Paths.get(resources, "firefly-copy.keystore"), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+        Path resources = Paths.get(KeyStoresTestCase.class.getResource(".").toURI());
+        Files.copy(resources.resolve("firefly.keystore"), resources.resolve("firefly-copy.keystore"), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
 
         ModelNode operation = new ModelNode(); // add keystore
         operation.get(ClientConstants.OPERATION_HEADERS).get("allow-resource-service-restart").set(Boolean.TRUE);

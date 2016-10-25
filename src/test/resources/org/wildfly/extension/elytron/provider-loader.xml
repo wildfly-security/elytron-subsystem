@@ -8,8 +8,8 @@
             </provider>
             <provider module="test.ConfiguredByProps">
                 <configuration-properties>
-                    <property key="b" value="BB" />
-                    <property key="a" value="AA" />
+                    <property name="b" value="BB" />
+                    <property name="a" value="AA" />
                 </configuration-properties>
             </provider>
         </provider-loader>
@@ -21,10 +21,11 @@
             </provider>
             <provider module="test.class.ConfiguredByProps" class-names="org.wildfly.elytron.TestFour">
                 <configuration-properties>
-                    <property key="b" value="BB" />
-                    <property key="a" value="AA" />
+                    <property name="b" value="BB" />
+                    <property name="a" value="AA" />
                 </configuration-properties>
             </provider>
         </provider-loader>
     </provider-loaders>
+    <security-realms/>
 </subsystem>

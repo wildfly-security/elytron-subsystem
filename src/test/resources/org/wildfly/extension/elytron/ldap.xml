@@ -1,57 +1,50 @@
 <!-- for needs of LdapTestCase -->
 <subsystem xmlns="urn:wildfly:elytron:1.0">
-
-    <dir-contexts>
-        <dir-context name="DirContextInsecure" url="ldap://localhost:11391/" authentication-level="none"/>
-        <dir-context name="DirContextSsl" url="ldaps://localhost:11391/" principal="uid=server,dc=users,dc=elytron,dc=wildfly,dc=org" credential="serverPassword" ssl-context="LdapSslContext" referral-mode="follow"/>
-    </dir-contexts>
-
-    <security-realms>
-        <ldap-realm name="LdapRealm" direct-verification="false" dir-context="DirContextSsl">
-            <identity-mapping rdn-identifier="uid" search-base-dn="dc=users,dc=elytron,dc=wildfly,dc=org" use-recursive-search="true" filter-name="(|(objectclass=referral)(uid={0}))" iterator-filter="(uid=*)" new-identity-parent-dn="dc=users,dc=elytron,dc=wildfly,dc=org">
-                <attribute-mapping>
-                    <attribute from="uid" to="userName"/>
-                    <attribute from="cn" to="firstName"/>
-                    <attribute from="sn" to="lastName"/>
-                    <attribute from="telephoneNumber" to="phones"/>
-                    <attribute filter-base-dn="ou=Finance,dc=groups,dc=elytron,dc=wildfly,dc=org" filter="(&amp;(objectClass=groupOfNames)(member={0}))" from="CN" as-rdn="OU"  to="businessArea"/>
-                </attribute-mapping>
-                <user-password-mapper from="userPassword" writable="true" verifiable="true"/>
-                <otp-credential-mapper algorithm-from="otpAlgorithm" hash-from="otpHash" seed-from="otpSeed" sequence-from="otpSequence"/>
-                <new-identity-attributes>
-                    <attribute name="objectClass" value="top inetOrgPerson person organizationalPerson otpToken"/>
-                    <attribute name="sn" value="BlankSurname"/>
-                    <attribute name="cn" value="BlankCommonName"/>
-                </new-identity-attributes>
-            </identity-mapping>
-        </ldap-realm>
-    </security-realms>
-
-    <tls>
-        <key-stores>
-            <ldap-key-store name="LdapKeyStoreMinimal" dir-context="DirContextSsl" search-path="ou=keystore,dc=elytron,dc=wildfly,dc=org">
-            </ldap-key-store>
-            <ldap-key-store name="LdapKeyStoreMaximal" dir-context="DirContextSsl" search-path="dc=elytron,dc=wildfly,dc=org"
-                            search-recursive="true" search-time-limit="1000" filter-alias="(&amp;(objectClass=inetOrgPerson)(sn={0}))"
-                            filter-certificate="(&amp;(objectClass=inetOrgPerson)(usercertificate={0}))" filter-iterate="(sn=serenity*)">
-                <new-item-template new-item-path="ou=keystore,dc=elytron,dc=wildfly,dc=org" new-item-rdn="cn">
-                    <attribute name="objectClass" value="top inetOrgPerson"/>
-                    <attribute name="sn" value="NewKeyStoreItem"/>
-                </new-item-template>
-                <ldap-mapping alias-attribute="sn" certificate-attribute="usercertificate" certificate-type="X.509"
-                              certificate-chain-attribute="userSMIMECertificate" certificate-chain-encoding="PKCS7" />
-            </ldap-key-store>
-            <key-store name="ElytronCaTruststore" type="JKS">
-                <file path="ca.truststore" relative-to="jboss.server.config.dir" />
-                <credential-reference clear-text="Elytron"/>
-            </key-store>
-        </key-stores>
-        <trust-managers>
-            <trust-manager name="ElytronTrustManager" algorithm="SunX509" key-store="ElytronCaTruststore"/>
-        </trust-managers>
-        <client-ssl-contexts>
-            <client-ssl-context name="LdapSslContext" protocols="SSLv2 SSLv3 TLSv1 TLSv1.3 TLSv1.2 TLSv1.1" trust-managers="ElytronTrustManager" />
-        </client-ssl-contexts>
-    </tls>
+ <security-realms>
+        <ldap-realm dir-context="DirContextSsl" name="LdapRealm">
+         <identity-mapping filter-name="(|(objectclass=referral)(uid={0}))" iterator-filter="(uid=*)" new-identity-parent-dn="dc=users,dc=elytron,dc=wildfly,dc=org" rdn-identifier="uid" search-base-dn="dc=users,dc=elytron,dc=wildfly,dc=org" use-recursive-search="true">
+            <attribute-mapping>
+               <attribute from="uid" to="userName"/>
+               <attribute from="cn" to="firstName"/>
+               <attribute from="sn" to="lastName"/>
+               <attribute from="telephoneNumber" to="phones"/>
+               <attribute as-rdn="OU" filter="(&amp;(objectClass=groupOfNames)(member={0}))" filter-base-dn="ou=Finance,dc=groups,dc=elytron,dc=wildfly,dc=org" from="CN" to="businessArea"/>
+            </attribute-mapping>
+            <new-identity-attributes>
+               <attribute name="objectClass" value="top inetOrgPerson person organizationalPerson otpToken"/>
+               <attribute name="sn" value="BlankSurname"/>
+               <attribute name="cn" value="BlankCommonName"/>
+            </new-identity-attributes>
+            <user-password-mapper from="userPassword" writable="true"/>
+            <otp-credential-mapper algorithm-from="otpAlgorithm" hash-from="otpHash" seed-from="otpSeed" sequence-from="otpSequence"/>
+         </identity-mapping>
+      </ldap-realm>
+   </security-realms>
+   <tls>
+      <key-stores>
+         <key-store name="ElytronCaTruststore" type="JKS">
+            <file path="ca.truststore" relative-to="jboss.server.config.dir"/>
+            <credential-reference clear-text="Elytron"/>
+         </key-store>
+         <ldap-key-store dir-context="DirContextSsl" name="LdapKeyStoreMinimal" search-path="ou=keystore,dc=elytron,dc=wildfly,dc=org"/>
+         <ldap-key-store dir-context="DirContextSsl" filter-alias="(&amp;(objectClass=inetOrgPerson)(sn={0}))" filter-certificate="(&amp;(objectClass=inetOrgPerson)(usercertificate={0}))" filter-iterate="(sn=serenity*)" name="LdapKeyStoreMaximal" search-path="dc=elytron,dc=wildfly,dc=org" search-recursive="true" search-time-limit="1000">
+            <new-item-template new-item-path="ou=keystore,dc=elytron,dc=wildfly,dc=org" new-item-rdn="cn">
+               <attribute name="objectClass" value="top inetOrgPerson"/>
+               <attribute name="sn" value="NewKeyStoreItem"/>
+            </new-item-template>
+            <ldap-mapping alias-attribute="sn" certificate-attribute="usercertificate" certificate-chain-attribute="userSMIMECertificate" certificate-chain-encoding="PKCS7" certificate-type="X.509"/>
+         </ldap-key-store>
+      </key-stores>
+      <trust-managers>
+         <trust-manager algorithm="SunX509" key-store="ElytronCaTruststore" name="ElytronTrustManager"/>
+      </trust-managers>
+      <client-ssl-contexts>
+         <client-ssl-context name="LdapSslContext" protocols="SSLv2 SSLv3 TLSv1 TLSv1.3 TLSv1.2 TLSv1.1" trust-managers="ElytronTrustManager"/>
+      </client-ssl-contexts>
+   </tls>
+   <dir-contexts>
+      <dir-context authentication-level="none" name="DirContextInsecure" url="ldap://localhost:11391/"/>
+      <dir-context credential="serverPassword" name="DirContextSsl" principal="uid=server,dc=users,dc=elytron,dc=wildfly,dc=org" referral-mode="follow" ssl-context="LdapSslContext" url="ldaps://localhost:11391/"/>
+   </dir-contexts>
 
 </subsystem>
