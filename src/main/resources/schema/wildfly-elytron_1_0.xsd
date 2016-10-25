@@ -466,12 +466,17 @@
                 The configuration used to map a specific column in a table as an identity attribute.
             </xs:documentation>
         </xs:annotation>
-        <xs:attribute name="index" type="xs:string" use="required">
+        <xs:attribute name="index" use="required">
             <xs:annotation>
                 <xs:documentation>
                     The column index from a query that representing the mapped attribute.
                 </xs:documentation>
             </xs:annotation>
+            <xs:simpleType>
+                <xs:restriction base="xs:int">
+                    <xs:minInclusive value="1"/>
+                </xs:restriction>
+            </xs:simpleType>
         </xs:attribute>
         <xs:attribute name="to" type="xs:string" use="required">
             <xs:annotation>
