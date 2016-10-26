@@ -125,7 +125,7 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
 
     static class UserPasswordCredentialMappingObjectDefinition implements CredentialMappingObjectDefinition {
 
-        static final SimpleAttributeDefinition FROM = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.FROM, ModelType.STRING, true)
+        static final SimpleAttributeDefinition FROM = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.FROM, ModelType.STRING, false)
                 .setAllowExpression(true)
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
@@ -236,7 +236,7 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
     }
 
     static class NewIdentityAttributeObjectDefinition {
-        static final SimpleAttributeDefinition NAME = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.NAME, ModelType.STRING, true)
+        static final SimpleAttributeDefinition NAME = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.NAME, ModelType.STRING, false)
                 .setAllowExpression(true)
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
