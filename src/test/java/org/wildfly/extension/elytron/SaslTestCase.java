@@ -38,7 +38,6 @@ import org.jboss.as.subsystem.test.AbstractSubsystemTest;
 import org.jboss.as.subsystem.test.KernelServices;
 import org.jboss.msc.service.ServiceName;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.wildfly.security.auth.callback.ChannelBindingCallback;
@@ -97,13 +96,12 @@ public class SaslTestCase extends AbstractSubsystemTest {
 
         SaslServer server = authFactory.createMechanism(SaslMechanismInformation.Names.PLAIN);
         SaslClient client = Sasl.createSaslClient(new String[]{SaslMechanismInformation.Names.PLAIN},
-                "firstUser", "protocol", "TestServer", Collections.<String, Object>emptyMap(), clientCallbackHandler("firstUser", "TestingRealm1", "clearPassword"));
+                "firstUser", "protocol", "TestServer", Collections.<String, Object>emptyMap(), clientCallbackHandler("firstUser", "PlainRealm", "clearPassword"));
 
         testSaslServerClient(server, client);
     }
 
     @Test
-    @Ignore("Waiting for AvailableRealmsCallback in Digest server (or PropertiesSaslServerFactory)")
     public void testSaslAuthenticationDigest() throws Exception {
         init();
         ServiceName serviceName = Capabilities.SASL_AUTHENTICATION_FACTORY_RUNTIME_CAPABILITY.getCapabilityServiceName("MySaslAuth");
@@ -111,7 +109,7 @@ public class SaslTestCase extends AbstractSubsystemTest {
 
         SaslServer server = authFactory.createMechanism(SaslMechanismInformation.Names.DIGEST_SHA);
         SaslClient client = Sasl.createSaslClient(new String[]{SaslMechanismInformation.Names.DIGEST_SHA},
-                "user1", "protocol", "TestServer", Collections.<String, Object>emptyMap(), clientCallbackHandler("user1", "TestingRealm1", "password1"));
+                "firstUser", "myProtocol", "TestingServer", Collections.<String, Object>emptyMap(), clientCallbackHandler("firstUser", "DigestRealm", "clearPassword"));
 
         testSaslServerClient(server, client);
     }
@@ -124,7 +122,7 @@ public class SaslTestCase extends AbstractSubsystemTest {
 
         SaslServer server = authFactory.createMechanism(SaslMechanismInformation.Names.SCRAM_SHA_1);
         SaslClient client = Sasl.createSaslClient(new String[]{SaslMechanismInformation.Names.SCRAM_SHA_1},
-                "firstUser", "protocol", "TestServer", Collections.<String, Object>emptyMap(), clientCallbackHandler("firstUser", "TestingRealm1", "clearPassword"));
+                "firstUser", "protocol", "TestServer", Collections.<String, Object>emptyMap(), clientCallbackHandler("firstUser", "ScramRealm", "clearPassword"));
 
         testSaslServerClient(server, client);
     }
