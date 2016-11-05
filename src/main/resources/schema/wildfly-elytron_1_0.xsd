@@ -3215,14 +3215,14 @@
         <xs:attribute name="maximum-session-cache-size" type="xs:int" default="0">
             <xs:annotation>
                 <xs:documentation>
-                    The maximum number of SSL sessions in the cache.
+                    The maximum number of SSL sessions in the cache. The default value zero means there is no limit.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
         <xs:attribute name="session-timeout" type="xs:int" default="0">
             <xs:annotation>
                 <xs:documentation>
-                    The timeout for SSL sessions.
+                    The timeout for SSL sessions, in seconds. The default value zero means there is no limit.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
@@ -3304,14 +3304,14 @@
         <xs:attribute name="maximum-session-cache-size" type="xs:int" default="0">
             <xs:annotation>
                 <xs:documentation>
-                    The maximum number of SSL sessions in the cache.
+                    The maximum number of SSL sessions in the cache. The default value zero means there is no limit.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
         <xs:attribute name="session-timeout" type="xs:int" default="0">
             <xs:annotation>
                 <xs:documentation>
-                    The timeout for SSL sessions.
+                    The timeout for SSL sessions, in seconds. The default value zero means there is no limit.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
