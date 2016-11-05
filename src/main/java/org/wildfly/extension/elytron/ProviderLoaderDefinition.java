@@ -96,7 +96,7 @@ class ProviderLoaderDefinition extends SimpleResourceDefinition {
         .setParameters(REGISTER, PROVIDERS)
         .build();
 
-    public ProviderLoaderDefinition() {
+    ProviderLoaderDefinition() {
         super(new Parameters(PathElement.pathElement(ElytronDescriptionConstants.PROVIDER_LOADER), RESOLVER)
                 .setRemoveHandler(REMOVE)
                 .setAddRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
@@ -165,7 +165,7 @@ class ProviderLoaderDefinition extends SimpleResourceDefinition {
                     if (current.hasDefined(ElytronDescriptionConstants.PROPERTY_LIST)) {
                         PropertyListBuilder propertyBuilder = providerBuilder.addPropertyList();
                         for (ModelNode currentProp : current.require(ElytronDescriptionConstants.PROPERTY_LIST).asList()) {
-                            propertyBuilder.add(ProviderAttributeDefinition.KEY.resolveModelAttribute(context, currentProp).asString(),
+                            propertyBuilder.add(ProviderAttributeDefinition.PROPERTY_NAME.resolveModelAttribute(context, currentProp).asString(),
                                     ProviderAttributeDefinition.VALUE.resolveModelAttribute(context, currentProp).asString());
                         }
                         providerBuilder = propertyBuilder.build();

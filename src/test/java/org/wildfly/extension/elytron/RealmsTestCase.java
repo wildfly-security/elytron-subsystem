@@ -17,7 +17,7 @@
  */
 package org.wildfly.extension.elytron;
 
-import org.jboss.as.subsystem.test.AbstractSubsystemTest;
+import org.jboss.as.subsystem.test.AbstractSubsystemBaseTest;
 import org.jboss.as.subsystem.test.KernelServices;
 import org.jboss.msc.service.ServiceName;
 import org.junit.Assert;
@@ -35,6 +35,7 @@ import org.wildfly.security.password.interfaces.OneTimePassword;
 import org.wildfly.security.password.spec.ClearPasswordSpec;
 import org.wildfly.security.password.spec.OneTimePasswordSpec;
 
+import java.io.IOException;
 import java.security.spec.KeySpec;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -45,10 +46,15 @@ import static org.wildfly.security.auth.server.IdentityLocator.fromName;
 /**
  * @author <a href="mailto:jkalina@redhat.com">Jan Kalina</a>
  */
-public class RealmsTestCase extends AbstractSubsystemTest {
+public class RealmsTestCase extends AbstractSubsystemBaseTest {
 
     public RealmsTestCase() {
         super(ElytronExtension.SUBSYSTEM_NAME, new ElytronExtension());
+    }
+
+    @Override
+    protected String getSubsystemXml() throws IOException {
+        return readResource("realms-test.xml");
     }
 
     /* Test properties-realm */

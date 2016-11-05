@@ -299,7 +299,7 @@ class PermissionMapperDefinitions {
         private final Set<String> roles;
         private final List<Permission> permissions;
 
-        public Mapping(Set<String> principals, Set<String> roles, List<Permission> permissions) {
+        Mapping(Set<String> principals, Set<String> roles, List<Permission> permissions) {
             this.principals = principals;
             this.roles = roles;
             this.permissions = permissions;
@@ -347,6 +347,10 @@ class PermissionMapperDefinitions {
             }
         }
 
+        @Override
+        public String toString() {
+            return name().toLowerCase(Locale.US);
+        }
     }
 
     private enum LogicalMapperOperation {
@@ -361,7 +365,7 @@ class PermissionMapperDefinitions {
 
         private final BinaryOperator<PermissionMapper> operator;
 
-        private LogicalMapperOperation(BinaryOperator<PermissionMapper> operator) {
+        LogicalMapperOperation(BinaryOperator<PermissionMapper> operator) {
             this.operator = operator;
         }
 
@@ -369,5 +373,9 @@ class PermissionMapperDefinitions {
             return operator.apply(left, right);
         }
 
+        @Override
+        public String toString() {
+            return name().toLowerCase(Locale.US);
+        }
     }
 }

@@ -1,6 +1,7 @@
 <subsystem xmlns="urn:wildfly:elytron:1.0">
     <security-properties>
-        <security-property key="a" value="b" />
-        <security-property key="c" value="d" />
+        <security-property name="a" value="b" />
+        <security-property name="c" value="d" />
     </security-properties>
+    <security-realms/>
 </subsystem>

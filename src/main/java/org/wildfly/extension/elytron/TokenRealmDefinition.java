@@ -165,7 +165,7 @@ class TokenRealmDefinition extends SimpleResourceDefinition {
         }
     }
 
-    private static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[]{PRINCIPAL_CLAIM, JwtValidatorAttributes.JWT_VALIDATOR, OAuth2IntrospectionValidatorAttributes.OAUTH2_INTROSPECTION_VALIDATOR};
+    static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[]{PRINCIPAL_CLAIM, JwtValidatorAttributes.JWT_VALIDATOR, OAuth2IntrospectionValidatorAttributes.OAUTH2_INTROSPECTION_VALIDATOR};
 
     private static final AbstractAddStepHandler ADD = new RealmAddHandler();
     private static final OperationStepHandler REMOVE = new TrivialCapabilityServiceRemoveHandler(ADD, MODIFIABLE_SECURITY_REALM_RUNTIME_CAPABILITY, SECURITY_REALM_RUNTIME_CAPABILITY);

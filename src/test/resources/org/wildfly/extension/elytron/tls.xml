@@ -2,11 +2,7 @@
     <provider-loaders>
         <provider-loader name="custom-loader" />
     </provider-loaders>
-    <credential-stores>
-        <credential-store name="credstore1">
-            <uri>cr-store://credstore1</uri>
-        </credential-store>
-    </credential-stores>
+    <security-realms/>
     <tls>
         <key-stores>
             <key-store name="PKCS_11" type="PKCS#11" provider="SunPKCS#11">
@@ -48,4 +44,9 @@
             <client-ssl-context name="client" protocols="TLSv1.3 TLSv1.2" use-cipher-suites-order="true" key-managers="clientKey" trust-managers="serverTrust" />
         </client-ssl-contexts>
     </tls>
+    <credential-stores>
+        <credential-store name="credstore1">
+            <uri>cr-store://credstore1</uri>
+        </credential-store>
+    </credential-stores>
 </subsystem>

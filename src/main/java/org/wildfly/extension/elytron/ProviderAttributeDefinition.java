@@ -91,7 +91,7 @@ class ProviderAttributeDefinition {
         .setDefaultValue(new ModelNode(false))
         .build();
 
-    static final SimpleAttributeDefinition KEY = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.KEY, ModelType.STRING, false)
+    static final SimpleAttributeDefinition PROPERTY_NAME = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.NAME, ModelType.STRING, false)
         .setAllowExpression(true)
         .setMinSize(1)
         .build();
@@ -101,7 +101,7 @@ class ProviderAttributeDefinition {
         .setMinSize(1)
         .build();
 
-    private static final AttributeDefinition[] PROPERTY_ATTRIBUTES = { KEY, VALUE };
+    private static final AttributeDefinition[] PROPERTY_ATTRIBUTES = { PROPERTY_NAME, VALUE };
 
     private static final ObjectTypeAttributeDefinition PROPERTY = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.PROPERTY, PROPERTY_ATTRIBUTES)
         .build();

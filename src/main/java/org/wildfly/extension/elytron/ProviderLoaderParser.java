@@ -31,7 +31,6 @@ import static org.jboss.as.controller.parsing.ParseUtils.unexpectedElement;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CLASS_NAMES;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CONFIGURATION_FILE;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CONFIGURATION_PROPERTIES;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.LOAD_SERVICES;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MODULE;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME;
@@ -200,7 +199,7 @@ class ProviderLoaderParser {
             String localName = reader.getLocalName();
 
             if (PROPERTY.equals(localName)) {
-                Set<String> requiredAttributes = new HashSet<String>(Arrays.asList(new String[] { KEY, VALUE }));
+                Set<String> requiredAttributes = new HashSet<String>(Arrays.asList(new String[] { NAME, VALUE }));
                 ModelNode property = new ModelNode();
 
                 final int count = reader.getAttributeCount();
@@ -212,8 +211,8 @@ class ProviderLoaderParser {
                         String attribute = reader.getAttributeLocalName(i);
                         requiredAttributes.remove(attribute);
                         switch (attribute) {
-                            case KEY:
-                                ProviderAttributeDefinition.KEY.parseAndSetParameter(value, property, reader);
+                            case NAME:
+                                ProviderAttributeDefinition.PROPERTY_NAME.parseAndSetParameter(value, property, reader);
                                 break;
                             case VALUE:
                                 ProviderAttributeDefinition.VALUE.parseAndSetParameter(value, property, reader);
@@ -261,7 +260,7 @@ class ProviderLoaderParser {
                     writer.writeStartElement(CONFIGURATION_PROPERTIES);
                     for (ModelNode currentProperty : currentProvider.require(PROPERTY_LIST).asList()) {
                         writer.writeStartElement(PROPERTY);
-                        ProviderAttributeDefinition.KEY.marshallAsAttribute(currentProperty, writer);
+                        ProviderAttributeDefinition.PROPERTY_NAME.marshallAsAttribute(currentProperty, writer);
                         ProviderAttributeDefinition.VALUE.marshallAsAttribute(currentProperty, writer);
                         writer.writeEndElement();
                     }

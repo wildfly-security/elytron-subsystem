@@ -69,7 +69,7 @@ class AggregateRealmDefinition extends SimpleResourceDefinition {
         .setCapabilityReference(SECURITY_REALM_CAPABILITY, SECURITY_REALM_CAPABILITY, true)
         .build();
 
-    private static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] { AUTHENTICATION_REALM, AUTHORIZATION_REALM };
+    static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] { AUTHENTICATION_REALM, AUTHORIZATION_REALM };
 
     private static final AbstractAddStepHandler ADD = new RealmAddHandler();
     private static final OperationStepHandler REMOVE = new TrivialCapabilityServiceRemoveHandler(ADD, SECURITY_REALM_RUNTIME_CAPABILITY);

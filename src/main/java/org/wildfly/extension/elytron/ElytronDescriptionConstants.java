@@ -169,7 +169,6 @@ interface ElytronDescriptionConstants {
     String JWT = "jwt";
 
     String KERBEROS_SECURITY_FACTORY = "kerberos-security-factory";
-    String KEY = "key";
     String KEY_ATTRIBUTE = "key-attribute";
     String KEY_TYPE = "key-type";
     String KEY_MANAGER = "key-manager";

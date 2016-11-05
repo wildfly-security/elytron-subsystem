@@ -333,7 +333,7 @@ class DomainDefinition extends SimpleResourceDefinition {
 
     private static class WriteAttributeHandler extends RestartParentWriteAttributeHandler {
 
-        public WriteAttributeHandler(String parentKeyName) {
+        WriteAttributeHandler(String parentKeyName) {
             super(parentKeyName, ATTRIBUTES);
         }
 

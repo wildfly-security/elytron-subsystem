@@ -291,6 +291,11 @@ class RoleMapperDefinitions {
         RoleMapper create(RoleMapper left, RoleMapper right) {
             return operation.apply(left, right);
         }
+
+        @Override
+        public String toString() {
+            return name().toLowerCase(Locale.US);
+        }
     }
 
 }

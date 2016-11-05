@@ -17,7 +17,7 @@
  */
 package org.wildfly.extension.elytron;
 
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEY;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROPERTY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.VALUE;
 
@@ -51,7 +51,7 @@ class CommonAttributes {
                 writer.writeStartElement(attribute.getName());
                 for (ModelNode property : resourceModel.asList()) {
                     writer.writeEmptyElement(PROPERTY);
-                    writer.writeAttribute(KEY, property.asProperty().getName());
+                    writer.writeAttribute(NAME, property.asProperty().getName());
                     writer.writeAttribute(VALUE, property.asProperty().getValue().asString());
                 }
                 writer.writeEndElement();

@@ -44,7 +44,7 @@ class KeyStoreResource extends DelegatingResource {
 
     private ServiceController<KeyStore> keyStoreServiceController;
 
-    public KeyStoreResource(Resource delegate) {
+    KeyStoreResource(Resource delegate) {
         super(delegate);
     }
 

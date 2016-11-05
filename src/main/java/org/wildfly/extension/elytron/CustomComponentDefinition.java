@@ -22,9 +22,6 @@ import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.CLA
 import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.MODULE;
 import static org.wildfly.extension.elytron.ClassLoadingAttributeDefinitions.resolveClassLoader;
 import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEY;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROPERTY;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.VALUE;
 import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
 import static org.wildfly.extension.elytron.SecurityActions.doPrivileged;
 import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
@@ -36,12 +33,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
 
 import org.jboss.as.controller.AbstractAddStepHandler;
 import org.jboss.as.controller.AttributeDefinition;
-import org.jboss.as.controller.AttributeMarshaller;
 import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
 import org.jboss.as.controller.OperationStepHandler;
@@ -70,31 +64,13 @@ import org.jboss.msc.service.StartException;
 class CustomComponentDefinition<T> extends SimpleResourceDefinition {
 
     static final SimpleMapAttributeDefinition CONFIGURATION = new SimpleMapAttributeDefinition.Builder(ElytronDescriptionConstants.CONFIGURATION, ModelType.STRING, true)
-        .setAttributeMarshaller(new AttributeMarshaller() {
-
-            @Override
-            public void marshallAsElement(AttributeDefinition attribute, ModelNode resourceModel, boolean marshallDefault,
-                                XMLStreamWriter writer) throws XMLStreamException {
-                resourceModel = resourceModel.get(attribute.getName());
-                if (resourceModel.isDefined()) {
-                    writer.writeStartElement(attribute.getName());
-                    for (ModelNode property : resourceModel.asList()) {
-                        writer.writeEmptyElement(PROPERTY);
-                        writer.writeAttribute(KEY, property.asProperty().getName());
-                        writer.writeAttribute(VALUE, property.asProperty().getValue().asString());
-                        }
-                    writer.writeEndElement();
-                    }
-                }
-
-            })
         .build();
 
     private final Class<T> serviceType;
     private final RuntimeCapability<?>[] runtimeCapabilities;
     private final String pathKey;
 
-    private static final AttributeDefinition[] ATTRIBUTES = {MODULE, CLASS_NAME, CONFIGURATION};
+    static final AttributeDefinition[] ATTRIBUTES = {MODULE, CLASS_NAME, CONFIGURATION};
 
     CustomComponentDefinition(Class<T> serviceType, String pathKey, @SuppressWarnings("rawtypes") RuntimeCapability ... runtimeCapabilities) {
         super(addAddRemoveHandlers(new Parameters(PathElement.pathElement(pathKey), ElytronExtension.getResourceDescriptionResolver(pathKey))

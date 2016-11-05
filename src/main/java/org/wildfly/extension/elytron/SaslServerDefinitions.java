@@ -514,7 +514,7 @@ class SaslServerDefinitions {
 
         private final Predicate<String> predicate;
 
-        private NamePredicate(Predicate<String> predicate) {
+        NamePredicate(Predicate<String> predicate) {
             this.predicate = predicate;
         }
 
@@ -539,7 +539,7 @@ class SaslServerDefinitions {
 
         private final BiPredicate<Double, Double> predicate;
 
-        private Comparison(final String name, final BiPredicate<Double, Double> predicate) {
+        Comparison(final String name, final BiPredicate<Double, Double> predicate) {
             this.name = name;
             this.predicate = predicate;
         }

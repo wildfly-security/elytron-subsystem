@@ -19,21 +19,9 @@
 package org.wildfly.extension.elytron;
 
 
-import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.ADD;
-import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP;
-import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP_ADDR;
-import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.SUBSYSTEM;
-import static org.wildfly.extension.elytron.ElytronSubsystemUtil.CAPABILITIES_INITIALIZATION;
+import java.io.IOException;
 
-import java.util.List;
-
-import org.jboss.as.controller.PathAddress;
-import org.jboss.as.controller.PathElement;
-import org.jboss.as.subsystem.test.AbstractSubsystemTest;
-import org.jboss.as.subsystem.test.KernelServices;
-import org.jboss.as.subsystem.test.KernelServicesBuilder;
-import org.jboss.dmr.ModelNode;
-import org.junit.Assert;
+import org.jboss.as.subsystem.test.AbstractSubsystemBaseTest;
 import org.junit.Test;
 
 
@@ -45,169 +33,69 @@ import org.junit.Test;
  *
  * @author <a href="kabir.khan@jboss.com">Kabir Khan</a>
  */
-public class SubsystemParsingTestCase extends AbstractSubsystemTest {
+public class SubsystemParsingTestCase extends AbstractSubsystemBaseTest {
 
     public SubsystemParsingTestCase() {
         super(ElytronExtension.SUBSYSTEM_NAME, new ElytronExtension());
     }
 
-    /**
-     * Tests that the xml is parsed into the correct operations
-     */
-    @Test
-    public void testParseSubsystem() throws Exception {
-        //Parse the subsystem xml into operations
-        String subsystemXml =
-                "<subsystem xmlns=\"" + ElytronExtension.NAMESPACE + "\">" +
-                        "</subsystem>";
-        List<ModelNode> operations = super.parse(subsystemXml);
-
-        ///Check that we have the expected number of operations
-        Assert.assertEquals(1, operations.size());
-
-        //Check that each operation has the correct content
-        ModelNode addSubsystem = operations.get(0);
-        Assert.assertEquals(ADD, addSubsystem.get(OP).asString());
-        PathAddress addr = PathAddress.pathAddress(addSubsystem.get(OP_ADDR));
-        Assert.assertEquals(1, addr.size());
-        PathElement element = addr.getElement(0);
-        Assert.assertEquals(SUBSYSTEM, element.getKey());
-        Assert.assertEquals(ElytronExtension.SUBSYSTEM_NAME, element.getValue());
-    }
-
-    /**
-     * Test that the model created from the xml looks as expected
-     */
-    @Test
-    public void testInstallIntoController() throws Exception {
-        //Parse the subsystem xml and install into the controller
-        String subsystemXml =
-                "<subsystem xmlns=\"" + ElytronExtension.NAMESPACE + "\">" +
-                        "</subsystem>";
-        KernelServices services = super.createKernelServicesBuilder(null).setSubsystemXml(subsystemXml).build();
-
-        //Read the whole model and make sure it looks as expected
-        ModelNode model = services.readWholeModel();
-        Assert.assertTrue(model.get(SUBSYSTEM).hasDefined(ElytronExtension.SUBSYSTEM_NAME));
-    }
-
-    /**
-     * Starts a controller with a given subsystem xml and then checks that a second
-     * controller started with the xml marshalled from the first one results in the same model
-     */
-    @Test
-    public void testParseAndMarshalModel() throws Exception {
-        //Parse the subsystem xml and install into the first controller
-        String subsystemXml =
-                "<subsystem xmlns=\"" + ElytronExtension.NAMESPACE + "\">" +
-                        "</subsystem>";
-        KernelServices servicesA = super.createKernelServicesBuilder(null).setSubsystemXml(subsystemXml).build();
-        //Get the model and the persisted xml from the first controller
-        ModelNode modelA = servicesA.readWholeModel();
-        String marshalled = servicesA.getPersistedSubsystemXml();
-
-        //Install the persisted xml from the first controller into a second controller
-        KernelServices servicesB = super.createKernelServicesBuilder(null).setSubsystemXml(marshalled).build();
-        ModelNode modelB = servicesB.readWholeModel();
-
-        //Make sure the models from the two controllers are identical
-        super.compare(modelA, modelB);
-    }
-
-    /**
-     * Starts a controller with a given subsystem xml and then checks that a second
-     * controller started with the xml marshalled from the first one results in the same model
-     */
-    private void testParseAndMarshalModel(final String fileName) throws Exception {
-        //Parse the subsystem xml and install into the first controller
-        KernelServices servicesA = createKernelServicesBuilder().setSubsystemXmlResource(fileName).build();
-
-        //Get the model and the persisted xml from the first controller
-        ModelNode modelA = servicesA.readWholeModel();
-        System.out.println(modelA.toString());
-        String marshalled = servicesA.getPersistedSubsystemXml();
-        System.out.println(marshalled);
-
-        //Install the persisted xml from the first controller into a second controller
-        KernelServices servicesB = createKernelServicesBuilder().setSubsystemXml(marshalled).build();
-        ModelNode modelB = servicesB.readWholeModel();
-
-        //Make sure the models from the two controllers are identical
-        super.compare(modelA, modelB);
-    }
-
-    private KernelServicesBuilder createKernelServicesBuilder() {
-        return super.createKernelServicesBuilder(CAPABILITIES_INITIALIZATION);
+    @Override
+    protected String getSubsystemXml() throws IOException {
+        return readResource("domain-test.xml");
     }
 
     @Test
     public void testParseAndMarshalModel_Domain() throws Exception {
-        testParseAndMarshalModel("domain.xml");
+        standardSubsystemTest("domain.xml");
     }
 
     @Test
     public void testParseAndMarshalModel_TLS() throws Exception {
-        testParseAndMarshalModel("tls.xml");
+        standardSubsystemTest("tls.xml");
     }
 
     @Test
     public void testParseAndMarshalModel_ProviderLoader() throws Exception {
-        testParseAndMarshalModel("provider-loader.xml");
+        standardSubsystemTest("provider-loader.xml");
     }
 
     @Test
     public void testParseAndMarshalModel_CredentialSecurityFactories() throws Exception {
-        testParseAndMarshalModel("credential-security-factories.xml");
+        standardSubsystemTest("credential-security-factories.xml");
     }
 
     @Test
     public void testParseAndMarshalModel_Mappers() throws Exception {
-        testParseAndMarshalModel("mappers.xml");
+        standardSubsystemTest("mappers.xml");
     }
 
     @Test
     public void testParseAndMarshalModel_Http() throws Exception {
-        testParseAndMarshalModel("http.xml");
+        standardSubsystemTest("http.xml");
     }
 
     @Test
     public void testParseAndMarshalModel_Sasl() throws Exception {
-        testParseAndMarshalModel("sasl.xml");
+        standardSubsystemTest("sasl.xml");
     }
 
     @Test
     public void testParseAndMarshalModel_Realms() throws Exception {
-        testParseAndMarshalModel("security-realms.xml");
+        standardSubsystemTest("security-realms.xml");
     }
 
     @Test
     public void testParseAndMarshalModel_SecurityProperties() throws Exception {
-        testParseAndMarshalModel("security-properties.xml");
+        standardSubsystemTest("security-properties.xml");
     }
 
     @Test
     public void testParseAndMarshalModel_Ldap() throws Exception {
-        testParseAndMarshalModel("ldap.xml");
+        standardSubsystemTest("ldap.xml");
     }
 
     @Test
     public void testParseAndMarshalModel_IdentityManagement() throws Exception {
-        testParseAndMarshalModel("identity-management.xml");
-    }
-
-    /**
-     * Tests that the subsystem can be removed
-     */
-    @Test
-    public void testSubsystemRemoval() throws Exception {
-        //Parse the subsystem xml and install into the first controller
-        String subsystemXml =
-                "<subsystem xmlns=\"" + ElytronExtension.NAMESPACE + "\">" +
-                        "</subsystem>";
-        KernelServices services = super.createKernelServicesBuilder(null).setSubsystemXml(subsystemXml).build();
-        //Checks that the subsystem was removed from the model
-        super.assertRemoveSubsystemResources(services);
-
-        //TODO Check that any services that were installed were removed here
+        standardSubsystemTest("identity-management.xml");
     }
 }

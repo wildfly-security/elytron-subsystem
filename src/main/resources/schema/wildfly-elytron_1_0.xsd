@@ -65,7 +65,7 @@
                 Representation of a key/value property pair.
             </xs:documentation>
         </xs:annotation>
-        <xs:attribute name="key" type="xs:string" use="required">
+        <xs:attribute name="name" type="xs:string" use="required">
             <xs:annotation>
                 <xs:documentation>
                     The key for this property.
@@ -807,6 +807,13 @@
                     <xs:annotation>
                         <xs:documentation>
                             The number of levels of directory hashing to apply
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+                <xs:attribute name="name-rewriter" type="xs:string">
+                    <xs:annotation>
+                        <xs:documentation>
+                            A reference to a NameRewriter
                         </xs:documentation>
                     </xs:annotation>
                 </xs:attribute>

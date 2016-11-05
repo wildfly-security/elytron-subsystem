@@ -34,7 +34,6 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CONFIGUR
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CREDENTIAL_STORES;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.DIR_CONTEXTS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.HTTP;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MAPPERS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MODULE;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME;
@@ -113,6 +112,7 @@ class ElytronSubsystemParser implements XMLElementReader<List<ModelNode>>, XMLEl
                     readDomains(parentAddress, reader, operations);
                     break;
                 case SECURITY_REALMS:
+                    //realmParser.realmParser.parse(reader, PathAddress.pathAddress(parentAddress), operations);
                     realmParser.readRealms(parentAddress, reader, operations);
                     break;
                 case CREDENTIAL_SECURITY_FACTORIES:
@@ -150,7 +150,7 @@ class ElytronSubsystemParser implements XMLElementReader<List<ModelNode>>, XMLEl
             if (SECURITY_PROPERTY.equals(localName)) {
                 ModelNode operation = new ModelNode();
                 operation.get(OP).set(ADD);
-                Set<String> requiredAttributes = new HashSet<String>(Arrays.asList(new String[] { KEY, VALUE }));
+                Set<String> requiredAttributes = new HashSet<String>(Arrays.asList(new String[] { NAME, VALUE }));
                 String name = null;
 
                 final int count = reader.getAttributeCount();
@@ -162,7 +162,7 @@ class ElytronSubsystemParser implements XMLElementReader<List<ModelNode>>, XMLEl
                         String attribute = reader.getAttributeLocalName(i);
                         requiredAttributes.remove(attribute);
                         switch (attribute) {
-                            case KEY:
+                            case NAME:
                                 name = value;
                                 break;
                             case VALUE:
@@ -287,7 +287,7 @@ class ElytronSubsystemParser implements XMLElementReader<List<ModelNode>>, XMLEl
     }
 
     private static void parsePropertyElement(ModelNode addOperation, XMLExtendedStreamReader reader) throws XMLStreamException {
-        Set<String> requiredAttributes = new HashSet<String>(Arrays.asList(new String[] { KEY, VALUE }));
+        Set<String> requiredAttributes = new HashSet<String>(Arrays.asList(new String[] { NAME, VALUE }));
         String key = null;
         String value = null;
 
@@ -300,7 +300,7 @@ class ElytronSubsystemParser implements XMLElementReader<List<ModelNode>>, XMLEl
                 String attribute = reader.getAttributeLocalName(i);
                 requiredAttributes.remove(attribute);
                 switch (attribute) {
-                    case KEY:
+                    case NAME:
                         key = attributeValue;
                         break;
                     case VALUE:
@@ -343,7 +343,7 @@ class ElytronSubsystemParser implements XMLElementReader<List<ModelNode>>, XMLEl
             ModelNode securityProperties = model.require(SECURITY_PROPERTY);
             for (String name : securityProperties.keys()) {
                 writer.writeEmptyElement(SECURITY_PROPERTY);
-                writer.writeAttribute(KEY, name);
+                writer.writeAttribute(NAME, name);
                 SecurityPropertyResourceDefinition.VALUE.marshallAsAttribute(securityProperties.require(name), writer);
             }
 

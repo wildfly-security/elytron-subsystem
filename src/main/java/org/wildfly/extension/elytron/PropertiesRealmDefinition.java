@@ -112,7 +112,7 @@ class PropertiesRealmDefinition extends TrivialResourceDefinition {
         .setStorageRuntime()
         .build();
 
-    private static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] { USERS_PROPERTIES, GROUPS_PROPERTIES, PLAIN_TEXT, GROUPS_ATTRIBUTE };
+    static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] { USERS_PROPERTIES, GROUPS_PROPERTIES, PLAIN_TEXT, GROUPS_ATTRIBUTE };
 
     // Resource Resolver
 
