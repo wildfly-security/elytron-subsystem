@@ -158,6 +158,7 @@ class SaslServerDefinitions {
 
     static final ObjectListAttributeDefinition MECH_PROVIDER_FILTERS = new ObjectListAttributeDefinition.Builder(ElytronDescriptionConstants.FILTERS, MECH_PROVIDER_FILTER)
         .setMinSize(1)
+        .setAllowNull(true)
         .build();
 
     static final SimpleAttributeDefinition PREDEFINED_FILTER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PREDEFINED_FILTER, ModelType.STRING, true)
