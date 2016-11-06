@@ -44,6 +44,11 @@
         <sasl>
             <?SASL_DEFINITIONS?>
             <provider-sasl-server-factory name="global"/>
+            <mechanism-provider-filtering-sasl-server-factory name="elytron" sasl-server-factory="global">
+                <filters>
+                    <filter provider-name="WildFlyElytron" />
+                </filters>
+            </mechanism-provider-filtering-sasl-server-factory>
         </sasl>
     </subsystem>
 
@@ -141,8 +146,14 @@
             </http-authentication-factory>
         </replacement>
         <replacement placeholder="SASL_DEFINITIONS">
-            <sasl-authentication-factory name="management-sasl-authentication" sasl-server-factory="global" security-domain="ManagementDomain"/>
-            <sasl-authentication-factory name="application-sasl-authentication" sasl-server-factory="global" security-domain="ApplicationDomain"/>
+            <sasl-authentication-factory name="management-sasl-authentication" sasl-server-factory="elytron" security-domain="ManagementDomain">
+                <mechanism-configuration>
+                    <mechanism mechanism-name="DIGEST-MD5">
+                        <mechanism-realm realm-name="ManagementRealm" />
+                    </mechanism>
+                </mechanism-configuration>
+            </sasl-authentication-factory>
+            <sasl-authentication-factory name="application-sasl-authentication" sasl-server-factory="elytron" security-domain="ApplicationDomain"/>
         </replacement>
     </supplement>
 </config>
