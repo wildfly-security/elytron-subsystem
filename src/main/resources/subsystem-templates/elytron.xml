@@ -44,6 +44,24 @@
         <sasl>
             <?SASL_DEFINITIONS?>
             <provider-sasl-server-factory name="global"/>
+            <mechanism-provider-filtering-sasl-server-factory name="elytron" sasl-server-factory="global">
+                <filters>
+                    <filter provider-name="WildFlyElytron" />
+                </filters>
+            </mechanism-provider-filtering-sasl-server-factory>
+            <configurable-sasl-server-factory name="configured" sasl-server-factory="elytron">
+                <filters>
+                    <filter>
+                        <pattern-filter value="JBOSS-LOCAL-USER" />
+                    </filter>
+                    <filter>
+                        <pattern-filter value="DIGEST-MD5" />
+                    </filter>
+                </filters>
+                <properties>
+                    <property name="wildfly.sasl.local-user.default-user" value="$local" />
+                </properties>
+            </configurable-sasl-server-factory>
         </sasl>
     </subsystem>
 
@@ -70,7 +88,7 @@
             </http-authentication-factory>
         </replacement>
         <replacement placeholder="SASL_DEFINITIONS">
-            <sasl-authentication-factory name="application-sasl-authentication" sasl-server-factory="global" security-domain="ApplicationDomain"/>
+            <sasl-authentication-factory name="application-sasl-authentication" sasl-server-factory="configured" security-domain="ApplicationDomain"/>
         </replacement>
     </supplement>
 
@@ -96,7 +114,14 @@
             </http-authentication-factory>
         </replacement>
         <replacement placeholder="SASL_DEFINITIONS">
-            <sasl-authentication-factory name="management-sasl-authentication" sasl-server-factory="global" security-domain="ManagementDomain"/>
+            <sasl-authentication-factory name="management-sasl-authentication" sasl-server-factory="configured" security-domain="ManagementDomain">
+                <mechanism-configuration>
+                    <mechanism mechanism-name="JBOSS-LOCAL-USER" />
+                    <mechanism mechanism-name="DIGEST-MD5">
+                        <mechanism-realm realm-name="ManagementRealm" />
+                    </mechanism>
+                </mechanism-configuration>
+            </sasl-authentication-factory>
         </replacement>
     </supplement>
 
@@ -126,8 +151,8 @@
         <replacement placeholder="HTTP_DEFINITIONS">
             <http-authentication-factory name="management-http-authentication" http-server-mechanism-factory="global" security-domain="ManagementDomain">
                 <mechanism-configuration>
-                    <mechanism mechanism-name="BASIC" >
-                        <mechanism-realm realm-name="Management Realm" />
+                    <mechanism mechanism-name="DIGEST">
+                        <mechanism-realm realm-name="ManagementRealm"/>
                     </mechanism>
                 </mechanism-configuration>
             </http-authentication-factory>
@@ -141,8 +166,15 @@
             </http-authentication-factory>
         </replacement>
         <replacement placeholder="SASL_DEFINITIONS">
-            <sasl-authentication-factory name="management-sasl-authentication" sasl-server-factory="global" security-domain="ManagementDomain"/>
-            <sasl-authentication-factory name="application-sasl-authentication" sasl-server-factory="global" security-domain="ApplicationDomain"/>
+            <sasl-authentication-factory name="management-sasl-authentication" sasl-server-factory="configured" security-domain="ManagementDomain">
+                <mechanism-configuration>
+                    <mechanism mechanism-name="JBOSS-LOCAL-USER" />
+                    <mechanism mechanism-name="DIGEST-MD5">
+                        <mechanism-realm realm-name="ManagementRealm" />
+                    </mechanism>
+                </mechanism-configuration>
+            </sasl-authentication-factory>
+            <sasl-authentication-factory name="application-sasl-authentication" sasl-server-factory="configured" security-domain="ApplicationDomain"/>
         </replacement>
     </supplement>
 </config>
