@@ -1444,7 +1444,8 @@
                     default="true">
                     <xs:annotation>
                         <xs:documentation>
-                            If the name must match the pattern. Otherwise the name must not match the pattern.
+                            If set to true, the name must match the given pattern to make validation successful. 
+                            If set to false, the name must not match the given pattern to make validation successful.
                         </xs:documentation>
                     </xs:annotation>
                 </xs:attribute>
