@@ -76,6 +76,8 @@ import org.wildfly.security.auth.server.RealmMapper;
 import org.wildfly.security.auth.server.SaslAuthenticationFactory;
 import org.wildfly.security.auth.server.SecurityDomain;
 import org.wildfly.security.http.HttpServerAuthenticationMechanismFactory;
+import org.wildfly.security.sasl.util.SaslMechanismInformation;
+import org.wildfly.security.sasl.util.SortedMechanismSaslServerFactory;
 
 
 /**
@@ -421,11 +423,12 @@ class AuthenticationFactoryDefinitions {
                 final List<ResolvedMechanismConfiguration> resolvedMechanismConfigurations = getResolvedMechanismConfiguration(mechanismConfigurationAttribute, serviceBuilder, context, model);
 
                 return () -> {
-                    SaslServerFactory injectedSaslServerFactory = saslServerFactoryInjector.getValue();
+                    SaslServerFactory serverFactory = saslServerFactoryInjector.getValue();
+                    serverFactory = new SortedMechanismSaslServerFactory(serverFactory, AuthenticationFactoryDefinitions::compare);
 
                     SaslAuthenticationFactory.Builder builder = SaslAuthenticationFactory.builder()
                             .setSecurityDomain(securityDomainInjector.getValue())
-                            .setFactory(injectedSaslServerFactory);
+                            .setFactory(serverFactory);
 
                     buildMechanismConfiguration(resolvedMechanismConfigurations, builder);
 
@@ -451,6 +454,27 @@ class AuthenticationFactoryDefinitions {
         return  mechanismNames.toArray(new String[mechanismNames.size()]);
     }
 
+    private static int compare(String nameOne, String nameTwo) {
+        return toPriority(nameTwo) - toPriority(nameOne);
+    }
+
+    private static int toPriority(String name) {
+        switch (name) {
+            case SaslMechanismInformation.Names.EXTERNAL:
+                return 30;
+            case SaslMechanismInformation.Names.GSSAPI:
+                return 20;
+            case "JBOSS-LOCAL-USER":
+                return 10;
+            case SaslMechanismInformation.Names.PLAIN:
+                return -10;
+            case SaslMechanismInformation.Names.ANONYMOUS:
+                return -20;
+            default:
+                return 0;
+        }
+    }
+
     private static class ResolvedMechanismRealmConfiguration {
         final InjectedValue<NameRewriter> preRealmNameRewriter = new InjectedValue<>();
         final InjectedValue<NameRewriter> postRealmNameRewriter = new InjectedValue<>();
@@ -467,7 +491,6 @@ class AuthenticationFactoryDefinitions {
             this.selectionPredicate = selectionPredicate;
 
         }
-
     }
 
 }
