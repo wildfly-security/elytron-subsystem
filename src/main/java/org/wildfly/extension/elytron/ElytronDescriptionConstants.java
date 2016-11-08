@@ -87,6 +87,7 @@ interface ElytronDescriptionConstants {
     String CONSTANT_NAME_REWRITER = "constant-name-rewriter";
     String CONSTANT_PERMISSION_MAPPER = "constant-permission-mapper";
     String CONSTANT_PRINCIPAL_DECODER = "constant-principal-decoder";
+    String CONSTANT_REALM_MAPPER = "constant-realm-mapper";
     String CONSTANT_ROLE_MAPPER = "constant-role-mapper";
     String CORE_SERVICE = "core-service";
     String CREATION_DATE = "creation-date";

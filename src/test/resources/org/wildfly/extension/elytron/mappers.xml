@@ -55,6 +55,7 @@
         <x500-attribute-principal-decoder name="X500PrincipalDecoderTwo" oid="2.5.4.3" joiner="." start-segment="2" maximum-segments="6" reverse="true" />
         <x500-attribute-principal-decoder name="X500PrincipalDecoderThree" oid="2.5.4.3" joiner="." start-segment="2" maximum-segments="6" reverse="true" required-oids="2.5.4.3 2.5.4.11"/>
 
+        <constant-realm-mapper name="local" realm-name="local" />
         <custom-realm-mapper name="CustomRealmOne" class-name="org.wildfly.elytron.CustomRealmMapper" module="c.d" />
         <simple-regex-realm-mapper name="SimpleOne" pattern="(.?)" delegate-realm-mapper="CustomRealmOne" />
         <mapped-regex-realm-mapper name="MappedOne" pattern="(.?)" delegate-realm-mapper="SimpleOne">

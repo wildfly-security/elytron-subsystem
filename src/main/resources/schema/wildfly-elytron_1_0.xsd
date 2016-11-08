@@ -1400,6 +1400,7 @@
             <xs:element name="logical-permission-mapper" type="logicalPermissionMapperType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="simple-permission-mapper" type="simplePermissionMapperType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="constant-permission-mapper" type="constantPermissionMapperType" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="constant-realm-mapper" type="constantRealmMapperType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="custom-realm-mapper" type="customRealmMapperType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="simple-regex-realm-mapper" type="simpleRegexRealmMapperType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="mapped-regex-realm-mapper" type="mappedRegexRealmMapperType" minOccurs="0" maxOccurs="unbounded" />
@@ -1995,6 +1996,25 @@
         </xs:complexContent>
     </xs:complexType>
 
+    <xs:complexType name="constantRealmMapperType">
+        <xs:annotation>
+            <xs:documentation>
+                A RealmMapper that always returns the same constant.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="realmMapperType">
+                <xs:attribute name="realm-name" type="xs:string" use="required">
+                    <xs:annotation>
+                        <xs:documentation>
+                            The constant value that will always be returned by this RealmMapper.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    
     <xs:complexType name="simpleRegexRealmMapperType">
         <xs:annotation>
             <xs:documentation>

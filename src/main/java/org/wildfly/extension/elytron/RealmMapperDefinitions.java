@@ -59,6 +59,7 @@ import org.jboss.msc.service.ServiceController.Mode;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.ServiceTarget;
 import org.jboss.msc.value.InjectedValue;
+import org.wildfly.extension.elytron.TrivialService.ValueSupplier;
 import org.wildfly.security.auth.server.RealmMapper;
 import org.wildfly.security.auth.util.MappedRegexRealmMapper;
 import org.wildfly.security.auth.util.SimpleRegexRealmMapper;
@@ -75,6 +76,11 @@ class RealmMapperDefinitions {
         .setMinSize(1)
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
         .setCapabilityReference(REALM_MAPPER_CAPABILITY, REALM_MAPPER_CAPABILITY, true)
+        .build();
+
+    static final SimpleAttributeDefinition REALM_NAME = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.REALM_NAME, ModelType.STRING, false)
+        .setMinSize(1)
+        .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
         .build();
 
     static final SimpleMapAttributeDefinition REALM_REALM_MAP = new SimpleMapAttributeDefinition.Builder(ElytronDescriptionConstants.REALM_MAP, ModelType.STRING, false)
@@ -105,6 +111,23 @@ class RealmMapperDefinitions {
 
     static ResourceDefinition getMappedRegexRealmMapper() {
         return new MappedRegexRealmMapperDefinition();
+    }
+
+    static final AttributeDefinition[] CONSTANT_REALM_MAPPER_ATTRIBUTES = new AttributeDefinition[] { REALM_NAME };
+
+    static ResourceDefinition getConstantRealmMapper() {
+        AbstractAddStepHandler add = new TrivialAddHandler<RealmMapper>(RealmMapper.class, CONSTANT_REALM_MAPPER_ATTRIBUTES, REALM_MAPPER_RUNTIME_CAPABILITY) {
+
+            @Override
+            protected ValueSupplier<RealmMapper> getValueSupplier(ServiceBuilder<RealmMapper> serviceBuilder,
+                    OperationContext context, ModelNode model) throws OperationFailedException {
+                final String realmName = REALM_NAME.resolveModelAttribute(context, model).asString();
+
+                return () -> RealmMapper.single(realmName);
+            }
+        };
+
+        return new TrivialResourceDefinition(ElytronDescriptionConstants.CONSTANT_REALM_MAPPER, add, CONSTANT_REALM_MAPPER_ATTRIBUTES, REALM_MAPPER_RUNTIME_CAPABILITY);
     }
 
     private static class SimpleRegexRealmMapperDefinition extends SimpleResourceDefinition {

@@ -44,6 +44,7 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CONSTANT
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CONSTANT_NAME_REWRITER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CONSTANT_PERMISSION_MAPPER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CONSTANT_PRINCIPAL_DECODER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CONSTANT_REALM_MAPPER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CONSTANT_ROLE_MAPPER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CUSTOM_NAME_REWRITER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CUSTOM_PERMISSION_MAPPER;
@@ -79,6 +80,7 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PRINCIPA
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PRINCIPAL_DECODERS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REALM_MAP;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REALM_MAPPING;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REALM_NAME;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REGEX_NAME_REWRITER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REGEX_NAME_VALIDATING_REWRITER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REPLACEMENT;
@@ -176,6 +178,9 @@ class MapperParser {
                     readX500AttributePrincipalDecoderElement(parentAddress, reader, operations);
                     break;
                 // Realm Mappers
+                case CONSTANT_REALM_MAPPER:
+                    readConstantRealmMapperElement(parentAddress, reader, operations);
+                    break;
                 case CUSTOM_REALM_MAPPER:
                     readCustomComponent(CUSTOM_REALM_MAPPER, parentAddress, reader, operations);
                     break;
@@ -858,6 +863,44 @@ class MapperParser {
 
         operations.add(addPrincipalDecoder);
 
+        requireNoContent(reader);
+    }
+
+    private void readConstantRealmMapperElement(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations)
+            throws XMLStreamException {
+        ModelNode addRealmMapper = new ModelNode();
+        addRealmMapper.get(OP).set(ADD);
+
+        Set<String> requiredAttributes = new HashSet<>(Arrays.asList(new String[] { NAME, REALM_NAME }));
+
+        String name = null;
+        final int count = reader.getAttributeCount();
+        for (int i = 0; i < count; i++) {
+            final String value = reader.getAttributeValue(i);
+            if (! isNoNamespaceAttribute(reader, i)) {
+                throw unexpectedAttribute(reader, i);
+            } else {
+                String attribute = reader.getAttributeLocalName(i);
+                requiredAttributes.remove(attribute);
+                switch (attribute) {
+                    case NAME:
+                        name = value;
+                        break;
+                    case REALM_NAME:
+                        RealmMapperDefinitions.REALM_NAME.parseAndSetParameter(value, addRealmMapper, reader);
+                        break;
+                    default:
+                        throw unexpectedAttribute(reader, i);
+                }
+            }
+        }
+
+        if (requiredAttributes.isEmpty() == false) {
+            throw missingRequired(reader, requiredAttributes);
+        }
+
+        addRealmMapper.get(OP_ADDR).set(parentAddress).add(CONSTANT_REALM_MAPPER, name);
+        operations.add(addRealmMapper);
         requireNoContent(reader);
     }
 
@@ -1616,6 +1659,24 @@ class MapperParser {
         return false;
     }
 
+    private boolean writeConstantRealmMappers(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
+        if (subsystem.hasDefined(CONSTANT_REALM_MAPPER)) {
+            startMappers(started, writer);
+            ModelNode realmMappers = subsystem.require(CONSTANT_REALM_MAPPER);
+            for (String name : realmMappers.keys()) {
+                ModelNode realmMapper = realmMappers.require(name);
+                writer.writeStartElement(CONSTANT_REALM_MAPPER);
+                writer.writeAttribute(NAME, name);
+                RealmMapperDefinitions.REALM_NAME.marshallAsAttribute(realmMapper, writer);
+                writer.writeEndElement();
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
     private boolean writeSimpleRegexRealmMappers(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (subsystem.hasDefined(SIMPLE_REGEX_REALM_MAPPER)) {
             startMappers(started, writer);
@@ -1829,6 +1890,7 @@ class MapperParser {
         mappersStarted = mappersStarted | writeCustomPrincipalDecoders(mappersStarted, subsystem, writer);
         mappersStarted = mappersStarted | writeX500AttributePrincipalDecoders(mappersStarted, subsystem, writer);
 
+        mappersStarted = mappersStarted | writeConstantRealmMappers(mappersStarted, subsystem, writer);
         mappersStarted = mappersStarted | writeCustomRealmMappers(mappersStarted, subsystem, writer);
         mappersStarted = mappersStarted | writeSimpleRegexRealmMappers(mappersStarted, subsystem, writer);
         mappersStarted = mappersStarted | writeMapRegexRealmMappers(mappersStarted, subsystem, writer);
