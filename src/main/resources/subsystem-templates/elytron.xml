@@ -25,15 +25,18 @@
         </security-domains>
 
         <security-realms>
+            <identity-realm name="local" identity="$local" />
             <?REALM_DEFINITIONS?>
         </security-realms>
 
         <mappers>
-            <simple-role-decoder name="groups-to-roles" attribute="groups" />
-
             <constant-permission-mapper name="login-permission-mapper">
                 <permission class-name="org.wildfly.security.auth.permission.LoginPermission" />
             </constant-permission-mapper>
+
+            <constant-realm-mapper name="local" realm-name="local" />
+
+            <simple-role-decoder name="groups-to-roles" attribute="groups" />
         </mappers>
 
         <http>
@@ -96,6 +99,7 @@
         <replacement placeholder="DOMAIN_DEFINITIONS">
             <security-domain name="ManagementDomain" default-realm="ManagementRealm" permission-mapper="login-permission-mapper">
                 <realm name="ManagementRealm" role-decoder="groups-to-roles" />
+                <realm name="local" />
             </security-domain>
         </replacement>
         <replacement placeholder="REALM_DEFINITIONS">
@@ -116,7 +120,7 @@
         <replacement placeholder="SASL_DEFINITIONS">
             <sasl-authentication-factory name="management-sasl-authentication" sasl-server-factory="configured" security-domain="ManagementDomain">
                 <mechanism-configuration>
-                    <mechanism mechanism-name="JBOSS-LOCAL-USER" />
+                    <mechanism mechanism-name="JBOSS-LOCAL-USER" realm-mapper="local" />
                     <mechanism mechanism-name="DIGEST-MD5">
                         <mechanism-realm realm-name="ManagementRealm" />
                     </mechanism>
@@ -133,6 +137,7 @@
 
             <security-domain name="ManagementDomain" default-realm="ManagementRealm" permission-mapper="login-permission-mapper">
                 <realm name="ManagementRealm" role-decoder="groups-to-roles" />
+                <realm name="local" />
             </security-domain>
         </replacement>
 
@@ -168,7 +173,7 @@
         <replacement placeholder="SASL_DEFINITIONS">
             <sasl-authentication-factory name="management-sasl-authentication" sasl-server-factory="configured" security-domain="ManagementDomain">
                 <mechanism-configuration>
-                    <mechanism mechanism-name="JBOSS-LOCAL-USER" />
+                    <mechanism mechanism-name="JBOSS-LOCAL-USER" realm-mapper="local" />
                     <mechanism mechanism-name="DIGEST-MD5">
                         <mechanism-realm realm-name="ManagementRealm" />
                     </mechanism>
