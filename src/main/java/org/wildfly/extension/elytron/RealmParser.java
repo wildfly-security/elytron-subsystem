@@ -27,6 +27,7 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CUSTOM_M
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CUSTOM_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.FILESYSTEM_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.JDBC_REALM;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.IDENTITY_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEY_STORE_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.LDAP_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROPERTIES_REALM;
@@ -65,7 +66,10 @@ class RealmParser {
             .addAttributes(CustomComponentDefinition.ATTRIBUTES)
             .setUseElementsForGroups(false)
             .build();
-
+    private final PersistentResourceXMLDescription identityRealmParser = builder(PathElement.pathElement(ElytronDescriptionConstants.IDENTITY_REALM), null)
+            .addAttributes(RealmDefinitions.IDENTITY_REALM_ATTRIBUTES)
+            .setUseElementsForGroups(false)
+            .build();
     private final PersistentResourceXMLDescription jdbcRealmParser = builder(PathElement.pathElement(ElytronDescriptionConstants.JDBC_REALM), null)
             .addAttribute(PrincipalQueryAttributes.PRINCIPAL_QUERIES, AttributeParser.UNWRAPPED_OBJECT_LIST_PARSER, AttributeMarshaller.UNWRAPPED_OBJECT_LIST_MARSHALLER)
             .build();
@@ -132,6 +136,9 @@ class RealmParser {
                 case JDBC_REALM:
                     jdbcRealmParser.parse(reader, parentAddress, operations);
                     break;
+                case IDENTITY_REALM:
+                    identityRealmParser.parse(reader, parentAddress, operations);
+                    break;
                 case KEY_STORE_REALM:
                     keyStoreRealmParser.parse(reader, parentAddress, operations);
                     break;
@@ -160,6 +167,7 @@ class RealmParser {
         aggregateRealmParser.persist(writer, subsystem);
         customRealmParser.persist(writer, subsystem);
         customModifiableRealmParser.persist(writer, subsystem);
+        identityRealmParser.persist(writer, subsystem);
         jdbcRealmParser.persist(writer, subsystem);
         keyStoreRealmParser.persist(writer, subsystem);
         propertiesRealmParser.persist(writer, subsystem);

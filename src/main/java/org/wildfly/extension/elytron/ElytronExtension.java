@@ -23,6 +23,7 @@ import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP;
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP_ADDR;
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.SUBSYSTEM;
 
+import org.jboss.as.controller.AttributeDefinition;
 import org.jboss.as.controller.Extension;
 import org.jboss.as.controller.ExtensionContext;
 import org.jboss.as.controller.ModelVersion;
@@ -115,7 +116,7 @@ public class ElytronExtension implements Extension {
         return (ServiceController<T>) controller;
     }
 
-    static String asStringIfDefined(OperationContext context, SimpleAttributeDefinition attributeDefinition, ModelNode model) throws OperationFailedException {
+    static String asStringIfDefined(OperationContext context, AttributeDefinition attributeDefinition, ModelNode model) throws OperationFailedException {
         ModelNode value = attributeDefinition.resolveModelAttribute(context, model);
         if (value.isDefined()) {
             return value.asString();

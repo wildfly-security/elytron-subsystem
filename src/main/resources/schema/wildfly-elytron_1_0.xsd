@@ -329,6 +329,7 @@
                     </xs:documentation>
                 </xs:annotation>
             </xs:element>
+            <xs:element name="identity-realm" type="identityRealmType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="jdbc-realm" type="jdbcRealmType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="key-store-realm" type="keyStoreRealmType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="properties-realm" type="propertiesRealmType" minOccurs="0" maxOccurs="unbounded" />
@@ -407,6 +408,39 @@
 		    </xs:extension>
 		</xs:complexContent>
 	</xs:complexType>
+
+    <xs:complexType name="identityRealmType">
+        <xs:annotation>
+            <xs:documentation>
+                Realm definition for a realm which contains a single pre-defined identity.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="realmType">
+                <xs:attribute name="identity" type="xs:string" use="required">
+                    <xs:annotation>
+                        <xs:documentation>
+                            The name of the identity.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+                <xs:attribute name="attribute-name" type="xs:string">
+                    <xs:annotation>
+                        <xs:documentation>
+                            The name of an attribute to associate with the identity.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+                <xs:attribute name="attribute-values" type="stringListType">
+                    <xs:annotation>
+                        <xs:documentation>
+                            The values to associate with the identities attribute.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
 
     <xs:complexType name="jdbcRealmType">
         <xs:annotation>

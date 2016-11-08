@@ -14,6 +14,7 @@
                 <property name="c" value="d" />
             </configuration>
         </custom-modifiable-realm>
+        <identity-realm name="local" identity="$local" attribute-name="groups" attribute-values="SuperUser" />
         <jdbc-realm name="JdbcRealmWithMultipleQueries">
             <principal-query sql="SELECT password FROM USER_CLEAR_PASSWORD WHERE name = ?" data-source="TestDS">
                 <clear-password-mapper password-index="1"/>

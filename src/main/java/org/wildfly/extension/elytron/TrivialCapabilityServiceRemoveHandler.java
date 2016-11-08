@@ -17,8 +17,6 @@
  */
 package org.wildfly.extension.elytron;
 
-import javax.xml.ws.Service;
-
 import org.jboss.as.controller.AbstractAddStepHandler;
 import org.jboss.as.controller.OperationStepHandler;
 import org.jboss.as.controller.ServiceRemoveStepHandler;

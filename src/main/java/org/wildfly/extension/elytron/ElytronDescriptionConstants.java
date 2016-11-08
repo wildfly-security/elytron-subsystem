@@ -46,6 +46,8 @@ interface ElytronDescriptionConstants {
     String AS_RDN = "as-rdn";
     String ATTRIBUTE = "attribute";
     String ATTRIBUTE_MAPPING = "attribute-mapping";
+    String ATTRIBUTE_NAME = "attribute-name";
+    String ATTRIBUTE_VALUES = "attribute-values";
     String ATTRIBUTES = "attributes";
     String AUDIENCE = "audience";
     String AUTHENTICATION_LEVEL = "authentication-level";
@@ -154,6 +156,7 @@ interface ElytronDescriptionConstants {
 
     String IDENTITY = "identity";
     String IDENTITY_MAPPING = "identity-mapping";
+    String IDENTITY_REALM = "identity-realm";
     String IMPLEMENTATION = "implementation";
     String INDEX = "index";
     String INFO = "info";
