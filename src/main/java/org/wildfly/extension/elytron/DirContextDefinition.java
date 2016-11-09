@@ -29,8 +29,10 @@ import org.jboss.as.controller.AttributeDefinition;
 import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
 import org.jboss.as.controller.OperationStepHandler;
+import org.jboss.as.controller.PathAddress;
 import org.jboss.as.controller.PathElement;
 import org.jboss.as.controller.ResourceDefinition;
+import org.jboss.as.controller.RestartParentWriteAttributeHandler;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
 import org.jboss.as.controller.SimpleResourceDefinition;
@@ -115,8 +117,9 @@ public class DirContextDefinition extends SimpleResourceDefinition {
 
     @Override
     public void registerAttributes(ManagementResourceRegistration resourceRegistration) {
+        OperationStepHandler handler = new WriteAttributeHandler();
         for (AttributeDefinition current : ATTRIBUTES) {
-            resourceRegistration.registerReadOnlyAttribute(current, null);
+            resourceRegistration.registerReadWriteAttribute(current, null, handler);
         }
     }
 
@@ -174,4 +177,16 @@ public class DirContextDefinition extends SimpleResourceDefinition {
 
     private static final OperationStepHandler REMOVE = new TrivialCapabilityServiceRemoveHandler(ADD, DIR_CONTEXT_RUNTIME_CAPABILITY);
 
+    private static class WriteAttributeHandler extends RestartParentWriteAttributeHandler {
+
+        WriteAttributeHandler() {
+            super(ElytronDescriptionConstants.DIR_CONTEXT, ATTRIBUTES);
+        }
+
+        @Override
+        protected ServiceName getParentServiceName(PathAddress parentAddress) {
+            final String name = parentAddress.getLastElement().getValue();
+            return DIR_CONTEXT_RUNTIME_CAPABILITY.fromBaseCapability(name).getCapabilityServiceName();
+        }
+    }
 }
