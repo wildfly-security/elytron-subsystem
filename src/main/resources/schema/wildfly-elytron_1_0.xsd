@@ -1030,6 +1030,20 @@
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
+        <xs:attribute name="connection-timeout" type="xs:integer" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    The timeout for connecting to the LDAP server in miliseconds.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="read-timeout" type="xs:integer" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    The read timeout for an LDAP operation in miliseconds.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
     </xs:complexType>
 
     <xs:complexType name="identityMappingType">
