@@ -722,7 +722,7 @@ class MapperParser {
         ModelNode addPrincipalDecoder = new ModelNode();
         addPrincipalDecoder.get(OP).set(ADD);
 
-        Set<String> requiredAttributes = new HashSet<>(Arrays.asList(new String[] { NAME, JOINER }));
+        Set<String> requiredAttributes = new HashSet<>(Arrays.asList(new String[] { NAME }));
 
         String name = null;
 
