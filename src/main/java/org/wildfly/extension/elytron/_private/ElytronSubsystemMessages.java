@@ -199,7 +199,14 @@ public interface ElytronSubsystemMessages extends BasicLogger {
     @Message(id = 16, value = "The supplied regular expression '%s' is invalid.")
     OperationFailedException invalidRegularExpression(String pattern, @Cause Exception cause);
 
-    // id = 17 - Free to be used.
+    /**
+     * A {@link StartException} for when the properties file backed realm can not be used because property file(s) does not exist.
+     *
+     * @param file the missing file detail.
+     * @return The {@link StartException} for the error.
+     */
+    @Message(id = 17, value = "Property file referenced in properties-realm does not exist: %s")
+    StartException propertyFilesDoesNotExist(String file);
 
     /**
      * A {@link StartException} where a Key or Trust manager factory can not be created for a specific algorithm.
@@ -249,6 +256,9 @@ public interface ElytronSubsystemMessages extends BasicLogger {
     @LogMessage(level = WARN)
     @Message(id = 24, value = "Certificate [%s] in KeyStore is not valid")
     void certificateNotValid(String alias, @Cause Exception cause);
+
+    @Message(id = 25, value = "Referenced property file is invalid: %s")
+    StartException propertyFileIsInvalid(String message, @Cause Throwable cause);
 
     // CREDENTIAL_STORE section
     @Message(id = 909, value = "Credential store '%s' does not support given credential store entry type '%s'")
