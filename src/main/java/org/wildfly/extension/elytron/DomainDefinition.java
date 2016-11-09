@@ -196,6 +196,10 @@ class DomainDefinition extends SimpleResourceDefinition {
         List<ModelNode> realms = REALMS.resolveModelAttribute(context, model).asList();
         List<String> trustedSecurityDomains = TRUSTED_SECURITY_DOMAINS.unwrap(context, model);
 
+        if (trustedSecurityDomains.contains(simpleName)) {
+            throw ROOT_LOGGER.trustedDomainsCannotContainDomainItself(simpleName);
+        }
+
         String preRealmNameRewriter = asStringIfDefined(context, PRE_REALM_NAME_REWRITER, model);
         String postRealmNameRewriter = asStringIfDefined(context, POST_REALM_NAME_REWRITER, model);
         String principalDecoder = asStringIfDefined(context, PRINCIPAL_DECODER, model);
