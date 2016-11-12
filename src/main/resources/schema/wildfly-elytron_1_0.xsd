@@ -1830,13 +1830,22 @@
         </xs:annotation>
         <xs:complexContent>
             <xs:extension base="principalDecoderType">
-                <xs:attribute name="oid" type="xs:string" use="required">
+                <xs:attribute name="oid" type="xs:string">
                     <xs:annotation>
                         <xs:documentation>
                             The oid of the attribute to map.
                         </xs:documentation>
                     </xs:annotation>
                 </xs:attribute>
+                <xs:attribute name="attribute-name" type="xs:string">
+                    <xs:annotation>
+                        <xs:documentation>
+                            The oid of the attribute to map.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+                <!-- exactly one of [oid, attribute-name] must be defined -->
+                <!--<xs:assert test="(@oid and not(@attribute-name)) or (not(@oid) and @attribute-name)"/>--><!-- require XSD 1.1 -->
                 <xs:attribute name="joiner" type="xs:string" default=".">
                     <xs:annotation>
                         <xs:documentation>
@@ -1869,6 +1878,13 @@
                     <xs:annotation>
                         <xs:documentation>
                             The OIDs of the attributes that must be present in the principal.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+                <xs:attribute name="required-attributes" type="stringListType">
+                    <xs:annotation>
+                        <xs:documentation>
+                            The attribute names of the attributes that must be present in the principal.
                         </xs:documentation>
                     </xs:annotation>
                 </xs:attribute>

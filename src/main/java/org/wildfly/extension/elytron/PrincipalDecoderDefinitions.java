@@ -22,6 +22,7 @@ import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.jboss.as.controller.AbstractAddStepHandler;
 import org.jboss.as.controller.AttributeDefinition;
@@ -47,6 +48,8 @@ import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.ServiceTarget;
 import org.jboss.msc.value.InjectedValue;
 import org.wildfly.extension.elytron.TrivialService.ValueSupplier;
+import org.wildfly.extension.elytron._private.ElytronSubsystemMessages;
+import org.wildfly.security.asn1.OidsUtil;
 import org.wildfly.security.auth.server.PrincipalDecoder;
 import org.wildfly.security.x500.X500AttributePrincipalDecoder;
 
@@ -61,6 +64,14 @@ class PrincipalDecoderDefinitions {
     static final SimpleAttributeDefinition OID = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.OID, ModelType.STRING, false)
         .setAllowExpression(true)
         .setMinSize(1)
+        .setAlternatives(ElytronDescriptionConstants.ATTRIBUTE_NAME)
+        .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+        .build();
+
+    static final SimpleAttributeDefinition ATTRIBUTE_NAME = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ATTRIBUTE_NAME, ModelType.STRING, false)
+        .setAllowExpression(true)
+        .setMinSize(1)
+        .setAlternatives(ElytronDescriptionConstants.OID)
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
         .build();
 
@@ -92,6 +103,12 @@ class PrincipalDecoderDefinitions {
     static final StringListAttributeDefinition REQUIRED_OIDS = new StringListAttributeDefinition.Builder(ElytronDescriptionConstants.REQUIRED_OIDS)
         .setAllowNull(true)
         .setAllowExpression(true)
+        .setMinSize(1)
+        .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+        .build();
+
+    static final StringListAttributeDefinition REQUIRED_ATTRIBUTES = new StringListAttributeDefinition.Builder(ElytronDescriptionConstants.REQUIRED_ATTRIBUTES)
+        .setAllowNull(true)
         .setMinSize(1)
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
         .build();
@@ -131,17 +148,34 @@ class PrincipalDecoderDefinitions {
     }
 
     static ResourceDefinition getX500AttributePrincipalDecoder() {
-        AttributeDefinition[] attributes = new AttributeDefinition[] { OID, JOINER, START_SEGMENT, MAXIMUM_SEGMENTS, REVERSE, REQUIRED_OIDS };
+        AttributeDefinition[] attributes = new AttributeDefinition[] { OID, ATTRIBUTE_NAME, JOINER, START_SEGMENT, MAXIMUM_SEGMENTS, REVERSE, REQUIRED_OIDS, REQUIRED_ATTRIBUTES };
         AbstractAddStepHandler add = new PrincipalDecoderAddHandler(attributes) {
 
             @Override
             protected ValueSupplier<PrincipalDecoder> getValueSupplier(OperationContext context, ModelNode model) throws OperationFailedException {
-                final String oid = OID.resolveModelAttribute(context, model).asString();
+                ModelNode oidNode = OID.resolveModelAttribute(context, model);
+                ModelNode attributeNode = ATTRIBUTE_NAME.resolveModelAttribute(context, model);
+
+                final String oid;
+                if (oidNode.isDefined()) {
+                    oid = oidNode.asString();
+                } else if (attributeNode.isDefined()) {
+                    oid = OidsUtil.attributeNameToOid(OidsUtil.Category.RDN, attributeNode.asString());
+                    if (oid == null) {
+                        throw ElytronSubsystemMessages.ROOT_LOGGER.unableToObtainOidForX500Attribute(attributeNode.asString());
+                    }
+                } else {
+                    throw ElytronSubsystemMessages.ROOT_LOGGER.x500AttributeMustBeDefined();
+                }
+
                 final String joiner = JOINER.resolveModelAttribute(context, model).asString();
                 final int startSegment = START_SEGMENT.resolveModelAttribute(context, model).asInt();
                 final int maximumSegments = MAXIMUM_SEGMENTS.resolveModelAttribute(context, model).asInt();
                 final boolean reverse = REVERSE.resolveModelAttribute(context, model).asBoolean();
+
                 final List<String> requiredOids = REQUIRED_OIDS.unwrap(context, model);
+                requiredOids.addAll(REQUIRED_ATTRIBUTES.unwrap(context, model).stream().map(name -> OidsUtil.attributeNameToOid(OidsUtil.Category.RDN, name)).collect(Collectors.toList()));
+
                 return () -> new X500AttributePrincipalDecoder(oid, joiner, startSegment, maximumSegments, reverse, requiredOids.toArray(new String[requiredOids.size()]));
             }
 

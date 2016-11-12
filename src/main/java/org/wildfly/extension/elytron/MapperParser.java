@@ -37,6 +37,7 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AGGREGAT
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AGGREGATE_PRINCIPAL_TRANSFORMER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AGGREGATE_ROLE_MAPPER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ATTRIBUTE;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ATTRIBUTE_NAME;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CHAINED_PRINCIPAL_TRANSFORMER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CLASS_NAME;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CONCATENATING_PRINCIPAL_DECODER;
@@ -85,6 +86,7 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REGEX_PR
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REGEX_VALIDATING_PRINCIPAL_TRANSFORMER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REPLACEMENT;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REPLACE_ALL;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REQUIRED_ATTRIBUTES;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REQUIRED_OIDS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REVERSE;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.RIGHT;
@@ -581,7 +583,7 @@ class MapperParser {
         ModelNode addPrincipalDecoder = new ModelNode();
         addPrincipalDecoder.get(OP).set(ADD);
 
-        Set<String> requiredAttributes = new HashSet<String>(Arrays.asList(new String[] { NAME, OID }));
+        Set<String> requiredAttributes = new HashSet<String>(Arrays.asList(new String[] { NAME }));
 
         String name = null;
 
@@ -600,6 +602,9 @@ class MapperParser {
                     case OID:
                         PrincipalDecoderDefinitions.OID.parseAndSetParameter(value, addPrincipalDecoder, reader);
                         break;
+                    case ATTRIBUTE_NAME:
+                        PrincipalDecoderDefinitions.ATTRIBUTE_NAME.parseAndSetParameter(value, addPrincipalDecoder, reader);
+                        break;
                     case JOINER:
                         PrincipalDecoderDefinitions.JOINER.parseAndSetParameter(value, addPrincipalDecoder, reader);
                         break;
@@ -615,6 +620,11 @@ class MapperParser {
                     case REQUIRED_OIDS:
                         for (String requiredOid : reader.getListAttributeValue(i)) {
                             PrincipalDecoderDefinitions.REQUIRED_OIDS.parseAndAddParameterElement(requiredOid, addPrincipalDecoder, reader);
+                        }
+                        break;
+                    case REQUIRED_ATTRIBUTES:
+                        for (String requiredOid : reader.getListAttributeValue(i)) {
+                            PrincipalDecoderDefinitions.REQUIRED_ATTRIBUTES.parseAndAddParameterElement(requiredOid, addPrincipalDecoder, reader);
                         }
                         break;
                     default:
@@ -1506,11 +1516,13 @@ class MapperParser {
                 writer.writeStartElement(X500_ATTRIBUTE_PRINCIPAL_DECODER);
                 writer.writeAttribute(NAME, name);
                 PrincipalDecoderDefinitions.OID.marshallAsAttribute(principalDecoder, writer);
+                PrincipalDecoderDefinitions.ATTRIBUTE_NAME.marshallAsAttribute(principalDecoder, writer);
                 PrincipalDecoderDefinitions.JOINER.marshallAsAttribute(principalDecoder, writer);
                 PrincipalDecoderDefinitions.START_SEGMENT.marshallAsAttribute(principalDecoder, writer);
                 PrincipalDecoderDefinitions.MAXIMUM_SEGMENTS.marshallAsAttribute(principalDecoder, writer);
                 PrincipalDecoderDefinitions.REVERSE.marshallAsAttribute(principalDecoder, writer);
                 PrincipalDecoderDefinitions.REQUIRED_OIDS.getAttributeMarshaller().marshallAsAttribute(PrincipalDecoderDefinitions.REQUIRED_OIDS, principalDecoder, false, writer);
+                PrincipalDecoderDefinitions.REQUIRED_ATTRIBUTES.getAttributeMarshaller().marshallAsAttribute(PrincipalDecoderDefinitions.REQUIRED_ATTRIBUTES, principalDecoder, false, writer);
                 writer.writeEndElement();
             }
 

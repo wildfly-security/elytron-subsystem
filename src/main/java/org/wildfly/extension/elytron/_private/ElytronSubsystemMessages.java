@@ -262,6 +262,12 @@ public interface ElytronSubsystemMessages extends BasicLogger {
     @Message(id = 26, value = "trusted-security-domains cannot contain the security-domain \"%s\" itself")
     OperationFailedException trustedDomainsCannotContainDomainItself(String domain);
 
+    @Message(id = 27, value = "Unable to obtain OID for X.500 attribute '%s'")
+    OperationFailedException unableToObtainOidForX500Attribute(String attribute);
+
+    @Message(id = 28, value = "The X.500 attribute must be defined by name or by OID")
+    OperationFailedException x500AttributeMustBeDefined();
+
     // CREDENTIAL_STORE section
     @Message(id = 909, value = "Credential store '%s' does not support given credential store entry type '%s'")
     IllegalArgumentException credentialStoreEntryTypeNotSupported(String credentialStoreName, String entryType);

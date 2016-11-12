@@ -303,6 +303,7 @@ interface ElytronDescriptionConstants {
     String REQUEST_LIFETIME = "request-lifetime";
     String REQUIRED = "required";
     String REQUIRED_OIDS = "required-oids";
+    String REQUIRED_ATTRIBUTES = "required-attributes";
     String REVERSE = "reverse";
     String RIGHT = "right";
     String ROLE_DECODER = "role-decoder";
