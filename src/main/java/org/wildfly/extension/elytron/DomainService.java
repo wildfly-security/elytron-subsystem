@@ -85,7 +85,7 @@ class DomainService implements Service<SecurityDomain> {
 
     RealmDependency createRealmDependency(final String realmName) throws OperationFailedException {
         if (realms.containsKey(realmName)) {
-            throw ROOT_LOGGER.duplicateRealmInjection(name, realmName);
+            throw ROOT_LOGGER.duplicateRealmInjection(realmName, name);
         }
 
         RealmDependency realmDependency = new RealmDependency();
