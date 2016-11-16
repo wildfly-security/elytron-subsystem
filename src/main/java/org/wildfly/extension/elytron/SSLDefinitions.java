@@ -52,6 +52,7 @@ import java.util.stream.Collectors;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSessionContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509ExtendedKeyManager;
@@ -63,6 +64,7 @@ import org.jboss.as.controller.AttributeDefinition;
 import org.jboss.as.controller.ObjectTypeAttributeDefinition;
 import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
+import org.jboss.as.controller.PathAddress;
 import org.jboss.as.controller.ResourceDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
@@ -73,6 +75,7 @@ import org.jboss.as.controller.operations.validation.AllowedValuesValidator;
 import org.jboss.as.controller.operations.validation.ModelTypeValidator;
 import org.jboss.as.controller.registry.AttributeAccess;
 import org.jboss.as.controller.registry.ManagementResourceRegistration;
+import org.jboss.as.controller.registry.Resource;
 import org.jboss.as.controller.security.CredentialReference;
 import org.jboss.as.controller.security.CredentialStoreClient;
 import org.jboss.dmr.ModelNode;
@@ -97,7 +100,8 @@ import org.wildfly.security.ssl.SSLContextBuilder;
  */
 class SSLDefinitions {
 
-    static final ServiceUtil<SSLContext> SSL_CONTEXT_SERVICE_UTIL = ServiceUtil.newInstance(SSL_CONTEXT_RUNTIME_CAPABILITY, ElytronDescriptionConstants.SERVER_SSL_CONTEXT, SSLContext.class);
+    static final ServiceUtil<SSLContext> SERVER_SERVICE_UTIL = ServiceUtil.newInstance(SSL_CONTEXT_RUNTIME_CAPABILITY, ElytronDescriptionConstants.SERVER_SSL_CONTEXT, SSLContext.class);
+    static final ServiceUtil<SSLContext> CLIENT_SERVICE_UTIL = ServiceUtil.newInstance(SSL_CONTEXT_RUNTIME_CAPABILITY, ElytronDescriptionConstants.CLIENT_SSL_CONTEXT, SSLContext.class);
 
     static final SimpleAttributeDefinition ALGORITHM = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ALGORITHM, ModelType.STRING, false)
             .setAllowExpression(true)
@@ -430,9 +434,11 @@ class SSLDefinitions {
     }
 
     private static class SSLContextDefinition extends TrivialResourceDefinition {
+        final boolean server;
 
-        private SSLContextDefinition(String pathKey, AbstractAddStepHandler addHandler, AttributeDefinition[] attributes) {
+        private SSLContextDefinition(String pathKey, boolean server, AbstractAddStepHandler addHandler, AttributeDefinition[] attributes) {
             super(pathKey, addHandler, attributes, SSL_CONTEXT_RUNTIME_CAPABILITY);
+            this.server = server;
         }
 
         @Override
@@ -442,7 +448,13 @@ class SSLDefinitions {
             resourceRegistration.registerReadOnlyAttribute(ACTIVE_SESSION_COUNT, new SSLContextRuntimeHandler() {
                 @Override
                 protected void performRuntime(ModelNode result, ModelNode operation, SSLContext sslContext) throws OperationFailedException {
-                    result.set(Collections.list(sslContext.getServerSessionContext().getIds()).stream().mapToInt( (byte[] b)-> 1).sum());
+                    SSLSessionContext sessionContext = server ? sslContext.getServerSessionContext() : sslContext.getClientSessionContext();
+                    result.set(Collections.list(sessionContext.getIds()).stream().mapToInt( (byte[] b)-> 1).sum());
+                }
+
+                @Override
+                protected ServiceUtil<SSLContext> getSSLContextServiceUtil() {
+                    return server ? SERVER_SERVICE_UTIL : CLIENT_SERVICE_UTIL;
                 }
             });
         }
@@ -451,7 +463,7 @@ class SSLDefinitions {
         public void registerChildren(ManagementResourceRegistration resourceRegistration) {
             super.registerChildren(resourceRegistration);
 
-            resourceRegistration.registerSubModel(new SSLSessionDefinition());
+            resourceRegistration.registerSubModel(new SSLSessionDefinition(server));
         }
     }
 
@@ -478,7 +490,7 @@ class SSLDefinitions {
         AttributeDefinition[] attributes = new AttributeDefinition[] { SECURITY_DOMAIN, CIPHER_SUITE_FILTER, PROTOCOLS, WANT_CLIENT_AUTH, NEED_CLIENT_AUTH, AUTHENTICATION_OPTIONAL,
                 USE_CIPHER_SUITES_ORDER, MAXIMUM_SESSION_CACHE_SIZE, SESSION_TIMEOUT, KEY_MANAGERS, TRUST_MANAGERS, providerLoaderDefinition };
 
-        return new SSLContextDefinition(ElytronDescriptionConstants.SERVER_SSL_CONTEXT, new TrivialAddHandler<SSLContext>(SSLContext.class, attributes, SSL_CONTEXT_RUNTIME_CAPABILITY) {
+        return new SSLContextDefinition(ElytronDescriptionConstants.SERVER_SSL_CONTEXT, true, new TrivialAddHandler<SSLContext>(SSLContext.class, attributes, SSL_CONTEXT_RUNTIME_CAPABILITY) {
             @Override
             protected ValueSupplier<SSLContext> getValueSupplier(ServiceBuilder<SSLContext> serviceBuilder, OperationContext context, ModelNode model) throws OperationFailedException {
 
@@ -535,6 +547,18 @@ class SSLDefinitions {
                     }
                 };
             }
+
+            @Override
+            protected Resource createResource(OperationContext context) {
+                SSLContextResource resource = new SSLContextResource(Resource.Factory.create(), true);
+                context.addResource(PathAddress.EMPTY_ADDRESS, resource);
+                return resource;
+            }
+
+            @Override
+            protected void installedForResource(ServiceController<SSLContext> serviceController, Resource resource) {
+                ((SSLContextResource)resource).setSSLContextServiceController(serviceController);
+            }
         }, attributes);
     }
 
@@ -547,7 +571,7 @@ class SSLDefinitions {
         AttributeDefinition[] attributes = new AttributeDefinition[] { CIPHER_SUITE_FILTER, PROTOCOLS,
                 USE_CIPHER_SUITES_ORDER, MAXIMUM_SESSION_CACHE_SIZE, SESSION_TIMEOUT, KEY_MANAGERS, TRUST_MANAGERS, providerLoaderDefinition };
 
-        return new SSLContextDefinition(ElytronDescriptionConstants.CLIENT_SSL_CONTEXT, new TrivialAddHandler<SSLContext>(SSLContext.class, attributes, SSL_CONTEXT_RUNTIME_CAPABILITY) {
+        return new SSLContextDefinition(ElytronDescriptionConstants.CLIENT_SSL_CONTEXT, false, new TrivialAddHandler<SSLContext>(SSLContext.class, attributes, SSL_CONTEXT_RUNTIME_CAPABILITY) {
             @Override
             protected ValueSupplier<SSLContext> getValueSupplier(ServiceBuilder<SSLContext> serviceBuilder, OperationContext context, ModelNode model) throws OperationFailedException {
 
@@ -595,6 +619,18 @@ class SSLDefinitions {
                     }
                 };
             }
+
+            @Override
+            protected Resource createResource(OperationContext context) {
+                SSLContextResource resource = new SSLContextResource(Resource.Factory.create(), false);
+                context.addResource(PathAddress.EMPTY_ADDRESS, resource);
+                return resource;
+            }
+
+            @Override
+            protected void installedForResource(ServiceController<SSLContext> serviceController, Resource resource) {
+                ((SSLContextResource)resource).setSSLContextServiceController(serviceController);
+            }
         }, attributes);
     }
 
@@ -629,7 +665,7 @@ class SSLDefinitions {
     abstract static class SSLContextRuntimeHandler extends AbstractRuntimeOnlyHandler {
         @Override
         protected void executeRuntimeStep(OperationContext context, ModelNode operation) throws OperationFailedException {
-            ServiceName serviceName = SSL_CONTEXT_SERVICE_UTIL.serviceName(operation);
+            ServiceName serviceName = getSSLContextServiceUtil().serviceName(operation);
 
             ServiceController<SSLContext> serviceController = getRequiredService(context.getServiceRegistry(false), serviceName, SSLContext.class);
             State serviceState;
@@ -641,6 +677,8 @@ class SSLDefinitions {
         }
 
         protected abstract void performRuntime(ModelNode result, ModelNode operation, SSLContext sslContext) throws OperationFailedException;
+
+        protected abstract ServiceUtil<SSLContext> getSSLContextServiceUtil();
     }
 
 }

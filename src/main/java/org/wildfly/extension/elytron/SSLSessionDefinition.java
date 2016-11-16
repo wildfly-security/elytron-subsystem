@@ -34,6 +34,7 @@ import java.util.function.BiConsumer;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLSessionContext;
 
 import org.jboss.as.controller.OperationFailedException;
 import org.jboss.as.controller.PathAddress;
@@ -107,11 +108,14 @@ public class SSLSessionDefinition extends SimpleResourceDefinition {
     private static final SimpleOperationDefinition INVALIDATE = new SimpleOperationDefinitionBuilder(ElytronDescriptionConstants.INVALIDATE, RESOURCE_DESCRIPTION_RESOLVER)
             .build();
 
-    SSLSessionDefinition() {
+    private boolean server;
+
+    SSLSessionDefinition(boolean server) {
         super(new Parameters(PathElement.pathElement(ElytronDescriptionConstants.SSL_SESSION), RESOURCE_DESCRIPTION_RESOLVER)
             .setAddRestartLevel(OperationEntry.Flag.RESTART_NONE)
             .setRemoveRestartLevel(OperationEntry.Flag.RESTART_RESOURCE_SERVICES)
             .setRuntime());
+        this.server = server;
     }
 
     @Override
@@ -163,7 +167,7 @@ public class SSLSessionDefinition extends SimpleResourceDefinition {
         resourceRegistration.registerOperationHandler(INVALIDATE, new SSLSessionRuntimeHandler((ModelNode r, SSLSession s) -> s.invalidate()));
     }
 
-    static class SSLSessionRuntimeHandler extends SSLDefinitions.SSLContextRuntimeHandler {
+    class SSLSessionRuntimeHandler extends SSLDefinitions.SSLContextRuntimeHandler {
 
         private final BiConsumer<ModelNode, SSLSession> biConsumer;
 
@@ -172,7 +176,8 @@ public class SSLSessionDefinition extends SimpleResourceDefinition {
         }
         @Override
         protected void performRuntime(ModelNode result, ModelNode operation, SSLContext sslContext) throws OperationFailedException {
-            SSLSession sslSession = sslContext.getServerSessionContext().getSession(sessionId(operation));
+            SSLSessionContext sslSessionContext = server ? sslContext.getServerSessionContext() : sslContext.getClientSessionContext();
+            SSLSession sslSession = sslSessionContext.getSession(sessionId(operation));
             if (sslSession != null) {
                 performRuntime(result, operation, sslSession);
             }
@@ -182,6 +187,10 @@ public class SSLSessionDefinition extends SimpleResourceDefinition {
             biConsumer.accept(result, sslSession);
         }
 
+        @Override
+        protected ServiceUtil<SSLContext> getSSLContextServiceUtil() {
+            return server ? SSLDefinitions.SERVER_SERVICE_UTIL : SSLDefinitions.CLIENT_SERVICE_UTIL;
+        }
     }
 
     private static byte[] sessionId(ModelNode operation) {

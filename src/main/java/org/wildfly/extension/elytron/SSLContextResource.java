@@ -24,6 +24,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSessionContext;
 
 import org.jboss.as.controller.PathAddress;
 import org.jboss.as.controller.PathElement;
@@ -35,17 +36,19 @@ import org.jboss.msc.service.ServiceController.State;
 import org.wildfly.security.util.ByteIterator;
 
 /**
- * A {@link Resource} to represent a server-ssl-context, the majority is actually model but child resources are a
- * runtime concern.
+ * A {@link Resource} to represent a server-ssl-context/client-ssl-context, the majority is actually model
+ * but child resources are a runtime concern.
  *
  * @author <a href="mailto:darran.lofthouse@jboss.com">Darran Lofthouse</a>
  */
 class SSLContextResource extends DelegatingResource {
 
     private ServiceController<SSLContext> sslContextServiceController;
+    private boolean server;
 
-    SSLContextResource(Resource delegate) {
+    SSLContextResource(Resource delegate, boolean server) {
         super(delegate);
+        this.server = server;
     }
 
     /**
@@ -75,7 +78,8 @@ class SSLContextResource extends DelegatingResource {
         SSLContext sslContext;
         if (ElytronDescriptionConstants.SSL_SESSION.equals(element.getKey()) && (sslContext = getSSLContext(sslContextServiceController)) != null) {
             byte[] sessionId = ByteIterator.ofBytes(element.getValue().getBytes(StandardCharsets.UTF_8)).hexDecode().drain();
-            return sslContext.getServerSessionContext().getSession(sessionId) != null;
+            SSLSessionContext sslSessionContext = server ? sslContext.getServerSessionContext() : sslContext.getClientSessionContext();
+            return sslSessionContext.getSession(sessionId) != null;
         }
         return false;
     }
@@ -98,7 +102,8 @@ class SSLContextResource extends DelegatingResource {
     public Set<String> getChildrenNames(String childType) {
         SSLContext sslContext;
         if (ElytronDescriptionConstants.SSL_SESSION.equals(childType) && (sslContext = getSSLContext(sslContextServiceController)) != null) {
-            return Collections.list(sslContext.getServerSessionContext().getIds()).stream().map((byte[] b) -> ByteIterator.ofBytes(b).hexEncode(true).drainToString()).collect(Collectors.toSet());
+            SSLSessionContext sslSessionContext = server ? sslContext.getServerSessionContext() : sslContext.getClientSessionContext();
+            return Collections.list(sslSessionContext.getIds()).stream().map((byte[] b) -> ByteIterator.ofBytes(b).hexEncode(true).drainToString()).collect(Collectors.toSet());
         }
         return Collections.emptySet();
     }
@@ -115,7 +120,7 @@ class SSLContextResource extends DelegatingResource {
 
     @Override
     public Resource clone() {
-        SSLContextResource sslContextResource = new SSLContextResource(super.clone());
+        SSLContextResource sslContextResource = new SSLContextResource(super.clone(), server);
         sslContextResource.setSSLContextServiceController(sslContextServiceController);
         return sslContextResource;
     }
@@ -126,10 +131,10 @@ class SSLContextResource extends DelegatingResource {
      * @return {@code true} if the {@link SSLContext} is available and has at least one session, {@code false} otherwise.
      */
     private boolean hasActiveSessions() {
-        final SSLContext sslContext;
-
-        return ((sslContext = getSSLContext(sslContextServiceController)) != null)
-                && sslContext.getServerSessionContext().getIds().hasMoreElements();
+        final SSLContext sslContext = getSSLContext(sslContextServiceController);
+        if (sslContext == null) return false;
+        SSLSessionContext sslSessionContext = server ? sslContext.getServerSessionContext() : sslContext.getClientSessionContext();
+        return sslSessionContext.getIds().hasMoreElements();
     }
 
     /**

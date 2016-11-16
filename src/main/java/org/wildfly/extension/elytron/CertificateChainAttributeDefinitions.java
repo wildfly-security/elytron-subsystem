@@ -120,35 +120,21 @@ class CertificateChainAttributeDefinitions {
         certificateModel.get(ElytronDescriptionConstants.TYPE).set(certificate.getType());
 
         PublicKey publicKey = certificate.getPublicKey();
-        ModelNode publicKeyModel = new ModelNode();
-        publicKeyModel.get(ElytronDescriptionConstants.ALGORITHM).set(publicKey.getAlgorithm());
-        publicKeyModel.get(ElytronDescriptionConstants.FORMAT).set(publicKey.getFormat());
-        publicKeyModel.get(ElytronDescriptionConstants.ENCODED).set(encodedHexString(publicKey.getEncoded()));
-        certificateModel.get(ElytronDescriptionConstants.PUBLIC_KEY).set(publicKeyModel);
+        certificateModel.get(ElytronDescriptionConstants.ALGORITHM).set(publicKey.getAlgorithm());
+        certificateModel.get(ElytronDescriptionConstants.FORMAT).set(publicKey.getFormat());
+        certificateModel.get(ElytronDescriptionConstants.PUBLIC_KEY).set(encodedHexString(publicKey.getEncoded()));
 
-        ModelNode fingerPrintsModel = new ModelNode();
         byte[] encodedCertificate = certificate.getEncoded();
-
-        ModelNode sha1 = new ModelNode();
-        sha1.get(ElytronDescriptionConstants.ALGORITHM).set(SHA_1);
-        sha1.get(ElytronDescriptionConstants.VALUE).set(encodedHexString(digest(SHA_1, encodedCertificate)));
-        fingerPrintsModel.add(sha1);
-
-        ModelNode sha256 = new ModelNode();
-        sha256.get(ElytronDescriptionConstants.ALGORITHM).set(SHA_256);
-        sha256.get(ElytronDescriptionConstants.VALUE).set(encodedHexString(digest(SHA_256, encodedCertificate)));
-        fingerPrintsModel.add(sha256);
-
-        certificateModel.get(ElytronDescriptionConstants.FINGER_PRINTS).set(fingerPrintsModel);
-
+        certificateModel.get(ElytronDescriptionConstants.SHA_1_DIGEST).set(encodedHexString(digest(SHA_1, encodedCertificate)));
+        certificateModel.get(ElytronDescriptionConstants.SHA_256_DIGEST).set(encodedHexString(digest(SHA_256, encodedCertificate)));
         certificateModel.get(ElytronDescriptionConstants.ENCODED).set(encodedHexString(encodedCertificate));
 
         if (certificate instanceof X509Certificate) {
-            writeCertificate(certificateModel, (X509Certificate) certificate);
+            writeX509Certificate(certificateModel, (X509Certificate) certificate);
         }
     }
 
-    private static void writeCertificate(final ModelNode certificateModel, final X509Certificate certificate) throws CertificateEncodingException, NoSuchAlgorithmException {
+    private static void writeX509Certificate(final ModelNode certificateModel, final X509Certificate certificate) throws CertificateEncodingException, NoSuchAlgorithmException {
         SimpleDateFormat sdf = new SimpleDateFormat(ISO_8601_FORMAT);
 
         certificateModel.get(ElytronDescriptionConstants.SUBJECT).set(certificate.getSubjectX500Principal().getName());
