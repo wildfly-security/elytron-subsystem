@@ -41,7 +41,6 @@ import org.jboss.as.controller.OperationStepHandler;
 import org.jboss.as.controller.PathAddress;
 import org.jboss.as.controller.PathElement;
 import org.jboss.as.controller.ResourceDefinition;
-import org.jboss.as.controller.ServiceRemoveStepHandler;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
 import org.jboss.as.controller.SimpleOperationDefinition;
@@ -123,7 +122,7 @@ final class CredentialStoreResourceDefinition extends SimpleResourceDefinition {
     private static final AttributeDefinition[] CONFIG_ATTRIBUTES = new AttributeDefinition[] {URI, TYPE, PROVIDER, PROVIDER_LOADER, RELATIVE_TO};
 
     private static final CredentialStoreAddHandler ADD = new CredentialStoreAddHandler();
-    private static final OperationStepHandler REMOVE = new CredentialStoreRemoveHandler(ADD);
+    private static final OperationStepHandler REMOVE = new TrivialCapabilityServiceRemoveHandler(ADD, CREDENTIAL_STORE_CLIENT_RUNTIME_CAPABILITY);
     private static final WriteAttributeHandler WRITE = new WriteAttributeHandler();
 
     CredentialStoreResourceDefinition() {
@@ -221,20 +220,6 @@ final class CredentialStoreResourceDefinition extends SimpleResourceDefinition {
             return resource;
         }
 
-    }
-
-    private static class CredentialStoreRemoveHandler extends ServiceRemoveStepHandler {
-
-        private CredentialStoreRemoveHandler(final AbstractAddStepHandler add) {
-            super(add, CREDENTIAL_STORE_CLIENT_RUNTIME_CAPABILITY);
-        }
-
-        @Override
-        protected void performRuntime(OperationContext context, ModelNode operation, ModelNode model) {
-            ServiceName credentialStoreClientServiceName = CREDENTIAL_STORE_CLIENT_UTIL.serviceName(operation);
-            context.removeService(credentialStoreClientServiceName);
-            super.performRuntime(context, operation, model);
-        }
     }
 
     private static class WriteAttributeHandler extends ModelOnlyWriteAttributeHandler {
