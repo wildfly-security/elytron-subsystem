@@ -4,11 +4,15 @@
         <ldap-realm dir-context="DirContextSsl" name="LdapRealm">
          <identity-mapping filter-name="(|(objectclass=referral)(uid={0}))" iterator-filter="(uid=*)" new-identity-parent-dn="dc=users,dc=elytron,dc=wildfly,dc=org" rdn-identifier="uid" search-base-dn="dc=users,dc=elytron,dc=wildfly,dc=org" use-recursive-search="true">
             <attribute-mapping>
+               <attribute to="userDn"/>
                <attribute from="uid" to="userName"/>
                <attribute from="cn" to="firstName"/>
-               <attribute from="sn" to="lastName"/>
+               <attribute from="sn"/>
                <attribute from="telephoneNumber" to="phones"/>
-               <attribute as-rdn="OU" filter="(&amp;(objectClass=groupOfNames)(member={0}))" filter-base-dn="ou=Finance,dc=groups,dc=elytron,dc=wildfly,dc=org" from="CN" to="businessArea"/>
+               <attribute filter="(&amp;(objectClass=groupOfNames)(member={0}))" filter-base-dn="dc=elytron,dc=wildfly,dc=org" to="rolesDn"/>
+               <attribute filter="(&amp;(objectClass=groupOfNames)(member={0}))" filter-base-dn="dc=elytron,dc=wildfly,dc=org" to="rolesRecRdnCn" role-recursion="2" extract-rdn="CN"/>
+               <attribute filter="(&amp;(objectClass=groupOfNames)(member={0}))" filter-base-dn="dc=elytron,dc=wildfly,dc=org" to="rolesCn" extract-rdn="CN"/>
+               <attribute filter="(&amp;(objectClass=groupOfNames)(member={0}))" filter-base-dn="dc=elytron,dc=wildfly,dc=org" from="description" to="rolesDescription" role-recursion="2"/>
             </attribute-mapping>
             <new-identity-attributes>
                <attribute name="objectClass" value="top inetOrgPerson person organizationalPerson otpToken"/>

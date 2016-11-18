@@ -31,6 +31,8 @@ objectClass: organizationalPerson
 cn: plainUserCn
 sn: plainUserSn
 uid: plainUser
+telephoneNumber: (408) 555-2468
+telephoneNumber: +420 123 456 789
 userPassword:: cGxhaW5QYXNzd29yZA==
 # Password plainPassword
 
@@ -73,6 +75,21 @@ dn: ou=Finance,dc=groups,dc=elytron,dc=wildfly,dc=org
 objectclass: top
 objectclass: organizationalUnit
 ou: Finance
+
+dn: cn=Retail,ou=Finance,dc=groups,dc=elytron,dc=wildfly,dc=org
+objectClass: top
+objectClass: groupOfNames
+cn: Retail
+description: Retail department
+description: Second description
+member: uid=plainUser,dc=users,dc=elytron,dc=wildfly,dc=org
+
+dn: cn=Sales,ou=Finance,dc=groups,dc=elytron,dc=wildfly,dc=org
+objectClass: top
+objectClass: groupOfNames
+cn: Sales
+description: Sales department
+member: cn=Retail,ou=Finance,dc=groups,dc=elytron,dc=wildfly,dc=org
 
 dn: cn=Manager,ou=Finance,dc=groups,dc=elytron,dc=wildfly,dc=org
 objectClass: top

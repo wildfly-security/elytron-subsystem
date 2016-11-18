@@ -76,7 +76,7 @@ import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
 class LdapRealmDefinition extends SimpleResourceDefinition {
 
     static class AttributeMappingObjectDefinition {
-        static final SimpleAttributeDefinition FROM = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.FROM, ModelType.STRING, false)
+        static final SimpleAttributeDefinition FROM = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.FROM, ModelType.STRING, true)
                 .setAlternatives(ElytronDescriptionConstants.FILTER)
                 .setAllowExpression(true)
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
@@ -101,12 +101,26 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
 
-        static final SimpleAttributeDefinition AS_RDN = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.AS_RDN, ModelType.STRING, true)
+        static final SimpleAttributeDefinition RECURSIVE_SEARCH = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.SEARCH_RECURSIVE, ModelType.BOOLEAN, true)
+                .setRequires(ElytronDescriptionConstants.FILTER)
+                .setDefaultValue(new ModelNode(true))
                 .setAllowExpression(true)
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
 
-        static final SimpleAttributeDefinition[] ATTRIBUTES = new SimpleAttributeDefinition[] {FROM, TO, FILTER, FILTER_BASE_DN, AS_RDN};
+        static final SimpleAttributeDefinition ROLE_RECURSION = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ROLE_RECURSION, ModelType.INT, true)
+                .setRequires(ElytronDescriptionConstants.FILTER)
+                .setDefaultValue(new ModelNode(0))
+                .setAllowExpression(true)
+                .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+                .build();
+
+        static final SimpleAttributeDefinition EXTRACT_RDN = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.EXTRACT_RDN, ModelType.STRING, true)
+                .setAllowExpression(true)
+                .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+                .build();
+
+        static final SimpleAttributeDefinition[] ATTRIBUTES = new SimpleAttributeDefinition[] {FROM, TO, FILTER, FILTER_BASE_DN, RECURSIVE_SEARCH, ROLE_RECURSION, EXTRACT_RDN};
 
         static final ObjectTypeAttributeDefinition OBJECT_DEFINITION = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.ATTRIBUTE, ATTRIBUTES)
                 .build();
@@ -456,32 +470,46 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
             ModelNode attributeMappingNode = IdentityMappingObjectDefinition.ATTRIBUTE_MAPPINGS.resolveModelAttribute(context, identityMappingNode);
             if (attributeMappingNode.isDefined()) {
                 for (ModelNode attributeNode : attributeMappingNode.asList()) {
-                    ModelNode fromNode = AttributeMappingObjectDefinition.FROM.resolveModelAttribute(context, attributeNode);
-                    ModelNode filterNode = AttributeMappingObjectDefinition.FILTER.resolveModelAttribute(context, attributeNode);
-                    ModelNode filterBaseDnNode = AttributeMappingObjectDefinition.FILTER_BASE_DN.resolveModelAttribute(context, attributeNode);
-                    AttributeMapping attribute;
+                    ModelNode from = AttributeMappingObjectDefinition.FROM.resolveModelAttribute(context, attributeNode);
+                    ModelNode filter = AttributeMappingObjectDefinition.FILTER.resolveModelAttribute(context, attributeNode);
 
-                    if (filterBaseDnNode.isDefined()) {
-                        attribute = AttributeMapping.fromFilter(filterBaseDnNode.asString(), filterNode.asString(), fromNode.asString());
-                    } else if (filterNode.isDefined()) {
-                        attribute = AttributeMapping.fromFilter(filterNode.asString(), fromNode.asString());
+                    AttributeMapping.Builder b;
+                    if (filter.isDefined() && from.isDefined()) {
+                        b = AttributeMapping.fromFilter(filter.asString(), from.asString());
+                    } else if (filter.isDefined()) {
+                        b = AttributeMapping.fromFilterDn(filter.asString());
+                    } else if (from.isDefined()) {
+                        b = AttributeMapping.fromAttribute(from.asString());
                     } else {
-                        attribute = AttributeMapping.from(fromNode.asString());
+                        b = AttributeMapping.fromDn();
                     }
 
-                    ModelNode toNode = AttributeMappingObjectDefinition.TO.resolveModelAttribute(context, attributeNode);
-
-                    if (toNode.isDefined()) {
-                        attribute.to(toNode.asString());
+                    ModelNode to = AttributeMappingObjectDefinition.TO.resolveModelAttribute(context, attributeNode);
+                    if (to.isDefined()) {
+                        b.to(to.asString());
                     }
 
-                    ModelNode asRdnNode = AttributeMappingObjectDefinition.AS_RDN.resolveModelAttribute(context, attributeNode);
-
-                    if (asRdnNode.isDefined()) {
-                        attribute.asRdn(asRdnNode.asString());
+                    ModelNode rdn = AttributeMappingObjectDefinition.EXTRACT_RDN.resolveModelAttribute(context, attributeNode);
+                    if (rdn.isDefined()) {
+                        b.extractRdn(rdn.asString());
                     }
 
-                    identityMappingBuilder.map(attribute);
+                    ModelNode searchDn = AttributeMappingObjectDefinition.FILTER_BASE_DN.resolveModelAttribute(context, attributeNode);
+                    if (searchDn.isDefined() && filter.isDefined()) {
+                        b.searchDn(searchDn.asString());
+                    }
+
+                    ModelNode recursiveSearch = AttributeMappingObjectDefinition.RECURSIVE_SEARCH.resolveModelAttribute(context, attributeNode);
+                    if (recursiveSearch.isDefined() && filter.isDefined()) {
+                        b.searchRecursively(recursiveSearch.asBoolean());
+                    }
+
+                    ModelNode roleRecursion = AttributeMappingObjectDefinition.ROLE_RECURSION.resolveModelAttribute(context, attributeNode);
+                    if (roleRecursion.isDefined() && filter.isDefined()) {
+                        b.roleRecursion(roleRecursion.asInt());
+                    }
+
+                    identityMappingBuilder.map(b.build());
                 }
             }
 

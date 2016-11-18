@@ -1148,18 +1148,20 @@
                 The configuration used to map a specific LDAP attribute as an identity attribute.
             </xs:documentation>
         </xs:annotation>
-        <xs:attribute name="from" type="xs:string" use="required">
+        <xs:attribute name="from" type="xs:string" use="optional">
             <xs:annotation>
                 <xs:documentation>
                     The name of the LDAP attribute to map to an identity attribute.
+                    If not defined, DN of the whole entry is used as value.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
         <xs:attribute name="to" type="xs:string" use="optional">
             <xs:annotation>
                 <xs:documentation>
-                    The name of the identity attribute mapped from a specific LDAP attribute. If not provided, the name of the attribute
-                    is the same as define in 'from'.
+                    The name of the identity attribute mapped from a specific LDAP attribute.
+                    If not provided, the name of the attribute is the same as define in 'from'.
+                    If the 'from' is not defined too, value 'dn' is used.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
@@ -1177,7 +1179,21 @@
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
-        <xs:attribute name="as-rdn" type="xs:string" use="optional">
+        <xs:attribute name="search-recursive" type="xs:boolean" use="optional" default="true">
+            <xs:annotation>
+                <xs:documentation>
+                    Indicates if attribute LDAP search queries are recursive.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="role-recursion" type="xs:int" use="optional" default="0">
+            <xs:annotation>
+                <xs:documentation>
+                    Sets recursive roles assignment - value determine maximum depth of recursion. (0 for no recursion)
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="extract-rdn" type="xs:string" use="optional">
             <xs:annotation>
                 <xs:documentation>
                     The RDN key to use as the value for an attribute, in case the value in its raw form is in X.500 format.

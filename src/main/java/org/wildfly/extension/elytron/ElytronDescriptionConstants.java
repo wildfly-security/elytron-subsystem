@@ -43,7 +43,6 @@ interface ElytronDescriptionConstants {
     String ALGORITHM_FROM = "algorithm-from";
     String AND = "and";
     String APPLICATION_BUFFER_SIZE = "application-buffer-size";
-    String AS_RDN = "as-rdn";
     String ATTRIBUTE = "attribute";
     String ATTRIBUTE_MAPPING = "attribute-mapping";
     String ATTRIBUTE_NAME = "attribute-name";
@@ -128,6 +127,7 @@ interface ElytronDescriptionConstants {
     String ENABLING = "enabling";
     String ENCODED = "encoded";
     String ENTRY_TYPE = "entry-type";
+    String EXTRACT_RDN = "extract-rdn";
 
     String FILE = "file";
     String FILESYSTEM_REALM = "filesystem-realm";
@@ -306,6 +306,7 @@ interface ElytronDescriptionConstants {
     String REVERSE = "reverse";
     String RIGHT = "right";
     String ROLE_DECODER = "role-decoder";
+    String ROLE_RECURSION = "role-recursion";
     String ROLE_MAPPER = "role-mapper";
     String ROLE_MAPPERS = "role-mappers";
     String ROLES = "roles";

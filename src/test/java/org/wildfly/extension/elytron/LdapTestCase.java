@@ -15,6 +15,7 @@ import org.wildfly.security.auth.principal.NamePrincipal;
 import org.wildfly.security.auth.server.ModifiableSecurityRealm;
 import org.wildfly.security.auth.server.RealmIdentity;
 import org.wildfly.security.evidence.X509PeerCertificateChainEvidence;
+import org.wildfly.security.authz.Attributes;
 
 import javax.naming.NamingException;
 import javax.naming.directory.DirContext;
@@ -84,6 +85,16 @@ public class LdapTestCase extends AbstractSubsystemTest {
 
         RealmIdentity identity1 = securityRealm.getRealmIdentity(new NamePrincipal("plainUser"));
         Assert.assertTrue(identity1.exists());
+        Attributes as = identity1.getAttributes();
+        Assert.assertArrayEquals(new String[]{"uid=plainUser,dc=users,dc=elytron,dc=wildfly,dc=org"}, as.get("userDn").toArray());
+        Assert.assertArrayEquals(new String[]{"plainUser"}, as.get("userName").toArray());
+        Assert.assertArrayEquals(new String[]{"plainUserCn"}, as.get("firstName").toArray());
+        Assert.assertArrayEquals(new String[]{"plainUserSn"}, as.get("SN").toArray());
+        Assert.assertArrayEquals(new String[]{"(408) 555-2468", "+420 123 456 789"}, as.get("phones").toArray());
+        Assert.assertArrayEquals(new String[]{"cn=Retail,ou=Finance,dc=groups,dc=elytron,dc=wildfly,dc=org"}, as.get("rolesDn").toArray());
+        Assert.assertArrayEquals(new String[]{"Retail","Sales"}, as.get("rolesRecRdnCn").toArray());
+        Assert.assertArrayEquals(new String[]{"Retail"}, as.get("rolesCn").toArray());
+        Assert.assertArrayEquals(new String[]{"Retail department","Second description","Sales department"}, as.get("rolesDescription").toArray());
         identity1.dispose();
 
         RealmIdentity identity2 = securityRealm.getRealmIdentity(new NamePrincipal("refUser")); // referrer test
