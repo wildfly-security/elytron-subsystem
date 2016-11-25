@@ -65,8 +65,20 @@ public class RealmsTestCase extends AbstractSubsystemBaseTest {
             Assert.fail(services.getBootError().toString());
         }
 
-        ServiceName serviceName = Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY.getCapabilityServiceName("TestingPropertyRealm1");
+        ServiceName serviceName = Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY.getCapabilityServiceName("HashedPropertyRealm");
         SecurityRealm securityRealm = (SecurityRealm) services.getContainer().getService(serviceName).getValue();
+        testAbstractPropertyRealm(securityRealm);
+
+        ServiceName serviceName2 = Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY.getCapabilityServiceName("ClearPropertyRealm");
+        SecurityRealm securityRealm2 = (SecurityRealm) services.getContainer().getService(serviceName2).getValue();
+        testAbstractPropertyRealm(securityRealm2);
+
+        RealmIdentity identity1 = securityRealm2.getRealmIdentity(fromName("user1"));
+        Object[] groups = identity1.getAuthorizationIdentity().getAttributes().get("groupAttr").toArray();
+        Assert.assertArrayEquals(new Object[]{"firstGroup","secondGroup"}, groups);
+    }
+
+    private void testAbstractPropertyRealm(SecurityRealm securityRealm) throws Exception {
         Assert.assertNotNull(securityRealm);
 
         RealmIdentity identity1 = securityRealm.getRealmIdentity(fromName("user1"));
@@ -118,6 +130,18 @@ public class RealmsTestCase extends AbstractSubsystemBaseTest {
 
         serviceName = Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY.getCapabilityServiceName("EmptyJwtRealm");
         securityRealm = (SecurityRealm) services.getContainer().getService(serviceName).getValue();
+        Assert.assertNotNull(securityRealm);
+    }
+
+    @Test
+    public void testOAuth2Realm() throws Exception {
+        KernelServices services = super.createKernelServicesBuilder(new TestEnvironment()).setSubsystemXmlResource("realms-test.xml").build();
+        if (!services.isSuccessfulBoot()) {
+            Assert.fail(services.getBootError().toString());
+        }
+
+        ServiceName serviceName = Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY.getCapabilityServiceName("OAuth2Realm");
+        SecurityRealm securityRealm = (SecurityRealm) services.getContainer().getService(serviceName).getValue();
         Assert.assertNotNull(securityRealm);
     }
 

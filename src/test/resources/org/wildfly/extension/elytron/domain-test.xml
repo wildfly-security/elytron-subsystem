@@ -21,10 +21,10 @@
     </security-domains>
     <security-realms>
         <properties-realm name="PropRealm">
-            <users-properties path="testingrealm1-users.properties" relative-to="jboss.server.config.dir"/>
+            <users-properties path="users-hashed.properties" relative-to="jboss.server.config.dir"/>
         </properties-realm>
         <properties-realm name="NonDomainRealm">
-            <users-properties path="testingrealm1-users.properties" relative-to="jboss.server.config.dir"/>
+            <users-properties path="users-hashed.properties" relative-to="jboss.server.config.dir"/>
         </properties-realm>
         <filesystem-realm name="FileRealm" levels="2">
             <file path="filesystem-realm" relative-to="jboss.server.config.dir"/>

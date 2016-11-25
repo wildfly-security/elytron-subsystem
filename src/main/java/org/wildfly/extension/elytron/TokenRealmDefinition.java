@@ -55,9 +55,12 @@ import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 
 import static org.wildfly.extension.elytron.Capabilities.MODIFIABLE_SECURITY_REALM_RUNTIME_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SSL_CONTEXT_CAPABILITY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.JWT;
@@ -130,7 +133,7 @@ class TokenRealmDefinition extends SimpleResourceDefinition {
                 .build();
 
         protected static final SimpleAttributeDefinition SSL_CONTEXT = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.CLIENT_SSL_CONTEXT, ModelType.STRING, true)
-                .setCapabilityReference(SSL_CONTEXT_CAPABILITY)
+                .setCapabilityReference(SSL_CONTEXT_CAPABILITY, SECURITY_REALM_CAPABILITY, true)
                 .setFlags(AttributeAccess.Flag.RESTART_ALL_SERVICES)
                 .setValidator(new StringLengthValidator(1))
                 .build();
@@ -191,7 +194,8 @@ class TokenRealmDefinition extends SimpleResourceDefinition {
     private static class RealmAddHandler extends BaseAddHandler {
 
         private RealmAddHandler() {
-            super(SECURITY_REALM_RUNTIME_CAPABILITY, ATTRIBUTES);
+            super(new HashSet<>(Arrays.asList(new RuntimeCapability[]{
+                    MODIFIABLE_SECURITY_REALM_RUNTIME_CAPABILITY, SECURITY_REALM_RUNTIME_CAPABILITY})), ATTRIBUTES);
         }
 
         @Override

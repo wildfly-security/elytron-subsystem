@@ -64,12 +64,12 @@ import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.StartException;
 import org.jboss.msc.value.InjectedValue;
 import org.wildfly.extension.elytron.TrivialService.ValueSupplier;
-import org.wildfly.security.auth.SupportLevel;
 import org.wildfly.security.auth.realm.LegacyPropertiesSecurityRealm;
 import org.wildfly.security.auth.server.IdentityLocator;
 import org.wildfly.security.auth.server.RealmIdentity;
 import org.wildfly.security.auth.server.RealmUnavailableException;
 import org.wildfly.security.auth.server.SecurityRealm;
+import org.wildfly.security.auth.server.SupportLevel;
 import org.wildfly.security.auth.server.event.RealmEvent;
 import org.wildfly.security.credential.Credential;
 import org.wildfly.security.evidence.Evidence;
@@ -148,7 +148,7 @@ class PropertiesRealmDefinition extends TrivialResourceDefinition {
                 groupsRelativeTo = null;
             }
 
-            final InjectedValue<PathManager> pathManagerInjector = new InjectedValue<PathManager>();
+            final InjectedValue<PathManager> pathManagerInjector = new InjectedValue<>();
 
             if (usersRelativeTo != null || groupsRelativeTo != null) {
                 serviceBuilder.addDependency(PathManagerService.SERVICE_NAME, PathManager.class, pathManagerInjector);
@@ -172,14 +172,14 @@ class PropertiesRealmDefinition extends TrivialResourceDefinition {
                     try (InputStream usersInputStream = new FileInputStream(usersFile);
                             InputStream groupsInputStream = groupsFile != null ? new FileInputStream(groupsFile) : null) {
                         return new RealmWrapper(LegacyPropertiesSecurityRealm.builder()
-                                .setPasswordsStream(usersInputStream)
+                                .setUsersStream(usersInputStream)
                                 .setGroupsStream(groupsInputStream)
                                 .setPlainText(plainText)
                                 .setGroupsAttribute(groupsAttribute)
                                 .build(), usersFile, groupsFile);
 
                     } catch (IOException e) {
-                        throw ROOT_LOGGER.unableToLoadPropertiesFiles(e);
+                        throw ROOT_LOGGER.unableToLoadPropertiesFiles(e, usersFile.toString(), groupsFile != null ? groupsFile.toString() : null);
                     }
                 }
 
