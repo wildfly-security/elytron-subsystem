@@ -66,7 +66,7 @@ class PrincipalDecoderDefinitions {
 
     static final SimpleAttributeDefinition JOINER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.JOINER, ModelType.STRING, true)
         .setAllowExpression(true)
-        .setMinSize(1)
+        .setMinSize(0)
         .setDefaultValue(new ModelNode("."))
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
         .build();
