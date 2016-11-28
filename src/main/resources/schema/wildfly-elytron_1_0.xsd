@@ -888,14 +888,14 @@
         <xs:attribute name="issuer" type="stringListType" use="optional">
             <xs:annotation>
                 <xs:documentation>
-                    A list of strings representing the issuers supported by this configuration. During validation JWT tokens must have an <code>iss</code> claim that contains one of the values defined here.
+                    A list of strings representing the issuers supported by this configuration. During validation JWT tokens must have an "iss" claim that contains one of the values defined here.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
         <xs:attribute name="audience" type="stringListType" use="optional">
             <xs:annotation>
                 <xs:documentation>
-                    A list of strings representing the audiences supported by this configuration. During validation JWT tokens must have an <code>aud</code> claim that contains one of the values defined here.
+                    A list of strings representing the audiences supported by this configuration. During validation JWT tokens must have an "aud" claim that contains one of the values defined here.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
@@ -942,10 +942,10 @@
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
-        <xs:attribute name="host-name-verification-policy" type="xs:string" use="optional" default="ANY">
+        <xs:attribute name="host-name-verification-policy" type="xs:string" use="optional">
             <xs:annotation>
                 <xs:documentation>
-                    A policy that defines how host names should be verified when using HTTPS.
+                    A policy that defines how host names should be verified when using HTTPS. Allowed values: "ANY".
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
