@@ -136,7 +136,6 @@ class TokenRealmDefinition extends SimpleResourceDefinition {
                 .build();
 
         static final SimpleAttributeDefinition HOSTNAME_VERIFICATION_POLICY = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.HOST_NAME_VERIFICATION_POLICY, ModelType.STRING, true)
-                .setDefaultValue(new ModelNode(HostnameVerificationPolicy.ANY.name()))
                 .setValidator(new EnumValidator(HostnameVerificationPolicy.class, true, true))
                 .setAllowExpression(false)
                 .setMinSize(1)
@@ -250,10 +249,14 @@ class TokenRealmDefinition extends SimpleResourceDefinition {
                     @Override
                     public SecurityRealm get() throws StartException {
                         try {
+                            HostnameVerifier verifier = null;
+                            if (hostNameVerificationPolicy != null) {
+                                verifier = HostnameVerificationPolicy.valueOf(hostNameVerificationPolicy).getVerifier();
+                            }
                             OAuth2IntrospectValidator.Builder builder = OAuth2IntrospectValidator.builder().clientId(clientId).clientSecret(clientSecret)
                                     .tokenIntrospectionUrl(new URL(introspectionUrl))
                                     .useSslContext(sslContextInjector.getOptionalValue())
-                                    .useSslHostnameVerifier(HostnameVerificationPolicy.valueOf(hostNameVerificationPolicy).getVerifier());
+                                    .useSslHostnameVerifier(verifier);
                             return TokenSecurityRealm.builder().principalClaimName(principalClaimNode.asString())
                                     .validator(builder.build())
                                     .build();
