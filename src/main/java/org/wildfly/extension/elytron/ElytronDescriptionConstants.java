@@ -64,6 +64,7 @@ interface ElytronDescriptionConstants {
     String CERTIFICATE_CHAIN = "certificate-chain";
     String CERTIFICATE_CHAIN_ATTRIBUTE = "certificate-chain-attribute";
     String CERTIFICATE_CHAIN_ENCODING = "certificate-chain-encoding";
+    String CERTIFICATE_FROM = "certificate-from";
     String CERTIFICATE_TYPE = "certificate-type";
     String CHAINED_NAME_REWRITER = "chained-name-rewriter";
     String CIPHER_SUITE = "cipher-suite";
@@ -116,6 +117,8 @@ interface ElytronDescriptionConstants {
     String DEFAULT_REALM = "default-realm";
     String DELEGATE_REALM_MAPPER = "delegate-realm-mapper";
     String DIGEST = "digest";
+    String DIGEST_ALGORITHM = "digest-algorithm";
+    String DIGEST_FROM = "digest-from";
     String DIR_CONTEXT = "dir-context";
     String DIR_CONTEXTS = "dir-contexts";
     String DIRECT_VERIFICATION = "direct-verification";
@@ -329,6 +332,7 @@ interface ElytronDescriptionConstants {
     String SEED_FROM = "seed-from";
     String SERVER_NAME = "server-name";
     String SERIAL_NUMBER = "serial-number";
+    String SERIAL_NUMBER_FROM = "serial-number-from";
     String SERVER = "server";
     String SERVER_SSL_CONTEXT = "server-ssl-context";
     String SERVER_SSL_CONTEXTS = "server-ssl-contexts";
@@ -354,6 +358,7 @@ interface ElytronDescriptionConstants {
     String STATE = "state";
     String STORE = "store";
     String SUBJECT = "subject";
+    String SUBJECT_DN_FROM = "subject-dn-from";
     String SUFFIX = "suffix";
     String SYNCHRONIZED = "synchronized";
 
@@ -385,6 +390,7 @@ interface ElytronDescriptionConstants {
     String WRITABLE = "writable";
 
     String X500_ATTRIBUTE_PRINCIPAL_DECODER = "x500-attribute-principal-decoder";
+    String X509_CREDENTIAL_MAPPER = "x509-credential-mapper";
     String XOR = "xor";
 
 }

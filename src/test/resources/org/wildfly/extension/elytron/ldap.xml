@@ -17,6 +17,7 @@
             </new-identity-attributes>
             <user-password-mapper from="userPassword" writable="true"/>
             <otp-credential-mapper algorithm-from="otpAlgorithm" hash-from="otpHash" seed-from="otpSeed" sequence-from="otpSequence"/>
+            <x509-credential-mapper digest-from="x509digest" certificate-from="usercertificate" subject-dn-from="x509subject" serial-number-from="x509serialNumber" />
          </identity-mapping>
       </ldap-realm>
    </security-realms>

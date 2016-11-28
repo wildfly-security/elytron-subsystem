@@ -62,7 +62,8 @@ class TestEnvironment extends AdditionalInitialization {
                     .setWorkingDir(new File("./target/apache-ds/working"))
                     .createDirectoryService("Test Service")
                     .addPartition("Elytron", "dc=elytron,dc=wildfly,dc=org", 5, "uid")
-                    .importLdif(TestEnvironment.class.getResourceAsStream("ldap.ldif"))
+                    .importLdif(TestEnvironment.class.getResourceAsStream("ldap-schemas.ldif"))
+                    .importLdif(TestEnvironment.class.getResourceAsStream("ldap-data.ldif"))
                     .addTcpServer("Default TCP", "localhost", LDAP_PORT, "localhost.keystore", "Elytron")
                     .start();
         } catch (Exception e) {

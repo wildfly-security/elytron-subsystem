@@ -13,12 +13,16 @@ import org.junit.Test;
 import org.wildfly.common.function.ExceptionSupplier;
 import org.wildfly.security.auth.server.ModifiableSecurityRealm;
 import org.wildfly.security.auth.server.RealmIdentity;
+import org.wildfly.security.evidence.X509PeerCertificateChainEvidence;
 
 import javax.naming.NamingException;
 import javax.naming.directory.DirContext;
+import java.io.InputStream;
 import java.security.Key;
 import java.security.KeyStore;
 import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Collections;
 import java.util.List;
@@ -82,11 +86,22 @@ public class LdapTestCase extends AbstractSubsystemTest {
         Assert.assertTrue(identity1.exists());
         identity1.dispose();
 
-        RealmIdentity identity2 = securityRealm.getRealmIdentity(fromName("refUser"));
+        RealmIdentity identity2 = securityRealm.getRealmIdentity(fromName("refUser")); // referrer test
         Assert.assertTrue(identity2.exists());
         identity2.dispose();
 
         RealmsTestCase.testModifiability(securityRealm);
+
+        RealmIdentity x509User = securityRealm.getRealmIdentity(fromName("x509User"));
+        Assert.assertTrue(x509User.exists());
+        X509Certificate scarab = loadCertificate("scarab.pem");
+        Assert.assertTrue(x509User.verifyEvidence(new X509PeerCertificateChainEvidence(scarab)));
+    }
+
+    private X509Certificate loadCertificate(String name) throws CertificateException {
+        CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
+        InputStream is = LdapTestCase.class.getResourceAsStream(name);
+        return (X509Certificate) certificateFactory.generateCertificate(is);
     }
 
     @Test

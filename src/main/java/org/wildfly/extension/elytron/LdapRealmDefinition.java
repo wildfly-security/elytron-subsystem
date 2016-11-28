@@ -71,6 +71,7 @@ import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.IDENTITY_MAPPING;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.OTP_CREDENTIAL_MAPPER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.USER_PASSWORD_MAPPER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.X509_CREDENTIAL_MAPPER;
 import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
 
 /**
@@ -118,8 +119,6 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
     }
 
     interface CredentialMappingObjectDefinition {
-        ObjectTypeAttributeDefinition getObjectDefinition();
-        SimpleAttributeDefinition[] getAttributes();
         void configure(LdapSecurityRealmBuilder builder, OperationContext context, ModelNode model) throws OperationFailedException;
     }
 
@@ -142,20 +141,10 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
 
-        static final SimpleAttributeDefinition[] ATTRIBUTES = new SimpleAttributeDefinition[] {FROM, WRITABLE, VERIFIABLE};
+        static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] {FROM, WRITABLE, VERIFIABLE};
 
         static final ObjectTypeAttributeDefinition OBJECT_DEFINITION = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.USER_PASSWORD_MAPPER, ATTRIBUTES)
                 .build();
-
-        @Override
-        public ObjectTypeAttributeDefinition getObjectDefinition() {
-            return OBJECT_DEFINITION;
-        }
-
-        @Override
-        public SimpleAttributeDefinition[] getAttributes() { // TODO AttributeDefinition ?
-            return ATTRIBUTES;
-        }
 
         @Override
         public void configure(LdapSecurityRealmBuilder builder, OperationContext context, ModelNode model) throws OperationFailedException {
@@ -193,20 +182,10 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
 
-        static final SimpleAttributeDefinition[] ATTRIBUTES = new SimpleAttributeDefinition[] {ALGORITHM_FROM, HASH_FROM, SEED_FROM, SEQUENCE_FROM};
+        static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] {ALGORITHM_FROM, HASH_FROM, SEED_FROM, SEQUENCE_FROM};
 
         static final ObjectTypeAttributeDefinition OBJECT_DEFINITION = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.OTP_CREDENTIAL_MAPPER, ATTRIBUTES)
                 .build();
-
-        @Override
-        public ObjectTypeAttributeDefinition getObjectDefinition() {
-            return OBJECT_DEFINITION;
-        }
-
-        @Override
-        public SimpleAttributeDefinition[] getAttributes() {
-            return ATTRIBUTES;
-        }
 
         @Override
         public void configure(LdapSecurityRealmBuilder builder, OperationContext context, ModelNode model) throws OperationFailedException {
@@ -224,6 +203,60 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
         }
     }
 
+    static class X509CredentialMappingObjectDefinition implements CredentialMappingObjectDefinition {
+
+        static final SimpleAttributeDefinition DIGEST_FROM = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.DIGEST_FROM, ModelType.STRING, true)
+                .setAllowExpression(true)
+                .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+                .build();
+
+        static final SimpleAttributeDefinition DIGEST_ALGORITHM = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.DIGEST_ALGORITHM, ModelType.STRING, true)
+                .setAllowExpression(true)
+                .setDefaultValue(new ModelNode("SHA-1"))
+                .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+                .build();
+
+        static final SimpleAttributeDefinition CERTIFICATE_FROM = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.CERTIFICATE_FROM, ModelType.STRING, true)
+                .setAllowExpression(true)
+                .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+                .build();
+
+        static final SimpleAttributeDefinition SERIAL_NUMBER_FROM = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.SERIAL_NUMBER_FROM, ModelType.STRING, true)
+                .setAllowExpression(true)
+                .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+                .build();
+
+        static final SimpleAttributeDefinition SUBJECT_DN_FROM = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.SUBJECT_DN_FROM, ModelType.STRING, true)
+                .setAllowExpression(true)
+                .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+                .build();
+
+        static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] {DIGEST_FROM, DIGEST_ALGORITHM, CERTIFICATE_FROM, SERIAL_NUMBER_FROM, SUBJECT_DN_FROM};
+
+        static final ObjectTypeAttributeDefinition OBJECT_DEFINITION = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.X509_CREDENTIAL_MAPPER, ATTRIBUTES)
+                .build();
+
+        @Override
+        public void configure(LdapSecurityRealmBuilder builder, OperationContext context, ModelNode model) throws OperationFailedException {
+            LdapSecurityRealmBuilder.X509EvidenceVerifierBuilder b = builder.x509EvidenceVerifier();
+
+            ModelNode digestFrom = DIGEST_FROM.resolveModelAttribute(context, model);
+            ModelNode digestAlgorithmFrom = DIGEST_ALGORITHM.resolveModelAttribute(context, model);
+            if (digestFrom.isDefined()) b.addDigestCertificateVerifier(digestFrom.asString(), digestAlgorithmFrom.asString());
+
+            ModelNode certificateFrom = CERTIFICATE_FROM.resolveModelAttribute(context, model);
+            if (certificateFrom.isDefined()) b.addEncodedCertificateVerifier(certificateFrom.asString());
+
+            ModelNode serialNumberFrom = SERIAL_NUMBER_FROM.resolveModelAttribute(context, model);
+            if (serialNumberFrom.isDefined()) b.addSerialNumberCertificateVerifier(serialNumberFrom.asString());
+
+            ModelNode subjectDnFrom = SUBJECT_DN_FROM.resolveModelAttribute(context, model);
+            b.addSubjectDnCertificateVerifier(subjectDnFrom.asString());
+
+            b.build();
+        }
+    }
+
     static Map<String, CredentialMappingObjectDefinition> SUPPORTED_CREDENTIAL_MAPPERS;
 
     static {
@@ -231,6 +264,7 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
 
         supported.put(USER_PASSWORD_MAPPER, new UserPasswordCredentialMappingObjectDefinition());
         supported.put(OTP_CREDENTIAL_MAPPER, new OtpCredentialMappingObjectDefinition());
+        supported.put(X509_CREDENTIAL_MAPPER, new X509CredentialMappingObjectDefinition());
 
         SUPPORTED_CREDENTIAL_MAPPERS = Collections.unmodifiableMap(supported);
     }
@@ -308,9 +342,11 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
         static final ObjectTypeAttributeDefinition OBJECT_DEFINITION = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.IDENTITY_MAPPING,
                     RDN_IDENTIFIER, USE_RECURSIVE_SEARCH, SEARCH_BASE_DN,
                     ATTRIBUTE_MAPPINGS,
-                FILTER_NAME, ITERATOR_FILTER, NEW_IDENTITY_PARENT_DN, NEW_IDENTITY_ATTRIBUTES,
+                    FILTER_NAME, ITERATOR_FILTER,
+                    NEW_IDENTITY_PARENT_DN, NEW_IDENTITY_ATTRIBUTES,
                     UserPasswordCredentialMappingObjectDefinition.OBJECT_DEFINITION,
-                    OtpCredentialMappingObjectDefinition.OBJECT_DEFINITION
+                    OtpCredentialMappingObjectDefinition.OBJECT_DEFINITION,
+                    X509CredentialMappingObjectDefinition.OBJECT_DEFINITION
                 )
                 .setAllowNull(false)
                 .build();
