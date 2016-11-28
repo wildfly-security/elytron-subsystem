@@ -28,6 +28,7 @@ import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.RO
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
@@ -178,6 +179,10 @@ class PropertiesRealmDefinition extends TrivialResourceDefinition {
                                 .setGroupsAttribute(groupsAttribute)
                                 .build(), usersFile, groupsFile);
 
+                    } catch (FileNotFoundException e) {
+                        throw ROOT_LOGGER.propertyFilesDoesNotExist(e.getMessage());
+                    } catch (RealmUnavailableException e) {
+                        throw ROOT_LOGGER.propertyFileIsInvalid(e.getMessage(), e.getCause());
                     } catch (IOException e) {
                         throw ROOT_LOGGER.unableToLoadPropertiesFiles(e);
                     }
