@@ -58,20 +58,14 @@ import javax.naming.directory.BasicAttributes;
 import javax.naming.directory.DirContext;
 import javax.naming.ldap.LdapName;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
+import java.util.List;
 
 import static org.wildfly.extension.elytron.Capabilities.DIR_CONTEXT_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.MODIFIABLE_SECURITY_REALM_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.IDENTITY_MAPPING;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.OTP_CREDENTIAL_MAPPER;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.USER_PASSWORD_MAPPER;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.X509_CREDENTIAL_MAPPER;
 import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
 
 /**
@@ -119,7 +113,7 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
     }
 
     interface CredentialMappingObjectDefinition {
-        void configure(LdapSecurityRealmBuilder builder, OperationContext context, ModelNode model) throws OperationFailedException;
+        void configure(LdapSecurityRealmBuilder builder, OperationContext context, ModelNode identityMapping) throws OperationFailedException;
     }
 
     static class UserPasswordCredentialMappingObjectDefinition implements CredentialMappingObjectDefinition {
@@ -147,7 +141,10 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
                 .build();
 
         @Override
-        public void configure(LdapSecurityRealmBuilder builder, OperationContext context, ModelNode model) throws OperationFailedException {
+        public void configure(LdapSecurityRealmBuilder builder, OperationContext context, ModelNode identityMapping) throws OperationFailedException {
+            ModelNode model = OBJECT_DEFINITION.resolveModelAttribute(context, identityMapping);
+            if (!model.isDefined()) return;
+
             String from = FROM.resolveModelAttribute(context, model).asString();
             boolean writable = WRITABLE.resolveModelAttribute(context, model).asBoolean();
             boolean verifiable = VERIFIABLE.resolveModelAttribute(context, model).asBoolean();
@@ -159,6 +156,12 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
             b.build();
         }
     }
+
+    static List<CredentialMappingObjectDefinition> CREDENTIAL_MAPPERS = Arrays.asList(
+            new UserPasswordCredentialMappingObjectDefinition(),
+            new OtpCredentialMappingObjectDefinition(),
+            new X509CredentialMappingObjectDefinition()
+    );
 
     static class OtpCredentialMappingObjectDefinition implements CredentialMappingObjectDefinition {
 
@@ -188,7 +191,10 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
                 .build();
 
         @Override
-        public void configure(LdapSecurityRealmBuilder builder, OperationContext context, ModelNode model) throws OperationFailedException {
+        public void configure(LdapSecurityRealmBuilder builder, OperationContext context, ModelNode identityMapping) throws OperationFailedException {
+            ModelNode model = OBJECT_DEFINITION.resolveModelAttribute(context, identityMapping);
+            if (!model.isDefined()) return;
+
             String algorithmFrom = ALGORITHM_FROM.resolveModelAttribute(context, model).asString();
             String hashFrom = HASH_FROM.resolveModelAttribute(context, model).asString();
             String seedFrom = SEED_FROM.resolveModelAttribute(context, model).asString();
@@ -237,7 +243,9 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
                 .build();
 
         @Override
-        public void configure(LdapSecurityRealmBuilder builder, OperationContext context, ModelNode model) throws OperationFailedException {
+        public void configure(LdapSecurityRealmBuilder builder, OperationContext context, ModelNode identityMapping) throws OperationFailedException {
+            ModelNode model = OBJECT_DEFINITION.resolveModelAttribute(context, identityMapping);
+            if (!model.isDefined()) return;
             LdapSecurityRealmBuilder.X509EvidenceVerifierBuilder b = builder.x509EvidenceVerifier();
 
             ModelNode digestFrom = DIGEST_FROM.resolveModelAttribute(context, model);
@@ -255,18 +263,6 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
 
             b.build();
         }
-    }
-
-    static Map<String, CredentialMappingObjectDefinition> SUPPORTED_CREDENTIAL_MAPPERS;
-
-    static {
-        Map<String, CredentialMappingObjectDefinition> supported = new HashMap<>();
-
-        supported.put(USER_PASSWORD_MAPPER, new UserPasswordCredentialMappingObjectDefinition());
-        supported.put(OTP_CREDENTIAL_MAPPER, new OtpCredentialMappingObjectDefinition());
-        supported.put(X509_CREDENTIAL_MAPPER, new X509CredentialMappingObjectDefinition());
-
-        SUPPORTED_CREDENTIAL_MAPPERS = Collections.unmodifiableMap(supported);
     }
 
     static class NewIdentityAttributeObjectDefinition {
@@ -436,33 +432,28 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
         }
 
         private void configureIdentityMapping(OperationContext context, ModelNode model, LdapSecurityRealmBuilder builder) throws OperationFailedException {
-            ModelNode principalMappingNode = IdentityMappingObjectDefinition.OBJECT_DEFINITION.resolveModelAttribute(context, model);
+            ModelNode identityMappingNode = IdentityMappingObjectDefinition.OBJECT_DEFINITION.resolveModelAttribute(context, model);
 
             IdentityMappingBuilder identityMappingBuilder = builder.identityMapping();
 
-            ModelNode nameAttributeNode = IdentityMappingObjectDefinition.RDN_IDENTIFIER.resolveModelAttribute(context, principalMappingNode);
-
+            ModelNode nameAttributeNode = IdentityMappingObjectDefinition.RDN_IDENTIFIER.resolveModelAttribute(context, identityMappingNode);
             identityMappingBuilder.setRdnIdentifier(nameAttributeNode.asString());
 
-            ModelNode searchDnNode = IdentityMappingObjectDefinition.SEARCH_BASE_DN.resolveModelAttribute(context, principalMappingNode);
-
+            ModelNode searchDnNode = IdentityMappingObjectDefinition.SEARCH_BASE_DN.resolveModelAttribute(context, identityMappingNode);
             if (searchDnNode.isDefined()) {
                 identityMappingBuilder.setSearchDn(searchDnNode.asString());
             }
 
-            ModelNode useRecursiveSearchNode = IdentityMappingObjectDefinition.USE_RECURSIVE_SEARCH.resolveModelAttribute(context, principalMappingNode);
-
+            ModelNode useRecursiveSearchNode = IdentityMappingObjectDefinition.USE_RECURSIVE_SEARCH.resolveModelAttribute(context, identityMappingNode);
             if (useRecursiveSearchNode.asBoolean()) {
                 identityMappingBuilder.searchRecursive();
             }
 
-            for (Map.Entry<String, CredentialMappingObjectDefinition> entry : SUPPORTED_CREDENTIAL_MAPPERS.entrySet()) {
-                ModelNode node = model.get(IDENTITY_MAPPING).get(entry.getKey());
-                if (node.isDefined()) entry.getValue().configure(builder, context, node);
+            for(CredentialMappingObjectDefinition credentialMapper : CREDENTIAL_MAPPERS) {
+                credentialMapper.configure(builder, context, identityMappingNode);
             }
 
-            ModelNode attributeMappingNode = IdentityMappingObjectDefinition.ATTRIBUTE_MAPPINGS.resolveModelAttribute(context, principalMappingNode);
-
+            ModelNode attributeMappingNode = IdentityMappingObjectDefinition.ATTRIBUTE_MAPPINGS.resolveModelAttribute(context, identityMappingNode);
             if (attributeMappingNode.isDefined()) {
                 for (ModelNode attributeNode : attributeMappingNode.asList()) {
                     ModelNode fromNode = AttributeMappingObjectDefinition.FROM.resolveModelAttribute(context, attributeNode);
@@ -494,17 +485,17 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
                 }
             }
 
-            ModelNode filterNameNode = IdentityMappingObjectDefinition.FILTER_NAME.resolveModelAttribute(context, principalMappingNode);
+            ModelNode filterNameNode = IdentityMappingObjectDefinition.FILTER_NAME.resolveModelAttribute(context, identityMappingNode);
             if (filterNameNode.isDefined()) {
                 identityMappingBuilder.setFilterName(filterNameNode.asString());
             }
 
-            ModelNode iteratorFilterNode = IdentityMappingObjectDefinition.ITERATOR_FILTER.resolveModelAttribute(context, principalMappingNode);
+            ModelNode iteratorFilterNode = IdentityMappingObjectDefinition.ITERATOR_FILTER.resolveModelAttribute(context, identityMappingNode);
             if (iteratorFilterNode.isDefined()) {
                 identityMappingBuilder.setIteratorFilter(iteratorFilterNode.asString());
             }
 
-            ModelNode newIdentityParentDnNode = IdentityMappingObjectDefinition.NEW_IDENTITY_PARENT_DN.resolveModelAttribute(context, principalMappingNode);
+            ModelNode newIdentityParentDnNode = IdentityMappingObjectDefinition.NEW_IDENTITY_PARENT_DN.resolveModelAttribute(context, identityMappingNode);
             if (newIdentityParentDnNode.isDefined()) {
                 try {
                     identityMappingBuilder.setNewIdentityParent(new LdapName(newIdentityParentDnNode.asString()));
@@ -513,7 +504,7 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
                 }
             }
 
-            ModelNode newIdentityAttributesNode = IdentityMappingObjectDefinition.NEW_IDENTITY_ATTRIBUTES.resolveModelAttribute(context, principalMappingNode);
+            ModelNode newIdentityAttributesNode = IdentityMappingObjectDefinition.NEW_IDENTITY_ATTRIBUTES.resolveModelAttribute(context, identityMappingNode);
 
             if (newIdentityAttributesNode.isDefined()) {
                 Attributes attributes = new BasicAttributes(true);
