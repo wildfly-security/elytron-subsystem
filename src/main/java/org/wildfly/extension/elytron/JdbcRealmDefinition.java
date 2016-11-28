@@ -430,8 +430,6 @@ class JdbcRealmDefinition extends SimpleResourceDefinition {
                 .setAllowDuplicates(true)
                 .build();
 
-        static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] {SQL, DATA_SOURCE};
-
         static Map<String, PasswordMapperObjectDefinition> SUPPORTED_PASSWORD_MAPPERS;
 
         static {
@@ -461,8 +459,7 @@ class JdbcRealmDefinition extends SimpleResourceDefinition {
                 .build();
 
         static final ObjectListAttributeDefinition PRINCIPAL_QUERIES = new ObjectListAttributeDefinition.Builder(ElytronDescriptionConstants.PRINCIPAL_QUERY, PRINCIPAL_QUERY)
-                .setAllowNull(true)
-                //.setAttributeGroup(ElytronDescriptionConstants.ATTRIBUTE)
+                .setMinSize(1)
                 .setAllowDuplicates(true)
                 .build();
     }
