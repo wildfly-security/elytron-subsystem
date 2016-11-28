@@ -2452,7 +2452,7 @@
                 <xs:documentation>
                     This configuration will only apply where a mechanism with the name specified is used.
 
-                    If this attribute is omited then this will match any mechanism name.
+                    If this attribute is omitted then this will match any mechanism name.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
@@ -2989,7 +2989,9 @@
                                         <xs:attribute name="mechanism-name" type="xs:string">
                                             <xs:annotation>
                                                 <xs:documentation>
-                                                    The name of the mechanism this filter matches, if omited all names match.
+                                                   This configuration will only apply where a mechanism with the name specified is used.
+
+                                                   If this attribute is omitted then this will match any mechanism name.
                                                 </xs:documentation>
                                             </xs:annotation>
                                         </xs:attribute>
