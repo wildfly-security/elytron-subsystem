@@ -2477,21 +2477,21 @@
         <xs:attribute name="pre-realm-name-rewriter" type="xs:string" >
             <xs:annotation>
                 <xs:documentation>
-                    Reference to a NameRewriter that should be used before the actual realm is selected.
+                    A name rewriter to apply before the realm is selected.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
         <xs:attribute name="post-realm-name-rewriter" type="xs:string">
             <xs:annotation>
                 <xs:documentation>
-                    Reference to a NameRewriter that should be used after the realm.
+                    A name rewriter to apply after the realm is selected.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
         <xs:attribute name="final-name-rewriter" type="xs:string">
             <xs:annotation>
                 <xs:documentation>
-                    Reference to the final NameRewriter.
+                    A final name rewriter to apply for this mechanism realm.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
@@ -2533,21 +2533,21 @@
         <xs:attribute name="pre-realm-name-rewriter" type="xs:string">
             <xs:annotation>
                 <xs:documentation>
-                    Reference to a NameRewriter that should be used before the actual realm is selected.
+                    A name rewriter to apply before the realm is selected.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
         <xs:attribute name="post-realm-name-rewriter" type="xs:string">
             <xs:annotation>
                 <xs:documentation>
-                    Reference to a NameRewriter that should be used after the realm.
+                    A name rewriter to apply after the realm is selected.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
         <xs:attribute name="final-name-rewriter" type="xs:string">
             <xs:annotation>
                 <xs:documentation>
-                    Reference to the final NameRewriter.
+                    A final name rewriter to apply for this mechanism realm.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
