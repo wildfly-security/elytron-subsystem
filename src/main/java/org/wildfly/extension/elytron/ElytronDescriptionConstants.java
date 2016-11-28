@@ -345,6 +345,8 @@ interface ElytronDescriptionConstants {
     String SERVICE_LOADER_SASL_SERVER_FACTORY = "service-loader-sasl-server-factory";
     String SERVICES = "services";
     String SEQUENCE_FROM = "sequence-from";
+    String SHA_1_DIGEST = "sha-1-digest";
+    String SHA_256_DIGEST = "sha-256-digest";
     String SIGNATURE = "signature";
     String SIGNATURE_ALGORITHM = "signature-algorithm";
     String SIMPLE_DIGEST = "simple-digest";

@@ -23,6 +23,7 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.security.Provider;
 import java.security.Security;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -30,12 +31,12 @@ import java.util.concurrent.Future;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLHandshakeException;
-import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.SSLSocket;
-import javax.net.ssl.SSLSocketFactory;
 
+import org.jboss.as.controller.client.helpers.ClientConstants;
 import org.jboss.as.subsystem.test.AbstractSubsystemTest;
 import org.jboss.as.subsystem.test.KernelServices;
+import org.jboss.dmr.ModelNode;
 import org.jboss.msc.service.ServiceName;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -98,41 +99,17 @@ public class TlsTestCase extends AbstractSubsystemTest {
 
     @Test
     public void testSslServiceNoAuth() throws Throwable {
-        SSLServerSocketFactory serverSocketFactory = getSslContext("ServerSslContextNoAuth").getServerSocketFactory();
-        SSLSocketFactory clientSocketFactory = getSslContext("ClientSslContextNoAuth").getSocketFactory();
-
-        ServerSocket listeningSocket = serverSocketFactory.createServerSocket();
-        listeningSocket.bind(new InetSocketAddress("localhost", TESTING_PORT));
-        SSLSocket clientSocket = (SSLSocket) clientSocketFactory.createSocket("localhost", TESTING_PORT);
-        SSLSocket serverSocket = (SSLSocket) listeningSocket.accept();
-
-        testCommunication(listeningSocket, serverSocket, clientSocket, "OU=Elytron,O=Elytron,C=CZ,ST=Elytron,CN=localhost", null);
+        testCommunication("ServerSslContextNoAuth", "ClientSslContextNoAuth", "OU=Elytron,O=Elytron,C=CZ,ST=Elytron,CN=localhost", null);
     }
 
     @Test
     public void testSslServiceAuth() throws Throwable {
-        SSLServerSocketFactory serverSocketFactory = getSslContext("ServerSslContextAuth").getServerSocketFactory();
-        SSLSocketFactory clientSocketFactory = getSslContext("ClientSslContextAuth").getSocketFactory();
-
-        ServerSocket listeningSocket = serverSocketFactory.createServerSocket();
-        listeningSocket.bind(new InetSocketAddress("localhost", TESTING_PORT));
-        SSLSocket clientSocket = (SSLSocket) clientSocketFactory.createSocket("localhost", TESTING_PORT);
-        SSLSocket serverSocket = (SSLSocket) listeningSocket.accept();
-
-        testCommunication(listeningSocket, serverSocket, clientSocket, "OU=Elytron,O=Elytron,C=CZ,ST=Elytron,CN=localhost", "OU=Elytron,O=Elytron,C=UK,ST=Elytron,CN=Firefly");
+        testCommunication("ServerSslContextAuth", "ClientSslContextAuth", "OU=Elytron,O=Elytron,C=CZ,ST=Elytron,CN=localhost", "OU=Elytron,O=Elytron,C=UK,ST=Elytron,CN=Firefly");
     }
 
     @Test(expected = SSLHandshakeException.class)
     public void testSslServiceAuthRequiredButNotProvided() throws Throwable {
-        SSLServerSocketFactory serverSocketFactory = getSslContext("ServerSslContextAuth").getServerSocketFactory();
-        SSLSocketFactory clientSocketFactory = getSslContext("ClientSslContextNoAuth").getSocketFactory();
-
-        ServerSocket listeningSocket = serverSocketFactory.createServerSocket();
-        listeningSocket.bind(new InetSocketAddress("localhost", TESTING_PORT));
-        SSLSocket clientSocket = (SSLSocket) clientSocketFactory.createSocket("localhost", TESTING_PORT);
-        SSLSocket serverSocket = (SSLSocket) listeningSocket.accept();
-
-        testCommunication(listeningSocket, serverSocket, clientSocket, "OU=Elytron,O=Elytron,C=UK,ST=Elytron,CN=Firefly", "");
+        testCommunication("ServerSslContextAuth", "ClientSslContextNoAuth", "OU=Elytron,O=Elytron,C=UK,ST=Elytron,CN=Firefly", "");
     }
 
     private SSLContext getSslContext(String contextName) {
@@ -142,7 +119,14 @@ public class TlsTestCase extends AbstractSubsystemTest {
         return sslContext;
     }
 
-    private void testCommunication(ServerSocket listeningSocket, SSLSocket serverSocket, SSLSocket clientSocket, String expectedServerPrincipal, String expectedClientPrincipal) throws Throwable {
+    private void testCommunication(String serverContextName, String clientContextName, String expectedServerPrincipal, String expectedClientPrincipal) throws Throwable {
+        SSLContext serverContext = getSslContext(serverContextName);
+        SSLContext clientContext = getSslContext(clientContextName);
+
+        ServerSocket listeningSocket = serverContext.getServerSocketFactory().createServerSocket();
+        listeningSocket.bind(new InetSocketAddress("localhost", TESTING_PORT));
+        SSLSocket clientSocket = (SSLSocket) clientContext.getSocketFactory().createSocket("localhost", TESTING_PORT);
+        SSLSocket serverSocket = (SSLSocket) listeningSocket.accept();
 
         ExecutorService serverExecutorService = Executors.newSingleThreadExecutor();
         Future<byte[]> serverFuture = serverExecutorService.submit(() -> {
@@ -181,6 +165,7 @@ public class TlsTestCase extends AbstractSubsystemTest {
         try {
             Assert.assertArrayEquals(new byte[]{0x12, 0x34}, serverFuture.get());
             Assert.assertArrayEquals(new byte[]{0x56, 0x78}, clientFuture.get());
+            testSessionsReading(serverContextName, clientContextName, expectedServerPrincipal, expectedClientPrincipal);
         } catch (ExecutionException e) {
             if (e.getCause() != null && e.getCause() instanceof RuntimeException && e.getCause().getCause() != null) {
                 throw e.getCause().getCause(); // unpack
@@ -191,6 +176,60 @@ public class TlsTestCase extends AbstractSubsystemTest {
             serverSocket.close();
             clientSocket.close();
             listeningSocket.close();
+        }
+    }
+
+    private void testSessionsReading(String serverContextName, String clientContextName, String expectedServerPrincipal, String expectedClientPrincipal) {
+        ModelNode operation = new ModelNode();
+        operation.get(ClientConstants.OP_ADDR).add("subsystem", "elytron").add(ElytronDescriptionConstants.SERVER_SSL_CONTEXT, serverContextName);
+        operation.get(ClientConstants.OP).set(ClientConstants.READ_ATTRIBUTE_OPERATION);
+        operation.get(ClientConstants.NAME).set(ElytronDescriptionConstants.ACTIVE_SESSION_COUNT);
+        Assert.assertEquals("active session count", 1, services.executeOperation(operation).get(ClientConstants.RESULT).asInt());
+
+        operation = new ModelNode();
+        operation.get(ClientConstants.OP_ADDR).add("subsystem", "elytron").add(ElytronDescriptionConstants.SERVER_SSL_CONTEXT, serverContextName);
+        operation.get(ClientConstants.OP).set(ClientConstants.READ_CHILDREN_NAMES_OPERATION);
+        operation.get(ClientConstants.CHILD_TYPE).set(ElytronDescriptionConstants.SSL_SESSION);
+        List<ModelNode> sessions = services.executeOperation(operation).get(ClientConstants.RESULT).asList();
+        Assert.assertEquals("session count in list", 1, sessions.size());
+
+        operation = new ModelNode();
+        operation.get(ClientConstants.OP_ADDR).add("subsystem", "elytron").add(ElytronDescriptionConstants.SERVER_SSL_CONTEXT, serverContextName).add(ElytronDescriptionConstants.SSL_SESSION, sessions.get(0).asString());
+        operation.get(ClientConstants.OP).set(ClientConstants.READ_ATTRIBUTE_OPERATION);
+        operation.get(ClientConstants.NAME).set(ElytronDescriptionConstants.PEER_CERTIFICATES);
+        ModelNode result = services.executeOperation(operation).get(ClientConstants.RESULT);
+        System.out.println("server's peer certificates:");
+        System.out.println(result);
+        if (expectedClientPrincipal == null) {
+            Assert.assertFalse(result.get(0).get(ElytronDescriptionConstants.SUBJECT).isDefined());
+        } else {
+            Assert.assertEquals(expectedClientPrincipal, result.get(0).get(ElytronDescriptionConstants.SUBJECT).asString());
+        }
+
+        operation = new ModelNode();
+        operation.get(ClientConstants.OP_ADDR).add("subsystem", "elytron").add(ElytronDescriptionConstants.CLIENT_SSL_CONTEXT, clientContextName);
+        operation.get(ClientConstants.OP).set(ClientConstants.READ_ATTRIBUTE_OPERATION);
+        operation.get(ClientConstants.NAME).set(ElytronDescriptionConstants.ACTIVE_SESSION_COUNT);
+        Assert.assertEquals("active session count", 1, services.executeOperation(operation).get(ClientConstants.RESULT).asInt());
+
+        operation = new ModelNode();
+        operation.get(ClientConstants.OP_ADDR).add("subsystem", "elytron").add(ElytronDescriptionConstants.CLIENT_SSL_CONTEXT, clientContextName);
+        operation.get(ClientConstants.OP).set(ClientConstants.READ_CHILDREN_NAMES_OPERATION);
+        operation.get(ClientConstants.CHILD_TYPE).set(ElytronDescriptionConstants.SSL_SESSION);
+        sessions = services.executeOperation(operation).get(ClientConstants.RESULT).asList();
+        Assert.assertEquals("session count in list", 1, sessions.size());
+
+        operation = new ModelNode();
+        operation.get(ClientConstants.OP_ADDR).add("subsystem", "elytron").add(ElytronDescriptionConstants.CLIENT_SSL_CONTEXT, clientContextName).add(ElytronDescriptionConstants.SSL_SESSION, sessions.get(0).asString());
+        operation.get(ClientConstants.OP).set(ClientConstants.READ_ATTRIBUTE_OPERATION);
+        operation.get(ClientConstants.NAME).set(ElytronDescriptionConstants.PEER_CERTIFICATES);
+        result = services.executeOperation(operation).get(ClientConstants.RESULT);
+        System.out.println("client's peer certificates:");
+        System.out.println(result);
+        if (expectedServerPrincipal == null) {
+            Assert.assertFalse(result.get(0).get(ElytronDescriptionConstants.SUBJECT).isDefined());
+        } else {
+            Assert.assertEquals(expectedServerPrincipal, result.get(0).get(ElytronDescriptionConstants.SUBJECT).asString());
         }
     }
 }
