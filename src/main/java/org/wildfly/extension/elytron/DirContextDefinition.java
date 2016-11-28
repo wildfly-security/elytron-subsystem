@@ -102,7 +102,17 @@ public class DirContextDefinition extends SimpleResourceDefinition {
             .setCapabilityReference(SSL_CONTEXT_CAPABILITY, DIR_CONTEXT_CAPABILITY, true)
             .build();
 
-    static final SimpleAttributeDefinition[] ATTRIBUTES = new SimpleAttributeDefinition[] {URL, AUTHENTICATION_LEVEL, PRINCIPAL, CREDENTIAL, ENABLE_CONNECTION_POOLING, REFERRAL_MODE, SSL_CONTEXT};
+    static final SimpleAttributeDefinition CONNECTION_TIMEOUT = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.CONNECTION_TIMEOUT, ModelType.INT, true)
+            .setAllowExpression(true)
+            .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+            .build();
+
+    static final SimpleAttributeDefinition READ_TIMEOUT = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.READ_TIMEOUT, ModelType.INT, true)
+            .setAllowExpression(true)
+            .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+            .build();
+
+    static final SimpleAttributeDefinition[] ATTRIBUTES = new SimpleAttributeDefinition[] {URL, AUTHENTICATION_LEVEL, PRINCIPAL, CREDENTIAL, ENABLE_CONNECTION_POOLING, REFERRAL_MODE, SSL_CONTEXT, CONNECTION_TIMEOUT, READ_TIMEOUT};
 
     DirContextDefinition() {
         super(new SimpleResourceDefinition.Parameters(PathElement.pathElement(ElytronDescriptionConstants.DIR_CONTEXT), ElytronExtension.getResourceDescriptionResolver(ElytronDescriptionConstants.DIR_CONTEXT))
@@ -130,6 +140,8 @@ public class DirContextDefinition extends SimpleResourceDefinition {
         Properties connectionProperties = new Properties();
         ModelNode enableConnectionPoolingNode = ENABLE_CONNECTION_POOLING.resolveModelAttribute(context, model);
         connectionProperties.put(CONNECTION_POOLING_PROPERTY, enableConnectionPoolingNode.asBoolean());
+        ModelNode connectionTimeout = CONNECTION_TIMEOUT.resolveModelAttribute(context, model);
+        ModelNode readTimeout = READ_TIMEOUT.resolveModelAttribute(context, model);
         ReferralMode referralMode = ReferralMode.valueOf(REFERRAL_MODE.resolveModelAttribute(context, model).asString().toUpperCase());
 
         return () -> {
@@ -142,6 +154,9 @@ public class DirContextDefinition extends SimpleResourceDefinition {
 
             SSLContext sslContext = sslContextInjector.getOptionalValue();
             if (sslContext != null) builder.setSocketFactory(sslContext.getSocketFactory());
+
+            if (connectionTimeout.isDefined()) builder.setConnectTimeout(connectionTimeout.asInt());
+            if (readTimeout.isDefined()) builder.setReadTimeout(readTimeout.asInt());
 
             DirContextFactory dirContextFactory = builder.build();
             return () -> dirContextFactory.obtainDirContext(referralMode);

@@ -84,6 +84,7 @@ interface ElytronDescriptionConstants {
     String CONFIGURATION = "configuration";
     String CONFIGURATION_FILE = "configuration-file";
     String CONFIGURATION_PROPERTIES = "configuration-properties";
+    String CONNECTION_TIMEOUT = "connection-timeout";
     String CONSTANT = "constant";
     String CONSTANT_NAME_REWRITER = "constant-name-rewriter";
     String CONSTANT_PERMISSION_MAPPER = "constant-permission-mapper";
@@ -284,6 +285,7 @@ interface ElytronDescriptionConstants {
 
     String RDN_IDENTIFIER = "rdn-identifier";
     String READ_IDENTITY = "read-identity";
+    String READ_TIMEOUT = "read-timeout";
     String REALM = "realm";
     String REALM_MAP = "realm-map";
     String REALM_MAPPER = "realm-mapper";
