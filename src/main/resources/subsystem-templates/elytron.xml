@@ -37,6 +37,10 @@
             <constant-realm-mapper name="local" realm-name="local" />
 
             <simple-role-decoder name="groups-to-roles" attribute="groups" />
+
+            <constant-role-mapper name="super-user-mapper">
+                <role name="SuperUser"/>
+            </constant-role-mapper>
         </mappers>
 
         <http>
@@ -99,7 +103,7 @@
         <replacement placeholder="DOMAIN_DEFINITIONS">
             <security-domain name="ManagementDomain" default-realm="ManagementRealm" permission-mapper="login-permission-mapper">
                 <realm name="ManagementRealm" role-decoder="groups-to-roles" />
-                <realm name="local" />
+                <realm name="local" role-mapper="super-user-mapper"/>
             </security-domain>
         </replacement>
         <replacement placeholder="REALM_DEFINITIONS">
@@ -137,7 +141,7 @@
 
             <security-domain name="ManagementDomain" default-realm="ManagementRealm" permission-mapper="login-permission-mapper">
                 <realm name="ManagementRealm" role-decoder="groups-to-roles" />
-                <realm name="local" />
+                <realm name="local" role-mapper="super-user-mapper"/>
             </security-domain>
         </replacement>
 
