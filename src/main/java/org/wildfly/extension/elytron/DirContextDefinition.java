@@ -37,6 +37,7 @@ import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
 import org.jboss.as.controller.SimpleResourceDefinition;
 import org.jboss.as.controller.capability.RuntimeCapability;
+import org.jboss.as.controller.operations.validation.EnumValidator;
 import org.jboss.as.controller.registry.AttributeAccess;
 import org.jboss.as.controller.registry.ManagementResourceRegistration;
 import org.jboss.as.controller.registry.OperationEntry;
@@ -94,6 +95,7 @@ public class DirContextDefinition extends SimpleResourceDefinition {
     static final SimpleAttributeDefinition REFERRAL_MODE = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.REFERRAL_MODE, ModelType.STRING, true)
             .setDefaultValue(new ModelNode(ReferralMode.IGNORE.name()))
             .setAllowedValues(ReferralMode.FOLLOW.name(), ReferralMode.IGNORE.name(), ReferralMode.THROW.name())
+            .setValidator(EnumValidator.create(ReferralMode.class, true, true))
             .setAllowExpression(true)
             .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
             .build();
