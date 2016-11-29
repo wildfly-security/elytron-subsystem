@@ -33,7 +33,7 @@ import static org.wildfly.extension.elytron.Capabilities.TRUST_MANAGERS_RUNTIME_
 import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
 import static org.wildfly.extension.elytron.ElytronExtension.getRequiredService;
 import static org.wildfly.extension.elytron.KeyStoreDefinition.CREDENTIAL_REFERENCE;
-import static org.wildfly.extension.elytron.KeyStoreDefinition.CREDENTIAL_STORE_CLIENT_SERVICE_UTIL;
+import static org.wildfly.extension.elytron.CredentialStoreResourceDefinition.CREDENTIAL_STORE_CLIENT_UTIL;
 import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
 
 import java.security.GeneralSecurityException;
@@ -296,7 +296,7 @@ class SSLDefinitions {
                 if (credentialReference.getAlias() != null) {
                     String credentialStoreClientCapabilityName = RuntimeCapability.buildDynamicCapabilityName(CREDENTIAL_STORE_CLIENT_CAPABILITY, credentialReference.getCredentialStoreName());
                     ServiceName credentialStoreClientServiceName = context.getCapabilityServiceName(credentialStoreClientCapabilityName, CredentialStoreClient.class);
-                    CREDENTIAL_STORE_CLIENT_SERVICE_UTIL.addInjection(serviceBuilder, credentialStoreClientInjector, credentialStoreClientServiceName);
+                    CREDENTIAL_STORE_CLIENT_UTIL.addInjection(serviceBuilder, credentialStoreClientInjector, credentialStoreClientServiceName);
                 }
 
                 return () -> {
