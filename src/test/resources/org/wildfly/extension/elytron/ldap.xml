@@ -1,8 +1,8 @@
 <!-- for needs of LdapTestCase -->
 <subsystem xmlns="urn:wildfly:elytron:1.0">
  <security-realms>
-        <ldap-realm dir-context="DirContextSsl" name="LdapRealm">
-         <identity-mapping filter-name="(|(objectclass=referral)(uid={0}))" iterator-filter="(uid=*)" new-identity-parent-dn="dc=users,dc=elytron,dc=wildfly,dc=org" rdn-identifier="uid" search-base-dn="dc=users,dc=elytron,dc=wildfly,dc=org" use-recursive-search="true">
+        <ldap-realm name="LdapRealm" dir-context="DirContextSsl">
+         <identity-mapping filter-name="(|(objectclass=referral)(uid={0}))" iterator-filter="(|(objectclass=referral)(uid=*))" new-identity-parent-dn="dc=users,dc=elytron,dc=wildfly,dc=org" rdn-identifier="uid" search-base-dn="dc=users,dc=elytron,dc=wildfly,dc=org" use-recursive-search="true">
             <attribute-mapping>
                <attribute to="userDn"/>
                <attribute from="uid" to="userName"/>
@@ -22,6 +22,10 @@
             <user-password-mapper from="userPassword" writable="true"/>
             <otp-credential-mapper algorithm-from="otpAlgorithm" hash-from="otpHash" seed-from="otpSeed" sequence-from="otpSequence"/>
             <x509-credential-mapper digest-from="x509digest" certificate-from="usercertificate" subject-dn-from="x509subject" serial-number-from="x509serialNumber" />
+         </identity-mapping>
+      </ldap-realm>
+      <ldap-realm name="LdapRealmDirectVerification" dir-context="DirContextSsl" direct-verification="true">
+         <identity-mapping filter-name="(|(objectclass=referral)(uid={0}))" iterator-filter="(uid=*)" new-identity-parent-dn="dc=users,dc=elytron,dc=wildfly,dc=org" rdn-identifier="uid" search-base-dn="dc=users,dc=elytron,dc=wildfly,dc=org" use-recursive-search="true">
          </identity-mapping>
       </ldap-realm>
    </security-realms>
@@ -49,7 +53,6 @@
    </tls>
    <dir-contexts>
       <dir-context authentication-level="none" name="DirContextInsecure" url="ldap://localhost:11391/"/>
-      <dir-context credential="serverPassword" name="DirContextSsl" principal="uid=server,dc=users,dc=elytron,dc=wildfly,dc=org" referral-mode="FOLLOW" ssl-context="LdapSslContext" url="ldaps://localhost:11391/" connection-timeout="2000" read-timeout="3000"/>
+      <dir-context credential="serverPassword" name="DirContextSsl" principal="uid=server,dc=users,dc=elytron,dc=wildfly,dc=org" referral-mode="THROW" ssl-context="LdapSslContext" url="ldaps://localhost:11391/" connection-timeout="2000" read-timeout="3000"/>
    </dir-contexts>
-
 </subsystem>
