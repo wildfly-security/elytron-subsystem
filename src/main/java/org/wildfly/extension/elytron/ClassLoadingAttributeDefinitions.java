@@ -34,19 +34,19 @@ class ClassLoadingAttributeDefinitions {
 
     static final SimpleAttributeDefinition MODULE = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.MODULE, ModelType.STRING, true)
         .setAttributeGroup(ElytronDescriptionConstants.CLASS_LOADING)
-        .setAllowExpression(true)
+        .setAllowExpression(false)
         .setMinSize(1)
         .build();
 
     static final SimpleAttributeDefinition CLASS_NAME = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.CLASS_NAME, ModelType.STRING, false)
         .setAttributeGroup(ElytronDescriptionConstants.CLASS_LOADING)
-        .setAllowExpression(true)
+        .setAllowExpression(false)
         .setMinSize(1)
         .build();
 
     static final StringListAttributeDefinition CLASS_NAMES = new StringListAttributeDefinition.Builder(ElytronDescriptionConstants.CLASS_NAMES)
         .setAttributeGroup(ElytronDescriptionConstants.CLASS_LOADING)
-        .setAllowExpression(true)
+        .setAllowExpression(false)
         .setAllowNull(true)
         .build();
 

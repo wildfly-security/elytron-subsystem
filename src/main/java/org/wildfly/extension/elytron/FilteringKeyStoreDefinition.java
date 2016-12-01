@@ -65,7 +65,7 @@ public class FilteringKeyStoreDefinition extends SimpleResourceDefinition {
     static final ServiceUtil<KeyStore> FILTERING_KEY_STORE_UTIL = ServiceUtil.newInstance(KEY_STORE_RUNTIME_CAPABILITY, ElytronDescriptionConstants.FILTERING_KEY_STORE, KeyStore.class);
 
     static final SimpleAttributeDefinition KEY_STORE = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.KEY_STORE, ModelType.STRING, false)
-            .setAllowExpression(true)
+            .setAllowExpression(false)
             .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
             .setCapabilityReference(KEY_STORE_CAPABILITY, KEY_STORE_CAPABILITY, true)
             .build();

@@ -116,7 +116,7 @@ class SSLDefinitions {
             .build();
 
     static final SimpleAttributeDefinition PROVIDER_LOADER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PROVIDER_LOADER, ModelType.STRING, true)
-            .setAllowExpression(true)
+            .setAllowExpression(false)
             .setMinSize(1)
             .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
             .build();
@@ -194,12 +194,14 @@ class SSLDefinitions {
             .setMinSize(1)
             .setCapabilityReference(KEY_MANAGERS_CAPABILITY, SSL_CONTEXT_CAPABILITY, true)
             .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+            .setAllowExpression(false)
             .build();
 
     static final SimpleAttributeDefinition TRUST_MANAGERS = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.TRUST_MANAGERS, ModelType.STRING, true)
             .setMinSize(1)
             .setCapabilityReference(TRUST_MANAGERS_CAPABILITY, SSL_CONTEXT_CAPABILITY, true)
             .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+            .setAllowExpression(false)
             .build();
 
     /*
@@ -247,10 +249,12 @@ class SSLDefinitions {
 
         final SimpleAttributeDefinition providerLoaderDefinition = new SimpleAttributeDefinitionBuilder(PROVIDER_LOADER)
                 .setCapabilityReference(PROVIDERS_CAPABILITY, KEY_MANAGERS_CAPABILITY, true)
+                .setAllowExpression(false)
                 .build();
 
         final SimpleAttributeDefinition keystoreDefinition = new SimpleAttributeDefinitionBuilder(KEYSTORE)
                 .setCapabilityReference(KEY_STORE_CAPABILITY, KEY_MANAGERS_CAPABILITY, true)
+                .setAllowExpression(false)
                 .build();
 
         final ObjectTypeAttributeDefinition credentialReference = CredentialReference.getAttributeDefinition();
@@ -355,10 +359,12 @@ class SSLDefinitions {
 
         final SimpleAttributeDefinition providerLoaderDefinition = new SimpleAttributeDefinitionBuilder(PROVIDER_LOADER)
                 .setCapabilityReference(PROVIDERS_CAPABILITY, TRUST_MANAGERS_CAPABILITY, true)
+                .setAllowExpression(false)
                 .build();
 
         final SimpleAttributeDefinition keystoreDefinition = new SimpleAttributeDefinitionBuilder(KEYSTORE)
                 .setCapabilityReference(KEY_STORE_CAPABILITY, TRUST_MANAGERS_CAPABILITY, true)
+                .setAllowExpression(false)
                 .build();
 
         AttributeDefinition[] attributes = new AttributeDefinition[] { ALGORITHM, providerLoaderDefinition, PROVIDER, keystoreDefinition};
@@ -485,6 +491,7 @@ class SSLDefinitions {
 
         final SimpleAttributeDefinition providerLoaderDefinition = new SimpleAttributeDefinitionBuilder(PROVIDER_LOADER)
                 .setCapabilityReference(PROVIDERS_CAPABILITY, SSL_CONTEXT_CAPABILITY, true)
+                .setAllowExpression(false)
                 .build();
 
         AttributeDefinition[] attributes = new AttributeDefinition[] { SECURITY_DOMAIN, CIPHER_SUITE_FILTER, PROTOCOLS, WANT_CLIENT_AUTH, NEED_CLIENT_AUTH, AUTHENTICATION_OPTIONAL,
@@ -566,6 +573,7 @@ class SSLDefinitions {
 
         final SimpleAttributeDefinition providerLoaderDefinition = new SimpleAttributeDefinitionBuilder(PROVIDER_LOADER)
                 .setCapabilityReference(PROVIDERS_CAPABILITY, SSL_CONTEXT_CAPABILITY, true)
+                .setAllowExpression(false)
                 .build();
 
         AttributeDefinition[] attributes = new AttributeDefinition[] { CIPHER_SUITE_FILTER, PROTOCOLS,
