@@ -176,8 +176,8 @@ public interface ElytronSubsystemMessages extends BasicLogger {
      * @param cause the underlying cause of the error.
      * @return The {@link StartException} for the error.
      */
-    @Message(id = 14, value = "Unable to load the properties files required to start the properties file backed realm.")
-    StartException unableToLoadPropertiesFiles(@Cause Exception cause);
+    @Message(id = 14, value = "Unable to load the properties files required to start the properties file backed realm: Users file: '%s' Groups file: '%s'")
+    StartException unableToLoadPropertiesFiles(@Cause Exception cause, String usersFile, String groupsFile);
 
     /**
      * A {@link StartException} where a custom component has been defined with configuration but does not implement

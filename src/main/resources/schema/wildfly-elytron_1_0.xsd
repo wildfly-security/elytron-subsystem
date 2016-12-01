@@ -758,6 +758,7 @@
                         <xs:annotation>
                             <xs:documentation>
                                 The location of the properties file containing the users and their passwords.
+                                The file should contain realm name declaration.
                             </xs:documentation>
                         </xs:annotation>
                     </xs:element>
@@ -772,7 +773,8 @@
                 <xs:attribute name="plain-text" type="xs:boolean" default="false">
                     <xs:annotation>
                         <xs:documentation>
-                            Are the passwords stored in the properties file in plain text or pre-hashed?
+                            Are the passwords in properties file stored in plain text or pre-hashed?
+                            (Pre-hashed form: HEX( MD5( username ":" realm ":" password ) ) )
                         </xs:documentation>
                     </xs:annotation>
                 </xs:attribute>
