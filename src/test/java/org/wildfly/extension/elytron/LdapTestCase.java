@@ -11,6 +11,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.wildfly.common.function.ExceptionSupplier;
+import org.wildfly.security.auth.principal.NamePrincipal;
 import org.wildfly.security.auth.server.ModifiableSecurityRealm;
 import org.wildfly.security.auth.server.RealmIdentity;
 import org.wildfly.security.evidence.X509PeerCertificateChainEvidence;
@@ -29,7 +30,6 @@ import java.util.List;
 
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OUTCOME;
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.SUCCESS;
-import static org.wildfly.security.auth.server.IdentityLocator.fromName;
 
 /**
  * Tests of LDAP related components (excluded from their natural TestCases to prevent repeated LDAP starting)
@@ -82,17 +82,17 @@ public class LdapTestCase extends AbstractSubsystemTest {
         ModifiableSecurityRealm securityRealm = (ModifiableSecurityRealm) services.getContainer().getService(serviceName).getValue();
         Assert.assertNotNull(securityRealm);
 
-        RealmIdentity identity1 = securityRealm.getRealmIdentity(fromName("plainUser"));
+        RealmIdentity identity1 = securityRealm.getRealmIdentity(new NamePrincipal("plainUser"));
         Assert.assertTrue(identity1.exists());
         identity1.dispose();
 
-        RealmIdentity identity2 = securityRealm.getRealmIdentity(fromName("refUser")); // referrer test
+        RealmIdentity identity2 = securityRealm.getRealmIdentity(new NamePrincipal("refUser")); // referrer test
         Assert.assertTrue(identity2.exists());
         identity2.dispose();
 
         RealmsTestCase.testModifiability(securityRealm);
 
-        RealmIdentity x509User = securityRealm.getRealmIdentity(fromName("x509User"));
+        RealmIdentity x509User = securityRealm.getRealmIdentity(new NamePrincipal("x509User"));
         Assert.assertTrue(x509User.exists());
         X509Certificate scarab = loadCertificate("scarab.pem");
         Assert.assertTrue(x509User.verifyEvidence(new X509PeerCertificateChainEvidence(scarab)));

@@ -22,6 +22,7 @@ import org.jboss.as.subsystem.test.KernelServices;
 import org.jboss.msc.service.ServiceName;
 import org.junit.Assert;
 import org.junit.Test;
+import org.wildfly.security.auth.principal.NamePrincipal;
 import org.wildfly.security.auth.server.ModifiableRealmIdentity;
 import org.wildfly.security.auth.server.ModifiableSecurityRealm;
 import org.wildfly.security.auth.server.RealmIdentity;
@@ -36,12 +37,11 @@ import org.wildfly.security.password.spec.ClearPasswordSpec;
 import org.wildfly.security.password.spec.OneTimePasswordSpec;
 
 import java.io.IOException;
+import java.security.Principal;
 import java.security.spec.KeySpec;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-
-import static org.wildfly.security.auth.server.IdentityLocator.fromName;
 
 /**
  * @author <a href="mailto:jkalina@redhat.com">Jan Kalina</a>
@@ -205,6 +205,10 @@ public class RealmsTestCase extends AbstractSubsystemBaseTest {
             count++;
         }
         return count;
+    }
+
+    private static Principal fromName(final String name) {
+        return new NamePrincipal(name);
     }
 
 }

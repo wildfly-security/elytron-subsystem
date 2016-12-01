@@ -31,6 +31,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.Principal;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -67,7 +68,6 @@ import org.jboss.msc.value.InjectedValue;
 import org.wildfly.extension.elytron.TrivialService.ValueSupplier;
 import org.wildfly.security.auth.SupportLevel;
 import org.wildfly.security.auth.realm.LegacyPropertiesSecurityRealm;
-import org.wildfly.security.auth.server.IdentityLocator;
 import org.wildfly.security.auth.server.RealmIdentity;
 import org.wildfly.security.auth.server.RealmUnavailableException;
 import org.wildfly.security.auth.server.SecurityRealm;
@@ -298,8 +298,13 @@ class PropertiesRealmDefinition extends TrivialResourceDefinition {
         }
 
         @Override
-        public RealmIdentity getRealmIdentity(IdentityLocator locator) throws RealmUnavailableException {
-            return delegate.getRealmIdentity(locator);
+        public RealmIdentity getRealmIdentity(Principal principal) throws RealmUnavailableException {
+            return delegate.getRealmIdentity(principal);
+        }
+
+        @Override
+        public RealmIdentity getRealmIdentity(Evidence evidence) throws RealmUnavailableException {
+            return delegate.getRealmIdentity(evidence);
         }
 
         @Override

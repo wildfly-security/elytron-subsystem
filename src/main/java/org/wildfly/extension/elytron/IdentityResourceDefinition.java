@@ -23,7 +23,6 @@ import static org.wildfly.extension.elytron.Capabilities.MODIFIABLE_SECURITY_REA
 import static org.wildfly.extension.elytron.Capabilities.SECURITY_DOMAIN_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.ElytronExtension.getRequiredService;
 import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
-import static org.wildfly.security.auth.server.IdentityLocator.fromName;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
@@ -59,6 +58,7 @@ import org.jboss.msc.service.ServiceController;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.ServiceRegistry;
 import org.wildfly.extension.elytron._private.ElytronSubsystemMessages;
+import org.wildfly.security.auth.principal.NamePrincipal;
 import org.wildfly.security.auth.server.ModifiableRealmIdentity;
 import org.wildfly.security.auth.server.ModifiableSecurityRealm;
 import org.wildfly.security.auth.server.RealmIdentity;
@@ -133,7 +133,7 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
 
                 ModifiableRealmIdentity identity = null;
                 try {
-                    identity = modifiableRealm.getRealmIdentityForUpdate(fromName(principalName));
+                    identity = modifiableRealm.getRealmIdentityForUpdate(new NamePrincipal(principalName));
 
                     if (identity.exists()) {
                         throw ROOT_LOGGER.identityAlreadyExists(principalName);
@@ -164,7 +164,7 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
 
                 ModifiableRealmIdentity realmIdentity = null;
                 try {
-                    realmIdentity = modifiableRealm.getRealmIdentityForUpdate(fromName(principalName));
+                    realmIdentity = modifiableRealm.getRealmIdentityForUpdate(new NamePrincipal(principalName));
 
                     if (!realmIdentity.exists()) {
                         throw new OperationFailedException(ROOT_LOGGER.identityNotFound(principalName));
@@ -629,7 +629,7 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
 
         ModifiableRealmIdentity realmIdentity = null;
         try {
-             realmIdentity = modifiableRealm.getRealmIdentityForUpdate(fromName(principalName));
+             realmIdentity = modifiableRealm.getRealmIdentityForUpdate(new NamePrincipal(principalName));
 
             if (!realmIdentity.exists()) {
                 throw new OperationFailedException(ROOT_LOGGER.identityNotFound(principalName));
