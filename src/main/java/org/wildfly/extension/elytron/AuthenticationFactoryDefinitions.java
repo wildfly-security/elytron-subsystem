@@ -32,6 +32,7 @@ import static org.wildfly.extension.elytron.Capabilities.SECURITY_FACTORY_CREDEN
 import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
 import static org.wildfly.extension.elytron.ElytronExtension.getRequiredService;
 
+import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -40,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 import javax.security.sasl.SaslServerFactory;
@@ -280,10 +282,10 @@ class AuthenticationFactoryDefinitions {
         factoryBuilder.setMechanismConfigurationSelector(MechanismConfigurationSelector.aggregate(mechanismConfigurationSelectors.toArray(new MechanismConfigurationSelector[mechanismConfigurationSelectors.size()])));
     }
 
-    private static void setNameRewriter(InjectedValue<NameRewriter> injectedValue, Consumer<NameRewriter> nameRewriterConsumer) {
+    private static void setNameRewriter(InjectedValue<NameRewriter> injectedValue, Consumer<Function<Principal, Principal>> nameRewriterConsumer) {
         NameRewriter nameRewriter = injectedValue.getOptionalValue();
         if (nameRewriter != null) {
-            nameRewriterConsumer.accept(nameRewriter);
+            nameRewriterConsumer.accept(nameRewriter.asPrincipalRewriter());
         }
     }
 
