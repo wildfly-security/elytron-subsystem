@@ -351,7 +351,7 @@ final class LdapKeyStoreDefinition extends SimpleResourceDefinition {
     private static class WriteAttributeHandler extends RestartParentWriteAttributeHandler {
 
         WriteAttributeHandler() {
-            super(ElytronDescriptionConstants.KEY_STORE, CONFIG_ATTRIBUTES);
+            super(ElytronDescriptionConstants.LDAP_KEY_STORE, CONFIG_ATTRIBUTES);
         }
 
         @Override
