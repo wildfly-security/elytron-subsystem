@@ -29,6 +29,7 @@ import javax.security.sasl.SaslServerFactory;
 import org.jboss.as.controller.capability.RuntimeCapability;
 import org.jboss.as.controller.security.CredentialStoreClient;
 import org.wildfly.common.function.ExceptionSupplier;
+import org.wildfly.extension.elytron.capabilities.CredentialSecurityFactory;
 import org.wildfly.security.SecurityFactory;
 import org.wildfly.security.auth.server.HttpAuthenticationFactory;
 import org.wildfly.security.auth.server.ModifiableSecurityRealm;
@@ -152,7 +153,7 @@ class Capabilities {
     static final String SECURITY_FACTORY_CREDENTIAL_CAPABILITY = SECURITY_FACTORY_CAPABILITY_BASE + "credential";
 
     static final RuntimeCapability<Void> SECURITY_FACTORY_CREDENTIAL_RUNTIME_CAPABILITY = RuntimeCapability
-            .Builder.of(SECURITY_FACTORY_CREDENTIAL_CAPABILITY, true, SecurityFactory.class)
+            .Builder.of(SECURITY_FACTORY_CREDENTIAL_CAPABILITY, true, CredentialSecurityFactory.class)
             .build();
 
     static final String MODIFIABLE_SECURITY_REALM_CAPABILITY = CAPABILITY_BASE + "modifiable-security-realm";

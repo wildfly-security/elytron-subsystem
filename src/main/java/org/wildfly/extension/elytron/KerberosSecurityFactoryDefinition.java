@@ -48,7 +48,7 @@ import org.jboss.msc.service.StartException;
 import org.jboss.msc.value.InjectedValue;
 import org.wildfly.extension.elytron.FileAttributeDefinitions.PathResolver;
 import org.wildfly.extension.elytron.TrivialService.ValueSupplier;
-import org.wildfly.security.SecurityFactory;
+import org.wildfly.extension.elytron.capabilities.CredentialSecurityFactory;
 import org.wildfly.security.auth.util.GSSCredentialSecurityFactory;
 
 /**
@@ -101,10 +101,10 @@ class KerberosSecurityFactoryDefinition {
 
     static ResourceDefinition getKerberosSecurityFactoryDefinition() {
         final AttributeDefinition[] attributes = new AttributeDefinition[] { PRINCIPAL, RELATIVE_TO, PATH,  MINIMUM_REMAINING_LIFETIME, REQUEST_LIFETIME, SERVER, DEBUG, MECHANISM_OIDS };
-        TrivialAddHandler<SecurityFactory> add = new TrivialAddHandler<SecurityFactory>(SecurityFactory.class, attributes, SECURITY_FACTORY_CREDENTIAL_RUNTIME_CAPABILITY) {
+        TrivialAddHandler<CredentialSecurityFactory> add = new TrivialAddHandler<CredentialSecurityFactory>(CredentialSecurityFactory.class, attributes, SECURITY_FACTORY_CREDENTIAL_RUNTIME_CAPABILITY) {
 
             @Override
-            protected ValueSupplier<SecurityFactory> getValueSupplier(ServiceBuilder<SecurityFactory> serviceBuilder, OperationContext context, ModelNode model) throws OperationFailedException {
+            protected ValueSupplier<CredentialSecurityFactory> getValueSupplier(ServiceBuilder<CredentialSecurityFactory> serviceBuilder, OperationContext context, ModelNode model) throws OperationFailedException {
                 final String principal = PRINCIPAL.resolveModelAttribute(context, model).asString();
                 final int minimumRemainingLifetime = MINIMUM_REMAINING_LIFETIME.resolveModelAttribute(context, model).asInt();
                 final int requestLifetime = REQUEST_LIFETIME.resolveModelAttribute(context, model).asInt();
@@ -145,7 +145,7 @@ class KerberosSecurityFactoryDefinition {
                     mechanaismOids.forEach(builder::addMechanismOid);
 
                     try {
-                        return builder.build();
+                        return CredentialSecurityFactory.toCredentialSecurityFactory(builder.build());
                     } catch (IOException e) {
                         throw new StartException(e);
                     }
