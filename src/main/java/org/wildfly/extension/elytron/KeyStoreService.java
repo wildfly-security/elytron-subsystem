@@ -279,7 +279,7 @@ class KeyStoreService implements ModifiableKeyStoreService {
         return credentialStoreClient.getSecret();
     }
 
-    class LoadKey {
+    static class LoadKey {
         private final AtomicLoadKeyStore.LoadKey loadKey;
         private final long modifiedTime;
         private final boolean modified;
