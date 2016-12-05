@@ -18,23 +18,24 @@
 
 package org.wildfly.extension.elytron;
 
+import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
+
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.security.KeyStore;
+
+import javax.naming.directory.Attributes;
+import javax.naming.ldap.LdapName;
+
 import org.jboss.msc.inject.Injector;
 import org.jboss.msc.service.Service;
 import org.jboss.msc.service.StartContext;
 import org.jboss.msc.service.StartException;
 import org.jboss.msc.service.StopContext;
 import org.jboss.msc.value.InjectedValue;
-import org.wildfly.common.function.ExceptionSupplier;
+import org.wildfly.extension.elytron.capabilities.DirContextSupplier;
 import org.wildfly.security.keystore.LdapKeyStore;
 import org.wildfly.security.keystore.UnmodifiableKeyStore;
-
-import javax.naming.directory.Attributes;
-import javax.naming.ldap.LdapName;
-import java.io.IOException;
-import java.security.GeneralSecurityException;
-import java.security.KeyStore;
-
-import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
 
 /**
  * A {@link Service} responsible for a single {@link LdapKeyStore} instance.
@@ -43,7 +44,7 @@ import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.RO
  */
 class LdapKeyStoreService implements ModifiableKeyStoreService {
 
-    private final InjectedValue<ExceptionSupplier> dirContextSupplierInjector = new InjectedValue<>();
+    private final InjectedValue<DirContextSupplier> dirContextSupplierInjector = new InjectedValue<>();
 
     private final String searchPath;
     private final String filterAlias;
@@ -86,7 +87,7 @@ class LdapKeyStoreService implements ModifiableKeyStoreService {
         this.keyType = keyType;
     }
 
-    Injector<ExceptionSupplier> getDirContextSupplierInjector() {
+    Injector<DirContextSupplier> getDirContextSupplierInjector() {
         return dirContextSupplierInjector;
     }
 

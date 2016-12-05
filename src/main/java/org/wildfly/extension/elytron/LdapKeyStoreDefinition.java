@@ -18,6 +18,25 @@
 
 package org.wildfly.extension.elytron;
 
+import static org.wildfly.extension.elytron.Capabilities.DIR_CONTEXT_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.KEY_STORE_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.KEY_STORE_RUNTIME_CAPABILITY;
+import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
+import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
+import static org.wildfly.extension.elytron.ElytronExtension.getRequiredService;
+import static org.wildfly.extension.elytron.ServiceStateDefinition.STATE;
+import static org.wildfly.extension.elytron.ServiceStateDefinition.populateResponse;
+import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
+
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+
+import javax.naming.InvalidNameException;
+import javax.naming.directory.Attributes;
+import javax.naming.directory.BasicAttribute;
+import javax.naming.directory.BasicAttributes;
+import javax.naming.ldap.LdapName;
+
 import org.jboss.as.controller.AbstractRuntimeOnlyHandler;
 import org.jboss.as.controller.AttributeDefinition;
 import org.jboss.as.controller.ObjectListAttributeDefinition;
@@ -46,26 +65,8 @@ import org.jboss.msc.service.ServiceController;
 import org.jboss.msc.service.ServiceController.Mode;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.ServiceTarget;
-import org.wildfly.common.function.ExceptionSupplier;
+import org.wildfly.extension.elytron.capabilities.DirContextSupplier;
 import org.wildfly.security.keystore.LdapKeyStore;
-
-import javax.naming.InvalidNameException;
-import javax.naming.directory.Attributes;
-import javax.naming.directory.BasicAttribute;
-import javax.naming.directory.BasicAttributes;
-import javax.naming.ldap.LdapName;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-
-import static org.wildfly.extension.elytron.Capabilities.DIR_CONTEXT_CAPABILITY;
-import static org.wildfly.extension.elytron.Capabilities.KEY_STORE_CAPABILITY;
-import static org.wildfly.extension.elytron.Capabilities.KEY_STORE_RUNTIME_CAPABILITY;
-import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
-import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
-import static org.wildfly.extension.elytron.ElytronExtension.getRequiredService;
-import static org.wildfly.extension.elytron.ServiceStateDefinition.STATE;
-import static org.wildfly.extension.elytron.ServiceStateDefinition.populateResponse;
-import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
 
 /**
  * A {@link ResourceDefinition} for a single {@link LdapKeyStore}.
@@ -328,8 +329,8 @@ final class LdapKeyStoreDefinition extends SimpleResourceDefinition {
             ServiceBuilder<KeyStore> serviceBuilder = serviceTarget.addService(serviceName, keyStoreService).setInitialMode(Mode.ACTIVE);
 
             String dirContextCapability = RuntimeCapability.buildDynamicCapabilityName(DIR_CONTEXT_CAPABILITY, dirContextName);
-            ServiceName dirContextServiceName = context.getCapabilityServiceName(dirContextCapability, ExceptionSupplier.class);
-            serviceBuilder.addDependency(dirContextServiceName, ExceptionSupplier.class, keyStoreService.getDirContextSupplierInjector());
+            ServiceName dirContextServiceName = context.getCapabilityServiceName(dirContextCapability, DirContextSupplier.class);
+            serviceBuilder.addDependency(dirContextServiceName, DirContextSupplier.class, keyStoreService.getDirContextSupplierInjector());
 
             commonDependencies(serviceBuilder);
             ServiceController<KeyStore> serviceController = serviceBuilder.install();

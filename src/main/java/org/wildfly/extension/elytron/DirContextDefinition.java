@@ -22,7 +22,10 @@ import static org.wildfly.extension.elytron.Capabilities.DIR_CONTEXT_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.DIR_CONTEXT_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SSL_CONTEXT_CAPABILITY;
 import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
-import static org.wildfly.security.auth.realm.ldap.DirContextFactory.ReferralMode;
+
+import java.util.Properties;
+
+import javax.net.ssl.SSLContext;
 
 import org.jboss.as.controller.AbstractAddStepHandler;
 import org.jboss.as.controller.AttributeDefinition;
@@ -47,14 +50,10 @@ import org.jboss.msc.service.ServiceBuilder;
 import org.jboss.msc.service.ServiceController;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.value.InjectedValue;
-import org.wildfly.common.function.ExceptionSupplier;
+import org.wildfly.extension.elytron.capabilities.DirContextSupplier;
 import org.wildfly.security.auth.realm.ldap.DirContextFactory;
+import org.wildfly.security.auth.realm.ldap.DirContextFactory.ReferralMode;
 import org.wildfly.security.auth.realm.ldap.SimpleDirContextFactoryBuilder;
-
-import javax.naming.NamingException;
-import javax.naming.directory.DirContext;
-import javax.net.ssl.SSLContext;
-import java.util.Properties;
 
 /**
  * A {@link ResourceDefinition} for a {@link javax.naming.directory.DirContext}.
@@ -135,7 +134,7 @@ public class DirContextDefinition extends SimpleResourceDefinition {
         }
     }
 
-    private static TrivialService.ValueSupplier<ExceptionSupplier<DirContext, NamingException>> obtainDirContextSupplier(final OperationContext context, final ModelNode model, final InjectedValue<SSLContext> sslContextInjector) throws OperationFailedException {
+    private static TrivialService.ValueSupplier<DirContextSupplier> obtainDirContextSupplier(final OperationContext context, final ModelNode model, final InjectedValue<SSLContext> sslContextInjector) throws OperationFailedException {
 
         String url = URL.resolveModelAttribute(context, model).asString();
         String authenticationLevel = AUTHENTICATION_LEVEL.resolveModelAttribute(context, model).asString();
@@ -172,12 +171,12 @@ public class DirContextDefinition extends SimpleResourceDefinition {
         protected void performRuntime(final OperationContext context, final ModelNode operation, final ModelNode model) throws OperationFailedException {
 
             RuntimeCapability<Void> runtimeCapability = DIR_CONTEXT_RUNTIME_CAPABILITY.fromBaseCapability(context.getCurrentAddressValue());
-            ServiceName serviceName = runtimeCapability.getCapabilityServiceName(ExceptionSupplier.class);
+            ServiceName serviceName = runtimeCapability.getCapabilityServiceName(DirContextSupplier.class);
 
             final InjectedValue<SSLContext> sslContextInjector = new InjectedValue<>();
 
-            TrivialService<ExceptionSupplier<DirContext, NamingException>> service = new TrivialService<>(obtainDirContextSupplier(context, model, sslContextInjector));
-            ServiceBuilder<ExceptionSupplier<DirContext, NamingException>> serviceBuilder = context.getServiceTarget().addService(serviceName, service);
+            TrivialService<DirContextSupplier> service = new TrivialService<>(obtainDirContextSupplier(context, model, sslContextInjector));
+            ServiceBuilder<DirContextSupplier> serviceBuilder = context.getServiceTarget().addService(serviceName, service);
 
             String sslContextName = asStringIfDefined(context, SSL_CONTEXT, model);
             if (sslContextName != null) {

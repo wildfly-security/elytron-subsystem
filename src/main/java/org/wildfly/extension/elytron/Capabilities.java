@@ -28,9 +28,8 @@ import javax.security.sasl.SaslServerFactory;
 
 import org.jboss.as.controller.capability.RuntimeCapability;
 import org.jboss.as.controller.security.CredentialStoreClient;
-import org.wildfly.common.function.ExceptionSupplier;
 import org.wildfly.extension.elytron.capabilities.CredentialSecurityFactory;
-import org.wildfly.security.SecurityFactory;
+import org.wildfly.extension.elytron.capabilities.DirContextSupplier;
 import org.wildfly.security.auth.server.HttpAuthenticationFactory;
 import org.wildfly.security.auth.server.ModifiableSecurityRealm;
 import org.wildfly.security.auth.server.NameRewriter;
@@ -183,7 +182,7 @@ class Capabilities {
     static final String DIR_CONTEXT_CAPABILITY = CAPABILITY_BASE + "dir-context";
 
     static final RuntimeCapability<Void> DIR_CONTEXT_RUNTIME_CAPABILITY = RuntimeCapability
-            .Builder.of(DIR_CONTEXT_CAPABILITY, true, ExceptionSupplier.class) // ExceptionSupplier<DirContext, Exception>
+            .Builder.of(DIR_CONTEXT_CAPABILITY, true, DirContextSupplier.class)
             .build();
 
     /**

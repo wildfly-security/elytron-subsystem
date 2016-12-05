@@ -45,6 +45,7 @@ import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.ServiceTarget;
 import org.jboss.msc.value.InjectedValue;
 import org.wildfly.common.function.ExceptionSupplier;
+import org.wildfly.extension.elytron.capabilities.DirContextSupplier;
 import org.wildfly.security.auth.realm.ldap.AttributeMapping;
 import org.wildfly.security.auth.realm.ldap.LdapSecurityRealmBuilder;
 import org.wildfly.security.auth.realm.ldap.LdapSecurityRealmBuilder.IdentityMappingBuilder;
@@ -419,13 +420,12 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
             String dirContextName = asStringIfDefined(context, DIR_CONTEXT, model);
 
             String runtimeCapability = RuntimeCapability.buildDynamicCapabilityName(DIR_CONTEXT_CAPABILITY, dirContextName);
-            ServiceName dirContextServiceName = context.getCapabilityServiceName(runtimeCapability, ExceptionSupplier.class);
+            ServiceName dirContextServiceName = context.getCapabilityServiceName(runtimeCapability, DirContextSupplier.class);
 
-            final InjectedValue<ExceptionSupplier> dirContextInjector = new InjectedValue<>();
-            serviceBuilder.addDependency(dirContextServiceName, ExceptionSupplier.class, dirContextInjector);
+            final InjectedValue<DirContextSupplier> dirContextInjector = new InjectedValue<>();
+            serviceBuilder.addDependency(dirContextServiceName, DirContextSupplier.class, dirContextInjector);
 
             realmBuilder.setDirContextSupplier(() -> {
-                @SuppressWarnings("unchecked")
                 ExceptionSupplier<DirContext, NamingException> supplier = dirContextInjector.getValue();
                 return supplier.get();
             });

@@ -11,6 +11,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.wildfly.common.function.ExceptionSupplier;
+import org.wildfly.extension.elytron.capabilities.DirContextSupplier;
 import org.wildfly.security.auth.principal.NamePrincipal;
 import org.wildfly.security.auth.server.ModifiableSecurityRealm;
 import org.wildfly.security.auth.server.RealmIdentity;
@@ -59,7 +60,7 @@ public class LdapTestCase extends AbstractSubsystemTest {
     @Test
     public void testDirContextInsecure() throws Exception {
         ServiceName serviceNameDirContext = Capabilities.DIR_CONTEXT_RUNTIME_CAPABILITY.getCapabilityServiceName("DirContextInsecure");
-        ExceptionSupplier<DirContext, NamingException> dirContextSup = (ExceptionSupplier<DirContext, NamingException>) services.getContainer().getService(serviceNameDirContext).getValue();
+        ExceptionSupplier<DirContext, NamingException> dirContextSup = (DirContextSupplier) services.getContainer().getService(serviceNameDirContext).getValue();
         DirContext dirContext = dirContextSup.get();
         Assert.assertNotNull(dirContext);
         Assert.assertEquals("org.wildfly.security.auth.realm.ldap.DelegatingLdapContext", dirContext.getClass().getName());
@@ -69,7 +70,7 @@ public class LdapTestCase extends AbstractSubsystemTest {
     @Test
     public void testDirContextSsl() throws Exception {
         ServiceName serviceNameDirContext = Capabilities.DIR_CONTEXT_RUNTIME_CAPABILITY.getCapabilityServiceName("DirContextSsl");
-        ExceptionSupplier<DirContext, NamingException> dirContextSup = (ExceptionSupplier<DirContext, NamingException>) services.getContainer().getService(serviceNameDirContext).getValue();
+        ExceptionSupplier<DirContext, NamingException> dirContextSup = (DirContextSupplier) services.getContainer().getService(serviceNameDirContext).getValue();
         DirContext dirContext = dirContextSup.get();
         Assert.assertNotNull(dirContext);
         Assert.assertEquals("org.wildfly.security.auth.realm.ldap.DelegatingLdapContext", dirContext.getClass().getName());
