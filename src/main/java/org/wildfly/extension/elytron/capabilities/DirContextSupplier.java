@@ -29,7 +29,7 @@ import org.wildfly.common.function.ExceptionSupplier;
  */
 public interface DirContextSupplier extends ExceptionSupplier<DirContext, NamingException> {
 
-    static DirContextSupplier toDirContextSupplier(final ExceptionSupplier<DirContext, NamingException> supplier) {
+    static DirContextSupplier from(final ExceptionSupplier<DirContext, NamingException> supplier) {
         return supplier::get;
     }
 

@@ -221,17 +221,17 @@
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
-        <xs:attribute name="pre-realm-name-rewriter" type="xs:string">
+        <xs:attribute name="pre-realm-principal-transformer" type="xs:string">
             <xs:annotation>
                 <xs:documentation>
-                    Reference to the NameRewriter to be applied before the realm is selected.
+                    Reference to the PrincipalTransformer to be applied before the realm is selected.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
-        <xs:attribute name="post-realm-name-rewriter" type="xs:string">
+        <xs:attribute name="post-realm-principal-transformer" type="xs:string">
             <xs:annotation>
                 <xs:documentation>
-                    Reference to the NameRewriter to be applied after the realm is selected.
+                    Reference to the PrincipalTransformer to be applied after the realm is selected.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
@@ -279,10 +279,10 @@
             </xs:documentation>
         </xs:annotation>
         <xs:attribute name="name" type="xs:string" use="required" />
-        <xs:attribute name="name-rewriter" type="xs:string">
+        <xs:attribute name="principal-transformer" type="xs:string">
             <xs:annotation>
                 <xs:documentation>
-                    The NameRewriter to be associated with this realm.
+                    The PrincipalTransformer to be associated with this realm.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
@@ -837,19 +837,11 @@
                             </xs:documentation>
                         </xs:annotation>
                     </xs:element>
-                    <xs:element name="name-rewriter" type="nameRewriterRefType" minOccurs="0"/>
                 </xs:all>
                 <xs:attribute name="levels" type="xs:int" default="2">
                     <xs:annotation>
                         <xs:documentation>
                             The number of levels of directory hashing to apply
-                        </xs:documentation>
-                    </xs:annotation>
-                </xs:attribute>
-                <xs:attribute name="name-rewriter" type="xs:string">
-                    <xs:annotation>
-                        <xs:documentation>
-                            A reference to a NameRewriter
                         </xs:documentation>
                     </xs:annotation>
                 </xs:attribute>
@@ -1460,17 +1452,17 @@
             </xs:documentation>
         </xs:annotation>
         <xs:choice maxOccurs="unbounded">
-            <xs:element name="aggregate-name-rewriter" type="aggregateNameRewriterType" minOccurs="0" maxOccurs="unbounded" />
-            <xs:element name="chained-name-rewriter" type="chainedNameRewriterType" minOccurs="0" maxOccurs="unbounded" />
-            <xs:element name="constant-name-rewriter" type="constantNameRewriter" minOccurs="0" maxOccurs="unbounded" />
-            <xs:element name="custom-name-rewriter" type="customNameRewriterType" minOccurs="0" maxOccurs="unbounded" />
-            <xs:element name="regex-name-rewriter" type="regexNameRewriterType" minOccurs="0" maxOccurs="unbounded" />
-            <xs:element name="regex-name-validating-rewriter" type="regexNameValidatingRewriter" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="aggregate-principal-decoder" type="aggregatePrincipalDecoderType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="concatenating-principal-decoder" type="concatenatingPrincipalDecoderType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="constant-principal-decoder" type="constantPrincipalDecoderType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="custom-principal-decoder" type="customPrincipalDecoderType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="x500-attribute-principal-decoder" type="x500AttributePrincipalDecoderType" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="aggregate-principal-transformer" type="aggregatePrincipalTransformerType" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="chained-principal-transformer" type="chainedPrincipalTransformerType" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="constant-principal-transformer" type="constantPrincipalTransformer" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="custom-principal-transformer" type="customPrincipalTransformerType" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="regex-principal-transformer" type="regexPrincipalTransformerType" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="regex-validating-principal-transformer" type="regexValidatingPrincipalTransformer" minOccurs="0" maxOccurs="unbounded" />            
             <xs:element name="custom-permission-mapper" type="customPermissionMapperType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="logical-permission-mapper" type="logicalPermissionMapperType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="simple-permission-mapper" type="simplePermissionMapperType" minOccurs="0" maxOccurs="unbounded" />
@@ -1488,169 +1480,6 @@
             <xs:element name="custom-role-mapper" type="customRoleMapperType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="logical-role-mapper" type="logicalRoleMapperType" minOccurs="0" maxOccurs="unbounded" />
         </xs:choice>
-    </xs:complexType>
-
-    <xs:complexType name="nameRewriterType" abstract="true">
-        <xs:annotation>
-            <xs:documentation>
-                Base type for all NameRewriter definitions.
-            </xs:documentation>
-        </xs:annotation>
-        <xs:attribute name="name" type="xs:string" use="required">
-            <xs:annotation>
-                <xs:documentation>
-                    The unique name for the NameRewriter, note names used for NameRewriters must be unique
-                    across the whole context.
-                </xs:documentation>
-            </xs:annotation>
-        </xs:attribute>
-    </xs:complexType>
-
-    <xs:complexType name="regexNameRewriterType">
-        <xs:annotation>
-            <xs:documentation>
-                A NameRewriter definition using regular expressions and Matcher based
-                replacement.
-            </xs:documentation>
-        </xs:annotation>
-        <xs:complexContent>
-            <xs:extension base="nameRewriterType">
-                <xs:attribute name="pattern" type="xs:string" use="required">
-                    <xs:annotation>
-                        <xs:documentation>
-                            The regular expression to use for this NameRewriter.
-                        </xs:documentation>
-                    </xs:annotation>
-                </xs:attribute>
-                <xs:attribute name="replacement" type="xs:string" use="required">
-                    <xs:annotation>
-                        <xs:documentation>
-                            The replacement string for this NameRewriter.
-                        </xs:documentation>
-                    </xs:annotation>
-                </xs:attribute>
-                <xs:attribute name="replace-all" type="xs:boolean" default="false">
-                    <xs:annotation>
-                        <xs:documentation>
-                            Should all occurences be replaced or just the first?
-                        </xs:documentation>
-                    </xs:annotation>
-                </xs:attribute>
-            </xs:extension>
-        </xs:complexContent>
-    </xs:complexType>
-
-    <xs:complexType name="regexNameValidatingRewriter">
-        <xs:annotation>
-            <xs:documentation>
-                A NameRewriter that instead of rewriting the name validates that it is
-                correct according to the supplied regular expression.
-            </xs:documentation>
-        </xs:annotation>
-        <xs:complexContent>
-            <xs:extension base="nameRewriterType">
-                <xs:attribute name="pattern" type="xs:string"
-                    use="required">
-                    <xs:annotation>
-                        <xs:documentation>
-                            The regular expression to use for this NameRewriter.
-                        </xs:documentation>
-                    </xs:annotation>
-                </xs:attribute>
-                <xs:attribute name="match" type="xs:boolean"
-                    default="true">
-                    <xs:annotation>
-                        <xs:documentation>
-                            If set to true, the name must match the given pattern to make validation successful. 
-                            If set to false, the name must not match the given pattern to make validation successful.
-                        </xs:documentation>
-                    </xs:annotation>
-                </xs:attribute>
-            </xs:extension>
-        </xs:complexContent>
-    </xs:complexType>
-
-    <xs:complexType name="constantNameRewriter">
-        <xs:annotation>
-            <xs:documentation>
-                A NameWriter that always returns the same constant.
-            </xs:documentation>
-        </xs:annotation>
-        <xs:complexContent>
-            <xs:extension base="nameRewriterType">
-                <xs:attribute name="constant" type="xs:string" use="required">
-                    <xs:annotation>
-                        <xs:documentation>
-                            The constant value that will always be returned by this NameRewriter.
-                        </xs:documentation>
-                    </xs:annotation>
-                </xs:attribute>
-            </xs:extension>
-        </xs:complexContent>
-    </xs:complexType>
-
-    <xs:complexType name="customNameRewriterType">
-        <xs:annotation>
-            <xs:documentation>
-                Generic definition for a custom NameRewriter implementation.
-            </xs:documentation>
-        </xs:annotation>
-        <xs:complexContent>
-            <xs:extension base="nameRewriterType">
-                <xs:sequence>
-                    <xs:element name="configuration"
-                        type="customComponentConfiguration" minOccurs="0">
-                        <xs:annotation>
-                            <xs:documentation>
-                                The configuration to apply to the NameRewriter implementation.
-
-                                Note: If configuration is supplied the NameRewriter MUST implement the Configurable interface.
-                            </xs:documentation>
-                        </xs:annotation>
-                    </xs:element>
-                </xs:sequence>
-                <xs:attributeGroup ref="customComponentAttributes" />
-            </xs:extension>
-        </xs:complexContent>
-    </xs:complexType>
-
-    <xs:complexType name="aggregateNameRewriterType">
-        <xs:annotation>
-            <xs:documentation>
-                A NameRewriter definition that is actually an aggregation of other NameRewriters.
-            </xs:documentation>
-        </xs:annotation>
-        <xs:complexContent>
-            <xs:extension base="nameRewriterType">
-                <xs:sequence>
-                    <xs:element name="name-rewriter" type="nameRewriterRefType" minOccurs="2" maxOccurs="unbounded" />
-                </xs:sequence>
-            </xs:extension>
-        </xs:complexContent>
-    </xs:complexType>
-
-    <xs:complexType name="chainedNameRewriterType">
-        <xs:annotation>
-            <xs:documentation>
-                A NameRewriter definition that is actually a chain of other NameRewriters.
-            </xs:documentation>
-        </xs:annotation>
-        <xs:complexContent>
-            <xs:extension base="nameRewriterType">
-                <xs:sequence>
-                    <xs:element name="name-rewriter" type="nameRewriterRefType" minOccurs="2" maxOccurs="unbounded" />
-                </xs:sequence>
-            </xs:extension>
-        </xs:complexContent>
-    </xs:complexType>
-
-    <xs:complexType name="nameRewriterRefType">
-        <xs:annotation>
-            <xs:documentation>
-                A reference to a NameRewriter
-            </xs:documentation>
-        </xs:annotation>
-        <xs:attribute name="name" type="xs:string" use="required" />
     </xs:complexType>
 
     <xs:complexType name="permissionMapperType" abstract="true">
@@ -2029,6 +1858,169 @@
                 </xs:attribute>
             </xs:extension>
         </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="principalTransformerType" abstract="true">
+        <xs:annotation>
+            <xs:documentation>
+                Base type for all PrincipalTransformer definitions.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="name" type="xs:string" use="required">
+            <xs:annotation>
+                <xs:documentation>
+                    The unique name for the PrincipalTransformer, note names used for PrincipalTransformer must be unique
+                    across the whole context.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="regexPrincipalTransformerType">
+        <xs:annotation>
+            <xs:documentation>
+                A PrincipalTransformer definition using regular expressions and Matcher based
+                replacement.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="principalTransformerType">
+                <xs:attribute name="pattern" type="xs:string" use="required">
+                    <xs:annotation>
+                        <xs:documentation>
+                            The regular expression to use for this PrincipalTransformer.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+                <xs:attribute name="replacement" type="xs:string" use="required">
+                    <xs:annotation>
+                        <xs:documentation>
+                            The replacement string for this PrincipalTransformer.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+                <xs:attribute name="replace-all" type="xs:boolean" default="false">
+                    <xs:annotation>
+                        <xs:documentation>
+                            Should all occurences be replaced or just the first?
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="regexValidatingPrincipalTransformer">
+        <xs:annotation>
+            <xs:documentation>
+                A PrincipalTransformer that instead of rewriting the name validates that it is
+                correct according to the supplied regular expression.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="principalTransformerType">
+                <xs:attribute name="pattern" type="xs:string"
+                    use="required">
+                    <xs:annotation>
+                        <xs:documentation>
+                            The regular expression to use for this PrincipalTransformer.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+                <xs:attribute name="match" type="xs:boolean"
+                    default="true">
+                    <xs:annotation>
+                        <xs:documentation>
+                            If set to true, the name must match the given pattern to make validation successful. 
+                            If set to false, the name must not match the given pattern to make validation successful.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="constantPrincipalTransformer">
+        <xs:annotation>
+            <xs:documentation>
+                A PrincipalTransformer that always returns the same constant.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="principalTransformerType">
+                <xs:attribute name="constant" type="xs:string" use="required">
+                    <xs:annotation>
+                        <xs:documentation>
+                            The constant value that will always be returned by this PrincipalTransformer.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="customPrincipalTransformerType">
+        <xs:annotation>
+            <xs:documentation>
+                Generic definition for a custom PrincipalTransformer implementation.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="principalTransformerType">
+                <xs:sequence>
+                    <xs:element name="configuration"
+                        type="customComponentConfiguration" minOccurs="0">
+                        <xs:annotation>
+                            <xs:documentation>
+                                The configuration to apply to the PrincipalTransformer implementation.
+
+                                Note: If configuration is supplied the PrincipalTransformer MUST implement the Configurable interface.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+                <xs:attributeGroup ref="customComponentAttributes" />
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="aggregatePrincipalTransformerType">
+        <xs:annotation>
+            <xs:documentation>
+                A PrincipalTransformer definition that is actually an aggregation of other PrincipalTransformers.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="principalTransformerType">
+                <xs:sequence>
+                    <xs:element name="principal-transformer" type="principalTransformerRefType" minOccurs="2" maxOccurs="unbounded" />
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="chainedPrincipalTransformerType">
+        <xs:annotation>
+            <xs:documentation>
+                A PrincipalTransformer definition that is actually a chain of other PrincipalTransformers.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="principalTransformerType">
+                <xs:sequence>
+                    <xs:element name="principal-transformer" type="principalTransformerRefType" minOccurs="2" maxOccurs="unbounded" />
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="principalTransformerRefType">
+        <xs:annotation>
+            <xs:documentation>
+                A reference to a PrincipalTransformer
+            </xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="name" type="xs:string" use="required" />
     </xs:complexType>
 
     <xs:complexType name="realmMapperType" abstract="true">
@@ -2476,24 +2468,24 @@
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
-        <xs:attribute name="pre-realm-name-rewriter" type="xs:string" >
+        <xs:attribute name="pre-realm-principal-transformer" type="xs:string" >
             <xs:annotation>
                 <xs:documentation>
-                    A name rewriter to apply before the realm is selected.
+                    A principal transformer to apply before the realm is selected.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
-        <xs:attribute name="post-realm-name-rewriter" type="xs:string">
+        <xs:attribute name="post-realm-principal-transformer" type="xs:string">
             <xs:annotation>
                 <xs:documentation>
-                    A name rewriter to apply after the realm is selected.
+                    A principal transformer to apply after the realm is selected.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
-        <xs:attribute name="final-name-rewriter" type="xs:string">
+        <xs:attribute name="final-principal-transformer" type="xs:string">
             <xs:annotation>
                 <xs:documentation>
-                    A final name rewriter to apply for this mechanism realm.
+                    A final principal transformer to apply for this mechanism realm.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
@@ -2532,24 +2524,24 @@
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
-        <xs:attribute name="pre-realm-name-rewriter" type="xs:string">
+        <xs:attribute name="pre-realm-principal-transformer" type="xs:string">
             <xs:annotation>
                 <xs:documentation>
-                    A name rewriter to apply before the realm is selected.
+                    A principal transformer to apply before the realm is selected.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
-        <xs:attribute name="post-realm-name-rewriter" type="xs:string">
+        <xs:attribute name="post-realm-principal-transformer" type="xs:string">
             <xs:annotation>
                 <xs:documentation>
-                    A name rewriter to apply after the realm is selected.
+                    A principal transformer to apply after the realm is selected.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
-        <xs:attribute name="final-name-rewriter" type="xs:string">
+        <xs:attribute name="final-principal-transformer" type="xs:string">
             <xs:annotation>
                 <xs:documentation>
-                    A final name rewriter to apply for this mechanism realm.
+                    A final principal transformer to apply for this mechanism realm.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>

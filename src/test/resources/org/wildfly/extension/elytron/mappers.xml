@@ -1,21 +1,6 @@
 <subsystem xmlns="urn:wildfly:elytron:1.0">
     <security-realms/>
     <mappers>
-        <aggregate-name-rewriter name="AggregateOne">
-            <name-rewriter name="CustomOne" />
-            <name-rewriter name="RegexOne" />
-            <name-rewriter name="RegexTwo" />
-        </aggregate-name-rewriter>
-        <chained-name-rewriter name="ChainedNameRewriter">
-            <name-rewriter name="CustomOne" />
-            <name-rewriter name="AggregateOne" />
-        </chained-name-rewriter>
-        <constant-name-rewriter name="ConstantOne" constant="constant" />
-        <custom-name-rewriter name="CustomOne" class-name="org.wildfly.elytron.CustomRewriter" module="a.b" />
-        <regex-name-rewriter name="RegexOne" pattern=".?" replacement="X" replace-all="true" />
-        <regex-name-validating-rewriter name="RegexTwo" pattern="p*" match="false" />
-        <regex-name-validating-rewriter name="RegexThree" pattern="p*" />
-
         <custom-permission-mapper name="CustomPermissionMapper" class-name="org.wildfly.elytron.CustomPermissionMapper" module="l.m" />
         <custom-permission-mapper name="CustomPermissionMapper2" class-name="org.wildfly.elytron.CustomPermissionMapper" module="l.m" />
         <logical-permission-mapper name="LogicalPermissionMapper" logical-operation="unless" left="CustomPermissionMapper" right="CustomPermissionMapper2" />
@@ -54,6 +39,21 @@
         <x500-attribute-principal-decoder name="X500PrincipalDecoderOne" oid="2.5.4.3" joiner="," maximum-segments="6" />
         <x500-attribute-principal-decoder name="X500PrincipalDecoderTwo" oid="2.5.4.3" joiner="." start-segment="2" maximum-segments="6" reverse="true" />
         <x500-attribute-principal-decoder name="X500PrincipalDecoderThree" oid="2.5.4.3" joiner="." start-segment="2" maximum-segments="6" reverse="true" required-oids="2.5.4.3 2.5.4.11"/>
+
+        <aggregate-principal-transformer name="AggregateOne">
+            <principal-transformer name="CustomOne" />
+            <principal-transformer name="RegexOne" />
+            <principal-transformer name="RegexTwo" />
+        </aggregate-principal-transformer>
+        <chained-principal-transformer name="ChainedNameRewriter">
+            <principal-transformer name="CustomOne" />
+            <principal-transformer name="AggregateOne" />
+        </chained-principal-transformer>
+        <constant-principal-transformer name="ConstantOne" constant="constant" />
+        <custom-principal-transformer name="CustomOne" class-name="org.wildfly.elytron.CustomRewriter" module="a.b" />
+        <regex-principal-transformer name="RegexOne" pattern=".?" replacement="X" replace-all="true" />
+        <regex-validating-principal-transformer name="RegexTwo" pattern="p*" match="false" />
+        <regex-validating-principal-transformer name="RegexThree" pattern="p*" />
 
         <constant-realm-mapper name="local" realm-name="local" />
         <custom-realm-mapper name="CustomRealmOne" class-name="org.wildfly.elytron.CustomRealmMapper" module="c.d" />

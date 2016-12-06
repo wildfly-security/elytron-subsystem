@@ -19,9 +19,9 @@
 package org.wildfly.extension.elytron;
 
 import static org.wildfly.extension.elytron.Capabilities.MODIFIABLE_SECURITY_REALM_RUNTIME_CAPABILITY;
-import static org.wildfly.extension.elytron.Capabilities.NAME_REWRITER_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.PERMISSION_MAPPER_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.PRINCIPAL_DECODER_RUNTIME_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.PRINCIPAL_TRANSFORMER_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.REALM_MAPPER_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.ROLE_DECODER_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.ROLE_MAPPER_RUNTIME_CAPABILITY;
@@ -47,8 +47,8 @@ import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.ServiceRegistry;
 import org.jboss.msc.service.ServiceTarget;
 import org.wildfly.extension.elytron.capabilities.CredentialSecurityFactory;
+import org.wildfly.extension.elytron.capabilities.PrincipalTransformer;
 import org.wildfly.security.auth.server.ModifiableSecurityRealm;
-import org.wildfly.security.auth.server.NameRewriter;
 import org.wildfly.security.auth.server.PrincipalDecoder;
 import org.wildfly.security.auth.server.RealmMapper;
 import org.wildfly.security.auth.server.SecurityRealm;
@@ -107,14 +107,6 @@ class ElytronDefinition extends SimpleResourceDefinition {
         resourceRegistration.registerSubModel(new CustomComponentDefinition<CredentialSecurityFactory>(CredentialSecurityFactory.class, ElytronDescriptionConstants.CUSTOM_CREDENTIAL_SECURITY_FACTORY, SECURITY_FACTORY_CREDENTIAL_RUNTIME_CAPABILITY));
         resourceRegistration.registerSubModel(KerberosSecurityFactoryDefinition.getKerberosSecurityFactoryDefinition());
 
-        // Name Rewriters
-        resourceRegistration.registerSubModel(NameRewriterDefinitions.getAggregateNameRewriterDefinition());
-        resourceRegistration.registerSubModel(NameRewriterDefinitions.getChainedNameRewriterDefinition());
-        resourceRegistration.registerSubModel(NameRewriterDefinitions.getConstantNameRewriterDefinition());
-        resourceRegistration.registerSubModel(new CustomComponentDefinition<NameRewriter>(NameRewriter.class, ElytronDescriptionConstants.CUSTOM_NAME_REWRITER, NAME_REWRITER_RUNTIME_CAPABILITY));
-        resourceRegistration.registerSubModel(NameRewriterDefinitions.getRegexNameRewriterDefinition());
-        resourceRegistration.registerSubModel(NameRewriterDefinitions.getRegexNameValidatingRewriterDefinition());
-
         // Permission Mappers
         resourceRegistration.registerSubModel(new CustomComponentDefinition<PermissionMapper>(PermissionMapper.class, ElytronDescriptionConstants.CUSTOM_PERMISSION_MAPPER, PERMISSION_MAPPER_RUNTIME_CAPABILITY));
         resourceRegistration.registerSubModel(PermissionMapperDefinitions.getLogicalPermissionMapper());
@@ -127,6 +119,14 @@ class ElytronDefinition extends SimpleResourceDefinition {
         resourceRegistration.registerSubModel(PrincipalDecoderDefinitions.getConstantPrincipalDecoder());
         resourceRegistration.registerSubModel(new CustomComponentDefinition<PrincipalDecoder>(PrincipalDecoder.class, ElytronDescriptionConstants.CUSTOM_PRINCIPAL_DECODER, PRINCIPAL_DECODER_RUNTIME_CAPABILITY));
         resourceRegistration.registerSubModel(PrincipalDecoderDefinitions.getX500AttributePrincipalDecoder());
+
+        // Principal Transformers
+        resourceRegistration.registerSubModel(PrincipalTransformerDefinitions.getAggregatePrincipalTransformerDefinition());
+        resourceRegistration.registerSubModel(PrincipalTransformerDefinitions.getChainedPrincipalTransformerDefinition());
+        resourceRegistration.registerSubModel(PrincipalTransformerDefinitions.getConstantPrincipalTransformerDefinition());
+        resourceRegistration.registerSubModel(new CustomComponentDefinition<PrincipalTransformer>(PrincipalTransformer.class, ElytronDescriptionConstants.CUSTOM_PRINCIPAL_TRANSFORMER, PRINCIPAL_TRANSFORMER_RUNTIME_CAPABILITY));
+        resourceRegistration.registerSubModel(PrincipalTransformerDefinitions.getRegexPrincipalTransformerDefinition());
+        resourceRegistration.registerSubModel(PrincipalTransformerDefinitions.getRegexValidatingPrincipalTransformerDefinition());
 
         // Realm Mappers
         resourceRegistration.registerSubModel(RealmMapperDefinitions.getConstantRealmMapper());

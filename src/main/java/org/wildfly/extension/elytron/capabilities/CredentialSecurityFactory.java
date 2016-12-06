@@ -27,7 +27,7 @@ import org.wildfly.security.credential.Credential;
  */
 public interface CredentialSecurityFactory extends SecurityFactory<Credential> {
 
-    static CredentialSecurityFactory toCredentialSecurityFactory(final SecurityFactory<? extends Credential> function) {
+    static CredentialSecurityFactory from(final SecurityFactory<? extends Credential> function) {
         return function::create;
     }
 

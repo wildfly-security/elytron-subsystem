@@ -15,20 +15,20 @@
         </properties-realm>
     </security-realms>
     <mappers>
-        <constant-name-rewriter name="PreRealmNameRewriter" constant="constant" />
-        <constant-name-rewriter name="PostRealmNameRewriter" constant="constant" />
-        <constant-name-rewriter name="FinalNameRewriter" constant="constant" />
-        <constant-name-rewriter name="PreRealmNameRewriter_II" constant="constant" />
-        <constant-name-rewriter name="PostRealmNameRewriter_II" constant="constant" />
-        <constant-name-rewriter name="FinalNameRewriter_II" constant="constant" />
+        <constant-principal-transformer name="PreRealmNameRewriter" constant="constant" />
+        <constant-principal-transformer name="PostRealmNameRewriter" constant="constant" />
+        <constant-principal-transformer name="FinalNameRewriter" constant="constant" />
+        <constant-principal-transformer name="PreRealmNameRewriter_II" constant="constant" />
+        <constant-principal-transformer name="PostRealmNameRewriter_II" constant="constant" />
+        <constant-principal-transformer name="FinalNameRewriter_II" constant="constant" />
         <simple-regex-realm-mapper name="RegexMapper" pattern="(constant)" />
         <simple-regex-realm-mapper name="RegexMapper_II" pattern="(constant)" />
     </mappers>
     <http>
         <http-authentication-factory name="HttpAuthenticationDefinition" security-domain="MyDomain" http-server-mechanism-factory="ConfigurableHttpServerFactory">
             <mechanism-configuration>
-                <mechanism mechanism-name="BASIC" pre-realm-name-rewriter="PreRealmNameRewriter"  post-realm-name-rewriter="PostRealmNameRewriter" final-name-rewriter="FinalNameRewriter" realm-mapper="RegexMapper">
-                    <mechanism-realm realm-name="Test Realm" pre-realm-name-rewriter="PreRealmNameRewriter_II"  post-realm-name-rewriter="PostRealmNameRewriter_II" final-name-rewriter="FinalNameRewriter_II" realm-mapper="RegexMapper_II" />
+                <mechanism mechanism-name="BASIC" pre-realm-principal-transformer="PreRealmNameRewriter"  post-realm-principal-transformer="PostRealmNameRewriter" final-principal-transformer="FinalNameRewriter" realm-mapper="RegexMapper">
+                    <mechanism-realm realm-name="Test Realm" pre-realm-principal-transformer="PreRealmNameRewriter_II"  post-realm-principal-transformer="PostRealmNameRewriter_II" final-principal-transformer="FinalNameRewriter_II" realm-mapper="RegexMapper_II" />
                 </mechanism>
             </mechanism-configuration>
         </http-authentication-factory>

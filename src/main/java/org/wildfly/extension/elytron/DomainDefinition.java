@@ -18,9 +18,9 @@
 
 package org.wildfly.extension.elytron;
 
-import static org.wildfly.extension.elytron.Capabilities.NAME_REWRITER_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.PERMISSION_MAPPER_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.PRINCIPAL_DECODER_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.PRINCIPAL_TRANSFORMER_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.REALM_MAPPER_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.ROLE_DECODER_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.ROLE_MAPPER_CAPABILITY;
@@ -62,7 +62,7 @@ import org.jboss.msc.service.ServiceController.Mode;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.ServiceTarget;
 import org.wildfly.extension.elytron.DomainService.RealmDependency;
-import org.wildfly.security.auth.server.NameRewriter;
+import org.wildfly.extension.elytron.capabilities.PrincipalTransformer;
 import org.wildfly.security.auth.server.PrincipalDecoder;
 import org.wildfly.security.auth.server.RealmMapper;
 import org.wildfly.security.auth.server.SecurityDomain;
@@ -86,16 +86,16 @@ class DomainDefinition extends SimpleResourceDefinition {
          .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
          .build();
 
-    static final SimpleAttributeDefinition PRE_REALM_NAME_REWRITER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PRE_REALM_NAME_REWRITER, ModelType.STRING, true)
+    static final SimpleAttributeDefinition PRE_REALM_PRINCIPAL_TRANSFORMER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PRE_REALM_PRINCIPAL_TRANSFORMER, ModelType.STRING, true)
         .setMinSize(1)
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
-        .setCapabilityReference(NAME_REWRITER_CAPABILITY, SECURITY_DOMAIN_CAPABILITY, true)
+        .setCapabilityReference(PRINCIPAL_TRANSFORMER_CAPABILITY, SECURITY_DOMAIN_CAPABILITY, true)
         .build();
 
-    static final SimpleAttributeDefinition POST_REALM_NAME_REWRITER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.POST_REALM_NAME_REWRITER, ModelType.STRING, true)
+    static final SimpleAttributeDefinition POST_REALM_PRINCIPAL_TRANSFORMER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.POST_REALM_PRINCIPAL_TRANSFORMER, ModelType.STRING, true)
         .setMinSize(1)
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
-        .setCapabilityReference(NAME_REWRITER_CAPABILITY, SECURITY_DOMAIN_CAPABILITY, true)
+        .setCapabilityReference(PRINCIPAL_TRANSFORMER_CAPABILITY, SECURITY_DOMAIN_CAPABILITY, true)
         .build();
 
     static final SimpleAttributeDefinition PRINCIPAL_DECODER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PRINCIPAL_DECODER, ModelType.STRING, true)
@@ -128,9 +128,9 @@ class DomainDefinition extends SimpleResourceDefinition {
         .setCapabilityReference(SECURITY_REALM_CAPABILITY, SECURITY_DOMAIN_CAPABILITY, true)
         .build();
 
-    static final SimpleAttributeDefinition REALM_NAME_REWRITER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.NAME_REWRITER, ModelType.STRING, true)
+    static final SimpleAttributeDefinition REALM_PRINCIPAL_TRANSFORMER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PRINCIPAL_TRANSFORMER, ModelType.STRING, true)
         .setMinSize(1)
-        .setCapabilityReference(NAME_REWRITER_CAPABILITY, SECURITY_DOMAIN_CAPABILITY, true)
+        .setCapabilityReference(PRINCIPAL_TRANSFORMER_CAPABILITY, SECURITY_DOMAIN_CAPABILITY, true)
         .build();
 
     static final SimpleAttributeDefinition REALM_ROLE_DECODER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ROLE_DECODER, ModelType.STRING, true)
@@ -138,7 +138,7 @@ class DomainDefinition extends SimpleResourceDefinition {
         .setCapabilityReference(ROLE_DECODER_CAPABILITY, SECURITY_DOMAIN_CAPABILITY, true)
         .build();
 
-    static final ObjectTypeAttributeDefinition REALM = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.REALM, REALM_NAME, REALM_NAME_REWRITER, REALM_ROLE_DECODER, ROLE_MAPPER)
+    static final ObjectTypeAttributeDefinition REALM = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.REALM, REALM_NAME, REALM_PRINCIPAL_TRANSFORMER, REALM_ROLE_DECODER, ROLE_MAPPER)
         .setAllowNull(false)
         .build();
 
@@ -155,7 +155,7 @@ class DomainDefinition extends SimpleResourceDefinition {
             .build();
 
     private static final AttributeDefinition[] ATTRIBUTES =
-            new AttributeDefinition[] { PRE_REALM_NAME_REWRITER, POST_REALM_NAME_REWRITER, PRINCIPAL_DECODER, REALM_MAPPER, ROLE_MAPPER, PERMISSION_MAPPER, DEFAULT_REALM, REALMS, TRUSTED_SECURITY_DOMAINS };
+            new AttributeDefinition[] { PRE_REALM_PRINCIPAL_TRANSFORMER, POST_REALM_PRINCIPAL_TRANSFORMER, PRINCIPAL_DECODER, REALM_MAPPER, ROLE_MAPPER, PERMISSION_MAPPER, DEFAULT_REALM, REALMS, TRUSTED_SECURITY_DOMAINS };
 
     private static final DomainAddHandler ADD = new DomainAddHandler();
     private static final OperationStepHandler REMOVE = new TrivialCapabilityServiceRemoveHandler(ADD, SECURITY_DOMAIN_RUNTIME_CAPABILITY);
@@ -200,8 +200,8 @@ class DomainDefinition extends SimpleResourceDefinition {
             throw ROOT_LOGGER.trustedDomainsCannotContainDomainItself(simpleName);
         }
 
-        String preRealmNameRewriter = asStringIfDefined(context, PRE_REALM_NAME_REWRITER, model);
-        String postRealmNameRewriter = asStringIfDefined(context, POST_REALM_NAME_REWRITER, model);
+        String preRealmPrincipalTransformer = asStringIfDefined(context, PRE_REALM_PRINCIPAL_TRANSFORMER, model);
+        String postRealmPrincipalTransformer = asStringIfDefined(context, POST_REALM_PRINCIPAL_TRANSFORMER, model);
         String principalDecoder = asStringIfDefined(context, PRINCIPAL_DECODER, model);
         String permissionMapper = asStringIfDefined(context, PERMISSION_MAPPER, model);
         String realmMapper = asStringIfDefined(context, REALM_MAPPER, model);
@@ -212,11 +212,11 @@ class DomainDefinition extends SimpleResourceDefinition {
         ServiceBuilder<SecurityDomain> domainBuilder = serviceTarget.addService(domainName, domain)
                 .setInitialMode(Mode.ACTIVE);
 
-        if (preRealmNameRewriter != null) {
-            injectNameRewriter(preRealmNameRewriter, context, domainBuilder, domain.createPreRealmNameRewriterInjector(preRealmNameRewriter));
+        if (preRealmPrincipalTransformer != null) {
+            injectPrincipalTransformer(preRealmPrincipalTransformer, context, domainBuilder, domain.createPreRealmPrincipalTransformerInjector(preRealmPrincipalTransformer));
         }
-        if (postRealmNameRewriter != null) {
-            injectNameRewriter(postRealmNameRewriter, context, domainBuilder, domain.createPostRealmNameRewriterInjector(postRealmNameRewriter));
+        if (postRealmPrincipalTransformer != null) {
+            injectPrincipalTransformer(postRealmPrincipalTransformer, context, domainBuilder, domain.createPostRealmPrincipalTransformerInjector(postRealmPrincipalTransformer));
         }
         if (principalDecoder != null) {
             String runtimeCapability = RuntimeCapability.buildDynamicCapabilityName(PRINCIPAL_DECODER_CAPABILITY, principalDecoder);
@@ -248,10 +248,10 @@ class DomainDefinition extends SimpleResourceDefinition {
             RealmDependency realmDependency = domain.createRealmDependency(realmName);
             REALM_SERVICE_UTIL.addInjection(domainBuilder, realmDependency.getSecurityRealmInjector() , realmServiceName);
 
-            String nameRewriter = asStringIfDefined(context, REALM_NAME_REWRITER, current);
-            if (nameRewriter != null) {
-                Injector<NameRewriter> nameRewriterInjector = realmDependency.getNameRewriterInjector(nameRewriter);
-                injectNameRewriter(nameRewriter, context, domainBuilder, nameRewriterInjector);
+            String principalStranformer = asStringIfDefined(context, REALM_PRINCIPAL_TRANSFORMER, current);
+            if (principalStranformer != null) {
+                Injector<PrincipalTransformer> principalTransformerInjector = realmDependency.getPrincipalTransformerInjector(principalStranformer);
+                injectPrincipalTransformer(principalStranformer, context, domainBuilder, principalTransformerInjector);
             }
             String realmRoleMapper = asStringIfDefined(context, ROLE_MAPPER, current);
             if (realmRoleMapper != null) {
@@ -267,8 +267,8 @@ class DomainDefinition extends SimpleResourceDefinition {
         return domainBuilder.install();
     }
 
-    private static void injectNameRewriter(String nameRewriter, OperationContext context, ServiceBuilder<SecurityDomain> domainBuilder, Injector<NameRewriter> injector) {
-        if (nameRewriter == null) {
+    private static void injectPrincipalTransformer(String principalTransformer, OperationContext context, ServiceBuilder<SecurityDomain> domainBuilder, Injector<PrincipalTransformer> injector) {
+        if (principalTransformer == null) {
             return;
         }
 
@@ -277,10 +277,10 @@ class DomainDefinition extends SimpleResourceDefinition {
             return;
         }
 
-        String runtimeCapability = RuntimeCapability.buildDynamicCapabilityName(NAME_REWRITER_CAPABILITY, nameRewriter);
-        ServiceName nameRewriterServiceName = context.getCapabilityServiceName(runtimeCapability, NameRewriter.class);
+        String runtimeCapability = RuntimeCapability.buildDynamicCapabilityName(PRINCIPAL_TRANSFORMER_CAPABILITY, principalTransformer);
+        ServiceName principalTransformerServiceName = context.getCapabilityServiceName(runtimeCapability, PrincipalTransformer.class);
 
-        domainBuilder.addDependency(nameRewriterServiceName, NameRewriter.class, injector);
+        domainBuilder.addDependency(principalTransformerServiceName, PrincipalTransformer.class, injector);
     }
 
     private static void injectRoleMapper(String roleMapper, OperationContext context, ServiceBuilder<SecurityDomain> domainBuilder, Injector<RoleMapper> injector) {

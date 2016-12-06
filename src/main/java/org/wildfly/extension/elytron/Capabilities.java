@@ -30,9 +30,9 @@ import org.jboss.as.controller.capability.RuntimeCapability;
 import org.jboss.as.controller.security.CredentialStoreClient;
 import org.wildfly.extension.elytron.capabilities.CredentialSecurityFactory;
 import org.wildfly.extension.elytron.capabilities.DirContextSupplier;
+import org.wildfly.extension.elytron.capabilities.PrincipalTransformer;
 import org.wildfly.security.auth.server.HttpAuthenticationFactory;
 import org.wildfly.security.auth.server.ModifiableSecurityRealm;
-import org.wildfly.security.auth.server.NameRewriter;
 import org.wildfly.security.auth.server.PrincipalDecoder;
 import org.wildfly.security.auth.server.RealmMapper;
 import org.wildfly.security.auth.server.SaslAuthenticationFactory;
@@ -87,16 +87,16 @@ class Capabilities {
         .Builder.of(KEY_STORE_CAPABILITY, true, KeyStore.class)
         .build();
 
-    static final String NAME_REWRITER_CAPABILITY = CAPABILITY_BASE + "name-rewriter";
-
-    static final RuntimeCapability<Void> NAME_REWRITER_RUNTIME_CAPABILITY =  RuntimeCapability
-        .Builder.of(NAME_REWRITER_CAPABILITY, true, NameRewriter.class)
-        .build();
-
     static final String PERMISSION_MAPPER_CAPABILITY = CAPABILITY_BASE + "permission-mapper";
 
     static final RuntimeCapability<Void> PERMISSION_MAPPER_RUNTIME_CAPABILITY =  RuntimeCapability
             .Builder.of(PERMISSION_MAPPER_CAPABILITY, true, PermissionMapper.class)
+            .build();
+
+    static final String PRINCIPAL_TRANSFORMER_CAPABILITY = CAPABILITY_BASE + "principal-transformer";
+
+    static final RuntimeCapability<Void> PRINCIPAL_TRANSFORMER_RUNTIME_CAPABILITY =  RuntimeCapability
+            .Builder.of(PRINCIPAL_TRANSFORMER_CAPABILITY, true, PrincipalTransformer.class)
             .build();
 
     static final String PRINCIPAL_DECODER_CAPABILITY = CAPABILITY_BASE + "principal-decoder";

@@ -19,8 +19,6 @@
 package org.wildfly.extension.elytron;
 
 import static org.wildfly.extension.elytron.Capabilities.MODIFIABLE_SECURITY_REALM_RUNTIME_CAPABILITY;
-import static org.wildfly.extension.elytron.Capabilities.NAME_REWRITER_CAPABILITY;
-import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
 import static org.wildfly.extension.elytron.FileAttributeDefinitions.pathName;
@@ -41,7 +39,6 @@ import org.jboss.as.controller.RestartParentWriteAttributeHandler;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
 import org.jboss.as.controller.SimpleResourceDefinition;
-import org.jboss.as.controller.capability.RuntimeCapability;
 import org.jboss.as.controller.registry.ManagementResourceRegistration;
 import org.jboss.as.controller.registry.OperationEntry;
 import org.jboss.as.controller.services.path.PathManager;
@@ -82,14 +79,7 @@ class FileSystemRealmDefinition extends SimpleResourceDefinition {
                     .setDefaultValue(new ModelNode(2))
                     .build();
 
-    static final SimpleAttributeDefinition NAME_REWRITER =
-            new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.NAME_REWRITER, ModelType.STRING)
-                    .setCapabilityReference(NAME_REWRITER_CAPABILITY, SECURITY_REALM_CAPABILITY, true)
-                    .setAllowNull(true)
-                    .build();
-
-    static final AttributeDefinition[] ATTRIBUTES =
-            new AttributeDefinition[]{PATH, RELATIVE_TO, LEVELS, NAME_REWRITER};
+    static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[]{PATH, RELATIVE_TO, LEVELS};
 
     private static final AbstractAddStepHandler ADD = new RealmAddHandler();
     private static final OperationStepHandler REMOVE = new TrivialCapabilityServiceRemoveHandler(ADD, MODIFIABLE_SECURITY_REALM_RUNTIME_CAPABILITY, SECURITY_REALM_RUNTIME_CAPABILITY);
@@ -126,8 +116,6 @@ class FileSystemRealmDefinition extends SimpleResourceDefinition {
             String address = context.getCurrentAddressValue();
             ServiceName mainServiceName = MODIFIABLE_SECURITY_REALM_RUNTIME_CAPABILITY.fromBaseCapability(address).getCapabilityServiceName();
             ServiceName aliasServiceName = SECURITY_REALM_RUNTIME_CAPABILITY.fromBaseCapability(address).getCapabilityServiceName();
-
-            String nameRewriter = asStringIfDefined(context, NAME_REWRITER, model);
 
             final int levels = LEVELS.resolveModelAttribute(context, model).asInt();
 
@@ -170,11 +158,6 @@ class FileSystemRealmDefinition extends SimpleResourceDefinition {
             if (relativeTo != null) {
                 serviceBuilder.addDependency(PathManagerService.SERVICE_NAME, PathManager.class, pathManagerInjector);
                 serviceBuilder.addDependency(pathName(relativeTo));
-            }
-            if (nameRewriter != null) {
-                String nameRewriteCapability = RuntimeCapability.buildDynamicCapabilityName(NAME_REWRITER_CAPABILITY, nameRewriter);
-                ServiceName nameRewriterServiceName = context.getCapabilityServiceName(nameRewriteCapability, NameRewriter.class);
-                serviceBuilder.addDependency(nameRewriterServiceName, NameRewriter.class, nameRewriterInjector);
             }
             serviceBuilder.install();
         }

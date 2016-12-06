@@ -28,7 +28,7 @@ import static org.jboss.as.controller.parsing.ParseUtils.requireNoContent;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedAttribute;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedElement;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CREDENTIAL_SECURITY_FACTORY;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.FINAL_NAME_REWRITER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.FINAL_PRINCIPAL_TRANSFORMER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.HOST_NAME;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.HTTP_AUTHENTICATION_FACTORY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.HTTP_SERVER_MECHANISM_FACTORY;
@@ -39,8 +39,8 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MECHANIS
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MECHANISM_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MECHANISM_REALM_CONFIGURATIONS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.POST_REALM_NAME_REWRITER;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PRE_REALM_NAME_REWRITER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.POST_REALM_PRINCIPAL_TRANSFORMER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PRE_REALM_PRINCIPAL_TRANSFORMER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROTOCOL;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REALM_MAPPER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REALM_NAME;
@@ -80,14 +80,14 @@ class AuthenticationFactoryParser {
                     case REALM_NAME:
                         AuthenticationFactoryDefinitions.REALM_NAME.parseAndSetParameter(value, mechanismRealmConfiguration, reader);
                         break;
-                    case PRE_REALM_NAME_REWRITER:
-                        AuthenticationFactoryDefinitions.BASE_PRE_REALM_NAME_REWRITER.parseAndSetParameter(value, mechanismRealmConfiguration, reader);
+                    case PRE_REALM_PRINCIPAL_TRANSFORMER:
+                        AuthenticationFactoryDefinitions.BASE_PRE_REALM_PRINCIPAL_TRANSFORMER.parseAndSetParameter(value, mechanismRealmConfiguration, reader);
                         break;
-                    case POST_REALM_NAME_REWRITER:
-                        AuthenticationFactoryDefinitions.BASE_POST_REALM_NAME_REWRITER.parseAndSetParameter(value, mechanismRealmConfiguration, reader);
+                    case POST_REALM_PRINCIPAL_TRANSFORMER:
+                        AuthenticationFactoryDefinitions.BASE_POST_REALM_PRINCIPAL_TRANSFORMER.parseAndSetParameter(value, mechanismRealmConfiguration, reader);
                         break;
-                    case FINAL_NAME_REWRITER:
-                        AuthenticationFactoryDefinitions.BASE_FINAL_NAME_REWRITER.parseAndSetParameter(value, mechanismRealmConfiguration, reader);
+                    case FINAL_PRINCIPAL_TRANSFORMER:
+                        AuthenticationFactoryDefinitions.BASE_FINAL_PRINCIPAL_TRANSFORMER.parseAndSetParameter(value, mechanismRealmConfiguration, reader);
                         break;
                     case REALM_MAPPER:
                         AuthenticationFactoryDefinitions.BASE_REALM_MAPPER.parseAndSetParameter(value, mechanismRealmConfiguration, reader);
@@ -124,14 +124,14 @@ class AuthenticationFactoryParser {
                     case PROTOCOL:
                         AuthenticationFactoryDefinitions.PROTOCOL.parseAndSetParameter(value, mechanismConfiguration, reader);
                         break;
-                    case PRE_REALM_NAME_REWRITER:
-                        AuthenticationFactoryDefinitions.BASE_PRE_REALM_NAME_REWRITER.parseAndSetParameter(value, mechanismConfiguration, reader);
+                    case PRE_REALM_PRINCIPAL_TRANSFORMER:
+                        AuthenticationFactoryDefinitions.BASE_PRE_REALM_PRINCIPAL_TRANSFORMER.parseAndSetParameter(value, mechanismConfiguration, reader);
                         break;
-                    case POST_REALM_NAME_REWRITER:
-                        AuthenticationFactoryDefinitions.BASE_POST_REALM_NAME_REWRITER.parseAndSetParameter(value, mechanismConfiguration, reader);
+                    case POST_REALM_PRINCIPAL_TRANSFORMER:
+                        AuthenticationFactoryDefinitions.BASE_POST_REALM_PRINCIPAL_TRANSFORMER.parseAndSetParameter(value, mechanismConfiguration, reader);
                         break;
-                    case FINAL_NAME_REWRITER:
-                        AuthenticationFactoryDefinitions.BASE_FINAL_NAME_REWRITER.parseAndSetParameter(value, mechanismConfiguration, reader);
+                    case FINAL_PRINCIPAL_TRANSFORMER:
+                        AuthenticationFactoryDefinitions.BASE_FINAL_PRINCIPAL_TRANSFORMER.parseAndSetParameter(value, mechanismConfiguration, reader);
                         break;
                     case REALM_MAPPER:
                         AuthenticationFactoryDefinitions.BASE_REALM_MAPPER.parseAndSetParameter(value, mechanismConfiguration, reader);
@@ -283,18 +283,18 @@ class AuthenticationFactoryParser {
                 AuthenticationFactoryDefinitions.MECHANISM_NAME.marshallAsAttribute(currentMechConfig, writer);
                 AuthenticationFactoryDefinitions.HOST_NAME.marshallAsAttribute(currentMechConfig, writer);
                 AuthenticationFactoryDefinitions.PROTOCOL.marshallAsAttribute(currentMechConfig, writer);
-                AuthenticationFactoryDefinitions.BASE_PRE_REALM_NAME_REWRITER.marshallAsAttribute(currentMechConfig, writer);
-                AuthenticationFactoryDefinitions.BASE_POST_REALM_NAME_REWRITER.marshallAsAttribute(currentMechConfig, writer);
-                AuthenticationFactoryDefinitions.BASE_FINAL_NAME_REWRITER.marshallAsAttribute(currentMechConfig, writer);
+                AuthenticationFactoryDefinitions.BASE_PRE_REALM_PRINCIPAL_TRANSFORMER.marshallAsAttribute(currentMechConfig, writer);
+                AuthenticationFactoryDefinitions.BASE_POST_REALM_PRINCIPAL_TRANSFORMER.marshallAsAttribute(currentMechConfig, writer);
+                AuthenticationFactoryDefinitions.BASE_FINAL_PRINCIPAL_TRANSFORMER.marshallAsAttribute(currentMechConfig, writer);
                 AuthenticationFactoryDefinitions.BASE_REALM_MAPPER.marshallAsAttribute(currentMechConfig, writer);
                 AuthenticationFactoryDefinitions.BASE_CREDENTIAL_SECURITY_FACTORY.marshallAsAttribute(currentMechConfig, writer);
                 if (currentMechConfig.hasDefined(MECHANISM_REALM_CONFIGURATIONS)) {
                     for (ModelNode currentMechRealmConfig : currentMechConfig.require(MECHANISM_REALM_CONFIGURATIONS).asList()) {
                         writer.writeStartElement(MECHANISM_REALM);
                         AuthenticationFactoryDefinitions.REALM_NAME.marshallAsAttribute(currentMechRealmConfig, writer);
-                        AuthenticationFactoryDefinitions.BASE_PRE_REALM_NAME_REWRITER.marshallAsAttribute(currentMechRealmConfig, writer);
-                        AuthenticationFactoryDefinitions.BASE_POST_REALM_NAME_REWRITER.marshallAsAttribute(currentMechRealmConfig, writer);
-                        AuthenticationFactoryDefinitions.BASE_FINAL_NAME_REWRITER.marshallAsAttribute(currentMechRealmConfig, writer);
+                        AuthenticationFactoryDefinitions.BASE_PRE_REALM_PRINCIPAL_TRANSFORMER.marshallAsAttribute(currentMechRealmConfig, writer);
+                        AuthenticationFactoryDefinitions.BASE_POST_REALM_PRINCIPAL_TRANSFORMER.marshallAsAttribute(currentMechRealmConfig, writer);
+                        AuthenticationFactoryDefinitions.BASE_FINAL_PRINCIPAL_TRANSFORMER.marshallAsAttribute(currentMechRealmConfig, writer);
                         AuthenticationFactoryDefinitions.BASE_REALM_MAPPER.marshallAsAttribute(currentMechRealmConfig, writer);
                         writer.writeEndElement();
                     }

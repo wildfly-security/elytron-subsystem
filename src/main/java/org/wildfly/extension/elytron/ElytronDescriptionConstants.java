@@ -31,8 +31,8 @@ interface ElytronDescriptionConstants {
     String ADD_PREFIX_ROLE_MAPPER = "add-prefix-role-mapper";
     String ADD_SUFFIX_ROLE_MAPPER = "add-suffix-role-mapper";
     String AGGREGATE_HTTP_SERVER_MECHANISM_FACTORY = "aggregate-http-server-mechanism-factory";
-    String AGGREGATE_NAME_REWRITER = "aggregate-name-rewriter";
     String AGGREGATE_PRINCIPAL_DECODER = "aggregate-principal-decoder";
+    String AGGREGATE_PRINCIPAL_TRANSFORMER = "aggregate-principal-transformer";
     String AGGREGATE_REALM = "aggregate-realm";
     String AGGREGATE_ROLE_MAPPER = "aggregate-role-mapper";
     String AGGREGATE_SASL_SERVER_FACTORY = "aggregate-sasl-server-factory";
@@ -66,7 +66,7 @@ interface ElytronDescriptionConstants {
     String CERTIFICATE_CHAIN_ENCODING = "certificate-chain-encoding";
     String CERTIFICATE_FROM = "certificate-from";
     String CERTIFICATE_TYPE = "certificate-type";
-    String CHAINED_NAME_REWRITER = "chained-name-rewriter";
+    String CHAINED_PRINCIPAL_TRANSFORMER = "chained-principal-transformer";
     String CIPHER_SUITE = "cipher-suite";
     String CIPHER_SUITE_FILTER = "cipher-suite-filter";
     String CLASS_LOADING = "class-loading";
@@ -86,9 +86,9 @@ interface ElytronDescriptionConstants {
     String CONFIGURATION_PROPERTIES = "configuration-properties";
     String CONNECTION_TIMEOUT = "connection-timeout";
     String CONSTANT = "constant";
-    String CONSTANT_NAME_REWRITER = "constant-name-rewriter";
     String CONSTANT_PERMISSION_MAPPER = "constant-permission-mapper";
     String CONSTANT_PRINCIPAL_DECODER = "constant-principal-decoder";
+    String CONSTANT_PRINCIPAL_TRANSFORMER = "constant-principal-transformer";
     String CONSTANT_REALM_MAPPER = "constant-realm-mapper";
     String CONSTANT_ROLE_MAPPER = "constant-role-mapper";
     String CORE_SERVICE = "core-service";
@@ -104,9 +104,9 @@ interface ElytronDescriptionConstants {
     String CREDENTIAL_STORE_BASE = "store.base";
     String CREDENTIALS = "credentials";
     String CUSTOM_CREDENTIAL_SECURITY_FACTORY = "custom-credential-security-factory";
-    String CUSTOM_NAME_REWRITER = "custom-name-rewriter";
     String CUSTOM_PERMISSION_MAPPER = "custom-permission-mapper";
     String CUSTOM_PRINCIPAL_DECODER = "custom-principal-decoder";
+    String CUSTOM_PRINCIPAL_TRANSFORMER = "custom-principal-transformer";
     String CUSTOM_REALM = "custom-realm";
     String CUSTOM_MODIFIABLE_REALM = "custom-modifiable-realm";
     String CUSTOM_REALM_MAPPER = "custom-realm-mapper";
@@ -139,7 +139,7 @@ interface ElytronDescriptionConstants {
     String FILTER_ITERATE = "filter-iterate";
     String FILTERING_KEY_STORE = "filtering-key-store";
     String FILTERS = "filters";
-    String FINAL_NAME_REWRITER = "final-name-rewriter";
+    String FINAL_PRINCIPAL_TRANSFORMER = "final-principal-transformer";
     String FINGER_PRINT = "finger-print";
     String FINGER_PRINTS = "finger-prints";
     String FIRST = "first";
@@ -224,8 +224,6 @@ interface ElytronDescriptionConstants {
     String MODULE = "module";
 
     String NAME = "name";
-    String NAME_REWRITER = "name-rewriter";
-    String NAME_REWRITERS = "name-rewriters";
     String NEED_CLIENT_AUTH = "need-client-auth";
     String NEW_IDENTITY_ATTRIBUTES = "new-identity-attributes";
     String NEW_IDENTITY_PARENT_DN = "new-identity-parent-dn";
@@ -257,8 +255,8 @@ interface ElytronDescriptionConstants {
     String PERMISSION_MAPPING = "permission-mapping";
     String PERMISSION_MAPPINGS = "permission-mappings";
     String PLAIN_TEXT = "plain-text";
-    String POST_REALM_NAME_REWRITER = "post-realm-name-rewriter";
-    String PRE_REALM_NAME_REWRITER = "pre-realm-name-rewriter";
+    String POST_REALM_PRINCIPAL_TRANSFORMER = "post-realm-principal-transformer";
+    String PRE_REALM_PRINCIPAL_TRANSFORMER = "pre-realm-principal-transformer";
     String PREDEFINED_FILTER = "predefined-filter";
     String PREFIX = "prefix";
     String PRINCIPAL = "principal";
@@ -266,6 +264,8 @@ interface ElytronDescriptionConstants {
     String PRINCIPAL_CLAIM = "principal-claim";
     String PRINCIPAL_DECODER = "principal-decoder";
     String PRINCIPAL_DECODERS = "principal-decoders";
+    String PRINCIPAL_TRANSFORMER = "principal-transformer";
+    String PRINCIPAL_TRANSFORMERS = "principal-transformers";
     String PRINCIPAL_QUERY = "principal-query";
     String PROPERTIES = "properties";
     String PROPERTIES_REALM = "properties-realm";
@@ -293,8 +293,8 @@ interface ElytronDescriptionConstants {
     String REALM_NAME = "realm-name";
     String REALMS = "realms";
     String REFERRAL_MODE = "referral-mode";
-    String REGEX_NAME_REWRITER = "regex-name-rewriter";
-    String REGEX_NAME_VALIDATING_REWRITER = "regex-name-validating-rewriter";
+    String REGEX_PRINCIPAL_TRANSFORMER = "regex-principal-transformer";
+    String REGEX_VALIDATING_PRINCIPAL_TRANSFORMER = "regex-validating-principal-transformer";
     String REGISTER = "register";
     String RELATIVE_TO = "relative-to";
     String REMOVE_ATTRIBUTE = "remove-attribute";

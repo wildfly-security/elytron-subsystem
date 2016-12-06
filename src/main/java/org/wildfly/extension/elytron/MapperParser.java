@@ -33,22 +33,22 @@ import static org.jboss.as.controller.parsing.ParseUtils.unexpectedElement;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ACTION;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ADD_PREFIX_ROLE_MAPPER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ADD_SUFFIX_ROLE_MAPPER;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AGGREGATE_NAME_REWRITER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AGGREGATE_PRINCIPAL_DECODER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AGGREGATE_PRINCIPAL_TRANSFORMER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AGGREGATE_ROLE_MAPPER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ATTRIBUTE;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CHAINED_NAME_REWRITER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CHAINED_PRINCIPAL_TRANSFORMER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CLASS_NAME;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CONCATENATING_PRINCIPAL_DECODER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CONSTANT;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CONSTANT_NAME_REWRITER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CONSTANT_PERMISSION_MAPPER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CONSTANT_PRINCIPAL_DECODER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CONSTANT_PRINCIPAL_TRANSFORMER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CONSTANT_REALM_MAPPER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CONSTANT_ROLE_MAPPER;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CUSTOM_NAME_REWRITER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CUSTOM_PERMISSION_MAPPER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CUSTOM_PRINCIPAL_DECODER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CUSTOM_PRINCIPAL_TRANSFORMER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CUSTOM_REALM_MAPPER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CUSTOM_ROLE_DECODER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CUSTOM_ROLE_MAPPER;
@@ -66,8 +66,6 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MATCH;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MAXIMUM_SEGMENTS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MODULE;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME_REWRITER;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME_REWRITERS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.OID;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PATTERN;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PERMISSION;
@@ -78,11 +76,13 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PREFIX;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PRINCIPALS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PRINCIPAL_DECODER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PRINCIPAL_DECODERS;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PRINCIPAL_TRANSFORMER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PRINCIPAL_TRANSFORMERS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REALM_MAP;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REALM_MAPPING;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REALM_NAME;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REGEX_NAME_REWRITER;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REGEX_NAME_VALIDATING_REWRITER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REGEX_PRINCIPAL_TRANSFORMER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REGEX_VALIDATING_PRINCIPAL_TRANSFORMER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REPLACEMENT;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REPLACE_ALL;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REQUIRED_OIDS;
@@ -129,25 +129,6 @@ class MapperParser {
             verifyNamespace(reader);
             String localName = reader.getLocalName();
             switch (localName) {
-                // Name Rewriters
-                case AGGREGATE_NAME_REWRITER:
-                    readAggregateNameRewriterElement(parentAddress, reader, operations);
-                    break;
-                case CHAINED_NAME_REWRITER:
-                    readChainedNameRewriterElement(parentAddress, reader, operations);
-                    break;
-                case CONSTANT_NAME_REWRITER:
-                    readConstantRewriterElement(parentAddress, reader, operations);
-                    break;
-                case CUSTOM_NAME_REWRITER:
-                    readCustomComponent(CUSTOM_NAME_REWRITER, parentAddress, reader, operations);
-                    break;
-                case REGEX_NAME_REWRITER:
-                    readRegexNameRewriterElement(parentAddress, reader, operations);
-                    break;
-                case REGEX_NAME_VALIDATING_REWRITER:
-                    readRegexNameValidatingRewriterElement(parentAddress, reader, operations);
-                    break;
                 // Permission Mapper
                 case CUSTOM_PERMISSION_MAPPER:
                     readCustomComponent(CUSTOM_PERMISSION_MAPPER, parentAddress, reader, operations);
@@ -176,6 +157,25 @@ class MapperParser {
                     break;
                 case X500_ATTRIBUTE_PRINCIPAL_DECODER:
                     readX500AttributePrincipalDecoderElement(parentAddress, reader, operations);
+                    break;
+                // Principal Transformers
+                case AGGREGATE_PRINCIPAL_TRANSFORMER:
+                    readAggregatePrincipalTransformerElement(parentAddress, reader, operations);
+                    break;
+                case CHAINED_PRINCIPAL_TRANSFORMER:
+                    readChainedPrincipalTransformersElement(parentAddress, reader, operations);
+                    break;
+                case CONSTANT_PRINCIPAL_TRANSFORMER:
+                    readConstantPrincipalTransformerElement(parentAddress, reader, operations);
+                    break;
+                case CUSTOM_PRINCIPAL_TRANSFORMER:
+                    readCustomComponent(CUSTOM_PRINCIPAL_TRANSFORMER, parentAddress, reader, operations);
+                    break;
+                case REGEX_PRINCIPAL_TRANSFORMER:
+                    readRegexPrincipalTransformerElement(parentAddress, reader, operations);
+                    break;
+                case REGEX_VALIDATING_PRINCIPAL_TRANSFORMER:
+                    readRegexPrincipalTransformerRewriterElement(parentAddress, reader, operations);
                     break;
                 // Realm Mappers
                 case CONSTANT_REALM_MAPPER:
@@ -220,238 +220,6 @@ class MapperParser {
                     throw unexpectedElement(reader);
             }
         }
-    }
-
-    private void readAggregateNameRewriterElement(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations)
-            throws XMLStreamException {
-        ModelNode addNameRewriter = new ModelNode();
-        addNameRewriter.get(OP).set(ADD);
-
-        String name = null;
-
-        final int count = reader.getAttributeCount();
-        for (int i = 0; i < count; i++) {
-            final String value = reader.getAttributeValue(i);
-            if (!isNoNamespaceAttribute(reader, i)) {
-                throw unexpectedAttribute(reader, i);
-            } else {
-                String attribute = reader.getAttributeLocalName(i);
-                switch (attribute) {
-                    case NAME:
-                        name = value;
-                        break;
-                    default:
-                        throw unexpectedAttribute(reader, i);
-                }
-            }
-        }
-
-        if (name == null) {
-            throw missingRequired(reader, NAME);
-        }
-
-        addNameRewriter.get(OP_ADDR).set(parentAddress).add(AGGREGATE_NAME_REWRITER, name);
-
-        operations.add(addNameRewriter);
-
-        ListAttributeDefinition nameRewriters = NameRewriterDefinitions.getAggregateNameRewriterDefinition().getReferencesAttribute();
-        while (reader.hasNext() && reader.nextTag() != END_ELEMENT) {
-            verifyNamespace(reader);
-            String localName = reader.getLocalName();
-            if (NAME_REWRITER.equals(localName) == false) {
-                throw unexpectedElement(reader);
-            }
-
-            requireSingleAttribute(reader, NAME);
-            String nameRewriterName = reader.getAttributeValue(0);
-
-
-            nameRewriters.parseAndAddParameterElement(nameRewriterName, addNameRewriter, reader);
-
-            requireNoContent(reader);
-        }
-    }
-
-    private void readChainedNameRewriterElement(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations)
-            throws XMLStreamException {
-        ModelNode addNameRewriter = new ModelNode();
-        addNameRewriter.get(OP).set(ADD);
-
-        String name = null;
-
-        final int count = reader.getAttributeCount();
-        for (int i = 0; i < count; i++) {
-            final String value = reader.getAttributeValue(i);
-            if (!isNoNamespaceAttribute(reader, i)) {
-                throw unexpectedAttribute(reader, i);
-            } else {
-                String attribute = reader.getAttributeLocalName(i);
-                switch (attribute) {
-                    case NAME:
-                        name = value;
-                        break;
-                    default:
-                        throw unexpectedAttribute(reader, i);
-                }
-            }
-        }
-
-        if (name == null) {
-            throw missingRequired(reader, NAME);
-        }
-
-        addNameRewriter.get(OP_ADDR).set(parentAddress).add(CHAINED_NAME_REWRITER, name);
-
-        operations.add(addNameRewriter);
-
-        ListAttributeDefinition nameRewriters = NameRewriterDefinitions.getAggregateNameRewriterDefinition().getReferencesAttribute();
-        while (reader.hasNext() && reader.nextTag() != END_ELEMENT) {
-            verifyNamespace(reader);
-            String localName = reader.getLocalName();
-            if (NAME_REWRITER.equals(localName) == false) {
-                throw unexpectedElement(reader);
-            }
-
-            requireSingleAttribute(reader, NAME);
-            String nameRewriterName = reader.getAttributeValue(0);
-
-
-            nameRewriters.parseAndAddParameterElement(nameRewriterName, addNameRewriter, reader);
-
-            requireNoContent(reader);
-        }
-    }
-
-    private void readConstantRewriterElement(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations)
-            throws XMLStreamException {
-        ModelNode addNameRewriter = new ModelNode();
-        addNameRewriter.get(OP).set(ADD);
-
-        Set<String> requiredAttributes = new HashSet<String>(Arrays.asList(new String[] { NAME, CONSTANT }));
-
-        String name = null;
-
-        final int count = reader.getAttributeCount();
-        for (int i = 0; i < count; i++) {
-            final String value = reader.getAttributeValue(i);
-            if (!isNoNamespaceAttribute(reader, i)) {
-                throw unexpectedAttribute(reader, i);
-            } else {
-                String attribute = reader.getAttributeLocalName(i);
-                requiredAttributes.remove(attribute);
-                switch (attribute) {
-                    case NAME:
-                        name = value;
-                        break;
-                    case CONSTANT:
-                        NameRewriterDefinitions.CONSTANT.parseAndSetParameter(value, addNameRewriter, reader);
-                        break;
-                    default:
-                        throw unexpectedAttribute(reader, i);
-                }
-            }
-        }
-
-        if (requiredAttributes.isEmpty() == false) {
-            throw missingRequired(reader, requiredAttributes);
-        }
-
-        addNameRewriter.get(OP_ADDR).set(parentAddress).add(CONSTANT_NAME_REWRITER, name);
-
-        operations.add(addNameRewriter);
-
-        requireNoContent(reader);
-    }
-
-    private void readRegexNameRewriterElement(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations)
-            throws XMLStreamException {
-        ModelNode addNameRewriter = new ModelNode();
-        addNameRewriter.get(OP).set(ADD);
-
-        Set<String> requiredAttributes = new HashSet<String>(Arrays.asList(new String[] { NAME, PATTERN, REPLACEMENT }));
-
-        String name = null;
-
-        final int count = reader.getAttributeCount();
-        for (int i = 0; i < count; i++) {
-            final String value = reader.getAttributeValue(i);
-            if (!isNoNamespaceAttribute(reader, i)) {
-                throw unexpectedAttribute(reader, i);
-            } else {
-                String attribute = reader.getAttributeLocalName(i);
-                requiredAttributes.remove(attribute);
-                switch (attribute) {
-                    case NAME:
-                        name = value;
-                        break;
-                    case PATTERN:
-                        RegexAttributeDefinitions.PATTERN.parseAndSetParameter(value, addNameRewriter, reader);
-                        break;
-                    case REPLACEMENT:
-                        NameRewriterDefinitions.REPLACEMENT.parseAndSetParameter(value, addNameRewriter, reader);
-                        break;
-                    case REPLACE_ALL:
-                        NameRewriterDefinitions.REPLACE_ALL.parseAndSetParameter(value, addNameRewriter, reader);
-                        break;
-                    default:
-                        throw unexpectedAttribute(reader, i);
-                }
-            }
-        }
-
-        if (requiredAttributes.isEmpty() == false) {
-            throw missingRequired(reader, requiredAttributes);
-        }
-
-        addNameRewriter.get(OP_ADDR).set(parentAddress).add(REGEX_NAME_REWRITER, name);
-
-        operations.add(addNameRewriter);
-
-        requireNoContent(reader);
-    }
-
-    private void readRegexNameValidatingRewriterElement(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations)
-            throws XMLStreamException {
-        ModelNode addNameRewriter = new ModelNode();
-        addNameRewriter.get(OP).set(ADD);
-
-        Set<String> requiredAttributes = new HashSet<String>(Arrays.asList(new String[] { NAME, PATTERN }));
-
-        String name = null;
-
-        final int count = reader.getAttributeCount();
-        for (int i = 0; i < count; i++) {
-            final String value = reader.getAttributeValue(i);
-            if (!isNoNamespaceAttribute(reader, i)) {
-                throw unexpectedAttribute(reader, i);
-            } else {
-                String attribute = reader.getAttributeLocalName(i);
-                requiredAttributes.remove(attribute);
-                switch (attribute) {
-                    case NAME:
-                        name = value;
-                        break;
-                    case PATTERN:
-                        RegexAttributeDefinitions.PATTERN.parseAndSetParameter(value, addNameRewriter, reader);
-                        break;
-                    case MATCH:
-                        NameRewriterDefinitions.MATCH.parseAndSetParameter(value, addNameRewriter, reader);
-                        break;
-                    default:
-                        throw unexpectedAttribute(reader, i);
-                }
-            }
-        }
-
-        if (requiredAttributes.isEmpty() == false) {
-            throw missingRequired(reader, requiredAttributes);
-        }
-
-        addNameRewriter.get(OP_ADDR).set(parentAddress).add(REGEX_NAME_VALIDATING_REWRITER, name);
-
-        operations.add(addNameRewriter);
-
-        requireNoContent(reader);
     }
 
     private void readLogicalPermissionMapper(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations) throws XMLStreamException {
@@ -669,8 +437,8 @@ class MapperParser {
 
     private void readAggregatePrincipalDecoderElement(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations)
             throws XMLStreamException {
-        ModelNode addNameRewriter = new ModelNode();
-        addNameRewriter.get(OP).set(ADD);
+        ModelNode addPrincipalDecoder = new ModelNode();
+        addPrincipalDecoder.get(OP).set(ADD);
 
         String name = null;
 
@@ -695,9 +463,9 @@ class MapperParser {
             throw missingRequired(reader, NAME);
         }
 
-        addNameRewriter.get(OP_ADDR).set(parentAddress).add(AGGREGATE_PRINCIPAL_DECODER, name);
+        addPrincipalDecoder.get(OP_ADDR).set(parentAddress).add(AGGREGATE_PRINCIPAL_DECODER, name);
 
-        operations.add(addNameRewriter);
+        operations.add(addPrincipalDecoder);
 
         ListAttributeDefinition principalDecoders = PrincipalDecoderDefinitions.getAggregatePrincipalDecoderDefinition().getReferencesAttribute();
         while (reader.hasNext() && reader.nextTag() != END_ELEMENT) {
@@ -711,7 +479,7 @@ class MapperParser {
             String principalDecoderName = reader.getAttributeValue(0);
 
 
-            principalDecoders.parseAndAddParameterElement(principalDecoderName, addNameRewriter, reader);
+            principalDecoders.parseAndAddParameterElement(principalDecoderName, addPrincipalDecoder, reader);
 
             requireNoContent(reader);
         }
@@ -862,6 +630,238 @@ class MapperParser {
         addPrincipalDecoder.get(OP_ADDR).set(parentAddress).add(X500_ATTRIBUTE_PRINCIPAL_DECODER, name);
 
         operations.add(addPrincipalDecoder);
+
+        requireNoContent(reader);
+    }
+
+    private void readAggregatePrincipalTransformerElement(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations)
+            throws XMLStreamException {
+        ModelNode addPrincipalTransformer = new ModelNode();
+        addPrincipalTransformer.get(OP).set(ADD);
+
+        String name = null;
+
+        final int count = reader.getAttributeCount();
+        for (int i = 0; i < count; i++) {
+            final String value = reader.getAttributeValue(i);
+            if (!isNoNamespaceAttribute(reader, i)) {
+                throw unexpectedAttribute(reader, i);
+            } else {
+                String attribute = reader.getAttributeLocalName(i);
+                switch (attribute) {
+                    case NAME:
+                        name = value;
+                        break;
+                    default:
+                        throw unexpectedAttribute(reader, i);
+                }
+            }
+        }
+
+        if (name == null) {
+            throw missingRequired(reader, NAME);
+        }
+
+        addPrincipalTransformer.get(OP_ADDR).set(parentAddress).add(AGGREGATE_PRINCIPAL_TRANSFORMER, name);
+
+        operations.add(addPrincipalTransformer);
+
+        ListAttributeDefinition principalTranformers = PrincipalTransformerDefinitions.getAggregatePrincipalTransformerDefinition().getReferencesAttribute();
+        while (reader.hasNext() && reader.nextTag() != END_ELEMENT) {
+            verifyNamespace(reader);
+            String localName = reader.getLocalName();
+            if (PRINCIPAL_TRANSFORMER.equals(localName) == false) {
+                throw unexpectedElement(reader);
+            }
+
+            requireSingleAttribute(reader, NAME);
+            String principalTransformerName = reader.getAttributeValue(0);
+
+
+            principalTranformers.parseAndAddParameterElement(principalTransformerName, addPrincipalTransformer, reader);
+
+            requireNoContent(reader);
+        }
+    }
+
+    private void readChainedPrincipalTransformersElement(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations)
+            throws XMLStreamException {
+        ModelNode addPrincipalTransformer = new ModelNode();
+        addPrincipalTransformer.get(OP).set(ADD);
+
+        String name = null;
+
+        final int count = reader.getAttributeCount();
+        for (int i = 0; i < count; i++) {
+            final String value = reader.getAttributeValue(i);
+            if (!isNoNamespaceAttribute(reader, i)) {
+                throw unexpectedAttribute(reader, i);
+            } else {
+                String attribute = reader.getAttributeLocalName(i);
+                switch (attribute) {
+                    case NAME:
+                        name = value;
+                        break;
+                    default:
+                        throw unexpectedAttribute(reader, i);
+                }
+            }
+        }
+
+        if (name == null) {
+            throw missingRequired(reader, NAME);
+        }
+
+        addPrincipalTransformer.get(OP_ADDR).set(parentAddress).add(CHAINED_PRINCIPAL_TRANSFORMER, name);
+
+        operations.add(addPrincipalTransformer);
+
+        ListAttributeDefinition principalTransformers = PrincipalTransformerDefinitions.getChainedPrincipalTransformerDefinition().getReferencesAttribute();
+        while (reader.hasNext() && reader.nextTag() != END_ELEMENT) {
+            verifyNamespace(reader);
+            String localName = reader.getLocalName();
+            if (PRINCIPAL_TRANSFORMER.equals(localName) == false) {
+                throw unexpectedElement(reader);
+            }
+
+            requireSingleAttribute(reader, NAME);
+            String principalTransformerName = reader.getAttributeValue(0);
+
+
+            principalTransformers.parseAndAddParameterElement(principalTransformerName, addPrincipalTransformer, reader);
+
+            requireNoContent(reader);
+        }
+    }
+
+    private void readConstantPrincipalTransformerElement(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations)
+            throws XMLStreamException {
+        ModelNode addPrincipalTransformer = new ModelNode();
+        addPrincipalTransformer.get(OP).set(ADD);
+
+        Set<String> requiredAttributes = new HashSet<String>(Arrays.asList(new String[] { NAME, CONSTANT }));
+
+        String name = null;
+
+        final int count = reader.getAttributeCount();
+        for (int i = 0; i < count; i++) {
+            final String value = reader.getAttributeValue(i);
+            if (!isNoNamespaceAttribute(reader, i)) {
+                throw unexpectedAttribute(reader, i);
+            } else {
+                String attribute = reader.getAttributeLocalName(i);
+                requiredAttributes.remove(attribute);
+                switch (attribute) {
+                    case NAME:
+                        name = value;
+                        break;
+                    case CONSTANT:
+                        PrincipalTransformerDefinitions.CONSTANT.parseAndSetParameter(value, addPrincipalTransformer, reader);
+                        break;
+                    default:
+                        throw unexpectedAttribute(reader, i);
+                }
+            }
+        }
+
+        if (requiredAttributes.isEmpty() == false) {
+            throw missingRequired(reader, requiredAttributes);
+        }
+
+        addPrincipalTransformer.get(OP_ADDR).set(parentAddress).add(CONSTANT_PRINCIPAL_TRANSFORMER, name);
+
+        operations.add(addPrincipalTransformer);
+
+        requireNoContent(reader);
+    }
+
+    private void readRegexPrincipalTransformerElement(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations)
+            throws XMLStreamException {
+        ModelNode addPrincipalTransformer = new ModelNode();
+        addPrincipalTransformer.get(OP).set(ADD);
+
+        Set<String> requiredAttributes = new HashSet<String>(Arrays.asList(new String[] { NAME, PATTERN, REPLACEMENT }));
+
+        String name = null;
+
+        final int count = reader.getAttributeCount();
+        for (int i = 0; i < count; i++) {
+            final String value = reader.getAttributeValue(i);
+            if (!isNoNamespaceAttribute(reader, i)) {
+                throw unexpectedAttribute(reader, i);
+            } else {
+                String attribute = reader.getAttributeLocalName(i);
+                requiredAttributes.remove(attribute);
+                switch (attribute) {
+                    case NAME:
+                        name = value;
+                        break;
+                    case PATTERN:
+                        RegexAttributeDefinitions.PATTERN.parseAndSetParameter(value, addPrincipalTransformer, reader);
+                        break;
+                    case REPLACEMENT:
+                        PrincipalTransformerDefinitions.REPLACEMENT.parseAndSetParameter(value, addPrincipalTransformer, reader);
+                        break;
+                    case REPLACE_ALL:
+                        PrincipalTransformerDefinitions.REPLACE_ALL.parseAndSetParameter(value, addPrincipalTransformer, reader);
+                        break;
+                    default:
+                        throw unexpectedAttribute(reader, i);
+                }
+            }
+        }
+
+        if (requiredAttributes.isEmpty() == false) {
+            throw missingRequired(reader, requiredAttributes);
+        }
+
+        addPrincipalTransformer.get(OP_ADDR).set(parentAddress).add(REGEX_PRINCIPAL_TRANSFORMER, name);
+
+        operations.add(addPrincipalTransformer);
+
+        requireNoContent(reader);
+    }
+
+    private void readRegexPrincipalTransformerRewriterElement(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations)
+            throws XMLStreamException {
+        ModelNode addPrincipalTransformer = new ModelNode();
+        addPrincipalTransformer.get(OP).set(ADD);
+
+        Set<String> requiredAttributes = new HashSet<String>(Arrays.asList(new String[] { NAME, PATTERN }));
+
+        String name = null;
+
+        final int count = reader.getAttributeCount();
+        for (int i = 0; i < count; i++) {
+            final String value = reader.getAttributeValue(i);
+            if (!isNoNamespaceAttribute(reader, i)) {
+                throw unexpectedAttribute(reader, i);
+            } else {
+                String attribute = reader.getAttributeLocalName(i);
+                requiredAttributes.remove(attribute);
+                switch (attribute) {
+                    case NAME:
+                        name = value;
+                        break;
+                    case PATTERN:
+                        RegexAttributeDefinitions.PATTERN.parseAndSetParameter(value, addPrincipalTransformer, reader);
+                        break;
+                    case MATCH:
+                        PrincipalTransformerDefinitions.MATCH.parseAndSetParameter(value, addPrincipalTransformer, reader);
+                        break;
+                    default:
+                        throw unexpectedAttribute(reader, i);
+                }
+            }
+        }
+
+        if (requiredAttributes.isEmpty() == false) {
+            throw missingRequired(reader, requiredAttributes);
+        }
+
+        addPrincipalTransformer.get(OP_ADDR).set(parentAddress).add(REGEX_VALIDATING_PRINCIPAL_TRANSFORMER, name);
+
+        operations.add(addPrincipalTransformer);
 
         requireNoContent(reader);
     }
@@ -1312,129 +1312,6 @@ class MapperParser {
         }
     }
 
-    private boolean writeAggregateNameRewriters(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
-        if (subsystem.hasDefined(AGGREGATE_NAME_REWRITER)) {
-            startMappers(started, writer);
-            ModelNode nameRewriters = subsystem.require(AGGREGATE_NAME_REWRITER);
-            for (String name : nameRewriters.keys()) {
-                ModelNode nameRewriter = nameRewriters.require(name);
-                writer.writeStartElement(AGGREGATE_NAME_REWRITER);
-                writer.writeAttribute(NAME, name);
-
-                List<ModelNode> nameRewriterReferences = nameRewriter.get(NAME_REWRITERS).asList();
-                for (ModelNode currentReference : nameRewriterReferences) {
-                    writer.writeStartElement(NAME_REWRITER);
-                    writer.writeAttribute(NAME, currentReference.asString());
-                    writer.writeEndElement();
-                }
-
-                writer.writeEndElement();
-            }
-
-            return true;
-        }
-
-        return false;
-    }
-
-    private boolean writeChainedNameRewriters(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
-        if (subsystem.hasDefined(CHAINED_NAME_REWRITER)) {
-            startMappers(started, writer);
-            ModelNode nameRewriters = subsystem.require(CHAINED_NAME_REWRITER);
-            for (String name : nameRewriters.keys()) {
-                ModelNode nameRewriter = nameRewriters.require(name);
-                writer.writeStartElement(CHAINED_NAME_REWRITER);
-                writer.writeAttribute(NAME, name);
-
-                List<ModelNode> nameRewriterReferences = nameRewriter.get(NAME_REWRITERS).asList();
-                for (ModelNode currentReference : nameRewriterReferences) {
-                    writer.writeStartElement(NAME_REWRITER);
-                    writer.writeAttribute(NAME, currentReference.asString());
-                    writer.writeEndElement();
-                }
-
-                writer.writeEndElement();
-            }
-
-            return true;
-        }
-
-        return false;
-    }
-
-    private boolean writeCustomNameRewriters(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
-        if (subsystem.hasDefined(CUSTOM_NAME_REWRITER)) {
-            startMappers(started, writer);
-            ModelNode realms = subsystem.require(CUSTOM_NAME_REWRITER);
-            for (String name : realms.keys()) {
-                ModelNode realm = realms.require(name);
-
-                writeCustomComponent(CUSTOM_NAME_REWRITER, name, realm, writer);
-            }
-
-            return true;
-        }
-
-        return false;
-    }
-
-    private boolean writeConstantNameRewriters(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
-        if (subsystem.hasDefined(CONSTANT_NAME_REWRITER)) {
-            startMappers(started, writer);
-            ModelNode nameRewriters = subsystem.require(CONSTANT_NAME_REWRITER);
-            for (String name : nameRewriters.keys()) {
-                ModelNode nameRewriter = nameRewriters.require(name);
-                writer.writeStartElement(CONSTANT_NAME_REWRITER);
-                writer.writeAttribute(NAME, name);
-                NameRewriterDefinitions.CONSTANT.marshallAsAttribute(nameRewriter, writer);
-                writer.writeEndElement();
-            }
-
-            return true;
-        }
-
-        return false;
-    }
-
-    private boolean writeRegexNameRewriters(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
-        if (subsystem.hasDefined(REGEX_NAME_REWRITER)) {
-            startMappers(started, writer);
-            ModelNode nameRewriters = subsystem.require(REGEX_NAME_REWRITER);
-            for (String name : nameRewriters.keys()) {
-                ModelNode nameRewriter = nameRewriters.require(name);
-                writer.writeStartElement(REGEX_NAME_REWRITER);
-                writer.writeAttribute(NAME, name);
-                RegexAttributeDefinitions.PATTERN.marshallAsAttribute(nameRewriter, writer);
-                NameRewriterDefinitions.REPLACEMENT.marshallAsAttribute(nameRewriter, writer);
-                NameRewriterDefinitions.REPLACE_ALL.marshallAsAttribute(nameRewriter, writer);
-                writer.writeEndElement();
-            }
-
-            return true;
-        }
-
-        return false;
-    }
-
-    private boolean writeRegexNameValidatingRewriters(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
-        if (subsystem.hasDefined(REGEX_NAME_VALIDATING_REWRITER)) {
-            startMappers(started, writer);
-            ModelNode nameRewriters = subsystem.require(REGEX_NAME_VALIDATING_REWRITER);
-            for (String name : nameRewriters.keys()) {
-                ModelNode nameRewriter = nameRewriters.require(name);
-                writer.writeStartElement(REGEX_NAME_VALIDATING_REWRITER);
-                writer.writeAttribute(NAME, name);
-                RegexAttributeDefinitions.PATTERN.marshallAsAttribute(nameRewriter, writer);
-                NameRewriterDefinitions.MATCH.marshallAsAttribute(nameRewriter, writer);
-                writer.writeEndElement();
-            }
-
-            return true;
-        }
-
-        return false;
-    }
-
     private boolean writeCustomPermissionMappers(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (subsystem.hasDefined(CUSTOM_PERMISSION_MAPPER)) {
             startMappers(started, writer);
@@ -1643,6 +1520,129 @@ class MapperParser {
         return false;
     }
 
+    private boolean writeAggregatePrincipalTransformers(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
+        if (subsystem.hasDefined(AGGREGATE_PRINCIPAL_TRANSFORMER)) {
+            startMappers(started, writer);
+            ModelNode principalTransformers = subsystem.require(AGGREGATE_PRINCIPAL_TRANSFORMER);
+            for (String name : principalTransformers.keys()) {
+                ModelNode principalTransformer = principalTransformers.require(name);
+                writer.writeStartElement(AGGREGATE_PRINCIPAL_TRANSFORMER);
+                writer.writeAttribute(NAME, name);
+
+                List<ModelNode> principalTransformerReferences = principalTransformer.get(PRINCIPAL_TRANSFORMERS).asList();
+                for (ModelNode currentReference : principalTransformerReferences) {
+                    writer.writeStartElement(PRINCIPAL_TRANSFORMER);
+                    writer.writeAttribute(NAME, currentReference.asString());
+                    writer.writeEndElement();
+                }
+
+                writer.writeEndElement();
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean writeChainedPrincipalTransformers(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
+        if (subsystem.hasDefined(CHAINED_PRINCIPAL_TRANSFORMER)) {
+            startMappers(started, writer);
+            ModelNode principalTransformers = subsystem.require(CHAINED_PRINCIPAL_TRANSFORMER);
+            for (String name : principalTransformers.keys()) {
+                ModelNode principalTransformer = principalTransformers.require(name);
+                writer.writeStartElement(CHAINED_PRINCIPAL_TRANSFORMER);
+                writer.writeAttribute(NAME, name);
+
+                List<ModelNode> principalTransformerReferences = principalTransformer.get(PRINCIPAL_TRANSFORMERS).asList();
+                for (ModelNode currentReference : principalTransformerReferences) {
+                    writer.writeStartElement(PRINCIPAL_TRANSFORMER);
+                    writer.writeAttribute(NAME, currentReference.asString());
+                    writer.writeEndElement();
+                }
+
+                writer.writeEndElement();
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean writeCustomPrincipalTransformers(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
+        if (subsystem.hasDefined(CUSTOM_PRINCIPAL_TRANSFORMER)) {
+            startMappers(started, writer);
+            ModelNode transformers = subsystem.require(CUSTOM_PRINCIPAL_TRANSFORMER);
+            for (String name : transformers.keys()) {
+                ModelNode realm = transformers.require(name);
+
+                writeCustomComponent(CUSTOM_PRINCIPAL_TRANSFORMER, name, realm, writer);
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean writeConstantPrincipalTransformers(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
+        if (subsystem.hasDefined(CONSTANT_PRINCIPAL_TRANSFORMER)) {
+            startMappers(started, writer);
+            ModelNode principalTransformers = subsystem.require(CONSTANT_PRINCIPAL_TRANSFORMER);
+            for (String name : principalTransformers.keys()) {
+                ModelNode principalTransformer = principalTransformers.require(name);
+                writer.writeStartElement(CONSTANT_PRINCIPAL_TRANSFORMER);
+                writer.writeAttribute(NAME, name);
+                PrincipalTransformerDefinitions.CONSTANT.marshallAsAttribute(principalTransformer, writer);
+                writer.writeEndElement();
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean writeRegexPrincipalTransformers(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
+        if (subsystem.hasDefined(REGEX_PRINCIPAL_TRANSFORMER)) {
+            startMappers(started, writer);
+            ModelNode principalTransformers = subsystem.require(REGEX_PRINCIPAL_TRANSFORMER);
+            for (String name : principalTransformers.keys()) {
+                ModelNode principalTransformer = principalTransformers.require(name);
+                writer.writeStartElement(REGEX_PRINCIPAL_TRANSFORMER);
+                writer.writeAttribute(NAME, name);
+                RegexAttributeDefinitions.PATTERN.marshallAsAttribute(principalTransformer, writer);
+                PrincipalTransformerDefinitions.REPLACEMENT.marshallAsAttribute(principalTransformer, writer);
+                PrincipalTransformerDefinitions.REPLACE_ALL.marshallAsAttribute(principalTransformer, writer);
+                writer.writeEndElement();
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean writeRegexValidatingPrincipalTransformer(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
+        if (subsystem.hasDefined(REGEX_VALIDATING_PRINCIPAL_TRANSFORMER)) {
+            startMappers(started, writer);
+            ModelNode principalTransformers = subsystem.require(REGEX_VALIDATING_PRINCIPAL_TRANSFORMER);
+            for (String name : principalTransformers.keys()) {
+                ModelNode principalTransformer = principalTransformers.require(name);
+                writer.writeStartElement(REGEX_VALIDATING_PRINCIPAL_TRANSFORMER);
+                writer.writeAttribute(NAME, name);
+                RegexAttributeDefinitions.PATTERN.marshallAsAttribute(principalTransformer, writer);
+                PrincipalTransformerDefinitions.MATCH.marshallAsAttribute(principalTransformer, writer);
+                writer.writeEndElement();
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
     private boolean writeCustomRealmMappers(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (subsystem.hasDefined(CUSTOM_REALM_MAPPER)) {
             startMappers(started, writer);
@@ -1680,9 +1680,9 @@ class MapperParser {
     private boolean writeSimpleRegexRealmMappers(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (subsystem.hasDefined(SIMPLE_REGEX_REALM_MAPPER)) {
             startMappers(started, writer);
-            ModelNode nameRewriters = subsystem.require(SIMPLE_REGEX_REALM_MAPPER);
-            for (String name : nameRewriters.keys()) {
-                ModelNode realmMapper = nameRewriters.require(name);
+            ModelNode realmMappers = subsystem.require(SIMPLE_REGEX_REALM_MAPPER);
+            for (String name : realmMappers.keys()) {
+                ModelNode realmMapper = realmMappers.require(name);
                 writer.writeStartElement(SIMPLE_REGEX_REALM_MAPPER);
                 writer.writeAttribute(NAME, name);
                 RegexAttributeDefinitions.PATTERN_CAPTURE_GROUP.marshallAsAttribute(realmMapper, writer);
@@ -1699,9 +1699,9 @@ class MapperParser {
     private boolean writeMapRegexRealmMappers(boolean started, ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (subsystem.hasDefined(MAPPED_REGEX_REALM_MAPPER)) {
             startMappers(started, writer);
-            ModelNode nameRewriters = subsystem.require(MAPPED_REGEX_REALM_MAPPER);
-            for (String name : nameRewriters.keys()) {
-                ModelNode realmMapper = nameRewriters.require(name);
+            ModelNode realmMappers = subsystem.require(MAPPED_REGEX_REALM_MAPPER);
+            for (String name : realmMappers.keys()) {
+                ModelNode realmMapper = realmMappers.require(name);
                 writer.writeStartElement(MAPPED_REGEX_REALM_MAPPER);
                 writer.writeAttribute(NAME, name);
                 RegexAttributeDefinitions.PATTERN_CAPTURE_GROUP.marshallAsAttribute(realmMapper, writer);
@@ -1872,13 +1872,6 @@ class MapperParser {
     void writeMappers(ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         boolean mappersStarted = false;
 
-        mappersStarted = mappersStarted | writeAggregateNameRewriters(mappersStarted, subsystem, writer);
-        mappersStarted = mappersStarted | writeChainedNameRewriters(mappersStarted, subsystem, writer);
-        mappersStarted = mappersStarted | writeConstantNameRewriters(mappersStarted, subsystem, writer);
-        mappersStarted = mappersStarted | writeCustomNameRewriters(mappersStarted, subsystem, writer);
-        mappersStarted = mappersStarted | writeRegexNameRewriters(mappersStarted, subsystem, writer);
-        mappersStarted = mappersStarted | writeRegexNameValidatingRewriters(mappersStarted, subsystem, writer);
-
         mappersStarted = mappersStarted | writeCustomPermissionMappers(mappersStarted, subsystem, writer);
         mappersStarted = mappersStarted | writeLogicalPermissionMappers(mappersStarted, subsystem, writer);
         mappersStarted = mappersStarted | writeSimplePermissionMappers(mappersStarted, subsystem, writer);
@@ -1889,6 +1882,13 @@ class MapperParser {
         mappersStarted = mappersStarted | writeConstantPrincipalDecoders(mappersStarted, subsystem, writer);
         mappersStarted = mappersStarted | writeCustomPrincipalDecoders(mappersStarted, subsystem, writer);
         mappersStarted = mappersStarted | writeX500AttributePrincipalDecoders(mappersStarted, subsystem, writer);
+
+        mappersStarted = mappersStarted | writeAggregatePrincipalTransformers(mappersStarted, subsystem, writer);
+        mappersStarted = mappersStarted | writeChainedPrincipalTransformers(mappersStarted, subsystem, writer);
+        mappersStarted = mappersStarted | writeConstantPrincipalTransformers(mappersStarted, subsystem, writer);
+        mappersStarted = mappersStarted | writeCustomPrincipalTransformers(mappersStarted, subsystem, writer);
+        mappersStarted = mappersStarted | writeRegexPrincipalTransformers(mappersStarted, subsystem, writer);
+        mappersStarted = mappersStarted | writeRegexValidatingPrincipalTransformer(mappersStarted, subsystem, writer);
 
         mappersStarted = mappersStarted | writeConstantRealmMappers(mappersStarted, subsystem, writer);
         mappersStarted = mappersStarted | writeCustomRealmMappers(mappersStarted, subsystem, writer);

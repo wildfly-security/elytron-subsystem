@@ -145,7 +145,7 @@ class KerberosSecurityFactoryDefinition {
                     mechanaismOids.forEach(builder::addMechanismOid);
 
                     try {
-                        return CredentialSecurityFactory.toCredentialSecurityFactory(builder.build());
+                        return CredentialSecurityFactory.from(builder.build());
                     } catch (IOException e) {
                         throw new StartException(e);
                     }

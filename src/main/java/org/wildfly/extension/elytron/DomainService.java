@@ -41,7 +41,7 @@ import org.jboss.msc.service.StartException;
 import org.jboss.msc.service.StopContext;
 import org.jboss.msc.value.InjectedValue;
 import org.wildfly.common.Assert;
-import org.wildfly.security.auth.server.NameRewriter;
+import org.wildfly.extension.elytron.capabilities.PrincipalTransformer;
 import org.wildfly.security.auth.server.PrincipalDecoder;
 import org.wildfly.security.auth.server.RealmMapper;
 import org.wildfly.security.auth.server.SecurityDomain;
@@ -64,12 +64,12 @@ class DomainService implements Service<SecurityDomain> {
     private final String name;
     private final String defaultRealm;
     private final List<String> trustedSecurityDomainsList;
-    private String preRealmNameRewriter;
-    private String postRealmNameRewriter;
+    private String preRealmPrincipalTransformer;
+    private String postRealmPrincipalTransformer;
     private String roleMapper;
 
     private final Map<String, RealmDependency> realms = new HashMap<>();
-    private final Map<String, InjectedValue<NameRewriter>> nameRewriters = new HashMap<>();
+    private final Map<String, InjectedValue<PrincipalTransformer>> principalTransformers = new HashMap<>();
     private final Map<String, InjectedValue<RoleMapper>> roleMappers = new HashMap<>();
     private final Map<String, InjectedValue<RoleDecoder>> roleDecoders = new HashMap<>();
     private final InjectedValue<PrincipalDecoder> principalDecoderInjector = new InjectedValue<>();
@@ -93,14 +93,14 @@ class DomainService implements Service<SecurityDomain> {
         return realmDependency;
     }
 
-    private Injector<NameRewriter> createNameRewriterInjector(final String nameRewriterName) {
-        if (nameRewriters.containsKey(nameRewriterName)) {
+    private Injector<PrincipalTransformer> createPrincipalTransformerInjector(final String principalTransformerName) {
+        if (principalTransformers.containsKey(principalTransformerName)) {
             return null; // i.e. should already be injected for this name.
         }
 
-        InjectedValue<NameRewriter> nameRewriterInjector = new InjectedValue<>();
-        nameRewriters.put(nameRewriterName, nameRewriterInjector);
-        return nameRewriterInjector;
+        InjectedValue<PrincipalTransformer> principalTransformerInjector = new InjectedValue<>();
+        principalTransformers.put(principalTransformerName, principalTransformerInjector);
+        return principalTransformerInjector;
     }
 
     private Injector<RoleMapper> createRoleMapperInjector(final String roleMapperName) {
@@ -135,16 +135,16 @@ class DomainService implements Service<SecurityDomain> {
         return permissionMapperInjector;
     }
 
-    Injector<NameRewriter> createPreRealmNameRewriterInjector(final String name) {
-        this.preRealmNameRewriter = name;
+    Injector<PrincipalTransformer> createPreRealmPrincipalTransformerInjector(final String name) {
+        this.preRealmPrincipalTransformer = name;
 
-        return createNameRewriterInjector(name);
+        return createPrincipalTransformerInjector(name);
     }
 
-    Injector<NameRewriter> createPostRealmNameRewriterInjector(final String name) {
-        this.postRealmNameRewriter = name;
+    Injector<PrincipalTransformer> createPostRealmPrincipalTransformerInjector(final String name) {
+        this.postRealmPrincipalTransformer = name;
 
-        return createNameRewriterInjector(name);
+        return createPrincipalTransformerInjector(name);
     }
 
     Injector<RoleMapper> createDomainRoleMapperInjector(final String name) {
@@ -157,11 +157,11 @@ class DomainService implements Service<SecurityDomain> {
     public void start(StartContext context) throws StartException {
         SecurityDomain.Builder builder = SecurityDomain.builder();
 
-        if (preRealmNameRewriter != null) {
-            builder.setPreRealmRewriter(nameRewriters.get(preRealmNameRewriter).getValue());
+        if (preRealmPrincipalTransformer != null) {
+            builder.setPreRealmRewriter(principalTransformers.get(preRealmPrincipalTransformer).getValue());
         }
-        if (postRealmNameRewriter != null) {
-            builder.setPostRealmRewriter(nameRewriters.get(postRealmNameRewriter).getValue());
+        if (postRealmPrincipalTransformer != null) {
+            builder.setPostRealmRewriter(principalTransformers.get(postRealmPrincipalTransformer).getValue());
         }
         PrincipalDecoder principalDecoder = principalDecoderInjector.getOptionalValue();
         if (principalDecoder != null) {
@@ -184,8 +184,8 @@ class DomainService implements Service<SecurityDomain> {
             String realmName = entry.getKey();
             RealmDependency realmDependency = entry.getValue();
             RealmBuilder realmBuilder = builder.addRealm(realmName, realmDependency.securityRealmInjector.getValue());
-            if (realmDependency.nameRewriter != null) {
-                realmBuilder.setNameRewriter(nameRewriters.get(realmDependency.nameRewriter).getValue());
+            if (realmDependency.principalTransformer != null) {
+                realmBuilder.setPrincipalRewriter(principalTransformers.get(realmDependency.principalTransformer).getValue());
             }
             if (realmDependency.roleDecoder != null) {
                 RoleDecoder roleDecoder = roleDecoders.get(realmDependency.roleDecoder).getOptionalValue();
@@ -231,7 +231,7 @@ class DomainService implements Service<SecurityDomain> {
 
         private InjectedValue<SecurityRealm> securityRealmInjector = new InjectedValue<>();
 
-        private String nameRewriter;
+        private String principalTransformer;
 
         private String roleMapper;
 
@@ -241,9 +241,9 @@ class DomainService implements Service<SecurityDomain> {
             return securityRealmInjector;
         }
 
-        Injector<NameRewriter> getNameRewriterInjector(final String name) {
-            this.nameRewriter = name;
-            return createNameRewriterInjector(name);
+        Injector<PrincipalTransformer> getPrincipalTransformerInjector(final String name) {
+            this.principalTransformer = name;
+            return createPrincipalTransformerInjector(name);
         }
 
         Injector<RoleDecoder> getRoleDecoderInjector(final String name) {

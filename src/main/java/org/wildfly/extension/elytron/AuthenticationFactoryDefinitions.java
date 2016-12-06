@@ -22,7 +22,7 @@ import static org.wildfly.extension.elytron.AvailableMechanismsRuntimeResource.w
 import static org.wildfly.extension.elytron.Capabilities.HTTP_AUTHENTICATION_FACTORY_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.HTTP_AUTHENTICATION_FACTORY_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.HTTP_SERVER_MECHANISM_FACTORY_CAPABILITY;
-import static org.wildfly.extension.elytron.Capabilities.NAME_REWRITER_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.PRINCIPAL_TRANSFORMER_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.REALM_MAPPER_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SASL_AUTHENTICATION_FACTORY_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SASL_AUTHENTICATION_FACTORY_RUNTIME_CAPABILITY;
@@ -66,6 +66,7 @@ import org.jboss.msc.service.ServiceController.State;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.value.InjectedValue;
 import org.wildfly.extension.elytron.TrivialService.ValueSupplier;
+import org.wildfly.extension.elytron.capabilities.PrincipalTransformer;
 import org.wildfly.security.SecurityFactory;
 import org.wildfly.security.auth.server.HttpAuthenticationFactory;
 import org.wildfly.security.auth.server.MechanismAuthenticationFactory;
@@ -73,7 +74,6 @@ import org.wildfly.security.auth.server.MechanismConfiguration;
 import org.wildfly.security.auth.server.MechanismConfigurationSelector;
 import org.wildfly.security.auth.server.MechanismInformation;
 import org.wildfly.security.auth.server.MechanismRealmConfiguration;
-import org.wildfly.security.auth.server.NameRewriter;
 import org.wildfly.security.auth.server.RealmMapper;
 import org.wildfly.security.auth.server.SaslAuthenticationFactory;
 import org.wildfly.security.auth.server.SecurityDomain;
@@ -132,17 +132,17 @@ class AuthenticationFactoryDefinitions {
             .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
             .build();
 
-    static final SimpleAttributeDefinition BASE_PRE_REALM_NAME_REWRITER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PRE_REALM_NAME_REWRITER, ModelType.STRING, true)
+    static final SimpleAttributeDefinition BASE_PRE_REALM_PRINCIPAL_TRANSFORMER= new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PRE_REALM_PRINCIPAL_TRANSFORMER, ModelType.STRING, true)
             .setMinSize(1)
             .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
             .build();
 
-    static final SimpleAttributeDefinition BASE_POST_REALM_NAME_REWRITER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.POST_REALM_NAME_REWRITER, ModelType.STRING, true)
+    static final SimpleAttributeDefinition BASE_POST_REALM_PRINCIPAL_TRANSFORMER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.POST_REALM_PRINCIPAL_TRANSFORMER, ModelType.STRING, true)
             .setMinSize(1)
             .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
             .build();
 
-    static final SimpleAttributeDefinition BASE_FINAL_NAME_REWRITER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.FINAL_NAME_REWRITER, ModelType.STRING, true)
+    static final SimpleAttributeDefinition BASE_FINAL_PRINCIPAL_TRANSFORMER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.FINAL_PRINCIPAL_TRANSFORMER, ModelType.STRING, true)
             .setMinSize(1)
             .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
             .build();
@@ -159,20 +159,20 @@ class AuthenticationFactoryDefinitions {
             .build();
 
     private static AttributeDefinition getMechanismConfiguration(String forCapability) {
-        SimpleAttributeDefinition preRealmNameRewriterAttribute = new SimpleAttributeDefinitionBuilder(BASE_PRE_REALM_NAME_REWRITER)
-                .setCapabilityReference(NAME_REWRITER_CAPABILITY, forCapability, true)
+        SimpleAttributeDefinition preRealmPrincipalTransformerAttribute = new SimpleAttributeDefinitionBuilder(BASE_PRE_REALM_PRINCIPAL_TRANSFORMER)
+                .setCapabilityReference(PRINCIPAL_TRANSFORMER_CAPABILITY, forCapability, true)
                 .build();
-        SimpleAttributeDefinition postRealmNameRewriterAttribute = new SimpleAttributeDefinitionBuilder(BASE_POST_REALM_NAME_REWRITER)
-                .setCapabilityReference(NAME_REWRITER_CAPABILITY, forCapability, true)
+        SimpleAttributeDefinition postRealmPrincipalTransformerAttribute = new SimpleAttributeDefinitionBuilder(BASE_POST_REALM_PRINCIPAL_TRANSFORMER)
+                .setCapabilityReference(PRINCIPAL_TRANSFORMER_CAPABILITY, forCapability, true)
                 .build();
-        SimpleAttributeDefinition finalNameRewriterAttribute = new SimpleAttributeDefinitionBuilder(BASE_FINAL_NAME_REWRITER)
-                .setCapabilityReference(NAME_REWRITER_CAPABILITY, forCapability, true)
+        SimpleAttributeDefinition finalprincipalTransformerAttribute = new SimpleAttributeDefinitionBuilder(BASE_FINAL_PRINCIPAL_TRANSFORMER)
+                .setCapabilityReference(PRINCIPAL_TRANSFORMER_CAPABILITY, forCapability, true)
                 .build();
         SimpleAttributeDefinition realmMapperAttribute = new SimpleAttributeDefinitionBuilder(BASE_REALM_MAPPER)
                 .setCapabilityReference(REALM_MAPPER_CAPABILITY, forCapability, true)
                 .build();
 
-        ObjectTypeAttributeDefinition mechanismRealmConfiguration = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.MECHANISM_REALM_CONFIGURATION, REALM_NAME, preRealmNameRewriterAttribute, postRealmNameRewriterAttribute, finalNameRewriterAttribute, realmMapperAttribute)
+        ObjectTypeAttributeDefinition mechanismRealmConfiguration = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.MECHANISM_REALM_CONFIGURATION, REALM_NAME, preRealmPrincipalTransformerAttribute, postRealmPrincipalTransformerAttribute, finalprincipalTransformerAttribute, realmMapperAttribute)
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
 
@@ -186,7 +186,7 @@ class AuthenticationFactoryDefinitions {
                 .build();
 
         ObjectTypeAttributeDefinition mechanismConfiguration = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.MECHANISM_CONFIGURATION, MECHANISM_NAME, HOST_NAME, PROTOCOL,
-                preRealmNameRewriterAttribute, postRealmNameRewriterAttribute, finalNameRewriterAttribute, realmMapperAttribute, mechanismRealmConfigurations, credentialSecurityFactoryAttribute)
+                preRealmPrincipalTransformerAttribute, postRealmPrincipalTransformerAttribute, finalprincipalTransformerAttribute, realmMapperAttribute, mechanismRealmConfigurations, credentialSecurityFactoryAttribute)
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
 
@@ -228,9 +228,9 @@ class AuthenticationFactoryDefinitions {
 
             ResolvedMechanismConfiguration resolvedMechanismConfiguration = new ResolvedMechanismConfiguration(selectionPredicate);
 
-            injectNameRewriter(BASE_PRE_REALM_NAME_REWRITER, serviceBuilder, context, currentMechanismConfiguration, resolvedMechanismConfiguration.preRealmNameRewriter);
-            injectNameRewriter(BASE_POST_REALM_NAME_REWRITER, serviceBuilder, context, currentMechanismConfiguration, resolvedMechanismConfiguration.postRealmNameRewriter);
-            injectNameRewriter(BASE_FINAL_NAME_REWRITER, serviceBuilder, context, currentMechanismConfiguration, resolvedMechanismConfiguration.finalNameRewriter);
+            injectPrincipalTransformer(BASE_PRE_REALM_PRINCIPAL_TRANSFORMER, serviceBuilder, context, currentMechanismConfiguration, resolvedMechanismConfiguration.preRealmPrincipalTranformer);
+            injectPrincipalTransformer(BASE_POST_REALM_PRINCIPAL_TRANSFORMER, serviceBuilder, context, currentMechanismConfiguration, resolvedMechanismConfiguration.postRealmPrincipalTransformer);
+            injectPrincipalTransformer(BASE_FINAL_PRINCIPAL_TRANSFORMER, serviceBuilder, context, currentMechanismConfiguration, resolvedMechanismConfiguration.finalPrincipalTransformer);
             injectRealmMapper(BASE_REALM_MAPPER, serviceBuilder, context, currentMechanismConfiguration, resolvedMechanismConfiguration.realmMapper);
             injectSecurityFactory(BASE_CREDENTIAL_SECURITY_FACTORY, serviceBuilder, context, currentMechanismConfiguration, resolvedMechanismConfiguration.securityFactory);
 
@@ -238,9 +238,9 @@ class AuthenticationFactoryDefinitions {
                 for (ModelNode currentMechanismRealm : currentMechanismConfiguration.require(ElytronDescriptionConstants.MECHANISM_REALM_CONFIGURATIONS).asList()) {
                     String realmName = REALM_NAME.resolveModelAttribute(context, currentMechanismRealm).asString();
                     ResolvedMechanismRealmConfiguration resolvedMechanismRealmConfiguration = new ResolvedMechanismRealmConfiguration();
-                    injectNameRewriter(BASE_PRE_REALM_NAME_REWRITER, serviceBuilder, context, currentMechanismRealm, resolvedMechanismRealmConfiguration.preRealmNameRewriter);
-                    injectNameRewriter(BASE_POST_REALM_NAME_REWRITER, serviceBuilder, context, currentMechanismRealm, resolvedMechanismRealmConfiguration.postRealmNameRewriter);
-                    injectNameRewriter(BASE_FINAL_NAME_REWRITER, serviceBuilder, context, currentMechanismRealm, resolvedMechanismRealmConfiguration.finalNameRewriter);
+                    injectPrincipalTransformer(BASE_PRE_REALM_PRINCIPAL_TRANSFORMER, serviceBuilder, context, currentMechanismRealm, resolvedMechanismRealmConfiguration.preRealmPrincipalTranformer);
+                    injectPrincipalTransformer(BASE_POST_REALM_PRINCIPAL_TRANSFORMER, serviceBuilder, context, currentMechanismRealm, resolvedMechanismRealmConfiguration.postRealmPrincipalTransformer);
+                    injectPrincipalTransformer(BASE_FINAL_PRINCIPAL_TRANSFORMER, serviceBuilder, context, currentMechanismRealm, resolvedMechanismRealmConfiguration.finalPrincipalTransformer);
                     injectRealmMapper(BASE_REALM_MAPPER, serviceBuilder, context, currentMechanismRealm, resolvedMechanismRealmConfiguration.realmMapper);
                     resolvedMechanismConfiguration.mechanismRealms.put(realmName, resolvedMechanismRealmConfiguration);
                 }
@@ -257,9 +257,9 @@ class AuthenticationFactoryDefinitions {
         for (ResolvedMechanismConfiguration resolvedMechanismConfiguration : resolvedMechanismConfigurations) {
             MechanismConfiguration.Builder builder = MechanismConfiguration.builder();
 
-            setNameRewriter(resolvedMechanismConfiguration.preRealmNameRewriter, builder::setPreRealmRewriter);
-            setNameRewriter(resolvedMechanismConfiguration.postRealmNameRewriter, builder::setPostRealmRewriter);
-            setNameRewriter(resolvedMechanismConfiguration.finalNameRewriter, builder::setFinalRewriter);
+            setPrincipalTransformer(resolvedMechanismConfiguration.preRealmPrincipalTranformer, builder::setPreRealmRewriter);
+            setPrincipalTransformer(resolvedMechanismConfiguration.postRealmPrincipalTransformer, builder::setPostRealmRewriter);
+            setPrincipalTransformer(resolvedMechanismConfiguration.finalPrincipalTransformer, builder::setFinalRewriter);
             setRealmMapper(resolvedMechanismConfiguration.realmMapper, builder::setRealmMapper);
             setSecurityFactory(resolvedMechanismConfiguration.securityFactory, builder::setServerCredential);
 
@@ -268,9 +268,9 @@ class AuthenticationFactoryDefinitions {
                 mechRealmBuilder.setRealmName(currentMechRealmEntry.getKey());
                 ResolvedMechanismRealmConfiguration resolvedMechanismRealmConfiguration = currentMechRealmEntry.getValue();
 
-                setNameRewriter(resolvedMechanismRealmConfiguration.preRealmNameRewriter, mechRealmBuilder::setPreRealmRewriter);
-                setNameRewriter(resolvedMechanismRealmConfiguration.postRealmNameRewriter, mechRealmBuilder::setPostRealmRewriter);
-                setNameRewriter(resolvedMechanismRealmConfiguration.finalNameRewriter, mechRealmBuilder::setFinalRewriter);
+                setPrincipalTransformer(resolvedMechanismRealmConfiguration.preRealmPrincipalTranformer, mechRealmBuilder::setPreRealmRewriter);
+                setPrincipalTransformer(resolvedMechanismRealmConfiguration.postRealmPrincipalTransformer, mechRealmBuilder::setPostRealmRewriter);
+                setPrincipalTransformer(resolvedMechanismRealmConfiguration.finalPrincipalTransformer, mechRealmBuilder::setFinalRewriter);
                 setRealmMapper(resolvedMechanismRealmConfiguration.realmMapper, mechRealmBuilder::setRealmMapper);
 
                 builder.addMechanismRealm(mechRealmBuilder.build());
@@ -282,19 +282,19 @@ class AuthenticationFactoryDefinitions {
         factoryBuilder.setMechanismConfigurationSelector(MechanismConfigurationSelector.aggregate(mechanismConfigurationSelectors.toArray(new MechanismConfigurationSelector[mechanismConfigurationSelectors.size()])));
     }
 
-    private static void setNameRewriter(InjectedValue<NameRewriter> injectedValue, Consumer<Function<Principal, Principal>> nameRewriterConsumer) {
-        NameRewriter nameRewriter = injectedValue.getOptionalValue();
-        if (nameRewriter != null) {
-            nameRewriterConsumer.accept(nameRewriter.asPrincipalRewriter());
+    private static void setPrincipalTransformer(InjectedValue<PrincipalTransformer> injectedValue, Consumer<Function<Principal, Principal>> principalTransformerConsumer) {
+        PrincipalTransformer principalTransformer = injectedValue.getOptionalValue();
+        if (principalTransformer != null) {
+            principalTransformerConsumer.accept(principalTransformer);
         }
     }
 
-    private static void injectNameRewriter(SimpleAttributeDefinition nameRewriterAttribute, ServiceBuilder<?> serviceBuilder, OperationContext context, ModelNode model, Injector<NameRewriter> preRealmNameRewriter) throws OperationFailedException {
-        String nameRewriter = asStringIfDefined(context, nameRewriterAttribute, model);
-        if (nameRewriter != null) {
+    private static void injectPrincipalTransformer(SimpleAttributeDefinition principalTransformerAttribute, ServiceBuilder<?> serviceBuilder, OperationContext context, ModelNode model, Injector<PrincipalTransformer> principalTransformer) throws OperationFailedException {
+        String principalTransformerName = asStringIfDefined(context, principalTransformerAttribute, model);
+        if (principalTransformerName != null) {
             serviceBuilder.addDependency(context.getCapabilityServiceName(
-                    buildDynamicCapabilityName(NAME_REWRITER_CAPABILITY, nameRewriter), NameRewriter.class),
-                    NameRewriter.class, preRealmNameRewriter);
+                    buildDynamicCapabilityName(PRINCIPAL_TRANSFORMER_CAPABILITY, principalTransformerName), PrincipalTransformer.class),
+                    PrincipalTransformer.class, principalTransformer);
         }
     }
 
@@ -478,9 +478,9 @@ class AuthenticationFactoryDefinitions {
     }
 
     private static class ResolvedMechanismRealmConfiguration {
-        final InjectedValue<NameRewriter> preRealmNameRewriter = new InjectedValue<>();
-        final InjectedValue<NameRewriter> postRealmNameRewriter = new InjectedValue<>();
-        final InjectedValue<NameRewriter> finalNameRewriter = new InjectedValue<>();
+        final InjectedValue<PrincipalTransformer> preRealmPrincipalTranformer = new InjectedValue<>();
+        final InjectedValue<PrincipalTransformer> postRealmPrincipalTransformer = new InjectedValue<>();
+        final InjectedValue<PrincipalTransformer> finalPrincipalTransformer = new InjectedValue<>();
         final InjectedValue<RealmMapper> realmMapper = new InjectedValue<>();
     }
 

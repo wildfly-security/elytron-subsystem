@@ -29,11 +29,11 @@ import static org.jboss.as.controller.parsing.ParseUtils.unexpectedAttribute;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedElement;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.DEFAULT_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME_REWRITER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PERMISSION_MAPPER;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.POST_REALM_NAME_REWRITER;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PRE_REALM_NAME_REWRITER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.POST_REALM_PRINCIPAL_TRANSFORMER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PRE_REALM_PRINCIPAL_TRANSFORMER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PRINCIPAL_DECODER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PRINCIPAL_TRANSFORMER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REALMS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REALM_MAPPER;
@@ -88,11 +88,11 @@ class DomainParser {
                     case PERMISSION_MAPPER:
                         DomainDefinition.PERMISSION_MAPPER.parseAndSetParameter(value, addDomain, reader);
                         break;
-                    case PRE_REALM_NAME_REWRITER:
-                        DomainDefinition.PRE_REALM_NAME_REWRITER.parseAndSetParameter(value, addDomain, reader);
+                    case PRE_REALM_PRINCIPAL_TRANSFORMER:
+                        DomainDefinition.PRE_REALM_PRINCIPAL_TRANSFORMER.parseAndSetParameter(value, addDomain, reader);
                         break;
-                    case POST_REALM_NAME_REWRITER:
-                        DomainDefinition.POST_REALM_NAME_REWRITER.parseAndSetParameter(value, addDomain, reader);
+                    case POST_REALM_PRINCIPAL_TRANSFORMER:
+                        DomainDefinition.POST_REALM_PRINCIPAL_TRANSFORMER.parseAndSetParameter(value, addDomain, reader);
                         break;
                     case PRINCIPAL_DECODER:
                         DomainDefinition.PRINCIPAL_DECODER.parseAndSetParameter(value, addDomain, reader);
@@ -156,8 +156,8 @@ class DomainParser {
                         realmName = attributeValue;
                         DomainDefinition.REALM_NAME.parseAndSetParameter(attributeValue, realm, reader);
                         break;
-                    case NAME_REWRITER:
-                        DomainDefinition.REALM_NAME_REWRITER.parseAndSetParameter(attributeValue, realm, reader);
+                    case PRINCIPAL_TRANSFORMER:
+                        DomainDefinition.REALM_PRINCIPAL_TRANSFORMER.parseAndSetParameter(attributeValue, realm, reader);
                         break;
                     case ROLE_DECODER:
                         DomainDefinition.REALM_ROLE_DECODER.parseAndSetParameter(attributeValue, realm, reader);
@@ -184,9 +184,9 @@ class DomainParser {
     void writeDomain(String name, ModelNode domain, XMLExtendedStreamWriter writer) throws XMLStreamException {
         writer.writeStartElement(SECURITY_DOMAIN);
         writer.writeAttribute(NAME, name);
-        DomainDefinition.PRE_REALM_NAME_REWRITER.marshallAsAttribute(domain, writer);
+        DomainDefinition.PRE_REALM_PRINCIPAL_TRANSFORMER.marshallAsAttribute(domain, writer);
         DomainDefinition.DEFAULT_REALM.marshallAsAttribute(domain, writer);
-        DomainDefinition.POST_REALM_NAME_REWRITER.marshallAsAttribute(domain, writer);
+        DomainDefinition.POST_REALM_PRINCIPAL_TRANSFORMER.marshallAsAttribute(domain, writer);
         DomainDefinition.PERMISSION_MAPPER.marshallAsAttribute(domain, writer);
         DomainDefinition.PRINCIPAL_DECODER.marshallAsAttribute(domain, writer);
         DomainDefinition.REALM_MAPPER.marshallAsAttribute(domain, writer);
@@ -205,7 +205,7 @@ class DomainParser {
     private void writeRealm(ModelNode realm, XMLExtendedStreamWriter writer) throws XMLStreamException {
         writer.writeStartElement(REALM);
         DomainDefinition.REALM_NAME.marshallAsAttribute(realm, writer);
-        DomainDefinition.REALM_NAME_REWRITER.marshallAsAttribute(realm, writer);
+        DomainDefinition.REALM_PRINCIPAL_TRANSFORMER.marshallAsAttribute(realm, writer);
         DomainDefinition.REALM_ROLE_DECODER.marshallAsAttribute(realm, writer);
         DomainDefinition.ROLE_MAPPER.marshallAsAttribute(realm, writer);
         writer.writeEndElement();
