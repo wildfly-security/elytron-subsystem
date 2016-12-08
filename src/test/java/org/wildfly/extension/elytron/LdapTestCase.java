@@ -13,9 +13,13 @@ import org.junit.Test;
 import org.wildfly.common.function.ExceptionSupplier;
 import org.wildfly.extension.elytron.capabilities.DirContextSupplier;
 import org.wildfly.security.auth.principal.NamePrincipal;
+import org.wildfly.security.auth.server.CloseableIterator;
+import org.wildfly.security.auth.server.ModifiableRealmIdentity;
 import org.wildfly.security.auth.server.ModifiableSecurityRealm;
 import org.wildfly.security.auth.server.RealmIdentity;
+import org.wildfly.security.evidence.PasswordGuessEvidence;
 import org.wildfly.security.evidence.X509PeerCertificateChainEvidence;
+import org.wildfly.security.authz.Attributes;
 
 import javax.naming.NamingException;
 import javax.naming.directory.DirContext;
@@ -27,7 +31,9 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OUTCOME;
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.SUCCESS;
@@ -85,18 +91,74 @@ public class LdapTestCase extends AbstractSubsystemTest {
 
         RealmIdentity identity1 = securityRealm.getRealmIdentity(new NamePrincipal("plainUser"));
         Assert.assertTrue(identity1.exists());
+        Attributes as = identity1.getAttributes();
+        Assert.assertArrayEquals(new String[]{"uid=plainUser,dc=users,dc=elytron,dc=wildfly,dc=org"}, as.get("userDn").toArray());
+        Assert.assertArrayEquals(new String[]{"plainUser"}, as.get("userName").toArray());
+        Assert.assertArrayEquals(new String[]{"plainUserCn"}, as.get("firstName").toArray());
+        Assert.assertArrayEquals(new String[]{"plainUserSn"}, as.get("SN").toArray());
+        Assert.assertArrayEquals(new String[]{"(408) 555-2468", "+420 123 456 789"}, as.get("phones").toArray());
+        Assert.assertArrayEquals(new String[]{"cn=Retail,ou=Finance,dc=groups,dc=elytron,dc=wildfly,dc=org"}, as.get("rolesDn").toArray());
+        Assert.assertArrayEquals(new String[]{"Retail","Sales"}, as.get("rolesRecRdnCn").toArray());
+        Assert.assertArrayEquals(new String[]{"Retail"}, as.get("rolesCn").toArray());
+        Assert.assertArrayEquals(new String[]{"Retail department","Second description","Sales department"}, as.get("rolesDescription").toArray());
+        Assert.assertTrue(identity1.verifyEvidence(new PasswordGuessEvidence("plainPassword".toCharArray())));
         identity1.dispose();
 
         RealmIdentity identity2 = securityRealm.getRealmIdentity(new NamePrincipal("refUser")); // referrer test
         Assert.assertTrue(identity2.exists());
+        as = identity2.getAttributes();
+        Assert.assertArrayEquals(new String[]{"uid=refUser,dc=referredUsers,dc=elytron,dc=wildfly,dc=org"}, as.get("userDn").toArray());
+        Assert.assertArrayEquals(new String[]{"refUserCn"}, as.get("firstName").toArray());
+        Assert.assertTrue(identity2.verifyEvidence(new PasswordGuessEvidence("plainPassword".toCharArray())));
         identity2.dispose();
-
-        RealmsTestCase.testModifiability(securityRealm);
 
         RealmIdentity x509User = securityRealm.getRealmIdentity(new NamePrincipal("x509User"));
         Assert.assertTrue(x509User.exists());
         X509Certificate scarab = loadCertificate("scarab.pem");
         Assert.assertTrue(x509User.verifyEvidence(new X509PeerCertificateChainEvidence(scarab)));
+    }
+
+    @Test
+    public void testLdapRealmIterating() throws Exception {
+        ServiceName serviceName = Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY.getCapabilityServiceName("LdapRealm");
+        ModifiableSecurityRealm securityRealm = (ModifiableSecurityRealm) services.getContainer().getService(serviceName).getValue();
+        Assert.assertNotNull(securityRealm);
+
+        Set<String> dns = new HashSet<>();
+        CloseableIterator<ModifiableRealmIdentity> it = securityRealm.getRealmIdentityIterator();
+        while (it.hasNext()) {
+            dns.add(it.next().getAuthorizationIdentity().getAttributes().getFirst("userDn"));
+        }
+        it.close();
+        System.out.println(dns);
+        Assert.assertTrue(dns.contains("uid=plainUser,dc=users,dc=elytron,dc=wildfly,dc=org"));
+        Assert.assertTrue(dns.contains("uid=refUser,dc=referredUsers,dc=elytron,dc=wildfly,dc=org"));
+    }
+
+    @Test
+    public void testLdapRealmModifiability() throws Exception {
+        ServiceName serviceName = Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY.getCapabilityServiceName("LdapRealm");
+        ModifiableSecurityRealm securityRealm = (ModifiableSecurityRealm) services.getContainer().getService(serviceName).getValue();
+        Assert.assertNotNull(securityRealm);
+
+        RealmsTestCase.testModifiability(securityRealm);
+    }
+
+    @Test
+    public void testLdapRealmDirectVerification() throws Exception {
+        ServiceName serviceName = Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY.getCapabilityServiceName("LdapRealmDirectVerification");
+        ModifiableSecurityRealm securityRealm = (ModifiableSecurityRealm) services.getContainer().getService(serviceName).getValue();
+        Assert.assertNotNull(securityRealm);
+
+        RealmIdentity identity1 = securityRealm.getRealmIdentity(new NamePrincipal("plainUser"));
+        Assert.assertTrue(identity1.exists());
+        Assert.assertTrue(identity1.verifyEvidence(new PasswordGuessEvidence("plainPassword".toCharArray())));
+        identity1.dispose();
+
+        RealmIdentity identity2 = securityRealm.getRealmIdentity(new NamePrincipal("refUser")); // referrer test
+        Assert.assertTrue(identity2.exists());
+        Assert.assertTrue(identity2.verifyEvidence(new PasswordGuessEvidence("plainPassword".toCharArray())));
+        identity2.dispose();
     }
 
     private X509Certificate loadCertificate(String name) throws CertificateException {

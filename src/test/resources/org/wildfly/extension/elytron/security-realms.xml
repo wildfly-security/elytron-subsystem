@@ -64,8 +64,8 @@
                     <attribute from="CN" to="fullName"/>
                     <attribute from="SN" to="fullName"/>
                     <attribute filter="(&amp;(objectClass=groupOfNames)(member={0}))" from="CN" to="role"/>
-                    <attribute filter-base-dn="ou=Finance,dc=elytron,dc=wildfly,dc=org" filter="(&amp;(objectClass=groupOfNames)(member={0}))" from="CN" as-rdn="OU" to="businessUnit"/>
-                    <attribute filter-base-dn="ou=Sales,dc=elytron,dc=wildfly,dc=org" filter="(&amp;(objectClass=groupOfNames)(member={0}))" from="CN" as-rdn="OU" to="businessUnit"/>
+                    <attribute filter-base-dn="ou=Finance,dc=elytron,dc=wildfly,dc=org" filter="(&amp;(objectClass=groupOfNames)(member={0}))" from="CN" extract-rdn="OU" to="businessUnit"/>
+                    <attribute filter-base-dn="ou=Sales,dc=elytron,dc=wildfly,dc=org" filter="(&amp;(objectClass=groupOfNames)(member={0}))" from="CN" extract-rdn="OU" to="businessUnit"/>
                 </attribute-mapping>
                 <new-identity-attributes>
                     <attribute name="objectClass" value="top inetOrgPerson person organizationalPerson"/>
