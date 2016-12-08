@@ -78,18 +78,16 @@ class CredentialStoreAliasDefinition extends SimpleResourceDefinition {
         List<String> entryTypes = Stream.of(SUPPORTED_CREDENTIAL_TYPES).map(Class::getName)
                 .collect(Collectors.toList());
         entryTypes.add(OTHER);
-        ENTRY_TYPE = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ENTRY_TYPE, ModelType.STRING)
+        ENTRY_TYPE = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ENTRY_TYPE, ModelType.STRING, true)
                 .setStorageRuntime()
-                .setAllowNull(true)
                 .setAllowedValues(entryTypes.toArray(new String[entryTypes.size()]))
                 .build();
     }
 
     static final StandardResourceDescriptionResolver RESOURCE_DESCRIPTION_RESOLVER = ElytronExtension.getResourceDescriptionResolver(ElytronDescriptionConstants.CREDENTIAL_STORE, ElytronDescriptionConstants.ALIAS);
 
-    static final SimpleAttributeDefinition SECRET_VALUE = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.SECRET_VALUE, ModelType.STRING)
+    static final SimpleAttributeDefinition SECRET_VALUE = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.SECRET_VALUE, ModelType.STRING, false)
             .setStorageRuntime()
-            .setAllowNull(false)
             .build();
 
     private static final AttributeDefinition[] CONFIG_ATTRIBUTES = new AttributeDefinition[] {SECRET_VALUE, ENTRY_TYPE};
@@ -165,7 +163,7 @@ class CredentialStoreAliasDefinition extends SimpleResourceDefinition {
                     String credentialStoreName = CredentialStoreResourceDefinition.credentialStoreName(operation);
                     throw ROOT_LOGGER.credentialStoreEntryTypeNotSupported(credentialStoreName, entryType);
                 }
-            } catch (CredentialStoreException | UnsupportedCredentialTypeException e) {
+            } catch (CredentialStoreException e) {
                 throw ROOT_LOGGER.unableToCompleteOperation(e, e.getLocalizedMessage());
             }
         }
@@ -191,7 +189,7 @@ class CredentialStoreAliasDefinition extends SimpleResourceDefinition {
                 CredentialStoreClient credentialStoreClient = credentialStoreService.getValue();
                 CredentialStore credentialStore = credentialStoreClient.getCredentialStore();
                 credentialStore.remove(alias, PasswordCredential.class);
-            } catch (CredentialStoreException | UnsupportedCredentialTypeException e) {
+            } catch (CredentialStoreException e) {
                 throw new OperationFailedException(e);
             }
         }

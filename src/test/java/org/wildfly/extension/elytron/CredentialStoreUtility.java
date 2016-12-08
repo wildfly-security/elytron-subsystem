@@ -22,18 +22,15 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.security.KeyStore;
-import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.crypto.KeyGenerator;
-import javax.crypto.SecretKey;
-
 import org.jboss.logging.Logger;
 import org.wildfly.common.Assert;
+import org.wildfly.security.auth.server.IdentityCredentials;
 import org.wildfly.security.credential.PasswordCredential;
 import org.wildfly.security.credential.store.CredentialStore;
-import org.wildfly.security.credential.store.impl.KeystorePasswordStore;
+import org.wildfly.security.credential.store.impl.KeyStoreCredentialStore;
 import org.wildfly.security.password.interfaces.ClearPassword;
 
 /**
@@ -49,11 +46,6 @@ public class CredentialStoreUtility {
     private final String credentialStoreFileName;
     private final CredentialStore credentialStore;
     private static final String DEFAULT_PASSWORD = "super_secret";
-
-
-    public static final String CRYPTO_ALGORITHM = "AES";
-    public static final String ADMIN_KEY_ALIAS = "TEST_ADMIN_KEY_ALIAS";
-    public static final int ADMIN_KEY_SIZE = 128;
 
     /**
      * Create Credential Store.
@@ -72,22 +64,22 @@ public class CredentialStoreUtility {
         try {
             Map<String, String> attributes = new HashMap<>();
             if (createStorageFirst) {
-                createKeyStore(storePassword.toCharArray(), adminKeyPassword.toCharArray());
-                attributes.put(KeystorePasswordStore.KEY_ALIAS, ADMIN_KEY_ALIAS);
-                attributes.put(KeystorePasswordStore.KEY_PASSWORD, adminKeyPassword);
-                attributes.put(KeystorePasswordStore.KEY_SIZE, String.valueOf(ADMIN_KEY_SIZE));
+                createKeyStore("JCEKS", storePassword.toCharArray());
             }
-            credentialStore = CredentialStore.getInstance(KeystorePasswordStore.KEY_STORE_PASSWORD_STORE);
-            attributes.put(KeystorePasswordStore.STORE_FILE, credentialStoreFileName);
-            attributes.put(KeystorePasswordStore.STORE_PASSWORD, storePassword);
+            credentialStore = CredentialStore.getInstance(KeyStoreCredentialStore.KEY_STORE_CREDENTIAL_STORE);
+            attributes.put("location", credentialStoreFileName);
+            attributes.put("keyStoreType", "JCEKS");
+            attributes.put("modifiable", "true");
             if (!createStorageFirst) {
-                attributes.put(KeystorePasswordStore.CREATE_STORAGE, "true");
                 File storage = new File(credentialStoreFileName);
                 if (storage.exists()) {
                     storage.delete();
                 }
             }
-            credentialStore.initialize(attributes);
+
+            credentialStore.initialize(attributes, new CredentialStore.CredentialSourceProtectionParameter(
+                    IdentityCredentials.NONE.withCredential(convertToPasswordCredential(storePassword.toCharArray()))
+                    ));
         } catch (Throwable t) {
             LOGGER.error(t);
             throw new RuntimeException(t);
@@ -103,7 +95,7 @@ public class CredentialStoreUtility {
      * @param storePassword master password (clear text) to open the credential store
      */
     public CredentialStoreUtility(String credentialStoreFileName, String storePassword) {
-        this(credentialStoreFileName, storePassword, storePassword, false);
+        this(credentialStoreFileName, storePassword, storePassword, true);
     }
 
     /**
@@ -117,17 +109,10 @@ public class CredentialStoreUtility {
     }
 
     /**
-     * Create Credential Store.
-     * Automatically crate underlying KeyStore.
-     *
-     * @param credentialStoreFileName name of file to hold credentials
-     * @param storePassword master password (clear text) to open the credential store
-     * @param adminKeyPassword a password (clear text) for protecting admin key
+     * Add new entry to credential store and perform all conversions.
+     * @param alias of the entry
+     * @param clearTextPassword password
      */
-    public CredentialStoreUtility(String credentialStoreFileName, String storePassword, String adminKeyPassword) {
-        this(credentialStoreFileName, storePassword, adminKeyPassword, false);
-    }
-
     public void addEntry(String alias, String clearTextPassword) {
         try {
             credentialStore.store(alias, new PasswordCredential(ClearPassword.createRaw(ClearPassword.ALGORITHM_CLEAR, clearTextPassword.toCharArray())));
@@ -137,21 +122,11 @@ public class CredentialStoreUtility {
         }
     }
 
-    private void createKeyStore(char[] keyStorePwd, char[] adminKeyPwd) throws Exception {
-        KeyStore ks = KeyStore.getInstance("JCEKS");
+    private void createKeyStore(String keyStoreType, char[] keyStorePwd) throws Exception {
+        KeyStore ks = KeyStore.getInstance(keyStoreType);
         ks.load((InputStream)null, null);
-        ks.setEntry(ADMIN_KEY_ALIAS, new KeyStore.SecretKeyEntry(generateSecretKey()),
-                new KeyStore.PasswordProtection(adminKeyPwd) {
-        });
         ks.store(new FileOutputStream(new File(credentialStoreFileName)), keyStorePwd);
     }
-
-    private SecretKey generateSecretKey() throws NoSuchAlgorithmException {
-        KeyGenerator generator = KeyGenerator.getInstance(CRYPTO_ALGORITHM);
-        generator.init(ADMIN_KEY_SIZE);
-        return generator.generateKey();
-    }
-
 
     /**
      * Delete associated files.
@@ -160,12 +135,17 @@ public class CredentialStoreUtility {
         deleteIfExists(new File(credentialStoreFileName));
     }
 
-    public String getCredentialStoreFile() {
-        return credentialStoreFileName;
-    }
-
     private static void deleteIfExists(File f) {
         assert !f.exists() || f.delete();
+    }
+
+    /**
+     * Convert {@code char[]} password to {@code PasswordCredential}
+     * @param password to convert
+     * @return new {@code PasswordCredential}
+     */
+    public static PasswordCredential convertToPasswordCredential(char[] password) {
+        return new PasswordCredential(ClearPassword.createRaw(ClearPassword.ALGORITHM_CLEAR, password));
     }
 
 }

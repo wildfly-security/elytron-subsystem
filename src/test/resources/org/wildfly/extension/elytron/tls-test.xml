@@ -7,7 +7,7 @@
     </provider-loaders>
     <credential-stores>
         <credential-store name="test">
-            <uri>cr-store://test/tlstest.keystore?store.password='super_secret'</uri>
+            <uri>cr-store://test/target/tlstest.keystore?store.password='super_secret'</uri>
         </credential-store>
     </credential-stores>
     <tls>

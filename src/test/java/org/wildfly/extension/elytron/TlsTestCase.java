@@ -65,12 +65,8 @@ public class TlsTestCase extends AbstractSubsystemTest {
 
     @BeforeClass
     public static void initTests() {
-        AccessController.doPrivileged(new PrivilegedAction<Integer>() {
-            public Integer run() {
-                return Security.insertProviderAt(wildFlyElytronProvider, 1);
-            }
-        });
-        csUtil = new CredentialStoreUtility("target/tlstest.keystore", CS_PASSWORD);
+        AccessController.doPrivileged((PrivilegedAction<Integer>) () -> Integer.valueOf(Security.insertProviderAt(wildFlyElytronProvider, 1)));
+        csUtil = new CredentialStoreUtility("target/tlstest.keystore");
         csUtil.addEntry("the-key-alias", "Elytron");
         csUtil.addEntry("master-password-alias", "Elytron");
     }
@@ -78,12 +74,9 @@ public class TlsTestCase extends AbstractSubsystemTest {
     @AfterClass
     public static void cleanUpTests() {
         csUtil.cleanUp();
-        AccessController.doPrivileged(new PrivilegedAction<Void>() {
-            public Void run() {
-                Security.removeProvider(wildFlyElytronProvider.getName());
-
-                return null;
-            }
+        AccessController.doPrivileged((PrivilegedAction<Void>) () -> {
+            Security.removeProvider(wildFlyElytronProvider.getName());
+            return null;
         });
     }
 

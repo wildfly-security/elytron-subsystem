@@ -18,7 +18,6 @@
 
 package org.wildfly.extension.elytron;
 
-import static org.wildfly.security.credential.store.impl.KeystorePasswordStore.KEY_STORE_PASSWORD_STORE;
 import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
 
 import java.io.File;
@@ -40,8 +39,12 @@ import org.jboss.msc.service.StartException;
 import org.jboss.msc.service.StopContext;
 import org.jboss.msc.value.InjectedValue;
 import org.wildfly.extension.elytron._private.ElytronSubsystemMessages;
+import org.wildfly.security.auth.server.IdentityCredentials;
+import org.wildfly.security.credential.PasswordCredential;
 import org.wildfly.security.credential.store.CredentialStore;
 import org.wildfly.security.credential.store.CredentialStoreException;
+import org.wildfly.security.credential.store.impl.KeyStoreCredentialStore;
+import org.wildfly.security.password.interfaces.ClearPassword;
 
 /**
  * A {@link Service} responsible for a {@link CredentialStore} instance.
@@ -67,7 +70,7 @@ class CredentialStoreService implements Service<CredentialStoreClient> {
 
     private CredentialStoreService(String name, Map<String, String> credentialStoreAttributes, String type, String provider, String relativeTo, String providerLoaderName) throws CredentialStoreException {
         this.name = name;
-        this.type = type != null ? type : KEY_STORE_PASSWORD_STORE;
+        this.type = type != null ? type : KeyStoreCredentialStore.KEY_STORE_CREDENTIAL_STORE;
         this.provider = provider;
         this.relativeTo = relativeTo;
         this.credentialStoreAttributes = credentialStoreAttributes;
@@ -80,9 +83,10 @@ class CredentialStoreService implements Service<CredentialStoreClient> {
             String nameToSet = name != null ? name : credentialStoreURIParser.getName(); // once we specify name, the name from uri is ignored
             Map<String, String> credentialStoreAttributes = credentialStoreURIParser.getOptionsMap();
             credentialStoreAttributes.put(ElytronDescriptionConstants.CREDENTIAL_STORE_NAME, nameToSet);
+            credentialStoreAttributes.putIfAbsent("keyStoreType", "JCEKS");
             String storageFile = credentialStoreURIParser.getStorageFile();
             if (storageFile != null) {
-                credentialStoreAttributes.put(ElytronDescriptionConstants.CREDENTIAL_STORE_FILE, storageFile);
+                credentialStoreAttributes.put("location", storageFile);
             }
             return new CredentialStoreService(nameToSet, credentialStoreAttributes, type, provider, relativeTo, providerLoaderName);
         } catch (URISyntaxException e) {
@@ -99,7 +103,14 @@ class CredentialStoreService implements Service<CredentialStoreClient> {
         resolveFileLocation();
         try {
             credentialStore = getCredentialStoreInstance();
-            credentialStore.initialize(credentialStoreAttributes);
+            CredentialStore.ProtectionParameter pp = null;
+            if (credentialStoreAttributes.get("store.password") != null) {
+                pp = new CredentialStore.CredentialSourceProtectionParameter(
+                        IdentityCredentials.NONE.withCredential(
+                                new PasswordCredential(ClearPassword.createRaw(ClearPassword.ALGORITHM_CLEAR, credentialStoreAttributes.get("store.password").toCharArray()))
+                        ));
+            }
+            credentialStore.initialize(credentialStoreAttributes, pp);
         } catch (CredentialStoreException | NoSuchAlgorithmException | NoSuchProviderException e) {
             throw ElytronSubsystemMessages.ROOT_LOGGER.unableToStartService(e);
         }
