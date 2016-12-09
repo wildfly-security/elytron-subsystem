@@ -3015,7 +3015,7 @@
                                         <xs:attribute name="provider-version" type="xs:double">
                                             <xs:annotation>
                                                 <xs:documentation>
-                                                    Version to compare agasint the version reported by the provider.
+                                                    Version to compare against the version reported by the provider.
                                                 </xs:documentation>
                                             </xs:annotation>
                                         </xs:attribute>
