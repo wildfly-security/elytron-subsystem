@@ -1,0 +1,22 @@
+language: java
+sudo: false
+install: echo LOL
+script: mvn verify -B -fae
+env:
+  global:
+    - secure: "M+GvvnfVmVK8Rp72srPgZdfgNkvtabHvKPWkl/+6e7d1wxwMb16M7XS1kn8C8KRcTl6/Nn1OzXgelACzQAmt89AnYktS41BDFSup9jJDrzDaZsO28IniZm89YsUVty8sI2O2v//KSVu8WhAl2npJhInXzm5edf97m/6hbOeiKgRFrMZ2HBEPQVVsWVvhsqDSTwP9pvsEC0tRFmXyJxLCvJMxlgbdKvImsMpZ7Jh8MAtmIkm2AfXW0GnigShPazvvgRBfI5QN8hZBmWOQi6k8iWSJjwTWfF2j8vFVp3OCwTeQ18DFOi/PJRgJR56tUBtbNXFiL4DgJanP9S7GGhXSwrFm8437HT87JZNp7cCA+M2xrguY0VhUugzBK6oh8VVmyluObKFEjb4RK67nj4DlY6sxx3FM45/Q15CowOHKzHzNOVI4MMs8K+3XmPkW0qpz0yvuEDOFOCpZImngV/6j3lUnQE8qEXBGHxkX3GpwzUMhWPfUQmX0+AzMamR3ch769kjMTA7xcfji97MTsb6uHcalNPJrC+oqbPg+8WEmkXVBj9BmCKTLKEJGIfzGGviVNh+SHlWssJZdQN68ti/JTHQ5EyTMy7Rvkvp9oIwp8QSKxU3YuqUV4XT+6WkqUoavIUXmO/mo9j9+Culs6L+jazZF3QHDG1GamOUyuyfF+bM="
+    - JAVA_HOME=/usr/lib/jvm/java-8-oracle
+addons:
+  apt:
+    packages:
+      - oracle-java8-installer
+      - oracle-java8-set-default
+  coverity_scan:
+    project:
+      name: wildfly-security/elytron-subsystem
+      description: Elytron Coverity Scan via Travis CI
+    notification_email: josef.cacek@gmail.com
+    build_command_prepend: mvn clean
+    build_command: mvn -DskipTests=true compile
+    branch_pattern: master
+
