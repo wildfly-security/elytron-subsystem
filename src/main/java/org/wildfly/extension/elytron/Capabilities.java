@@ -31,6 +31,7 @@ import org.jboss.as.controller.security.CredentialStoreClient;
 import org.wildfly.extension.elytron.capabilities.CredentialSecurityFactory;
 import org.wildfly.extension.elytron.capabilities.DirContextSupplier;
 import org.wildfly.extension.elytron.capabilities.PrincipalTransformer;
+import org.wildfly.security.auth.client.AuthenticationConfiguration;
 import org.wildfly.security.auth.server.HttpAuthenticationFactory;
 import org.wildfly.security.auth.server.ModifiableSecurityRealm;
 import org.wildfly.security.auth.server.PrincipalDecoder;
@@ -56,6 +57,12 @@ import org.wildfly.security.http.HttpServerAuthenticationMechanismFactory;
 class Capabilities {
 
     private static final String CAPABILITY_BASE = "org.wildfly.security.";
+
+    static final String AUTHENTICATION_CONFIGURATION_CAPABILITY = CAPABILITY_BASE + "authentication-configuration";
+
+    static final RuntimeCapability<Void> AUTHENTICATION_CONFIGURATION_RUNTIME_CAPABILITY = RuntimeCapability
+            .Builder.of(AUTHENTICATION_CONFIGURATION_CAPABILITY, true, AuthenticationConfiguration.class)
+            .build();
 
     static final String CREDENTIAL_STORE_CLIENT_CAPABILITY = CAPABILITY_BASE + "credential-store-client";
 

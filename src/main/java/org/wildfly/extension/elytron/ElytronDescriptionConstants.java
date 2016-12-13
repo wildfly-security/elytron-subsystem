@@ -41,7 +41,10 @@ interface ElytronDescriptionConstants {
     String ALIAS_FILTER = "alias-filter";
     String ALGORITHM = "algorithm";
     String ALGORITHM_FROM = "algorithm-from";
+    String ALLOW_ALL_MECHANISMS = "allow-all-mechanisms";
+    String ALLOW_SASL_MECHANISMS = "allow-sasl-mechanisms";
     String AND = "and";
+    String ANONYMOUS = "anonymous";
     String APPLICATION_BUFFER_SIZE = "application-buffer-size";
     String ATTRIBUTE = "attribute";
     String ATTRIBUTE_MAPPING = "attribute-mapping";
@@ -49,9 +52,13 @@ interface ElytronDescriptionConstants {
     String ATTRIBUTE_VALUES = "attribute-values";
     String ATTRIBUTES = "attributes";
     String AUDIENCE = "audience";
+    String AUTHENTICATION_CLIENT = "authentication-client";
+    String AUTHENTICATION_CONFIGURATION = "authentication-configuration";
     String AUTHENTICATION_LEVEL = "authentication-level";
+    String AUTHENTICATION_NAME = "authentication-name";
     String AUTHENTICATION_OPTIONAL = "authentication-optional";
     String AUTHENTICATION_REALM = "authentication-realm";
+    String AUTHORIZATION_NAME = "authorization-name";
     String AUTHORIZATION_REALM = "authorization-realm";
     String AVAILABLE_MECHANISMS = "available-mechanisms";
 
@@ -128,6 +135,7 @@ interface ElytronDescriptionConstants {
     String ENCODED = "encoded";
     String ENTRY_TYPE = "entry-type";
     String EXTRACT_RDN = "extract-rdn";
+    String EXTENDS = "extends";
 
     String FILE = "file";
     String FILESYSTEM_REALM = "filesystem-realm";
@@ -143,6 +151,7 @@ interface ElytronDescriptionConstants {
     String FINGER_PRINT = "finger-print";
     String FINGER_PRINTS = "finger-prints";
     String FIRST = "first";
+    String FORBID_SASL_MECHANISMS = "forbid-sasl-mechanisms";
     String FORMAT = "format";
     String FROM = "from";
 
@@ -151,6 +160,7 @@ interface ElytronDescriptionConstants {
     String GROUPS_ATTRIBUTE = "groups-attribute";
     String GROUPS_PROPERTIES = "groups-properties";
 
+    String HOST = "host";
     String HOST_NAME = "host-name";
     String HOST_NAME_VERIFICATION_POLICY = "host-name-verification-policy";
     String HASH_FROM = "hash-from";
@@ -213,6 +223,7 @@ interface ElytronDescriptionConstants {
     String MECHANISM_CONFIGURATIONS = "mechanism-configurations";
     String MECHANISM_NAME = "mechanism-name";
     String MECHANISM_OIDS = "mechanism-oids";
+    String MECHANISM_PROPERTIES = "mechanism-properties";
     String MECHANISM_PROVIDER_FILTERING_SASL_SERVER_FACTORY = "mechanism-provider-filtering-sasl-server-factory";
     String MECHANISM_REALM = "mechanism-realm";
     String MECHANISM_REALM_CONFIGURATION = "mechanism-realm-configuration";
@@ -255,6 +266,7 @@ interface ElytronDescriptionConstants {
     String PERMISSION_MAPPING = "permission-mapping";
     String PERMISSION_MAPPINGS = "permission-mappings";
     String PLAIN_TEXT = "plain-text";
+    String PORT = "port";
     String POST_REALM_PRINCIPAL_TRANSFORMER = "post-realm-principal-transformer";
     String PRE_REALM_PRINCIPAL_TRANSFORMER = "pre-realm-principal-transformer";
     String PREDEFINED_FILTER = "predefined-filter";

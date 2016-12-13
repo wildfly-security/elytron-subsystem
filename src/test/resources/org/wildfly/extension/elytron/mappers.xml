@@ -1,5 +1,4 @@
 <subsystem xmlns="urn:wildfly:elytron:1.0">
-    <security-realms/>
     <mappers>
         <custom-permission-mapper name="CustomPermissionMapper" class-name="org.wildfly.elytron.CustomPermissionMapper" module="l.m" />
         <custom-permission-mapper name="CustomPermissionMapper2" class-name="org.wildfly.elytron.CustomPermissionMapper" module="l.m" />

@@ -162,6 +162,10 @@ class RealmParser {
 
 
     void writeRealms(ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
+        if (shouldWrite(subsystem) == false) {
+            return;
+        }
+
         writer.writeStartElement(SECURITY_REALMS);
 
         aggregateRealmParser.persist(writer, subsystem);
@@ -176,5 +180,14 @@ class RealmParser {
         tokenRealmParser.persist(writer, subsystem);
 
         writer.writeEndElement();
+    }
+
+    private boolean shouldWrite(ModelNode subsystem) {
+        return subsystem.hasDefined(AGGREGATE_REALM) || subsystem.hasDefined(CUSTOM_REALM)
+                || subsystem.hasDefined(CUSTOM_MODIFIABLE_REALM) || subsystem.hasDefined(JDBC_REALM)
+                || subsystem.hasDefined(IDENTITY_REALM) || subsystem.hasDefined(KEY_STORE_REALM)
+                || subsystem.hasDefined(PROPERTIES_REALM) || subsystem.hasDefined(LDAP_REALM)
+                || subsystem.hasDefined(FILESYSTEM_REALM) || subsystem.hasDefined(TOKEN_REALM);
+
     }
 }

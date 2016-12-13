@@ -27,5 +27,4 @@
             </provider>
         </provider-loader>
     </provider-loaders>
-    <security-realms/>
 </subsystem>

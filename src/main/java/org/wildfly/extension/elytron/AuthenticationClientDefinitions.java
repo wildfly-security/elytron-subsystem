@@ -1,0 +1,261 @@
+/*
+ * JBoss, Home of Professional Open Source.
+ * Copyright 2016 Red Hat, Inc., and individual contributors
+ * as indicated by the @author tags.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.wildfly.extension.elytron;
+
+import static org.jboss.as.controller.security.CredentialReference.credentialReferencePartAsStringIfDefined;
+import static org.wildfly.extension.elytron.Capabilities.AUTHENTICATION_CONFIGURATION_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.AUTHENTICATION_CONFIGURATION_RUNTIME_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.CREDENTIAL_STORE_CLIENT_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.SECURITY_DOMAIN_CAPABILITY;
+import static org.wildfly.extension.elytron.CredentialStoreResourceDefinition.CREDENTIAL_STORE_CLIENT_UTIL;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AUTHENTICATION_CONFIGURATION;
+import static org.wildfly.extension.elytron.ElytronExtension.asIntIfDefined;
+import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.function.Supplier;
+
+import org.jboss.as.controller.AttributeDefinition;
+import org.jboss.as.controller.ObjectTypeAttributeDefinition;
+import org.jboss.as.controller.OperationContext;
+import org.jboss.as.controller.OperationFailedException;
+import org.jboss.as.controller.ResourceDefinition;
+import org.jboss.as.controller.SimpleAttributeDefinition;
+import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
+import org.jboss.as.controller.SimpleMapAttributeDefinition;
+import org.jboss.as.controller.StringListAttributeDefinition;
+import org.jboss.as.controller.capability.RuntimeCapability;
+import org.jboss.as.controller.registry.AttributeAccess;
+import org.jboss.as.controller.security.CredentialReference;
+import org.jboss.as.controller.security.CredentialStoreClient;
+import org.jboss.dmr.ModelNode;
+import org.jboss.dmr.ModelType;
+import org.jboss.msc.service.ServiceBuilder;
+import org.jboss.msc.service.ServiceName;
+import org.jboss.msc.value.InjectedValue;
+import org.wildfly.extension.elytron.TrivialService.ValueSupplier;
+import org.wildfly.security.auth.client.AuthenticationConfiguration;
+import org.wildfly.security.auth.server.SecurityDomain;
+
+/**
+ * Resource definitions for Elytron authentication client configuration.
+ *
+ * @author <a href="mailto:darran.lofthouse@jboss.com">Darran Lofthouse</a>
+ */
+class AuthenticationClientDefinitions {
+
+    // Credentials
+
+    static final SimpleAttributeDefinition EXTENDS = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.EXTENDS, ModelType.STRING, true)
+            .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+            .setCapabilityReference(AUTHENTICATION_CONFIGURATION_CAPABILITY, AUTHENTICATION_CONFIGURATION_RUNTIME_CAPABILITY)
+            .build();
+
+    static final SimpleAttributeDefinition ANONYMOUS = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ANONYMOUS, ModelType.BOOLEAN, true)
+            .setAllowExpression(true)
+            .setDefaultValue(new ModelNode(false))
+            .setAlternatives(ElytronDescriptionConstants.AUTHENTICATION_NAME, ElytronDescriptionConstants.SECURITY_DOMAIN)
+            .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+            .build();
+
+    static final SimpleAttributeDefinition AUTHENTICATION_NAME = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.AUTHENTICATION_NAME, ModelType.STRING, true)
+            .setAllowExpression(true)
+            .setAlternatives(ElytronDescriptionConstants.ANONYMOUS, ElytronDescriptionConstants.SECURITY_DOMAIN)
+            .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+            .build();
+
+    static final SimpleAttributeDefinition AUTHORIZATION_NAME = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.AUTHORIZATION_NAME, ModelType.STRING, true)
+            .setAllowExpression(true)
+            .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+            .build();
+
+    static final SimpleAttributeDefinition HOST = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.HOST, ModelType.STRING, true)
+            .setAllowExpression(true)
+            .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+            .build();
+
+    static final SimpleAttributeDefinition PROTOCOL = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PROTOCOL, ModelType.STRING, true)
+            .setAllowExpression(true)
+            .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+            .build();
+
+    static final SimpleAttributeDefinition PORT = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PORT, ModelType.INT, true)
+            .setAllowExpression(true)
+            .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+            .build();
+
+    static final SimpleAttributeDefinition REALM = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.REALM, ModelType.STRING, true)
+            .setAllowExpression(true)
+            .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+            .build();
+
+    static final SimpleAttributeDefinition SECURITY_DOMAIN = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.SECURITY_DOMAIN, ModelType.STRING, true)
+            .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+            .setAlternatives(ElytronDescriptionConstants.ANONYMOUS, ElytronDescriptionConstants.AUTHENTICATION_NAME)
+            .setCapabilityReference(SECURITY_DOMAIN_CAPABILITY, AUTHENTICATION_CONFIGURATION_RUNTIME_CAPABILITY)
+            .build();
+
+    static final SimpleAttributeDefinition ALLOW_ALL_MECHANISMS = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ALLOW_ALL_MECHANISMS, ModelType.BOOLEAN, true)
+            .setAllowExpression(true)
+            .setDefaultValue(new ModelNode(false))
+            .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+            .setAlternatives(ElytronDescriptionConstants.ALLOW_SASL_MECHANISMS)
+            .build();
+
+    static final StringListAttributeDefinition ALLOW_SASL_MECHANISMS = new StringListAttributeDefinition.Builder(ElytronDescriptionConstants.ALLOW_SASL_MECHANISMS)
+            .setMinSize(0)
+            .setAllowNull(true)
+            .setAllowExpression(true)
+            .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+            .setAlternatives(ElytronDescriptionConstants.ALLOW_ALL_MECHANISMS)
+            .build();
+
+    static final StringListAttributeDefinition FORBID_SASL_MECHANISMS = new StringListAttributeDefinition.Builder(ElytronDescriptionConstants.FORBID_SASL_MECHANISMS)
+            .setMinSize(0)
+            .setAllowNull(true)
+            .setAllowExpression(true)
+            .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+            .build();
+
+    static final SimpleMapAttributeDefinition MECHANISM_PROPERTIES = new SimpleMapAttributeDefinition.Builder(CommonAttributes.PROPERTIES)
+            .setName(ElytronDescriptionConstants.MECHANISM_PROPERTIES)
+            .setXmlName(ElytronDescriptionConstants.MECHANISM_PROPERTIES)
+            .build();
+
+    static final ObjectTypeAttributeDefinition CREDENTIAL_REFERENCE = CredentialReference.getAttributeBuilder(CredentialReference.CREDENTIAL_REFERENCE, CredentialReference.CREDENTIAL_REFERENCE, true)
+                    .setCapabilityReference(CREDENTIAL_STORE_CLIENT_CAPABILITY, AUTHENTICATION_CONFIGURATION_CAPABILITY, true)
+                    .build();
+
+    static final AttributeDefinition[] AUTHENTICATION_CONFIGURATION_SIMPLE_ATTRIBUTES = new AttributeDefinition[] { EXTENDS, ANONYMOUS, AUTHENTICATION_NAME, AUTHORIZATION_NAME, HOST, PROTOCOL,
+            PORT, REALM, SECURITY_DOMAIN, ALLOW_ALL_MECHANISMS, ALLOW_SASL_MECHANISMS, FORBID_SASL_MECHANISMS };
+
+    static final AttributeDefinition[] AUTHENTICATION_CONFIGURATION_ALL_ATTRIBUTES = new AttributeDefinition[] { EXTENDS, ANONYMOUS, AUTHENTICATION_NAME, AUTHORIZATION_NAME, HOST, PROTOCOL,
+            PORT, REALM, SECURITY_DOMAIN, ALLOW_ALL_MECHANISMS, ALLOW_SASL_MECHANISMS, FORBID_SASL_MECHANISMS, MECHANISM_PROPERTIES, CREDENTIAL_REFERENCE };
+
+    static ResourceDefinition getAuthenticationClientDefinition() {
+
+        TrivialAddHandler<AuthenticationConfiguration> add = new TrivialAddHandler<AuthenticationConfiguration>(AuthenticationConfiguration.class, AUTHENTICATION_CONFIGURATION_ALL_ATTRIBUTES,
+                AUTHENTICATION_CONFIGURATION_RUNTIME_CAPABILITY) {
+
+            @Override
+            protected ValueSupplier<AuthenticationConfiguration> getValueSupplier(
+                    ServiceBuilder<AuthenticationConfiguration> serviceBuilder, OperationContext context, ModelNode model)
+                    throws OperationFailedException {
+                String parent = asStringIfDefined(context, EXTENDS, model);
+                Supplier<AuthenticationConfiguration> parentSupplier;
+                if (parent != null) {
+                    InjectedValue<AuthenticationConfiguration> parentInjector = new InjectedValue<>();
+
+                    serviceBuilder.addDependency(context.getCapabilityServiceName(
+                            RuntimeCapability.buildDynamicCapabilityName(AUTHENTICATION_CONFIGURATION_CAPABILITY, parent), AuthenticationConfiguration.class),
+                            AuthenticationConfiguration.class, parentInjector);
+
+                    parentSupplier = parentInjector::getValue;
+                } else {
+                    parentSupplier = () -> AuthenticationConfiguration.EMPTY;
+                }
+
+                Function<AuthenticationConfiguration, AuthenticationConfiguration> configuration = ignored -> parentSupplier.get();
+
+                boolean anonymous = ANONYMOUS.resolveModelAttribute(context, model).asBoolean();
+                configuration = anonymous ? configuration.andThen(c -> c.useAnonymous()) : configuration;
+
+                String authenticationName = asStringIfDefined(context, AUTHENTICATION_NAME, model);
+                configuration = authenticationName != null ? configuration.andThen(c -> c.useName(authenticationName)) : configuration;
+
+                String authorizationName = asStringIfDefined(context, AUTHORIZATION_NAME, model);
+                configuration = authorizationName != null ? configuration.andThen(c -> c.useAuthorizationName(authorizationName)) : configuration;
+
+                String host = asStringIfDefined(context, HOST, model);
+                configuration = host != null ? configuration.andThen(c -> c.useHost(host)) : configuration;
+
+                String protocol = asStringIfDefined(context, PROTOCOL, model);
+                configuration = protocol != null ? configuration.andThen(c -> c.useProtocol(protocol)) : configuration;
+
+                int port = asIntIfDefined(context, PORT, model);
+                configuration = port > 0 ? configuration.andThen(c -> c.usePort(port)) : configuration;
+
+                String realm = asStringIfDefined(context, REALM, model);
+                configuration = realm != null ? configuration.andThen(c -> c.useRealm(realm)) : configuration;
+
+                String securityDomain = asStringIfDefined(context, SECURITY_DOMAIN, model);
+                if (securityDomain != null) {
+                    InjectedValue<SecurityDomain> securityDomainInjector = new InjectedValue<>();
+                    serviceBuilder.addDependency(context.getCapabilityServiceName(SECURITY_DOMAIN_CAPABILITY, securityDomain, SecurityDomain.class), SecurityDomain.class, securityDomainInjector);
+                    configuration = configuration.andThen(c -> c.useForwardedIdentity(securityDomainInjector.getValue()));
+                }
+
+                boolean allowAllMechanisms = ALLOW_ALL_MECHANISMS.resolveModelAttribute(context, model).asBoolean();
+                configuration = allowAllMechanisms ? configuration.andThen(c -> c.allowAllSaslMechanisms()) : configuration;
+
+                List<String> allowedMechanisms = ALLOW_SASL_MECHANISMS.unwrap(context, model);
+                configuration = allowedMechanisms.size() > 0 ? configuration.andThen(c -> c.allowSaslMechanisms(allowedMechanisms.toArray(new String[allowedMechanisms.size()]))) : configuration;
+
+                List<String> forbiddenMechanisms = FORBID_SASL_MECHANISMS.unwrap(context, model);
+                configuration = forbiddenMechanisms.size() > 0 ? configuration.andThen(c -> c.forbidSaslMechanisms(forbiddenMechanisms.toArray(new String[forbiddenMechanisms.size()]))) : configuration;
+
+                ModelNode properties = MECHANISM_PROPERTIES.resolveModelAttribute(context, model);
+                if (properties.isDefined()) {
+                    Map<String, String> propertiesMap = new HashMap<String, String>();
+                    properties.keys().forEach((String s) -> propertiesMap.put(s, properties.require(s).asString()));
+                    configuration = configuration.andThen(c -> c.useMechanismProperties(propertiesMap));
+                }
+
+                String credentialStoreName = credentialReferencePartAsStringIfDefined(context, CREDENTIAL_REFERENCE, model, CredentialReference.STORE);
+                String credentialAlias = credentialReferencePartAsStringIfDefined(context, CREDENTIAL_REFERENCE, model, CredentialReference.ALIAS);
+                String credentialType = credentialReferencePartAsStringIfDefined(context, CREDENTIAL_REFERENCE, model, CredentialReference.TYPE);
+                String secret = credentialReferencePartAsStringIfDefined(context, CREDENTIAL_REFERENCE, model, CredentialReference.CLEAR_TEXT);
+
+                if (credentialStoreName != null || secret != null) {
+                    CredentialReference credentialReference;
+                    if (credentialStoreName != null && !credentialStoreName.isEmpty()) {
+                        credentialReference = CredentialReference.createCredentialReference(credentialStoreName, credentialAlias, credentialType);
+                    } else {
+                        credentialReference = CredentialReference.createCredentialReference(secret != null ? secret.toCharArray() : null);
+                    }
+
+                    InjectedValue<CredentialStoreClient> credentialStoreClientInjector = new InjectedValue<>();
+                    if (credentialReference.getAlias() != null) {
+                        // use credential store service
+                        String credentialStoreClientCapabilityName = RuntimeCapability.buildDynamicCapabilityName(CREDENTIAL_STORE_CLIENT_CAPABILITY, credentialReference.getCredentialStoreName());
+                        ServiceName credentialStoreClientServiceName = context.getCapabilityServiceName(credentialStoreClientCapabilityName, CredentialStoreClient.class);
+                        CREDENTIAL_STORE_CLIENT_UTIL.addInjection(serviceBuilder, credentialStoreClientInjector, credentialStoreClientServiceName);
+                    }
+
+                    configuration = configuration.andThen( c -> {
+                        try {
+                            CredentialReference.reinjectCredentialStoreClient(credentialStoreClientInjector, credentialReference);
+                        } catch (ClassNotFoundException e) {
+                            throw new IllegalStateException(e);
+                        }
+                        return c.usePassword(credentialStoreClientInjector.getValue().getSecret());
+                    });
+                }
+
+                final Function<AuthenticationConfiguration, AuthenticationConfiguration> finalConfiguration = configuration;
+                return () -> finalConfiguration.apply(null);
+            }
+        };
+        return new TrivialResourceDefinition(AUTHENTICATION_CONFIGURATION, add, AUTHENTICATION_CONFIGURATION_ALL_ATTRIBUTES, AUTHENTICATION_CONFIGURATION_RUNTIME_CAPABILITY);
+    }
+
+}

@@ -28,6 +28,7 @@ import static org.jboss.as.controller.parsing.ParseUtils.requireNoAttributes;
 import static org.jboss.as.controller.parsing.ParseUtils.requireNoContent;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedAttribute;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedElement;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AUTHENTICATION_CLIENT;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CLASS_NAME;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CREDENTIAL_SECURITY_FACTORIES;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CONFIGURATION;
@@ -71,6 +72,7 @@ import org.jboss.staxmapper.XMLExtendedStreamWriter;
  */
 class ElytronSubsystemParser implements XMLElementReader<List<ModelNode>>, XMLElementWriter<SubsystemMarshallingContext> {
 
+    private final AuthenticationClientParser clientParser = new AuthenticationClientParser();
     private final DomainParser domainParser = new DomainParser();
     private final RealmParser realmParser = new RealmParser();
     private final TlsParser tlsParser = new TlsParser();
@@ -104,6 +106,9 @@ class ElytronSubsystemParser implements XMLElementReader<List<ModelNode>>, XMLEl
             switch (reader.getLocalName()) {
                 case SECURITY_PROPERTIES:
                     readSecurityProperties(parentAddress, reader, operations);
+                    break;
+                case AUTHENTICATION_CLIENT:
+                    clientParser.readAuthenitcationClient(parentAddress, reader, operations);
                     break;
                 case PROVIDER_LOADERS:
                     readProviderLoaders(parentAddress, reader, operations);
@@ -349,6 +354,8 @@ class ElytronSubsystemParser implements XMLElementReader<List<ModelNode>>, XMLEl
 
             writer.writeEndElement();
         }
+
+        clientParser.writeAuthenticationClient(model, writer);
 
         if (model.hasDefined(PROVIDER_LOADER)) {
             writer.writeStartElement(PROVIDER_LOADERS);

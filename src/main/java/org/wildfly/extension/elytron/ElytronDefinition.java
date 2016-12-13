@@ -174,6 +174,9 @@ class ElytronDefinition extends SimpleResourceDefinition {
 
         // Dir-Context
         resourceRegistration.registerSubModel(new DirContextDefinition());
+
+        // Authentication Configuration
+        resourceRegistration.registerSubModel(AuthenticationClientDefinitions.getAuthenticationClientDefinition());
     }
 
     static <T> ServiceBuilder<T>  commonDependencies(ServiceBuilder<T> serviceBuilder) {

@@ -2,7 +2,6 @@
     <provider-loaders>
         <provider-loader name="custom-loader" />
     </provider-loaders>
-    <security-realms/>
     <tls>
         <key-stores>
             <key-store name="PKCS_11" type="PKCS#11" provider="SunPKCS#11">

@@ -31,6 +31,7 @@
     <xs:complexType name="subsystemType">
         <xs:all>
             <xs:element name="security-properties" type="securityPropertiesType" minOccurs="0" />
+            <xs:element name="authentication-client" type="authenticationClientType" minOccurs="0" />
             <xs:element name="provider-loaders" type="providerLoadersType" minOccurs="0" />
             <xs:element name="security-domains" type="securityDomainsType" minOccurs="0" />
             <xs:element name="security-realms" type="realmsType" minOccurs="0" />
@@ -76,6 +77,142 @@
             <xs:annotation>
                 <xs:documentation>
                     The value for this property.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:complexType>
+    
+    
+    <!-- 
+        Authentication Client
+     -->
+
+    <xs:complexType name="authenticationClientType">
+        <xs:annotation>
+            <xs:documentation>
+                Container for the authentication client definitions.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:choice maxOccurs="unbounded">
+            <xs:element name="authentication-configuration" type="authenticationConfigurationType" minOccurs="0" maxOccurs="unbounded" />
+        </xs:choice>
+    </xs:complexType>
+
+    <xs:complexType name="authenticationConfigurationType">
+        <xs:annotation>
+            <xs:documentation>
+                Authentication configuration definition.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="mechanism-properties" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>
+                        An ordered list of properties to be used to configure all of the providers.
+                    </xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="property" type="propertyType" maxOccurs="unbounded" />
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="credential-reference" type="credentialReferenceType" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>
+                        Credential to be used by the configuration.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+        <xs:attribute name="name" type="xs:string" use="required">
+            <xs:annotation>
+                <xs:documentation>
+                    The unique name for the authentication-configuration, note names used for authentication-configurations must be unique across the whole context.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="extends" type="xs:string">
+            <xs:annotation>
+                <xs:documentation>
+                    Reference to a previously defined authentication configuration to extend.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="anonymous" type="xs:boolean" default="false">
+            <xs:annotation>
+                <xs:documentation>
+                  Enables anonymous authentication.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="authentication-name" type="xs:string">
+            <xs:annotation>
+                <xs:documentation>
+                    The name to use for authentication.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="authorization-name" type="xs:string">
+            <xs:annotation>
+                <xs:documentation>
+                    The name to use for authorization.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="host" type="xs:string">
+            <xs:annotation>
+                <xs:documentation>
+                    The name of the host to use.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="protocol" type="xs:string">
+            <xs:annotation>
+                <xs:documentation>
+                    The protocol to use.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="port" type="xs:int">
+            <xs:annotation>
+                <xs:documentation>
+                    The port to use.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="realm" type="xs:string">
+            <xs:annotation>
+                <xs:documentation>
+                    The realm to use.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="security-domain" type="xs:string">
+            <xs:annotation>
+                <xs:documentation>
+                    Reference to a security domain to use for a forwarded identity.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="allow-all-mechanisms" type="xs:boolean" default="false">
+            <xs:annotation>
+                <xs:documentation>
+                    Allow all SASL mechanisms to be used unless specifically forbidden.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="allow-sasl-mechanisms" type="stringListType">
+            <xs:annotation>
+                <xs:documentation>
+                    List of SASL mechanisms to be used unless specifically forbidden.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="forbid-sasl-mechanisms" type="stringListType">
+            <xs:annotation>
+                <xs:documentation>
+                    List of SASL mechanisms to be disabled.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>

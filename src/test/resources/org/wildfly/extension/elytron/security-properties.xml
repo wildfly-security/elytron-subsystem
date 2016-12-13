@@ -3,5 +3,4 @@
         <security-property name="a" value="b" />
         <security-property name="c" value="d" />
     </security-properties>
-    <security-realms/>
 </subsystem>
