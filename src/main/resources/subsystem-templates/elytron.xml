@@ -30,8 +30,9 @@
         </security-realms>
 
         <mappers>
-            <constant-permission-mapper name="login-permission-mapper">
+            <constant-permission-mapper name="default-permission-mapper">
                 <permission class-name="org.wildfly.security.auth.permission.LoginPermission" />
+                <permission class-name="org.wildfly.extension.batch.jberet.deployment.BatchPermission" module="org.wildfly.extension.batch.jberet" target-name="*"/>
             </constant-permission-mapper>
 
             <constant-realm-mapper name="local" realm-name="local" />
@@ -74,7 +75,7 @@
 
     <supplement name="domain">
         <replacement placeholder="DOMAIN_DEFINITIONS">
-            <security-domain name="ApplicationDomain" default-realm="ApplicationRealm" permission-mapper="login-permission-mapper">
+            <security-domain name="ApplicationDomain" default-realm="ApplicationRealm" permission-mapper="default-permission-mapper">
                 <realm name="ApplicationRealm" role-decoder="groups-to-roles" />
             </security-domain>
         </replacement>
@@ -101,7 +102,7 @@
 
     <supplement name="host">
         <replacement placeholder="DOMAIN_DEFINITIONS">
-            <security-domain name="ManagementDomain" default-realm="ManagementRealm" permission-mapper="login-permission-mapper">
+            <security-domain name="ManagementDomain" default-realm="ManagementRealm" permission-mapper="default-permission-mapper">
                 <realm name="ManagementRealm" role-decoder="groups-to-roles" />
                 <realm name="local" role-mapper="super-user-mapper"/>
             </security-domain>
@@ -135,11 +136,11 @@
 
     <supplement name="standalone">
         <replacement placeholder="DOMAIN_DEFINITIONS">
-            <security-domain name="ApplicationDomain" default-realm="ApplicationRealm" permission-mapper="login-permission-mapper">
+            <security-domain name="ApplicationDomain" default-realm="ApplicationRealm" permission-mapper="default-permission-mapper">
                 <realm name="ApplicationRealm" role-decoder="groups-to-roles" />
             </security-domain>
 
-            <security-domain name="ManagementDomain" default-realm="ManagementRealm" permission-mapper="login-permission-mapper">
+            <security-domain name="ManagementDomain" default-realm="ManagementRealm" permission-mapper="default-permission-mapper">
                 <realm name="ManagementRealm" role-decoder="groups-to-roles" />
                 <realm name="local" role-mapper="super-user-mapper"/>
             </security-domain>
