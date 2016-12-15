@@ -116,6 +116,7 @@ public class CredentialStoreUtility {
     public void addEntry(String alias, String clearTextPassword) {
         try {
             credentialStore.store(alias, new PasswordCredential(ClearPassword.createRaw(ClearPassword.ALGORITHM_CLEAR, clearTextPassword.toCharArray())));
+            credentialStore.flush();
         } catch (Exception e) {
             LOGGER.error(e);
             throw new RuntimeException(e);
