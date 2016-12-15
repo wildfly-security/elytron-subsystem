@@ -39,7 +39,6 @@ import org.jboss.msc.service.StartException;
 import org.wildfly.extension.elytron.Configurable;
 import org.wildfly.security.auth.server.SecurityDomain;
 import org.wildfly.security.auth.server.SecurityRealm;
-import org.wildfly.security.credential.store.UnsupportedCredentialTypeException;
 
 /**
  * Messages for the Elytron subsystem.
@@ -267,19 +266,17 @@ public interface ElytronSubsystemMessages extends BasicLogger {
     @Message(id = 909, value = "Credential store '%s' does not support given credential store entry type '%s'")
     IllegalArgumentException credentialStoreEntryTypeNotSupported(String credentialStoreName, String entryType);
 
-    @Message(id = 910, value = "Password credential is not defined in '%s'")
-    OperationFailedException passwordCredentialIsNotDefined(String attribute);
+    // @Message(id = 910, value = "") free to use
 
-    @Message(id = 911, value = "Unsupported credential type '%s'")
-    UnsupportedCredentialTypeException unsupportedCredentialType(String credentialType);
+    // @Message(id = 911, value = "") free to use
 
     @Message(id = 912, value = "Credential store issue encountered")
     OperationFailedException credentialStoreIssueEncountered(@Cause Exception cause);
 
-    @Message(id = 913, value = "Credential alias not specified in URI reference '%s'")
-    OperationFailedException credentialAliasNotSpecifiedInUriReference(String uriReference);
+    @Message(id = 913, value = "Credential alias \"%s\" of credential type \"%s\" already exists in the store")
+    OperationFailedException credentialAlreadyExists(String alias, String credentialType);
 
-    @Message(id = 914, value = "Provider loader '%s' cannot supply Credential Store provider of type '%s'")
+    @Message(id = 914, value = "Provider loader \"%s\" cannot supply Credential Store provider of type \"%s\"")
     NoSuchProviderException providerLoaderCannotSupplyProvider(String providerLoader, String type);
 
     /*

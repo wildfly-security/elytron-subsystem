@@ -26,6 +26,7 @@ import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.RO
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -44,12 +45,14 @@ import org.jboss.as.controller.SimpleOperationDefinitionBuilder;
 import org.jboss.as.controller.SimpleResourceDefinition;
 import org.jboss.as.controller.descriptions.ModelDescriptionConstants;
 import org.jboss.as.controller.descriptions.StandardResourceDescriptionResolver;
+import org.jboss.as.controller.operations.global.WriteAttributeHandler;
 import org.jboss.as.controller.registry.ManagementResourceRegistration;
 import org.jboss.as.controller.registry.OperationEntry;
 import org.jboss.as.controller.registry.Resource;
 import org.jboss.as.controller.security.CredentialStoreClient;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
+import org.jboss.dmr.Property;
 import org.jboss.msc.service.ServiceController;
 import org.jboss.msc.service.ServiceName;
 import org.wildfly.security.credential.PasswordCredential;
@@ -136,7 +139,32 @@ class CredentialStoreAliasDefinition extends SimpleResourceDefinition {
             throw ROOT_LOGGER.operationAddressMissingKey(ElytronDescriptionConstants.ALIAS);
         }
 
-        return aliasName;
+        return aliasName.toLowerCase(Locale.ROOT);
+    }
+
+    private static void transformOperationAddress(final ModelNode operation) {
+        Property alias = propertyAliasFromOperation(operation);
+        String newAlias = alias.getValue().asString().toLowerCase(Locale.ROOT);
+        alias.getValue().set(newAlias);
+    }
+
+    private static Property propertyAliasFromOperation(final ModelNode operation) {
+        ModelNode address = operation.get(ModelDescriptionConstants.OP_ADDR);
+        List<Property> list = address.asPropertyList();
+        Property alias = null;
+        for (Property p: list) {
+            if (ElytronDescriptionConstants.ALIAS.equals(p.getName())) {
+                alias = p;
+                break;
+            }
+        }
+        return alias;
+    }
+
+    private static boolean sameAlias(final OperationContext context, final ModelNode operation) {
+        String contextAlias = context.getCurrentAddress().getLastElement().getValue();
+        String operationAlias = propertyAliasFromOperation(operation).getValue().asString();
+        return  operationAlias.equals(contextAlias);
     }
 
     private static class AddHandler extends AbstractAddStepHandler {
@@ -158,6 +186,9 @@ class CredentialStoreAliasDefinition extends SimpleResourceDefinition {
             CredentialStore credentialStore = credentialStoreClient.getCredentialStore();
             try {
                 if (entryType == null || ClearPassword.ALGORITHM_CLEAR.equals(entryType)) {
+                    if (credentialStore.exists(alias, PasswordCredential.class)) {
+                        throw ROOT_LOGGER.credentialAlreadyExists(alias, PasswordCredential.class.getName());
+                    }
                     credentialStore.store(alias, createCredentialFromPassword(secretValue.toCharArray()));
                 } else {
                     String credentialStoreName = CredentialStoreResourceDefinition.credentialStoreName(operation);
@@ -168,12 +199,27 @@ class CredentialStoreAliasDefinition extends SimpleResourceDefinition {
             }
         }
 
+        /**
+         * {@inheritDoc
+         *
+         * @param context
+         * @param operation
+         */
         @Override
-        protected Resource createResource(OperationContext context) {
+        public void execute(OperationContext context, ModelNode operation) throws OperationFailedException {
+            transformOperationAddress(operation);
+            super.execute(context, operation);
+        }
+
+        @Override
+        protected Resource createResource(OperationContext context, ModelNode operation) {
             Resource resource = Resource.Factory.create(true);
-            context.addResource(PathAddress.EMPTY_ADDRESS, resource);
+            if (sameAlias(context, operation)) {
+                context.addResource(PathAddress.EMPTY_ADDRESS, resource);
+            }
             return resource;
         }
+
     }
 
     private static class RemoveHandler extends CredentialStoreResourceDefinition.CredentialStoreRuntimeOnlyHandler {
