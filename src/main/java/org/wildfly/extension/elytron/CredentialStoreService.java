@@ -20,8 +20,9 @@ package org.wildfly.extension.elytron;
 
 import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
 
-import java.io.File;
 import java.net.URISyntaxException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.Provider;
@@ -53,11 +54,19 @@ import org.wildfly.security.password.interfaces.ClearPassword;
  */
 class CredentialStoreService implements Service<CredentialStoreClient> {
 
+    // generally supported credential store attributes
+    private static final String CS_LOCATION_ATTRIBUTE = "location";
+
+    // KeyStore backed credential store supported attributes
+    private static final String CS_KEY_STORE_TYPE_ATTRIBUTE = "keyStoreType";
+
+
     private CredentialStore credentialStore;
     private final String type;
     private final String provider;
     private final String providerLoaderName;
     private final String relativeTo;
+    private final String location;
     private final String name;
     private final Map<String, String> credentialStoreAttributes;
 
@@ -68,12 +77,13 @@ class CredentialStoreService implements Service<CredentialStoreClient> {
 
     private Handle callbackHandle;
 
-    private CredentialStoreService(String name, Map<String, String> credentialStoreAttributes, String type, String provider, String relativeTo, String providerLoaderName) throws CredentialStoreException {
+    private CredentialStoreService(String name, Map<String, String> credentialStoreAttributes, String type, String provider, String relativeTo, String location, String providerLoaderName) throws CredentialStoreException {
         this.name = name;
         this.type = type != null ? type : KeyStoreCredentialStore.KEY_STORE_CREDENTIAL_STORE;
         this.provider = provider;
         this.relativeTo = relativeTo;
         this.credentialStoreAttributes = credentialStoreAttributes;
+        this.location = location;
         this.providerLoaderName = providerLoaderName;
     }
 
@@ -83,12 +93,9 @@ class CredentialStoreService implements Service<CredentialStoreClient> {
             String nameToSet = name != null ? name : credentialStoreURIParser.getName(); // once we specify name, the name from uri is ignored
             Map<String, String> credentialStoreAttributes = credentialStoreURIParser.getOptionsMap();
             credentialStoreAttributes.put(ElytronDescriptionConstants.CREDENTIAL_STORE_NAME, nameToSet);
-            credentialStoreAttributes.putIfAbsent("keyStoreType", "JCEKS");
+            credentialStoreAttributes.putIfAbsent(CS_KEY_STORE_TYPE_ATTRIBUTE, "JCEKS");
             String storageFile = credentialStoreURIParser.getStorageFile();
-            if (storageFile != null) {
-                credentialStoreAttributes.put("location", storageFile);
-            }
-            return new CredentialStoreService(nameToSet, credentialStoreAttributes, type, provider, relativeTo, providerLoaderName);
+            return new CredentialStoreService(nameToSet, credentialStoreAttributes, type, provider, relativeTo, storageFile != null ? storageFile : name, providerLoaderName);
         } catch (URISyntaxException e) {
             throw new CredentialStoreException(e);
         }
@@ -100,8 +107,9 @@ class CredentialStoreService implements Service<CredentialStoreClient> {
 
     @Override
     public void start(StartContext startContext) throws StartException {
-        resolveFileLocation();
+        Path loc = resolveLocation();
         try {
+            credentialStoreAttributes.put(CS_LOCATION_ATTRIBUTE, loc.toAbsolutePath().toString());
             credentialStore = getCredentialStoreInstance();
             CredentialStore.ProtectionParameter pp = null;
             if (credentialStoreAttributes.get("store.password") != null) {
@@ -128,11 +136,10 @@ class CredentialStoreService implements Service<CredentialStoreClient> {
         return new CredentialStoreClient(credentialStore, name, null);
     }
 
-    private void resolveFileLocation() {
-        File baseDir;
+    private Path resolveLocation() {
         if (relativeTo != null) {
             PathManager pathManager = this.pathManager.getValue();
-            baseDir = new File(pathManager.resolveRelativePathEntry("", relativeTo));
+            String baseDir = pathManager.resolveRelativePathEntry("", relativeTo);
             callbackHandle = pathManager.registerCallback(relativeTo, new PathManager.Callback() {
 
                 @Override
@@ -147,11 +154,9 @@ class CredentialStoreService implements Service<CredentialStoreClient> {
                     // Service dependencies should trigger a stop and start.
                 }
             }, PathManager.Event.REMOVED, PathManager.Event.UPDATED);
+            return Paths.get(baseDir, location);
         } else {
-            baseDir = new File(".");
-        }
-        if (baseDir != null) {
-            credentialStoreAttributes.put(ElytronDescriptionConstants.CREDENTIAL_STORE_BASE, baseDir.getAbsolutePath());
+            return Paths.get(location);
         }
     }
 
