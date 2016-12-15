@@ -190,6 +190,7 @@ class CredentialStoreAliasDefinition extends SimpleResourceDefinition {
                         throw ROOT_LOGGER.credentialAlreadyExists(alias, PasswordCredential.class.getName());
                     }
                     credentialStore.store(alias, createCredentialFromPassword(secretValue.toCharArray()));
+                    credentialStore.flush();
                 } else {
                     String credentialStoreName = CredentialStoreResourceDefinition.credentialStoreName(operation);
                     throw ROOT_LOGGER.credentialStoreEntryTypeNotSupported(credentialStoreName, entryType);
@@ -235,6 +236,7 @@ class CredentialStoreAliasDefinition extends SimpleResourceDefinition {
                 CredentialStoreClient credentialStoreClient = credentialStoreService.getValue();
                 CredentialStore credentialStore = credentialStoreClient.getCredentialStore();
                 credentialStore.remove(alias, PasswordCredential.class);
+                credentialStore.flush();
             } catch (CredentialStoreException e) {
                 throw new OperationFailedException(e);
             }
