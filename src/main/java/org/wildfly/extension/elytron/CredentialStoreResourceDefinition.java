@@ -180,9 +180,6 @@ final class CredentialStoreResourceDefinition extends SimpleResourceDefinition {
             String provider = asStringIfDefined(context, PROVIDER, model);
             String name = credentialStoreName(operation);
             String relativeTo = asStringIfDefined(context, RELATIVE_TO, model);
-            if (relativeTo == null) {
-                relativeTo = "jboss.server.data.dir";
-            }
 
             ServiceTarget serviceTarget = context.getServiceTarget();
             // ----------- credential store service ----------------
