@@ -99,14 +99,14 @@ final class CredentialStoreResourceDefinition extends SimpleResourceDefinition {
 
     static final SimpleAttributeDefinition PROVIDER_LOADER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PROVIDER_LOADER, ModelType.STRING, true)
             .setAttributeGroup(ElytronDescriptionConstants.IMPLEMENTATION)
-            .setAllowExpression(true)
+            .setAllowExpression(false)
             .setMinSize(1)
             .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
             .setCapabilityReference(PROVIDERS_CAPABILITY, CREDENTIAL_STORE_CLIENT_CAPABILITY, true)
             .build();
 
     static final SimpleAttributeDefinition RELATIVE_TO = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.RELATIVE_TO, ModelType.STRING, true)
-            .setAllowExpression(true)
+            .setAllowExpression(false)
             .setMinSize(1)
             .setAttributeGroup(ElytronDescriptionConstants.FILE)
             .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)

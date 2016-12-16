@@ -59,6 +59,7 @@ class ProviderAttributeDefinition {
     private static final SimpleAttributeDefinition ALGORITHM = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ALGORITHM, ModelType.STRING).build();
 
     private static final SimpleAttributeDefinition CLASS_NAME = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.CLASS_NAME, ModelType.STRING)
+        .setAllowExpression(false)
         .build();
 
     private static final ObjectTypeAttributeDefinition SERVICE = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.SERVICE, TYPE, ALGORITHM, CLASS_NAME)

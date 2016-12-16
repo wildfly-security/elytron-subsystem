@@ -78,7 +78,7 @@ final class LdapKeyStoreDefinition extends SimpleResourceDefinition {
     static final ServiceUtil<KeyStore> LDAP_KEY_STORE_UTIL = ServiceUtil.newInstance(KEY_STORE_RUNTIME_CAPABILITY, ElytronDescriptionConstants.LDAP_KEY_STORE, KeyStore.class);
 
     static final SimpleAttributeDefinition DIR_CONTEXT = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.DIR_CONTEXT, ModelType.STRING, false)
-            .setAllowExpression(true)
+            .setAllowExpression(false)
             .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
             .setCapabilityReference(DIR_CONTEXT_CAPABILITY, KEY_STORE_CAPABILITY, true)
             .build();
