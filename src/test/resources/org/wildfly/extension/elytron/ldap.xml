@@ -53,6 +53,6 @@
    </tls>
    <dir-contexts>
       <dir-context authentication-level="none" name="DirContextInsecure" url="ldap://localhost:11391/"/>
-      <dir-context credential="serverPassword" name="DirContextSsl" principal="uid=server,dc=users,dc=elytron,dc=wildfly,dc=org" referral-mode="THROW" ssl-context="LdapSslContext" url="ldaps://localhost:11391/" connection-timeout="2000" read-timeout="3000"/>
+      <dir-context credential="serverPassword" name="DirContextSsl" principal="uid=server,dc=users,dc=elytron,dc=wildfly,dc=org" referral-mode="THROW" ssl-context="LdapSslContext" url="ldaps://localhost:11391/" connection-timeout="6000" read-timeout="10000"/>
    </dir-contexts>
 </subsystem>
