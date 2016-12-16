@@ -103,7 +103,7 @@ class JdbcRealmDefinition extends SimpleResourceDefinition {
         static final SimpleAttributeDefinition PASSWORD = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PASSWORD_INDEX, ModelType.INT, false)
                 .setMinSize(1)
                 .setValidator(new IntRangeValidator(1))
-                .setAllowExpression(false)
+                .setAllowExpression(true)
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
 
@@ -151,19 +151,19 @@ class JdbcRealmDefinition extends SimpleResourceDefinition {
         static final SimpleAttributeDefinition PASSWORD = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PASSWORD_INDEX, ModelType.INT, false)
                 .setMinSize(1)
                 .setValidator(new IntRangeValidator(1))
-                .setAllowExpression(false)
+                .setAllowExpression(true)
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
 
         static final SimpleAttributeDefinition ITERATION_COUNT = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ITERATION_COUNT_INDEX, ModelType.INT, false)
                 .setValidator(new IntRangeValidator(1))
-                .setAllowExpression(false)
+                .setAllowExpression(true)
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
 
         static final SimpleAttributeDefinition SALT = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.SALT_INDEX, ModelType.INT, false)
                 .setValidator(new IntRangeValidator(1))
-                .setAllowExpression(false)
+                .setAllowExpression(true)
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
 
@@ -218,20 +218,20 @@ class JdbcRealmDefinition extends SimpleResourceDefinition {
                         SaltedSimpleDigestPassword.ALGORITHM_SALT_PASSWORD_DIGEST_SHA_384,
                         SaltedSimpleDigestPassword.ALGORITHM_SALT_PASSWORD_DIGEST_SHA_512
                 ))
-                .setAllowExpression(false)
+                .setAllowExpression(true)
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
 
         static final SimpleAttributeDefinition PASSWORD = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PASSWORD_INDEX, ModelType.INT, false)
                 .setMinSize(1)
                 .setValidator(new IntRangeValidator(1))
-                .setAllowExpression(false)
+                .setAllowExpression(true)
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
 
         static final SimpleAttributeDefinition SALT = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.SALT_INDEX, ModelType.INT, false)
                 .setValidator(new IntRangeValidator(1))
-                .setAllowExpression(false)
+                .setAllowExpression(true)
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
 
@@ -287,7 +287,7 @@ class JdbcRealmDefinition extends SimpleResourceDefinition {
         static final SimpleAttributeDefinition PASSWORD = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PASSWORD_INDEX, ModelType.INT, false)
                 .setMinSize(1)
                 .setValidator(new IntRangeValidator(1))
-                .setAllowExpression(false)
+                .setAllowExpression(true)
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
 
@@ -330,26 +330,26 @@ class JdbcRealmDefinition extends SimpleResourceDefinition {
                         ScramDigestPassword.ALGORITHM_SCRAM_SHA_1,
                         ScramDigestPassword.ALGORITHM_SCRAM_SHA_256
                 ))
-                .setAllowExpression(false)
+                .setAllowExpression(true)
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
 
         static final SimpleAttributeDefinition PASSWORD = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PASSWORD_INDEX, ModelType.INT, false)
                 .setMinSize(1)
                 .setValidator(new IntRangeValidator(1))
-                .setAllowExpression(false)
+                .setAllowExpression(true)
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
 
         static final SimpleAttributeDefinition ITERATION_COUNT = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ITERATION_COUNT_INDEX, ModelType.INT, false)
                 .setValidator(new IntRangeValidator(1))
-                .setAllowExpression(false)
+                .setAllowExpression(true)
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
 
         static final SimpleAttributeDefinition SALT = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.SALT_INDEX, ModelType.INT, false)
                 .setValidator(new IntRangeValidator(1))
-                .setAllowExpression(false)
+                .setAllowExpression(true)
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
 
@@ -413,7 +413,7 @@ class JdbcRealmDefinition extends SimpleResourceDefinition {
      */
     static class PrincipalQueryAttributes {
         static final SimpleAttributeDefinition SQL = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.SQL, ModelType.STRING, false)
-                .setAllowExpression(false)
+                .setAllowExpression(true)
                 .setMinSize(1)
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();

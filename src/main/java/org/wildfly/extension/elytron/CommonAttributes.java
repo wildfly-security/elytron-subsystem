@@ -41,6 +41,7 @@ class CommonAttributes {
     // TODO - Check we really want this and not other suitable common location is available.
 
     static final SimpleMapAttributeDefinition PROPERTIES = new SimpleMapAttributeDefinition.Builder(ElytronDescriptionConstants.PROPERTIES, ModelType.STRING, true)
+        .setAllowExpression(true)
         .setAttributeMarshaller(new AttributeMarshaller() {
 
         @Override

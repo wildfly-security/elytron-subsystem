@@ -77,6 +77,7 @@ class FileSystemRealmDefinition extends SimpleResourceDefinition {
     static final SimpleAttributeDefinition LEVELS =
             new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.LEVELS, ModelType.INT, true)
                     .setDefaultValue(new ModelNode(2))
+                    .setAllowExpression(true)
                     .build();
 
     static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[]{PATH, RELATIVE_TO, LEVELS};
