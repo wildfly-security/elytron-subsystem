@@ -79,7 +79,7 @@ class TokenRealmDefinition extends SimpleResourceDefinition {
 
     static final SimpleAttributeDefinition PRINCIPAL_CLAIM = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PRINCIPAL_CLAIM, ModelType.STRING, true)
                                                                      .setDefaultValue(new ModelNode("username"))
-                                                                     .setAllowExpression(false)
+                                                                     .setAllowExpression(true)
                                                                      .setMinSize(1)
                                                                      .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                                                                      .build();
@@ -99,7 +99,7 @@ class TokenRealmDefinition extends SimpleResourceDefinition {
                 .build();
 
         static final SimpleAttributeDefinition PUBLIC_KEY = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PUBLIC_KEY, ModelType.STRING, true)
-                                                                    .setAllowExpression(false)
+                                                                    .setAllowExpression(true)
                                                                     .setMinSize(1)
                                                                     .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                                                                     .build();
@@ -115,19 +115,19 @@ class TokenRealmDefinition extends SimpleResourceDefinition {
     static class OAuth2IntrospectionValidatorAttributes {
 
         static final SimpleAttributeDefinition CLIENT_ID = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.CLIENT_ID, ModelType.STRING, false)
-                .setAllowExpression(false)
+                .setAllowExpression(true)
                 .setMinSize(1)
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
 
         static final SimpleAttributeDefinition CLIENT_SECRET = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.CLIENT_SECRET, ModelType.STRING, false)
-                .setAllowExpression(false)
+                .setAllowExpression(true)
                 .setMinSize(1)
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
 
         static final SimpleAttributeDefinition INTROSPECTION_URL = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.INTROSPECTION_URL, ModelType.STRING, false)
-                .setAllowExpression(false)
+                .setAllowExpression(true)
                 .setMinSize(1)
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
@@ -140,7 +140,7 @@ class TokenRealmDefinition extends SimpleResourceDefinition {
 
         static final SimpleAttributeDefinition HOSTNAME_VERIFICATION_POLICY = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.HOST_NAME_VERIFICATION_POLICY, ModelType.STRING, true)
                 .setValidator(new EnumValidator(HostnameVerificationPolicy.class, true, true))
-                .setAllowExpression(false)
+                .setAllowExpression(true)
                 .setMinSize(1)
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();

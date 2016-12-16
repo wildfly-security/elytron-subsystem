@@ -101,6 +101,7 @@ class RealmMapperDefinitions {
 
                 })
         .setMinSize(1)
+        .setAllowExpression(true)
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
         .build();
 

@@ -64,6 +64,7 @@ import org.jboss.msc.service.StartException;
 class CustomComponentDefinition<T> extends SimpleResourceDefinition {
 
     static final SimpleMapAttributeDefinition CONFIGURATION = new SimpleMapAttributeDefinition.Builder(ElytronDescriptionConstants.CONFIGURATION, ModelType.STRING, true)
+        .setAllowExpression(true)
         .build();
 
     private final Class<T> serviceType;

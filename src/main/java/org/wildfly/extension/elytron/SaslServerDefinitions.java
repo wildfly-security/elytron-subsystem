@@ -98,11 +98,13 @@ class SaslServerDefinitions {
 
     static final SimpleAttributeDefinition SERVER_NAME = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.SERVER_NAME, ModelType.STRING, true)
         .setMinSize(1)
+        .setAllowExpression(true)
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
         .build();
 
     static final SimpleAttributeDefinition PROTOCOL = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PROTOCOL, ModelType.STRING, true)
         .setMinSize(1)
+        .setAllowExpression(true)
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
         .build();
 
