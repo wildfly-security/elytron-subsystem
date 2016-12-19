@@ -54,6 +54,7 @@ interface ElytronDescriptionConstants {
     String AUDIENCE = "audience";
     String AUTHENTICATION_CLIENT = "authentication-client";
     String AUTHENTICATION_CONFIGURATION = "authentication-configuration";
+    String AUTHENTICATION_CONTEXT = "authentication-context";
     String AUTHENTICATION_LEVEL = "authentication-level";
     String AUTHENTICATION_NAME = "authentication-name";
     String AUTHENTICATION_OPTIONAL = "authentication-optional";
@@ -216,6 +217,19 @@ interface ElytronDescriptionConstants {
     String MAPPERS = "mappers";
     String MAPPING_MODE = "mapping-mode";
     String MATCH = "match";
+    String MATCH_ABSTRACT_TYPE = "match-abstract-type";
+    String MATCH_ABSTRACT_TYPE_AUTHORITY = "match-abstract-type-authority";
+    String MATCH_HOST = "match-host";
+    String MATCH_LOCAL_SECURITY_DOMAIN = "match-local-security-domain";
+    String MATCH_NO_USER = "match-no-user";
+    String MATCH_PATH = "match-path";
+    String MATCH_PORT = "match-port";
+    String MATCH_PROTOCOL = "match-protocol";
+    String MATCH_PURPOSE = "match-purpose";
+    String MATCH_RULE = "match-rule";
+    String MATCH_RULES = "match-rules";
+    String MATCH_URN = "match-urn";
+    String MATCH_USER = "match-user";
     String MAXIMUM_SEGMENTS = "maximum-segments";
     String MAXIMUM_SESSION_CACHE_SIZE = "maximum-session-cache-size";
     String MECHANISM = "mechanism";

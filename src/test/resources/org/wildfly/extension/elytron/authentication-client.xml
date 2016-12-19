@@ -21,6 +21,14 @@
                 <property name="c" value="d" />
             </mechanism-properties>
         </authentication-configuration>
+        <authentication-context name="base">
+            <match-rule match-abstract-type="a" match-abstract-type-authority="aa" match-host="b" match-local-security-domain="c" match-path="d" match-port="2020" match-protocol="e" match-purpose="f" match-urn="g" 
+                match-user="h" authentication-configuration="base" />
+            <match-rule match-no-user="true" authentication-configuration="most" />
+        </authentication-context>
+        <authentication-context name="child" extends="base">
+            <match-rule match-no-user="true" authentication-configuration="base" />
+        </authentication-context>
     </authentication-client>
     <security-domains>
         <security-domain name="TestDomain" default-realm="identity">

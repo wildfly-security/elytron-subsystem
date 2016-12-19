@@ -32,6 +32,7 @@ import org.wildfly.extension.elytron.capabilities.CredentialSecurityFactory;
 import org.wildfly.extension.elytron.capabilities.DirContextSupplier;
 import org.wildfly.extension.elytron.capabilities.PrincipalTransformer;
 import org.wildfly.security.auth.client.AuthenticationConfiguration;
+import org.wildfly.security.auth.client.AuthenticationContext;
 import org.wildfly.security.auth.server.HttpAuthenticationFactory;
 import org.wildfly.security.auth.server.ModifiableSecurityRealm;
 import org.wildfly.security.auth.server.PrincipalDecoder;
@@ -62,6 +63,12 @@ class Capabilities {
 
     static final RuntimeCapability<Void> AUTHENTICATION_CONFIGURATION_RUNTIME_CAPABILITY = RuntimeCapability
             .Builder.of(AUTHENTICATION_CONFIGURATION_CAPABILITY, true, AuthenticationConfiguration.class)
+            .build();
+
+    static final String AUTHENTICATION_CONTEXT_CAPABILITY = CAPABILITY_BASE + "authentication-context";
+
+    static final RuntimeCapability<Void> AUTHENTICATION_CONTEXT_RUNTIME_CAPABILITY = RuntimeCapability
+            .Builder.of(AUTHENTICATION_CONTEXT_CAPABILITY, true, AuthenticationContext.class)
             .build();
 
     static final String CREDENTIAL_STORE_CLIENT_CAPABILITY = CAPABILITY_BASE + "credential-store-client";

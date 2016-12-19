@@ -95,6 +95,7 @@
         </xs:annotation>
         <xs:choice maxOccurs="unbounded">
             <xs:element name="authentication-configuration" type="authenticationConfigurationType" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="authentication-context" type="authenticationContextType" minOccurs="0" maxOccurs="unbounded" />
         </xs:choice>
     </xs:complexType>
 
@@ -213,6 +214,132 @@
             <xs:annotation>
                 <xs:documentation>
                     List of SASL mechanisms to be disabled.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="authenticationContextType">
+        <xs:annotation>
+            <xs:documentation>
+                Authentication context definition.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="match-rule" minOccurs="0" maxOccurs="unbounded">
+                <xs:annotation>
+                    <xs:documentation>
+                        An ordered list of match-rules to be defined on this authentication context.
+                    </xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:attribute name="match-abstract-type" type="xs:string">
+                        <xs:annotation>
+                            <xs:documentation>
+                                Match based on abstract type.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute name="match-abstract-type-authority" type="xs:string">
+                        <xs:annotation>
+                            <xs:documentation>
+                                Match based on abstract type authority.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute name="match-host" type="xs:string">
+                        <xs:annotation>
+                            <xs:documentation>
+                                Match based on host.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute name="match-local-security-domain" type="xs:string">
+                        <xs:annotation>
+                            <xs:documentation>
+                                Match based on local security domain.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute name="match-no-user" type="xs:string" default="false">
+                        <xs:annotation>
+                            <xs:documentation>
+                                Match based on no user.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute name="match-path" type="xs:string">
+                        <xs:annotation>
+                            <xs:documentation>
+                                Match based on path.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute name="match-port" type="xs:int">
+                        <xs:annotation>
+                            <xs:documentation>
+                                Match based on port.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute name="match-protocol" type="xs:string">
+                        <xs:annotation>
+                            <xs:documentation>
+                                Match based on protocol.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute name="match-purpose" type="xs:string">
+                        <xs:annotation>
+                            <xs:documentation>
+                                Match based on purpose.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute name="match-urn" type="xs:string">
+                        <xs:annotation>
+                            <xs:documentation>
+                                Match based on urn.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute name="match-user" type="xs:string">
+                        <xs:annotation>
+                            <xs:documentation>
+                                Match based on user.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute name="authentication-configuration" type="xs:string">
+                        <xs:annotation>
+                            <xs:documentation>
+                                The AuthenticationConfiguration to use with this match.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute name="ssl-context" type="xs:string">
+                        <xs:annotation>
+                            <xs:documentation>
+                                The SSLContext to use with this match.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:attribute>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+        <xs:attribute name="name" type="xs:string" use="required">
+            <xs:annotation>
+                <xs:documentation>
+                    The unique name for the authentication-context, note names used for authentication-contexts must be unique across the whole context.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="extends" type="xs:string">
+            <xs:annotation>
+                <xs:documentation>
+                    Reference to a previously defined authentication context to extend.
+                    
+                    match-rules defined here are added after the rules of the parent.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>

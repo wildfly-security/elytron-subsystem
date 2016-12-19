@@ -24,6 +24,7 @@ import static org.jboss.as.controller.parsing.ParseUtils.requireNoAttributes;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedElement;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AUTHENTICATION_CLIENT;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AUTHENTICATION_CONFIGURATION;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AUTHENTICATION_CONTEXT;
 import static org.wildfly.extension.elytron.ElytronSubsystemParser.verifyNamespace;
 
 import java.util.List;
@@ -52,6 +53,11 @@ class AuthenticationClientParser {
             .addAttribute(AuthenticationClientDefinitions.CREDENTIAL_REFERENCE, AttributeParser.OBJECT_PARSER, AttributeMarshaller.ATTRIBUTE_OBJECT)
             .build();
 
+    private final PersistentResourceXMLDescription authenticationContextParser = builder(PathElement.pathElement(AUTHENTICATION_CONTEXT), null)
+            .addAttribute(AuthenticationClientDefinitions.CONTEXT_EXTENDS)
+            .addAttribute(AuthenticationClientDefinitions.MATCH_RULES, AttributeParser.UNWRAPPED_OBJECT_LIST_PARSER, AttributeMarshaller.UNWRAPPED_OBJECT_LIST_MARSHALLER)
+            .build();
+
     void readAuthenitcationClient(ModelNode parentAddressNode, XMLExtendedStreamReader reader, List<ModelNode> operations)
             throws XMLStreamException {
         requireNoAttributes(reader);
@@ -62,6 +68,9 @@ class AuthenticationClientParser {
             switch (localName) {
                 case AUTHENTICATION_CONFIGURATION:
                     authenticationConfigurationParser.parse(reader, parentAddress, operations);
+                    break;
+                case AUTHENTICATION_CONTEXT:
+                    authenticationContextParser.parse(reader, parentAddress, operations);
                     break;
                 default:
                     throw unexpectedElement(reader);
@@ -77,12 +86,13 @@ class AuthenticationClientParser {
         writer.writeStartElement(AUTHENTICATION_CLIENT);
 
         authenticationConfigurationParser.persist(writer, subsystem);
+        authenticationContextParser.persist(writer, subsystem);
 
         writer.writeEndElement();
     }
 
     private boolean shouldWrite(ModelNode subsystem) {
-        return subsystem.hasDefined(AUTHENTICATION_CONFIGURATION);
+        return subsystem.hasDefined(AUTHENTICATION_CONFIGURATION) || subsystem.hasDefined(AUTHENTICATION_CONTEXT);
     }
 
 }
