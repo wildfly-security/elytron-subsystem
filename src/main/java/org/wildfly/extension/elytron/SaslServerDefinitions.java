@@ -359,34 +359,35 @@ class SaslServerDefinitions {
 
                 BiPredicate<String, Provider> predicate = null;
 
-                List<ModelNode> nodes = model.require(ElytronDescriptionConstants.FILTERS).asList();
-                for (ModelNode current : nodes) {
-                    final String mechanismName = asStringIfDefined(context, MECHANISM_NAME, current);
-                    final String providerName = PROVIDER_NAME.resolveModelAttribute(context, current).asString();
-                    final Double providerVersion = asDoubleIfDefined(context, PROVIDER_VERSION, current);
+                if (model.hasDefined(ElytronDescriptionConstants.FILTERS)) {
+                    List<ModelNode> nodes = model.require(ElytronDescriptionConstants.FILTERS).asList();
+                    for (ModelNode current : nodes) {
+                        final String mechanismName = asStringIfDefined(context, MECHANISM_NAME, current);
+                        final String providerName = PROVIDER_NAME.resolveModelAttribute(context, current).asString();
+                        final Double providerVersion = asDoubleIfDefined(context, PROVIDER_VERSION, current);
 
-                    final Predicate<Double> versionPredicate;
-                    if (providerVersion != null) {
-                       final Comparison comparison = Comparison.getComparison(VERSION_COMPARISON.resolveModelAttribute(context, current).asString());
+                        final Predicate<Double> versionPredicate;
+                        if (providerVersion != null) {
+                            final Comparison comparison = Comparison
+                                    .getComparison(VERSION_COMPARISON.resolveModelAttribute(context, current).asString());
 
-                       versionPredicate = (Double d) -> comparison.getPredicate().test(d, providerVersion);
-                    } else {
-                        versionPredicate = null;
+                            versionPredicate = (Double d) -> comparison.getPredicate().test(d, providerVersion);
+                        } else {
+                            versionPredicate = null;
+                        }
+
+                        BiPredicate<String, Provider> thisPredicate = (String s, Provider p) -> {
+                            return (mechanismName == null || mechanismName.equals(s)) && providerName.equals(p.getName())
+                                    && (providerVersion == null || versionPredicate.test(p.getVersion()));
+                        };
+
+                        predicate = predicate == null ? thisPredicate : predicate.or(thisPredicate);
                     }
 
-                    BiPredicate<String, Provider> thisPredicate = (String s, Provider p) -> {
-                        return (mechanismName == null || mechanismName.equals(s))
-                                && providerName.equals(p.getName())
-                                && (providerVersion == null || versionPredicate.test(p.getVersion()));
-                    };
-
-                    predicate = predicate == null ? thisPredicate : predicate.or(thisPredicate);
-                }
-
-
-                boolean enabling = ENABLING.resolveModelAttribute(context, model).asBoolean();
-                if (enabling == false) {
-                    predicate = predicate.negate();
+                    boolean enabling = ENABLING.resolveModelAttribute(context, model).asBoolean();
+                    if (enabling == false) {
+                        predicate = predicate.negate();
+                    }
                 }
 
                 final BiPredicate<String, Provider> finalPredicate = predicate;
@@ -394,7 +395,7 @@ class SaslServerDefinitions {
 
                 TrivialService<SaslServerFactory> saslServiceFactoryService = new TrivialService<SaslServerFactory>(() -> {
                     SaslServerFactory theFactory = saslServerFactoryInjector.getValue();
-                    theFactory = new MechanismProviderFilteringSaslServerFactory(theFactory, finalPredicate);
+                    theFactory = finalPredicate != null ? new MechanismProviderFilteringSaslServerFactory(theFactory, finalPredicate) : theFactory;
 
                     return theFactory;
                 });
