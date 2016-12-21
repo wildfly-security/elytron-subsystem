@@ -37,7 +37,7 @@
     <properties>
         <version.elytron>1.1.0.Beta18</version.elytron>
 
-        <version.wildfly.core>3.0.0.Alpha13</version.wildfly.core>
+        <version.wildfly.core>3.0.0.Alpha16</version.wildfly.core>
 
         <version.org.jboss.jboss-dmr>1.4.0.Beta1</version.org.jboss.jboss-dmr>
         <version.org.jboss.logging.jboss-logging>3.3.0.Final</version.org.jboss.logging.jboss-logging>
