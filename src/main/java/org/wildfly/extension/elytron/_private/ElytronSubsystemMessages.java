@@ -268,6 +268,9 @@ public interface ElytronSubsystemMessages extends BasicLogger {
     @Message(id = 28, value = "The X.500 attribute must be defined by name or by OID")
     OperationFailedException x500AttributeMustBeDefined();
 
+    @Message(id = 29, value = "Failed to parse URL '%s'")
+    OperationFailedException invalidURL(String url, @Cause Exception cause);
+
     // CREDENTIAL_STORE section
     @Message(id = 909, value = "Credential store '%s' does not support given credential store entry type '%s'")
     IllegalArgumentException credentialStoreEntryTypeNotSupported(String credentialStoreName, String entryType);
