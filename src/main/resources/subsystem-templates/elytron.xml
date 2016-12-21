@@ -32,7 +32,7 @@
         <mappers>
             <constant-permission-mapper name="default-permission-mapper">
                 <permission class-name="org.wildfly.security.auth.permission.LoginPermission" />
-                <permission class-name="org.wildfly.extension.batch.jberet.deployment.BatchPermission" module="org.wildfly.extension.batch.jberet" target-name="*"/>
+                <?ADDITIONAL_PERMISSIONS?>
             </constant-permission-mapper>
 
             <constant-realm-mapper name="local" realm-name="local" />
@@ -97,6 +97,12 @@
         </replacement>
         <replacement placeholder="SASL_DEFINITIONS">
             <sasl-authentication-factory name="application-sasl-authentication" sasl-server-factory="configured" security-domain="ApplicationDomain"/>
+        </replacement>
+    </supplement>
+
+    <supplement name="domain-wildfly" includes="domain">
+        <replacement placeholder="ADDITIONAL_PERMISSIONS">
+            <permission class-name="org.wildfly.extension.batch.jberet.deployment.BatchPermission" module="org.wildfly.extension.batch.jberet" target-name="*"/>
         </replacement>
     </supplement>
 
@@ -185,6 +191,12 @@
                 </mechanism-configuration>
             </sasl-authentication-factory>
             <sasl-authentication-factory name="application-sasl-authentication" sasl-server-factory="configured" security-domain="ApplicationDomain"/>
+        </replacement>
+    </supplement>
+
+    <supplement name="standalone-wildfly" includes="standalone">
+        <replacement placeholder="ADDITIONAL_PERMISSIONS">
+            <permission class-name="org.wildfly.extension.batch.jberet.deployment.BatchPermission" module="org.wildfly.extension.batch.jberet" target-name="*"/>
         </replacement>
     </supplement>
 </config>
