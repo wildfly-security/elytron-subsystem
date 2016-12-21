@@ -291,6 +291,9 @@ public interface ElytronSubsystemMessages extends BasicLogger {
     @Message(id = 915, value = "Name of the credential store has to be specified in this credential-reference")
     OperationFailedException nameOfCredentialSoreHasToBeSpecified();
 
+    @Message(id = 916, value = "Credential cannot be resolved")
+    IllegalStateException credentialCannotBeResolved();
+
     /*
      * Identity Resource Messages - 1000
      */
