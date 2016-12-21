@@ -21,6 +21,7 @@ package org.wildfly.extension.elytron._private;
 import static org.jboss.logging.Logger.Level.INFO;
 import static org.jboss.logging.Logger.Level.WARN;
 
+import java.io.IOException;
 import java.security.KeyStore;
 import java.security.NoSuchProviderException;
 import java.security.Provider;
@@ -272,9 +273,11 @@ public interface ElytronSubsystemMessages extends BasicLogger {
     @Message(id = 909, value = "Credential store '%s' does not support given credential store entry type '%s'")
     IllegalArgumentException credentialStoreEntryTypeNotSupported(String credentialStoreName, String entryType);
 
-    // @Message(id = 910, value = "") free to use
+    @Message(id = 910, value = "Password cannot be resolved for key-store \"%s\"")
+    IOException keyStorePasswordCannotBeResolved(String path);
 
-    // @Message(id = 911, value = "") free to use
+    @Message(id = 911, value = "Credential store \"%s\" protection parameter cannot be resolved")
+    IOException credentialStoreProtectionParameterCannotBeResolved(String name);
 
     @Message(id = 912, value = "Credential store issue encountered")
     OperationFailedException credentialStoreIssueEncountered(@Cause Exception cause);
@@ -284,6 +287,9 @@ public interface ElytronSubsystemMessages extends BasicLogger {
 
     @Message(id = 914, value = "Provider loader \"%s\" cannot supply Credential Store provider of type \"%s\"")
     NoSuchProviderException providerLoaderCannotSupplyProvider(String providerLoader, String type);
+
+    @Message(id = 915, value = "Name of the credential store has to be specified in this credential-reference")
+    OperationFailedException nameOfCredentialSoreHasToBeSpecified();
 
     /*
      * Identity Resource Messages - 1000

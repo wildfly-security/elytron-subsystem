@@ -43,6 +43,8 @@ import java.util.Set;
 
 import javax.xml.stream.XMLStreamException;
 
+import org.jboss.as.controller.AttributeParser;
+import org.jboss.as.controller.security.CredentialReference;
 import org.jboss.dmr.ModelNode;
 import org.jboss.staxmapper.XMLExtendedStreamReader;
 import org.jboss.staxmapper.XMLExtendedStreamWriter;
@@ -102,6 +104,7 @@ class CredentialStoreParser {
                         break;
                     case RELATIVE_TO:
                         CredentialStoreResourceDefinition.RELATIVE_TO.parseAndSetParameter(value, addCredentialStore, reader);
+                        break;
                     default:
                         throw unexpectedAttribute(reader, i);
                 }
@@ -117,9 +120,12 @@ class CredentialStoreParser {
         while(reader.hasNext() && reader.nextTag() != END_ELEMENT) {
             verifyNamespace(reader);
             String localName = reader.getLocalName();
-            String value = reader.getElementText();
             if (URI.equals(localName)) {
+                String value = reader.getElementText();
                 CredentialStoreResourceDefinition.URI.parseAndSetParameter(value, addCredentialStore, reader);
+            } else if (CredentialReference.CREDENTIAL_REFERENCE.equals(localName)) {
+                AttributeParser ap = CredentialStoreResourceDefinition.CREDENTIAL_REFERENCE.getParser();
+                ap.parseElement(CredentialStoreResourceDefinition.CREDENTIAL_REFERENCE, reader, addCredentialStore);
             } else {
                 throw unexpectedElement(reader);
             }
@@ -142,6 +148,9 @@ class CredentialStoreParser {
                 CredentialStoreResourceDefinition.PROVIDER_LOADER.marshallAsAttribute(credentialStoreModelNode, writer);
                 CredentialStoreResourceDefinition.RELATIVE_TO.marshallAsAttribute(credentialStoreModelNode, writer);
                 CredentialStoreResourceDefinition.URI.marshallAsElement(credentialStoreModelNode, writer);
+                if (credentialStoreModelNode.hasDefined(CredentialReference.CREDENTIAL_REFERENCE)) {
+                    CredentialReference.getAttributeDefinition().marshallAsElement(credentialStoreModelNode.get(CredentialReference.CREDENTIAL_REFERENCE), writer);
+                }
                 writer.writeEndElement();
             }
 

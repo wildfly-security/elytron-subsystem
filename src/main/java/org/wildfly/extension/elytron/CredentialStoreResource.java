@@ -28,9 +28,7 @@ import org.jboss.as.controller.PathElement;
 import org.jboss.as.controller.registry.DelegatingResource;
 import org.jboss.as.controller.registry.PlaceholderResource;
 import org.jboss.as.controller.registry.Resource;
-import org.jboss.as.controller.security.CredentialStoreClient;
 import org.jboss.msc.service.ServiceController;
-import org.jboss.msc.service.ServiceController.State;
 import org.wildfly.extension.elytron._private.ElytronSubsystemMessages;
 import org.wildfly.security.credential.store.CredentialStore;
 import org.wildfly.security.credential.store.CredentialStoreException;
@@ -42,13 +40,13 @@ import org.wildfly.security.credential.store.CredentialStoreException;
  */
 class CredentialStoreResource extends DelegatingResource {
 
-    private ServiceController<CredentialStoreClient> credentialStoreServiceController;
+    private ServiceController<CredentialStore> credentialStoreServiceController;
 
     CredentialStoreResource(Resource delegate) {
         super(delegate);
     }
 
-    public void setCredentialStoreServiceController(ServiceController<CredentialStoreClient> credentialStoreServiceController) {
+    public void setCredentialStoreServiceController(ServiceController<CredentialStore> credentialStoreServiceController) {
         this.credentialStoreServiceController = credentialStoreServiceController;
     }
 
@@ -67,14 +65,9 @@ class CredentialStoreResource extends DelegatingResource {
 
     @Override
     public boolean hasChild(PathElement element) {
-        final CredentialStore credentialStore;
         try {
             if (ElytronDescriptionConstants.ALIAS.equals(element.getKey())) {
-                CredentialStoreClient credentialStoreClient = getCredentialStoreClient(credentialStoreServiceController);
-                if (credentialStoreClient == null) {
-                    return false;
-                }
-                credentialStore = credentialStoreClient.getCredentialStore();
+                CredentialStore credentialStore = credentialStoreServiceController != null ? credentialStoreServiceController.getValue() : null;
                 if (credentialStore != null && (credentialStore.getAliases().contains(element.getValue()))) {
                     return true;
                 }
@@ -88,14 +81,9 @@ class CredentialStoreResource extends DelegatingResource {
 
     @Override
     public Resource getChild(PathElement element) {
-        final CredentialStore credentialStore;
         try {
             if (ElytronDescriptionConstants.ALIAS.equals(element.getKey())) {
-                CredentialStoreClient credentialStoreClient = getCredentialStoreClient(credentialStoreServiceController);
-                if (credentialStoreClient == null) {
-                    return null;
-                }
-                credentialStore = credentialStoreClient.getCredentialStore();
+                CredentialStore credentialStore = credentialStoreServiceController != null ? credentialStoreServiceController.getValue() : null;
                 if (credentialStore != null && (credentialStore.getAliases().contains(element.getValue()))) {
                     return Resource.Factory.create(true);
                 }
@@ -118,15 +106,9 @@ class CredentialStoreResource extends DelegatingResource {
 
     @Override
     public Set<String> getChildrenNames(String childType) {
-        final CredentialStore credentialStore;
         try {
             if (ElytronDescriptionConstants.ALIAS.equals(childType)) {
-                CredentialStoreClient credentialStoreClient = getCredentialStoreClient(credentialStoreServiceController);
-                if (credentialStoreClient == null) {
-                    credentialStore = null;
-                } else {
-                    credentialStore = credentialStoreClient.getCredentialStore();
-                }
+                CredentialStore credentialStore = credentialStoreServiceController != null ? credentialStoreServiceController.getValue() : null;
                 if (credentialStore != null && credentialStore.isInitialized()) {
                     return credentialStore.getAliases();
                 } else {
@@ -141,15 +123,9 @@ class CredentialStoreResource extends DelegatingResource {
 
     @Override
     public Set<ResourceEntry> getChildren(String childType) {
-        final CredentialStore credentialStore;
         try {
             if (ElytronDescriptionConstants.ALIAS.equals(childType)) {
-                CredentialStoreClient credentialStoreClient = getCredentialStoreClient(credentialStoreServiceController);
-                if (credentialStoreClient == null) {
-                    credentialStore = null;
-                } else {
-                    credentialStore = credentialStoreClient.getCredentialStore();
-                }
+                CredentialStore credentialStore = credentialStoreServiceController != null ? credentialStoreServiceController.getValue() : null;
                 if (credentialStore != null && credentialStore.isInitialized() && credentialStore.getAliases().size() > 0) {
                     Set<String> aliases = credentialStore.getAliases();
                     Set<ResourceEntry> children = new LinkedHashSet<>(aliases.size());
@@ -178,29 +154,11 @@ class CredentialStoreResource extends DelegatingResource {
     }
 
     private boolean containsAliases() {
-        final CredentialStoreClient credentialStoreClient;
         try {
-            credentialStoreClient = getCredentialStoreClient(credentialStoreServiceController);
-            if (credentialStoreClient == null) {
-                return false;
-            }
-            CredentialStore credentialStore = credentialStoreClient.getCredentialStore();
+            CredentialStore credentialStore = credentialStoreServiceController != null ? credentialStoreServiceController.getValue() : null;
             return credentialStore != null && credentialStore.isInitialized() && credentialStore.getAliases().size() > 0;
         } catch (CredentialStoreException e) {
             return false;
-        }
-    }
-
-    /**
-     * Get the {@link CredentialStoreClient} represented by this {@link Resource} or {@code null} if it is not currently available.
-     *
-     * @return The {@link CredentialStoreClient} represented by this {@link Resource} or {@code null} if it is not currently available.
-     */
-    static CredentialStoreClient getCredentialStoreClient(ServiceController<CredentialStoreClient> credentialStoreServiceController) {
-        if (credentialStoreServiceController == null || credentialStoreServiceController.getState() != State.UP) {
-            return null;
-        } else {
-            return credentialStoreServiceController.getValue();
         }
     }
 

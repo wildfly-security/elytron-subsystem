@@ -19,7 +19,7 @@
 package org.wildfly.extension.elytron;
 
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP_ADDR;
-import static org.wildfly.extension.elytron.CredentialStoreResourceDefinition.CREDENTIAL_STORE_CLIENT_UTIL;
+import static org.wildfly.extension.elytron.CredentialStoreResourceDefinition.CREDENTIAL_STORE_UTIL;
 import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
 import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
 
@@ -45,11 +45,9 @@ import org.jboss.as.controller.SimpleOperationDefinitionBuilder;
 import org.jboss.as.controller.SimpleResourceDefinition;
 import org.jboss.as.controller.descriptions.ModelDescriptionConstants;
 import org.jboss.as.controller.descriptions.StandardResourceDescriptionResolver;
-import org.jboss.as.controller.operations.global.WriteAttributeHandler;
 import org.jboss.as.controller.registry.ManagementResourceRegistration;
 import org.jboss.as.controller.registry.OperationEntry;
 import org.jboss.as.controller.registry.Resource;
-import org.jboss.as.controller.security.CredentialStoreClient;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
 import org.jboss.dmr.Property;
@@ -179,11 +177,10 @@ class CredentialStoreAliasDefinition extends SimpleResourceDefinition {
             String secretValue = asStringIfDefined(context, SECRET_VALUE, resource.getModel());
             String entryType = asStringIfDefined(context, ENTRY_TYPE, resource.getModel());
 
-            ServiceName credentialStoreServiceName = CREDENTIAL_STORE_CLIENT_UTIL.serviceName(operation);
+            ServiceName credentialStoreServiceName = CREDENTIAL_STORE_UTIL.serviceName(operation);
             @SuppressWarnings("unchecked")
-            ServiceController<CredentialStoreClient> serviceContainer = (ServiceController<CredentialStoreClient>) context.getServiceRegistry(false).getRequiredService(credentialStoreServiceName);
-            CredentialStoreClient credentialStoreClient = ((CredentialStoreService) serviceContainer.getService()).getValue();
-            CredentialStore credentialStore = credentialStoreClient.getCredentialStore();
+            ServiceController<CredentialStore> serviceContainer = (ServiceController<CredentialStore>) context.getServiceRegistry(false).getRequiredService(credentialStoreServiceName);
+            CredentialStore credentialStore = ((CredentialStoreService) serviceContainer.getService()).getValue();
             try {
                 if (entryType == null || ClearPassword.ALGORITHM_CLEAR.equals(entryType)) {
                     if (credentialStore.exists(alias, PasswordCredential.class)) {
@@ -233,8 +230,7 @@ class CredentialStoreAliasDefinition extends SimpleResourceDefinition {
         protected void performRuntime(ModelNode result, OperationContext context, ModelNode operation, CredentialStoreService credentialStoreService) throws OperationFailedException {
             String alias = alias(operation);
             try {
-                CredentialStoreClient credentialStoreClient = credentialStoreService.getValue();
-                CredentialStore credentialStore = credentialStoreClient.getCredentialStore();
+                CredentialStore credentialStore = credentialStoreService.getValue();
                 credentialStore.remove(alias, PasswordCredential.class);
                 credentialStore.flush();
             } catch (CredentialStoreException e) {

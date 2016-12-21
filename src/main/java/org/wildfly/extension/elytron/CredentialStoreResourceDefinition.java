@@ -18,8 +18,9 @@
 
 package org.wildfly.extension.elytron;
 
-import static org.wildfly.extension.elytron.Capabilities.CREDENTIAL_STORE_CLIENT_CAPABILITY;
-import static org.wildfly.extension.elytron.Capabilities.CREDENTIAL_STORE_CLIENT_RUNTIME_CAPABILITY;
+import static org.jboss.as.controller.security.CredentialReference.credentialReferencePartAsStringIfDefined;
+import static org.wildfly.extension.elytron.Capabilities.CREDENTIAL_STORE_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.CREDENTIAL_STORE_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.PROVIDERS_CAPABILITY;
 import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
 import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
@@ -29,12 +30,16 @@ import static org.wildfly.extension.elytron.ServiceStateDefinition.STATE;
 import static org.wildfly.extension.elytron.ServiceStateDefinition.populateResponse;
 import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
 
+import java.io.IOException;
 import java.security.Provider;
+import java.security.spec.AlgorithmParameterSpec;
+import java.util.StringTokenizer;
 
 import org.jboss.as.controller.AbstractAddStepHandler;
 import org.jboss.as.controller.AbstractRuntimeOnlyHandler;
 import org.jboss.as.controller.AttributeDefinition;
 import org.jboss.as.controller.ModelOnlyWriteAttributeHandler;
+import org.jboss.as.controller.ObjectTypeAttributeDefinition;
 import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
 import org.jboss.as.controller.OperationStepHandler;
@@ -53,7 +58,7 @@ import org.jboss.as.controller.registry.AttributeAccess;
 import org.jboss.as.controller.registry.ManagementResourceRegistration;
 import org.jboss.as.controller.registry.OperationEntry;
 import org.jboss.as.controller.registry.Resource;
-import org.jboss.as.controller.security.CredentialStoreClient;
+import org.jboss.as.controller.security.CredentialReference;
 import org.jboss.as.controller.services.path.PathManager;
 import org.jboss.as.controller.services.path.PathManagerService;
 import org.jboss.dmr.ModelNode;
@@ -65,7 +70,17 @@ import org.jboss.msc.service.ServiceController.State;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.ServiceTarget;
 import org.jboss.msc.service.StartException;
+import org.jboss.msc.value.InjectedValue;
+import org.wildfly.common.function.ExceptionSupplier;
+import org.wildfly.security.auth.SupportLevel;
+import org.wildfly.security.credential.Credential;
+import org.wildfly.security.credential.PasswordCredential;
+import org.wildfly.security.credential.source.CommandCredentialSource;
+import org.wildfly.security.credential.source.CredentialSource;
+import org.wildfly.security.credential.source.CredentialStoreCredentialSource;
+import org.wildfly.security.credential.store.CredentialStore;
 import org.wildfly.security.credential.store.CredentialStoreException;
+import org.wildfly.security.password.interfaces.ClearPassword;
 
 /**
  * A {@link ResourceDefinition} for a CredentialStore.
@@ -74,7 +89,7 @@ import org.wildfly.security.credential.store.CredentialStoreException;
  */
 final class CredentialStoreResourceDefinition extends SimpleResourceDefinition {
 
-    static final ServiceUtil<CredentialStoreClient> CREDENTIAL_STORE_CLIENT_UTIL = ServiceUtil.newInstance(CREDENTIAL_STORE_CLIENT_RUNTIME_CAPABILITY, ElytronDescriptionConstants.CREDENTIAL_STORE, CredentialStoreClient.class);
+    static final ServiceUtil<CredentialStore> CREDENTIAL_STORE_UTIL = ServiceUtil.newInstance(CREDENTIAL_STORE_RUNTIME_CAPABILITY, ElytronDescriptionConstants.CREDENTIAL_STORE, CredentialStore.class);
 
     static final SimpleAttributeDefinition URI = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.URI, ModelType.STRING, false)
             .setAttributeGroup(ElytronDescriptionConstants.IMPLEMENTATION)
@@ -82,6 +97,11 @@ final class CredentialStoreResourceDefinition extends SimpleResourceDefinition {
             .setMinSize(1)
             .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
             .build();
+
+    static final ObjectTypeAttributeDefinition CREDENTIAL_REFERENCE =
+            CredentialReference.getAttributeBuilder(CredentialReference.CREDENTIAL_REFERENCE, CredentialReference.CREDENTIAL_REFERENCE, false)
+                    .setCapabilityReference(CREDENTIAL_STORE_CAPABILITY)
+                    .build();
 
     static final SimpleAttributeDefinition TYPE = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.TYPE, ModelType.STRING, true)
             .setAttributeGroup(ElytronDescriptionConstants.IMPLEMENTATION)
@@ -102,7 +122,7 @@ final class CredentialStoreResourceDefinition extends SimpleResourceDefinition {
             .setAllowExpression(false)
             .setMinSize(1)
             .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
-            .setCapabilityReference(PROVIDERS_CAPABILITY, CREDENTIAL_STORE_CLIENT_CAPABILITY, true)
+            .setCapabilityReference(PROVIDERS_CAPABILITY, CREDENTIAL_STORE_CAPABILITY, true)
             .build();
 
     static final SimpleAttributeDefinition RELATIVE_TO = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.RELATIVE_TO, ModelType.STRING, true)
@@ -119,10 +139,10 @@ final class CredentialStoreResourceDefinition extends SimpleResourceDefinition {
     static final SimpleOperationDefinition RELOAD = new SimpleOperationDefinitionBuilder(ElytronDescriptionConstants.RELOAD, RESOURCE_RESOLVER)
             .build();
 
-    private static final AttributeDefinition[] CONFIG_ATTRIBUTES = new AttributeDefinition[] {URI, TYPE, PROVIDER, PROVIDER_LOADER, RELATIVE_TO};
+    private static final AttributeDefinition[] CONFIG_ATTRIBUTES = new AttributeDefinition[] {URI, CREDENTIAL_REFERENCE, TYPE, PROVIDER, PROVIDER_LOADER, RELATIVE_TO};
 
     private static final CredentialStoreAddHandler ADD = new CredentialStoreAddHandler();
-    private static final OperationStepHandler REMOVE = new TrivialCapabilityServiceRemoveHandler(ADD, CREDENTIAL_STORE_CLIENT_RUNTIME_CAPABILITY);
+    private static final OperationStepHandler REMOVE = new TrivialCapabilityServiceRemoveHandler(ADD, CREDENTIAL_STORE_RUNTIME_CAPABILITY);
     private static final WriteAttributeHandler WRITE = new WriteAttributeHandler();
 
     CredentialStoreResourceDefinition() {
@@ -143,7 +163,7 @@ final class CredentialStoreResourceDefinition extends SimpleResourceDefinition {
 
             @Override
             protected void executeRuntimeStep(OperationContext context, ModelNode operation) throws OperationFailedException {
-                ServiceName credentialStoreClientServiceName = CREDENTIAL_STORE_CLIENT_UTIL.serviceName(operation);
+                ServiceName credentialStoreClientServiceName = CREDENTIAL_STORE_UTIL.serviceName(operation);
                 ServiceController<?> serviceController = context.getServiceRegistry(false).getRequiredService(credentialStoreClientServiceName);
 
                 populateResponse(context.getResult(), serviceController);
@@ -167,7 +187,7 @@ final class CredentialStoreResourceDefinition extends SimpleResourceDefinition {
     private static class CredentialStoreAddHandler extends AbstractAddStepHandler {
 
         private CredentialStoreAddHandler() {
-            super(CREDENTIAL_STORE_CLIENT_RUNTIME_CAPABILITY, CONFIG_ATTRIBUTES);
+            super(CREDENTIAL_STORE_RUNTIME_CAPABILITY, CONFIG_ATTRIBUTES);
         }
 
         @Override
@@ -180,8 +200,8 @@ final class CredentialStoreResourceDefinition extends SimpleResourceDefinition {
             String provider = asStringIfDefined(context, PROVIDER, model);
             String name = credentialStoreName(operation);
             String relativeTo = asStringIfDefined(context, RELATIVE_TO, model);
-
             ServiceTarget serviceTarget = context.getServiceTarget();
+
             // ----------- credential store service ----------------
             final CredentialStoreService csService;
             try {
@@ -189,8 +209,8 @@ final class CredentialStoreResourceDefinition extends SimpleResourceDefinition {
             } catch (CredentialStoreException e) {
                 throw new OperationFailedException(e);
             }
-            ServiceName credentialStoreServiceName = CREDENTIAL_STORE_CLIENT_UTIL.serviceName(operation);
-            ServiceBuilder<CredentialStoreClient> credentialStoreServiceBuilder = serviceTarget.addService(credentialStoreServiceName, csService)
+            ServiceName credentialStoreServiceName = CREDENTIAL_STORE_UTIL.serviceName(operation);
+            ServiceBuilder<CredentialStore> credentialStoreServiceBuilder = serviceTarget.addService(credentialStoreServiceName, csService)
                     .setInitialMode(Mode.ACTIVE);
 
             if (relativeTo != null) {
@@ -203,8 +223,11 @@ final class CredentialStoreResourceDefinition extends SimpleResourceDefinition {
                 PROVIDER_LOADER_SERVICE_UTIL.addInjection(credentialStoreServiceBuilder, csService.getProvidersInjector(), providerLoaderServiceName);
             }
 
+            csService.getCredentialSourceSupplierInjector()
+                    .inject(CredentialStoreResourceDefinition.createCredentialSource(context, model, credentialStoreServiceBuilder));
+
             commonDependencies(credentialStoreServiceBuilder);
-            ServiceController<CredentialStoreClient> credentialStoreServiceController = credentialStoreServiceBuilder.install();
+            ServiceController<CredentialStore> credentialStoreServiceController = credentialStoreServiceBuilder.install();
             ((CredentialStoreResource)resource).setCredentialStoreServiceController(credentialStoreServiceController);
 
         }
@@ -248,8 +271,8 @@ final class CredentialStoreResourceDefinition extends SimpleResourceDefinition {
 
         @Override
         protected void executeRuntimeStep(OperationContext context, ModelNode operation) throws OperationFailedException {
-            ServiceName credentialStoreServiceName = CREDENTIAL_STORE_CLIENT_UTIL.serviceName(operation);
-            ServiceController<CredentialStoreClient> credentialStoreServiceController = (ServiceController<CredentialStoreClient>) context.getServiceRegistry(writeAccess).getRequiredService(credentialStoreServiceName);
+            ServiceName credentialStoreServiceName = CREDENTIAL_STORE_UTIL.serviceName(operation);
+            ServiceController<CredentialStore> credentialStoreServiceController = (ServiceController<CredentialStore>) context.getServiceRegistry(writeAccess).getRequiredService(credentialStoreServiceName);
             State serviceState;
             if ((serviceState = credentialStoreServiceController.getState()) != State.UP) {
                 if (serviceMustBeUp) {
@@ -311,5 +334,93 @@ final class CredentialStoreResourceDefinition extends SimpleResourceDefinition {
 
         return credentialStoreName;
     }
+
+    static ExceptionSupplier<CredentialSource, Exception> createCredentialSource(OperationContext context, ModelNode model, ServiceBuilder<?> serviceBuilder) throws OperationFailedException {
+
+        String credentialStoreName = credentialReferencePartAsStringIfDefined(context, CREDENTIAL_REFERENCE, model, CredentialReference.STORE);
+        String credentialAlias = credentialReferencePartAsStringIfDefined(context, CREDENTIAL_REFERENCE, model, CredentialReference.ALIAS);
+        String credentialType = credentialReferencePartAsStringIfDefined(context, CREDENTIAL_REFERENCE, model, CredentialReference.TYPE);
+        String secret = credentialReferencePartAsStringIfDefined(context, CREDENTIAL_REFERENCE, model, CredentialReference.CLEAR_TEXT);
+
+        CredentialReference credentialReference = null;
+        if (credentialStoreName != null && !credentialStoreName.isEmpty()) {
+            credentialReference = CredentialReference.createCredentialReference(credentialStoreName, credentialAlias, credentialType);
+        } else {
+            credentialReference = CredentialReference.createCredentialReference(secret != null ? secret.toCharArray() : null);
+        }
+
+        final InjectedValue<CredentialStore> credentialStoreInjectedValue = new InjectedValue<>();
+        if (credentialReference.getAlias() != null) {
+            // use credential store service
+            String credentialStoreCapabilityName = RuntimeCapability.buildDynamicCapabilityName(CREDENTIAL_STORE_CAPABILITY, credentialReference.getCredentialStoreName());
+            ServiceName credentialStoreServiceName = context.getCapabilityServiceName(credentialStoreCapabilityName, CredentialStore.class);
+            serviceBuilder.addDependency(ServiceBuilder.DependencyType.REQUIRED, credentialStoreServiceName, CredentialStore.class, credentialStoreInjectedValue);
+        }
+
+        return new ExceptionSupplier<CredentialSource, Exception>() {
+
+            private String[] parseCommand(String command) {
+                // comma can be back slashed
+                final String[] parsedCommand = command.split("(?<!\\\\),");
+                for (int k = 0; k < parsedCommand.length; k++) {
+                    if (parsedCommand[k].indexOf('\\') != -1)
+                        parsedCommand[k] = parsedCommand[k].replaceAll("\\\\,", ",");
+                }
+                return parsedCommand;
+            }
+
+            private String stripType(String commandSpec) {
+                StringTokenizer tokenizer = new StringTokenizer(commandSpec, "{}");
+                tokenizer.nextToken();
+                return tokenizer.nextToken();
+            }
+
+            /**
+             * Gets a Credential Store Supplier.
+             *
+             * @return a supplier
+             */
+            @Override
+            public CredentialSource get() throws Exception {
+                if (credentialAlias != null) {
+                    return new CredentialStoreCredentialSource(credentialStoreInjectedValue.getValue(), credentialAlias);
+                } else if (credentialType != null && credentialType.equalsIgnoreCase("COMMAND")) {
+                    // this is temporary solution until properly moved to WF-CORE
+                    CommandCredentialSource.Builder command = CommandCredentialSource.builder();
+                    String commandSpec = secret.trim();
+                    if (commandSpec.startsWith("{EXT")) {
+                        commandSpec = stripType(commandSpec);
+                        command.addCommand(commandSpec);
+                    } else if (commandSpec.startsWith("{CMD")) {
+                        String[] parts = parseCommand(stripType(commandSpec));
+                        for(String part: parts) {
+                            command.addCommand(part);
+                        }
+                    }
+                    return command.build();
+                } else if (secret != null && secret.startsWith("MASK-")) {
+                    if (credentialStoreName != null) {
+                        return new CredentialStoreCredentialSource(credentialStoreInjectedValue.getValue(), secret.substring("MASK-".length()));
+                    }
+                    throw ROOT_LOGGER.nameOfCredentialSoreHasToBeSpecified();
+                } else {
+                    // clear text password
+                    return new CredentialSource() {
+                        @Override
+                        public SupportLevel getCredentialAcquireSupport(Class<? extends Credential> credentialType, String algorithmName, AlgorithmParameterSpec parameterSpec) throws IOException {
+                            return credentialType == PasswordCredential.class ? SupportLevel.SUPPORTED : SupportLevel.UNSUPPORTED;
+                        }
+
+                        @Override
+                        public <C extends Credential> C getCredential(Class<C> credentialType, String algorithmName, AlgorithmParameterSpec parameterSpec) throws IOException {
+                            return credentialType.cast(new PasswordCredential(ClearPassword.createRaw(ClearPassword.ALGORITHM_CLEAR, secret.toCharArray())));
+                        }
+                    };
+                }
+            }
+        };
+    }
+
+
 
 }

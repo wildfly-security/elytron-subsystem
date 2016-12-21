@@ -28,7 +28,6 @@ import java.security.NoSuchProviderException;
 import java.security.Provider;
 import java.util.Map;
 
-import org.jboss.as.controller.security.CredentialStoreClient;
 import org.jboss.as.controller.security.CredentialStoreURIParser;
 import org.jboss.as.controller.services.path.PathEntry;
 import org.jboss.as.controller.services.path.PathManager;
@@ -39,27 +38,28 @@ import org.jboss.msc.service.StartContext;
 import org.jboss.msc.service.StartException;
 import org.jboss.msc.service.StopContext;
 import org.jboss.msc.value.InjectedValue;
+import org.wildfly.common.function.ExceptionSupplier;
 import org.wildfly.extension.elytron._private.ElytronSubsystemMessages;
 import org.wildfly.security.auth.server.IdentityCredentials;
+import org.wildfly.security.credential.Credential;
 import org.wildfly.security.credential.PasswordCredential;
+import org.wildfly.security.credential.source.CredentialSource;
 import org.wildfly.security.credential.store.CredentialStore;
 import org.wildfly.security.credential.store.CredentialStoreException;
 import org.wildfly.security.credential.store.impl.KeyStoreCredentialStore;
-import org.wildfly.security.password.interfaces.ClearPassword;
 
 /**
  * A {@link Service} responsible for a {@link CredentialStore} instance.
  *
  * @author <a href="mailto:pskopek@redhat.com">Peter Skopek</a>
  */
-class CredentialStoreService implements Service<CredentialStoreClient> {
+class CredentialStoreService implements Service<CredentialStore> {
 
     // generally supported credential store attributes
     private static final String CS_LOCATION_ATTRIBUTE = "location";
 
     // KeyStore backed credential store supported attributes
     private static final String CS_KEY_STORE_TYPE_ATTRIBUTE = "keyStoreType";
-
 
     private CredentialStore credentialStore;
     private final String type;
@@ -72,8 +72,8 @@ class CredentialStoreService implements Service<CredentialStoreClient> {
 
     private final InjectedValue<PathManager> pathManager = new InjectedValue<>();
     private final InjectedValue<Provider[]> providers = new InjectedValue<>();
-
-
+    private final InjectedValue<CredentialStore> injectedCredentialStore = new InjectedValue<>();
+    private final InjectedValue<ExceptionSupplier<CredentialSource, Exception>> credentialSourceSupplier = new InjectedValue<>();
 
     private Handle callbackHandle;
 
@@ -111,15 +111,8 @@ class CredentialStoreService implements Service<CredentialStoreClient> {
         try {
             credentialStoreAttributes.put(CS_LOCATION_ATTRIBUTE, loc.toAbsolutePath().toString());
             credentialStore = getCredentialStoreInstance();
-            CredentialStore.ProtectionParameter pp = null;
-            if (credentialStoreAttributes.get("store.password") != null) {
-                pp = new CredentialStore.CredentialSourceProtectionParameter(
-                        IdentityCredentials.NONE.withCredential(
-                                new PasswordCredential(ClearPassword.createRaw(ClearPassword.ALGORITHM_CLEAR, credentialStoreAttributes.get("store.password").toCharArray()))
-                        ));
-            }
-            credentialStore.initialize(credentialStoreAttributes, pp);
-        } catch (CredentialStoreException | NoSuchAlgorithmException | NoSuchProviderException e) {
+            credentialStore.initialize(credentialStoreAttributes, resolveCredentialStoreProtectionParameter());
+        } catch (Exception e) {
             throw ElytronSubsystemMessages.ROOT_LOGGER.unableToStartService(e);
         }
     }
@@ -132,8 +125,8 @@ class CredentialStoreService implements Service<CredentialStoreClient> {
     }
 
     @Override
-    public CredentialStoreClient getValue() {
-        return new CredentialStoreClient(credentialStore, name, null);
+    public CredentialStore getValue() {
+        return credentialStore;
     }
 
     private Path resolveLocation() {
@@ -169,11 +162,10 @@ class CredentialStoreService implements Service<CredentialStoreClient> {
         Provider[] injectedProviders = providers.getOptionalValue();
         if (injectedProviders != null) {
             // injected provider list, select the first provider with corresponding type
-            for (Provider p: injectedProviders) {
+            for (Provider p : injectedProviders) {
                 try {
                     return CredentialStore.getInstance(type, p);
-                } catch (NoSuchAlgorithmException e) {
-                    // ignore
+                } catch (NoSuchAlgorithmException ignore) {
                 }
             }
             throw ROOT_LOGGER.providerLoaderCannotSupplyProvider(providerLoaderName, type);
@@ -202,4 +194,27 @@ class CredentialStoreService implements Service<CredentialStoreClient> {
     public String getProvider() {
         return provider;
     }
+
+    Injector<CredentialStore> getCredentialStoreInjector() {
+        return injectedCredentialStore;
+    }
+
+    Injector<ExceptionSupplier<CredentialSource, Exception>> getCredentialSourceSupplierInjector() {
+        return credentialSourceSupplier;
+    }
+
+    private CredentialStore.CredentialSourceProtectionParameter resolveCredentialStoreProtectionParameter() throws Exception {
+        ExceptionSupplier<CredentialSource, Exception> sourceSupplier = credentialSourceSupplier.getValue();
+        CredentialSource cs = sourceSupplier != null ? sourceSupplier.get() : null;
+        if (cs != null) {
+            return credentialToCredentialSourceProtectionParameter(cs.getCredential(PasswordCredential.class));
+        } else {
+            throw ROOT_LOGGER.credentialStoreProtectionParameterCannotBeResolved(name);
+        }
+    }
+
+    private CredentialStore.CredentialSourceProtectionParameter credentialToCredentialSourceProtectionParameter(Credential credential) {
+        return new CredentialStore.CredentialSourceProtectionParameter(IdentityCredentials.NONE.withCredential(credential));
+    }
+
 }
