@@ -395,7 +395,7 @@ final class CredentialStoreResourceDefinition extends SimpleResourceDefinition {
                     if (credentialStoreName != null) {
                         return new CredentialStoreCredentialSource(credentialStoreInjectedValue.getValue(), secret.substring("MASK-".length()));
                     }
-                    throw ROOT_LOGGER.nameOfCredentialSoreHasToBeSpecified();
+                    throw ROOT_LOGGER.nameOfCredentialStoreHasToBeSpecified();
                 } else {
                     // clear text password
                     return new CredentialSource() {
@@ -413,7 +413,5 @@ final class CredentialStoreResourceDefinition extends SimpleResourceDefinition {
             }
         };
     }
-
-
 
 }

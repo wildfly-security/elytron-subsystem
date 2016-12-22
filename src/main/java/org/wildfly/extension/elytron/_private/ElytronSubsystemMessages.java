@@ -289,7 +289,7 @@ public interface ElytronSubsystemMessages extends BasicLogger {
     NoSuchProviderException providerLoaderCannotSupplyProvider(String providerLoader, String type);
 
     @Message(id = 915, value = "Name of the credential store has to be specified in this credential-reference")
-    OperationFailedException nameOfCredentialSoreHasToBeSpecified();
+    IllegalStateException nameOfCredentialStoreHasToBeSpecified();
 
     @Message(id = 916, value = "Credential cannot be resolved")
     IllegalStateException credentialCannotBeResolved();
