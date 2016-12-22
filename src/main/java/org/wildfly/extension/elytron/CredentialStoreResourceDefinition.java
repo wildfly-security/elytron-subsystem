@@ -342,17 +342,10 @@ final class CredentialStoreResourceDefinition extends SimpleResourceDefinition {
         String credentialType = credentialReferencePartAsStringIfDefined(context, CREDENTIAL_REFERENCE, model, CredentialReference.TYPE);
         String secret = credentialReferencePartAsStringIfDefined(context, CREDENTIAL_REFERENCE, model, CredentialReference.CLEAR_TEXT);
 
-        CredentialReference credentialReference = null;
-        if (credentialStoreName != null && !credentialStoreName.isEmpty()) {
-            credentialReference = CredentialReference.createCredentialReference(credentialStoreName, credentialAlias, credentialType);
-        } else {
-            credentialReference = CredentialReference.createCredentialReference(secret != null ? secret.toCharArray() : null);
-        }
-
         final InjectedValue<CredentialStore> credentialStoreInjectedValue = new InjectedValue<>();
-        if (credentialReference.getAlias() != null) {
+        if (credentialAlias != null) {
             // use credential store service
-            String credentialStoreCapabilityName = RuntimeCapability.buildDynamicCapabilityName(CREDENTIAL_STORE_CAPABILITY, credentialReference.getCredentialStoreName());
+            String credentialStoreCapabilityName = RuntimeCapability.buildDynamicCapabilityName(CREDENTIAL_STORE_CAPABILITY, credentialStoreName);
             ServiceName credentialStoreServiceName = context.getCapabilityServiceName(credentialStoreCapabilityName, CredentialStore.class);
             serviceBuilder.addDependency(ServiceBuilder.DependencyType.REQUIRED, credentialStoreServiceName, CredentialStore.class, credentialStoreInjectedValue);
         }
