@@ -242,7 +242,9 @@ class AuthenticationClientDefinitions {
             MATCH_ABSTRACT_TYPE, MATCH_ABSTRACT_TYPE_AUTHORITY, MATCH_HOST, MATCH_LOCAL_SECURITY_DOMAIN, MATCH_NO_USER, MATCH_PATH, MATCH_PORT, MATCH_PROTOCOL, MATCH_PURPOSE, MATCH_URN, MATCH_USER,
             AUTHENTICATION_CONFIGURATION, SSL_CONTEXT).build();
 
-    static final ObjectListAttributeDefinition MATCH_RULES = new ObjectListAttributeDefinition.Builder(ElytronDescriptionConstants.MATCH_RULES, MATCH_RULE).build();
+    static final ObjectListAttributeDefinition MATCH_RULES = new ObjectListAttributeDefinition.Builder(ElytronDescriptionConstants.MATCH_RULES, MATCH_RULE)
+            .setAllowNull(true)
+            .build();
 
     static ResourceDefinition getAuthenticationClientDefinition() {
 
