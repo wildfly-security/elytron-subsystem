@@ -101,6 +101,8 @@ public class LdapTestCase extends AbstractSubsystemTest {
         Assert.assertArrayEquals(new String[]{"Retail","Sales"}, as.get("rolesRecRdnCn").toArray());
         Assert.assertArrayEquals(new String[]{"Retail"}, as.get("rolesCn").toArray());
         Assert.assertArrayEquals(new String[]{"Retail department","Second description","Sales department"}, as.get("rolesDescription").toArray());
+        Assert.assertArrayEquals(new String[]{"Sales department","Management department"}, as.get("memberOfDescription").toArray());
+        Assert.assertArrayEquals(new String[]{"cn=Manager,ou=Finance,dc=groups,dc=elytron,dc=wildfly,dc=org","cn=Sales,ou=Finance,dc=groups,dc=elytron,dc=wildfly,dc=org"}, as.get("memberOfDn").toArray());
         Assert.assertTrue(identity1.verifyEvidence(new PasswordGuessEvidence("plainPassword".toCharArray())));
         identity1.dispose();
 

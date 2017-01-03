@@ -9,10 +9,12 @@
                <attribute from="cn" to="firstName"/>
                <attribute from="sn"/>
                <attribute from="telephoneNumber" to="phones"/>
-               <attribute filter="(&amp;(objectClass=groupOfNames)(member={0}))" filter-base-dn="dc=elytron,dc=wildfly,dc=org" to="rolesDn"/>
-               <attribute filter="(&amp;(objectClass=groupOfNames)(member={0}))" filter-base-dn="dc=elytron,dc=wildfly,dc=org" to="rolesRecRdnCn" role-recursion="2" extract-rdn="CN"/>
-               <attribute filter="(&amp;(objectClass=groupOfNames)(member={0}))" filter-base-dn="dc=elytron,dc=wildfly,dc=org" to="rolesCn" extract-rdn="CN"/>
-               <attribute filter="(&amp;(objectClass=groupOfNames)(member={0}))" filter-base-dn="dc=elytron,dc=wildfly,dc=org" from="description" to="rolesDescription" role-recursion="2"/>
+               <attribute filter="(&amp;(objectClass=groupOfNames)(member={1}))" filter-base-dn="dc=elytron,dc=wildfly,dc=org" to="rolesDn"/>
+               <attribute filter="(&amp;(objectClass=groupOfNames)(member={1}))" filter-base-dn="dc=elytron,dc=wildfly,dc=org" to="rolesRecRdnCn" role-recursion="2" extract-rdn="CN"/>
+               <attribute filter="(&amp;(objectClass=groupOfNames)(member={1}))" filter-base-dn="dc=elytron,dc=wildfly,dc=org" to="rolesCn" extract-rdn="CN"/>
+               <attribute filter="(&amp;(objectClass=groupOfNames)(member={1}))" filter-base-dn="dc=elytron,dc=wildfly,dc=org" from="description" to="rolesDescription" role-recursion="2"/>
+               <attribute reference="memberOf" from="description" to="memberOfDescription" role-recursion="5"/>
+               <attribute reference="memberOf" to="memberOfDn" role-recursion="3"/>
             </attribute-mapping>
             <new-identity-attributes>
                <attribute name="objectClass" value="top inetOrgPerson person organizationalPerson otpToken"/>

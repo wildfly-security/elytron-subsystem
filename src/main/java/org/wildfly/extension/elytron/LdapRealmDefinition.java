@@ -78,20 +78,24 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
 
     static class AttributeMappingObjectDefinition {
         static final SimpleAttributeDefinition FROM = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.FROM, ModelType.STRING, true)
-                .setAlternatives(ElytronDescriptionConstants.FILTER)
                 .setAllowExpression(true)
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
 
         static final SimpleAttributeDefinition TO = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.TO, ModelType.STRING, true)
-                .setRequires(ElytronDescriptionConstants.FROM)
+                .setAllowExpression(true)
+                .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+                .build();
+
+        static final SimpleAttributeDefinition REFERENCE = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.REFERENCE, ModelType.STRING, true)
+                .setAlternatives(ElytronDescriptionConstants.FILTER)
                 .setAllowExpression(true)
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
 
         static final SimpleAttributeDefinition FILTER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.FILTER, ModelType.STRING, true)
                 .setRequires(ElytronDescriptionConstants.TO)
-                .setAlternatives(ElytronDescriptionConstants.FROM)
+                .setAlternatives(ElytronDescriptionConstants.REFERENCE)
                 .setAllowExpression(true)
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
@@ -110,7 +114,6 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
                 .build();
 
         static final SimpleAttributeDefinition ROLE_RECURSION = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ROLE_RECURSION, ModelType.INT, true)
-                .setRequires(ElytronDescriptionConstants.FILTER)
                 .setDefaultValue(new ModelNode(0))
                 .setAllowExpression(true)
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
@@ -121,7 +124,7 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
 
-        static final SimpleAttributeDefinition[] ATTRIBUTES = new SimpleAttributeDefinition[] {FROM, TO, FILTER, FILTER_BASE_DN, RECURSIVE_SEARCH, ROLE_RECURSION, EXTRACT_RDN};
+        static final SimpleAttributeDefinition[] ATTRIBUTES = new SimpleAttributeDefinition[] {FROM, TO, REFERENCE, FILTER, FILTER_BASE_DN, RECURSIVE_SEARCH, ROLE_RECURSION, EXTRACT_RDN};
 
         static final ObjectTypeAttributeDefinition OBJECT_DEFINITION = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.ATTRIBUTE, ATTRIBUTES)
                 .build();
@@ -470,18 +473,21 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
             ModelNode attributeMappingNode = IdentityMappingObjectDefinition.ATTRIBUTE_MAPPINGS.resolveModelAttribute(context, identityMappingNode);
             if (attributeMappingNode.isDefined()) {
                 for (ModelNode attributeNode : attributeMappingNode.asList()) {
-                    ModelNode from = AttributeMappingObjectDefinition.FROM.resolveModelAttribute(context, attributeNode);
                     ModelNode filter = AttributeMappingObjectDefinition.FILTER.resolveModelAttribute(context, attributeNode);
+                    ModelNode reference = AttributeMappingObjectDefinition.REFERENCE.resolveModelAttribute(context, attributeNode);
 
                     AttributeMapping.Builder b;
-                    if (filter.isDefined() && from.isDefined()) {
-                        b = AttributeMapping.fromFilter(filter.asString(), from.asString());
-                    } else if (filter.isDefined()) {
-                        b = AttributeMapping.fromFilterDn(filter.asString());
-                    } else if (from.isDefined()) {
-                        b = AttributeMapping.fromAttribute(from.asString());
+                    if (filter.isDefined()) {
+                        b = AttributeMapping.fromFilter(filter.asString());
+                    } else if (reference.isDefined()) {
+                        b = AttributeMapping.fromReference(reference.asString());
                     } else {
-                        b = AttributeMapping.fromDn();
+                        b = AttributeMapping.fromIdentity();
+                    }
+
+                    ModelNode from = AttributeMappingObjectDefinition.FROM.resolveModelAttribute(context, attributeNode);
+                    if (from.isDefined()) {
+                        b.from(from.asString());
                     }
 
                     ModelNode to = AttributeMappingObjectDefinition.TO.resolveModelAttribute(context, attributeNode);
@@ -505,7 +511,7 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
                     }
 
                     ModelNode roleRecursion = AttributeMappingObjectDefinition.ROLE_RECURSION.resolveModelAttribute(context, attributeNode);
-                    if (roleRecursion.isDefined() && filter.isDefined()) {
+                    if (roleRecursion.isDefined() && (filter.isDefined() || reference.isDefined())) {
                         b.roleRecursion(roleRecursion.asInt());
                     }
 

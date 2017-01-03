@@ -126,3 +126,23 @@ m-typeObjectClass: AUXILIARY
 m-may: x509serialNumber
 m-may: x509subject
 m-may: x509digest
+
+dn: m-oid=1.3.6.1.4.1.2312.4.1.99, ou=attributetypes, cn=wildfly, ou=schema
+objectclass: metaAttributeType
+objectclass: metaTop
+objectclass: top
+m-oid: 1.3.6.1.4.1.2312.4.1.99
+m-name: memberOf
+m-description: Reference to group that this entry is a member of.
+m-supAttributeType: distinguishedName
+m-equality: distinguishedNameMatch
+m-syntax: 1.3.6.1.4.1.1466.115.121.1.12
+
+dn: m-oid=1.3.6.1.4.1.2312.4.2.99, ou=objectclasses, cn=wildfly, ou=schema
+objectclass: metaObjectClass
+objectclass: metaTop
+objectclass: top
+m-oid: 1.3.6.1.4.1.2312.4.2.99
+m-name: groupMember
+m-typeObjectClass: AUXILIARY
+m-may: memberOf

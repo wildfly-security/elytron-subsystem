@@ -318,6 +318,7 @@ interface ElytronDescriptionConstants {
     String REALM_MAPPING = "realm-mapping";
     String REALM_NAME = "realm-name";
     String REALMS = "realms";
+    String REFERENCE = "reference";
     String REFERRAL_MODE = "referral-mode";
     String REGEX_PRINCIPAL_TRANSFORMER = "regex-principal-transformer";
     String REGEX_VALIDATING_PRINCIPAL_TRANSFORMER = "regex-validating-principal-transformer";

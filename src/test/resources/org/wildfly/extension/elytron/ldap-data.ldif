@@ -28,11 +28,13 @@ objectClass: top
 objectClass: inetOrgPerson
 objectClass: person
 objectClass: organizationalPerson
+objectClass: groupMember
 cn: plainUserCn
 sn: plainUserSn
 uid: plainUser
 telephoneNumber: (408) 555-2468
 telephoneNumber: +420 123 456 789
+memberOf: cn=Sales,ou=Finance,dc=groups,dc=elytron,dc=wildfly,dc=org
 userPassword:: cGxhaW5QYXNzd29yZA==
 # Password plainPassword
 
@@ -87,15 +89,18 @@ member: uid=plainUser,dc=users,dc=elytron,dc=wildfly,dc=org
 dn: cn=Sales,ou=Finance,dc=groups,dc=elytron,dc=wildfly,dc=org
 objectClass: top
 objectClass: groupOfNames
+objectClass: groupMember
 cn: Sales
 description: Sales department
 member: cn=Retail,ou=Finance,dc=groups,dc=elytron,dc=wildfly,dc=org
+memberOf: cn=Manager,ou=Finance,dc=groups,dc=elytron,dc=wildfly,dc=org
 
 dn: cn=Manager,ou=Finance,dc=groups,dc=elytron,dc=wildfly,dc=org
 objectClass: top
 objectClass: groupOfNames
 cn: Manager
-member: uid=userWithRdnAttribute,dc=users,dc=elytron,dc=wildfly,dc=org
+description: Management department
+member: uid=server,dc=users,dc=elytron,dc=wildfly,dc=org
 
 dn: ou=refUsers,dc=users,dc=elytron,dc=wildfly,dc=org
 objectClass: extensibleObject
