@@ -25,7 +25,6 @@ import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
 
 import java.security.Permissions;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -182,8 +181,7 @@ class PermissionMapperDefinitions {
                             }
                         }
 
-                        permissionMappings.add(new Mapping(principals != null ? principals : Collections.emptySet(),
-                                roles != null ? roles : Collections.emptySet(), permissions));
+                        permissionMappings.add(new Mapping(principals, roles, permissions));
                     }
                 }
 
