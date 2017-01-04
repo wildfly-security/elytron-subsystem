@@ -28,7 +28,7 @@
 
     <groupId>org.wildfly.security</groupId>
     <artifactId>elytron-subsystem</artifactId>
-    <version>1.0.0.Alpha18</version>
+    <version>1.0.0.Alpha19-SNAPSHOT</version>
 
     <name>WildFly: Subsystem Artifact</name>
 
