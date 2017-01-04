@@ -1742,7 +1742,7 @@
             <xs:element name="constant-principal-transformer" type="constantPrincipalTransformer" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="custom-principal-transformer" type="customPrincipalTransformerType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="regex-principal-transformer" type="regexPrincipalTransformerType" minOccurs="0" maxOccurs="unbounded" />
-            <xs:element name="regex-validating-principal-transformer" type="regexValidatingPrincipalTransformer" minOccurs="0" maxOccurs="unbounded" />            
+            <xs:element name="regex-validating-principal-transformer" type="regexValidatingPrincipalTransformer" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="custom-permission-mapper" type="customPermissionMapperType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="logical-permission-mapper" type="logicalPermissionMapperType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="simple-permission-mapper" type="simplePermissionMapperType" minOccurs="0" maxOccurs="unbounded" />
@@ -2227,7 +2227,7 @@
                     default="true">
                     <xs:annotation>
                         <xs:documentation>
-                            If set to true, the name must match the given pattern to make validation successful. 
+                            If set to true, the name must match the given pattern to make validation successful.
                             If set to false, the name must not match the given pattern to make validation successful.
                         </xs:documentation>
                     </xs:annotation>
@@ -2378,7 +2378,7 @@
             </xs:extension>
         </xs:complexContent>
     </xs:complexType>
-    
+
     <xs:complexType name="simpleRegexRealmMapperType">
         <xs:annotation>
             <xs:documentation>
@@ -4071,7 +4071,7 @@
                 An individual credential store definition.
             </xs:documentation>
         </xs:annotation>
-        <xs:choice>
+        <xs:sequence>
             <xs:element name="uri" type="xs:string">
                 <xs:annotation>
                     <xs:documentation>
@@ -4079,7 +4079,14 @@
                     </xs:documentation>
                 </xs:annotation>
             </xs:element>
-        </xs:choice>
+            <xs:element name="credential-reference" type="credentialReferenceType">
+                <xs:annotation>
+                    <xs:documentation>
+                        Credential to be used by as protection parameter for the Credential Store.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
         <xs:attribute name="name" type="xs:string" use="required" />
         <xs:attribute name="type" type="xs:string" use="optional">
             <xs:annotation>

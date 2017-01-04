@@ -18,18 +18,17 @@
 
 package org.wildfly.extension.elytron;
 
-import static org.jboss.as.controller.security.CredentialReference.credentialReferencePartAsStringIfDefined;
 import static org.wildfly.common.Assert.checkNotNullParam;
 import static org.wildfly.extension.elytron.Capabilities.AUTHENTICATION_CONFIGURATION_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.AUTHENTICATION_CONFIGURATION_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.AUTHENTICATION_CONTEXT_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.AUTHENTICATION_CONTEXT_RUNTIME_CAPABILITY;
-import static org.wildfly.extension.elytron.Capabilities.CREDENTIAL_STORE_CLIENT_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.CREDENTIAL_STORE_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SECURITY_DOMAIN_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SSL_CONTEXT_CAPABILITY;
-import static org.wildfly.extension.elytron.CredentialStoreResourceDefinition.CREDENTIAL_STORE_CLIENT_UTIL;
 import static org.wildfly.extension.elytron.ElytronExtension.asIntIfDefined;
 import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
+import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
 
 import java.util.HashMap;
 import java.util.List;
@@ -52,17 +51,18 @@ import org.jboss.as.controller.StringListAttributeDefinition;
 import org.jboss.as.controller.capability.RuntimeCapability;
 import org.jboss.as.controller.registry.AttributeAccess;
 import org.jboss.as.controller.security.CredentialReference;
-import org.jboss.as.controller.security.CredentialStoreClient;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
 import org.jboss.msc.service.ServiceBuilder;
-import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.value.InjectedValue;
+import org.wildfly.common.function.ExceptionSupplier;
 import org.wildfly.extension.elytron.TrivialService.ValueSupplier;
 import org.wildfly.security.auth.client.AuthenticationConfiguration;
 import org.wildfly.security.auth.client.AuthenticationContext;
 import org.wildfly.security.auth.client.MatchRule;
 import org.wildfly.security.auth.server.SecurityDomain;
+import org.wildfly.security.credential.PasswordCredential;
+import org.wildfly.security.credential.source.CredentialSource;
 
 /**
  * Resource definitions for Elytron authentication client configuration.
@@ -152,7 +152,7 @@ class AuthenticationClientDefinitions {
             .build();
 
     static final ObjectTypeAttributeDefinition CREDENTIAL_REFERENCE = CredentialReference.getAttributeBuilder(CredentialReference.CREDENTIAL_REFERENCE, CredentialReference.CREDENTIAL_REFERENCE, true)
-                    .setCapabilityReference(CREDENTIAL_STORE_CLIENT_CAPABILITY, AUTHENTICATION_CONFIGURATION_CAPABILITY, true)
+                    .setCapabilityReference(CREDENTIAL_STORE_CAPABILITY, AUTHENTICATION_CONFIGURATION_CAPABILITY, true)
                     .build();
 
     static final AttributeDefinition[] AUTHENTICATION_CONFIGURATION_SIMPLE_ATTRIBUTES = new AttributeDefinition[] { CONFIGURATION_EXTENDS, ANONYMOUS, AUTHENTICATION_NAME, AUTHORIZATION_NAME, HOST, PROTOCOL,
@@ -313,6 +313,12 @@ class AuthenticationClientDefinitions {
                     configuration = configuration.andThen(c -> c.useMechanismProperties(propertiesMap));
                 }
 
+                final InjectedValue<ExceptionSupplier<CredentialSource, Exception>> credentialSourceSupplierInjector = new InjectedValue<>();
+                credentialSourceSupplierInjector.inject(
+                        CredentialStoreResourceDefinition.createCredentialSource(context, model, serviceBuilder)
+                );
+
+/*
                 String credentialStoreName = credentialReferencePartAsStringIfDefined(context, CREDENTIAL_REFERENCE, model, CredentialReference.STORE);
                 String credentialAlias = credentialReferencePartAsStringIfDefined(context, CREDENTIAL_REFERENCE, model, CredentialReference.ALIAS);
                 String credentialType = credentialReferencePartAsStringIfDefined(context, CREDENTIAL_REFERENCE, model, CredentialReference.TYPE);
@@ -329,9 +335,9 @@ class AuthenticationClientDefinitions {
                     InjectedValue<CredentialStoreClient> credentialStoreClientInjector = new InjectedValue<>();
                     if (credentialReference.getAlias() != null) {
                         // use credential store service
-                        String credentialStoreClientCapabilityName = RuntimeCapability.buildDynamicCapabilityName(CREDENTIAL_STORE_CLIENT_CAPABILITY, credentialReference.getCredentialStoreName());
+                        String credentialStoreClientCapabilityName = RuntimeCapability.buildDynamicCapabilityName(CREDENTIAL_STORE_CAPABILITY, credentialReference.getCredentialStoreName());
                         ServiceName credentialStoreClientServiceName = context.getCapabilityServiceName(credentialStoreClientCapabilityName, CredentialStoreClient.class);
-                        CREDENTIAL_STORE_CLIENT_UTIL.addInjection(serviceBuilder, credentialStoreClientInjector, credentialStoreClientServiceName);
+                        CREDENTIAL_STORE_UTIL.addInjection(serviceBuilder, credentialStoreClientInjector, credentialStoreClientServiceName);
                     }
 
                     configuration = configuration.andThen( c -> {
@@ -343,6 +349,20 @@ class AuthenticationClientDefinitions {
                         return c.usePassword(credentialStoreClientInjector.getValue().getSecret());
                     });
                 }
+*/
+                configuration = configuration.andThen( c -> {
+                    ExceptionSupplier<CredentialSource, Exception> sourceSupplier = credentialSourceSupplierInjector.getValue();
+                    try {
+                        CredentialSource cs = sourceSupplier.get();
+                        if (cs != null) {
+                            return c.usePassword(cs.getCredential(PasswordCredential.class).getPassword());
+                        } else {
+                            throw ROOT_LOGGER.credentialCannotBeResolved();
+                        }
+                    } catch (Exception e) {
+                        throw new IllegalStateException(e);
+                    }
+                });
 
                 final Function<AuthenticationConfiguration, AuthenticationConfiguration> finalConfiguration = configuration;
                 return () -> finalConfiguration.apply(null);

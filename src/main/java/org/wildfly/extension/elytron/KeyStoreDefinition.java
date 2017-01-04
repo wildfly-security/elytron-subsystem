@@ -19,12 +19,10 @@
 package org.wildfly.extension.elytron;
 
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP;
-import static org.jboss.as.controller.security.CredentialReference.credentialReferencePartAsStringIfDefined;
-import static org.wildfly.extension.elytron.Capabilities.CREDENTIAL_STORE_CLIENT_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.CREDENTIAL_STORE_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.KEY_STORE_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.KEY_STORE_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.PROVIDERS_CAPABILITY;
-import static org.wildfly.extension.elytron.CredentialStoreResourceDefinition.CREDENTIAL_STORE_CLIENT_UTIL;
 import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
 import static org.wildfly.extension.elytron.ElytronExtension.ISO_8601_FORMAT;
 import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
@@ -68,7 +66,6 @@ import org.jboss.as.controller.registry.ManagementResourceRegistration;
 import org.jboss.as.controller.registry.OperationEntry;
 import org.jboss.as.controller.registry.Resource;
 import org.jboss.as.controller.security.CredentialReference;
-import org.jboss.as.controller.security.CredentialStoreClient;
 import org.jboss.as.controller.services.path.PathManager;
 import org.jboss.as.controller.services.path.PathManagerService;
 import org.jboss.dmr.ModelNode;
@@ -113,7 +110,7 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
 
     static final ObjectTypeAttributeDefinition CREDENTIAL_REFERENCE =
             CredentialReference.getAttributeBuilder(CredentialReference.CREDENTIAL_REFERENCE, CredentialReference.CREDENTIAL_REFERENCE, false)
-                    .setCapabilityReference(CREDENTIAL_STORE_CLIENT_CAPABILITY, KEY_STORE_CAPABILITY, true)
+                    .setCapabilityReference(CREDENTIAL_STORE_CAPABILITY, KEY_STORE_CAPABILITY, true)
                     .build();
 
     static final SimpleAttributeDefinition REQUIRED = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.REQUIRED, ModelType.BOOLEAN, true)
@@ -261,26 +258,14 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
             boolean required;
             String aliasFilter = asStringIfDefined(context, ALIAS_FILTER, model);
 
-            String credentialStoreName = credentialReferencePartAsStringIfDefined(context, CREDENTIAL_REFERENCE, model, CredentialReference.STORE);
-            String credentialAlias = credentialReferencePartAsStringIfDefined(context, CREDENTIAL_REFERENCE, model, CredentialReference.ALIAS);
-            String credentialType = credentialReferencePartAsStringIfDefined(context, CREDENTIAL_REFERENCE, model, CredentialReference.TYPE);
-            String secret = credentialReferencePartAsStringIfDefined(context, CREDENTIAL_REFERENCE, model, CredentialReference.CLEAR_TEXT);
-
-            CredentialReference credentialReference = null;
-            if (credentialStoreName != null && !credentialStoreName.isEmpty()) {
-                credentialReference = CredentialReference.createCredentialReference(credentialStoreName, credentialAlias, credentialType);
-            } else {
-                credentialReference = CredentialReference.createCredentialReference(secret != null ? secret.toCharArray() : null);
-            }
-
             final KeyStoreService keyStoreService;
             if (path != null) {
                 relativeTo = asStringIfDefined(context, RELATIVE_TO, model);
                 required = REQUIRED.resolveModelAttribute(context, model).asBoolean();
 
-                keyStoreService = KeyStoreService.createFileBasedKeyStoreService(provider, type, relativeTo, path, required, aliasFilter, credentialReference);
+                keyStoreService = KeyStoreService.createFileBasedKeyStoreService(provider, type, relativeTo, path, required, aliasFilter);
             } else {
-                keyStoreService = KeyStoreService.createFileLessKeyStoreService(provider, type, aliasFilter, credentialReference);
+                keyStoreService = KeyStoreService.createFileLessKeyStoreService(provider, type, aliasFilter);
             }
 
             ServiceTarget serviceTarget = context.getServiceTarget();
@@ -300,12 +285,8 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
                 PROVIDER_LOADER_SERVICE_UTIL.addInjection(serviceBuilder, keyStoreService.getProvidersInjector(), providerLoaderServiceName);
             }
 
-            if (credentialReference.getAlias() != null) {
-                // use credential store service
-                String credentialStoreClientCapabilityName = RuntimeCapability.buildDynamicCapabilityName(CREDENTIAL_STORE_CLIENT_CAPABILITY, credentialReference.getCredentialStoreName());
-                ServiceName credentialStoreClientServiceName = context.getCapabilityServiceName(credentialStoreClientCapabilityName, CredentialStoreClient.class);
-                CREDENTIAL_STORE_CLIENT_UTIL.addInjection(serviceBuilder, keyStoreService.getCredentialStoreClientInjector(), credentialStoreClientServiceName);
-            }
+            keyStoreService.getCredentialSourceSupplierInjector()
+                    .inject(CredentialStoreResourceDefinition.createCredentialSource(context, model, serviceBuilder));
 
             commonDependencies(serviceBuilder);
             ServiceController<KeyStore> serviceController = serviceBuilder.install();

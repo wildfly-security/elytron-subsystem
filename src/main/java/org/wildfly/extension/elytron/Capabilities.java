@@ -27,7 +27,6 @@ import javax.net.ssl.TrustManager;
 import javax.security.sasl.SaslServerFactory;
 
 import org.jboss.as.controller.capability.RuntimeCapability;
-import org.jboss.as.controller.security.CredentialStoreClient;
 import org.wildfly.extension.elytron.capabilities.CredentialSecurityFactory;
 import org.wildfly.extension.elytron.capabilities.DirContextSupplier;
 import org.wildfly.extension.elytron.capabilities.PrincipalTransformer;
@@ -43,6 +42,7 @@ import org.wildfly.security.auth.server.SecurityRealm;
 import org.wildfly.security.authz.PermissionMapper;
 import org.wildfly.security.authz.RoleDecoder;
 import org.wildfly.security.authz.RoleMapper;
+import org.wildfly.security.credential.store.CredentialStore;
 import org.wildfly.security.http.HttpServerAuthenticationMechanismFactory;
 
 
@@ -71,10 +71,10 @@ class Capabilities {
             .Builder.of(AUTHENTICATION_CONTEXT_CAPABILITY, true, AuthenticationContext.class)
             .build();
 
-    static final String CREDENTIAL_STORE_CLIENT_CAPABILITY = CAPABILITY_BASE + "credential-store-client";
+    static final String CREDENTIAL_STORE_CAPABILITY = CAPABILITY_BASE + "credential-store";
 
-    static final RuntimeCapability<Void> CREDENTIAL_STORE_CLIENT_RUNTIME_CAPABILITY =  RuntimeCapability
-            .Builder.of(CREDENTIAL_STORE_CLIENT_CAPABILITY, true, CredentialStoreClient.class)
+    static final RuntimeCapability<Void> CREDENTIAL_STORE_RUNTIME_CAPABILITY =  RuntimeCapability
+            .Builder.of(CREDENTIAL_STORE_CAPABILITY, true, CredentialStore.class)
             .build();
 
     static final String HTTP_AUTHENTICATION_FACTORY_CAPABILITY = CAPABILITY_BASE + "http-authentication-factory";

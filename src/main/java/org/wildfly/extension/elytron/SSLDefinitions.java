@@ -18,9 +18,7 @@
 package org.wildfly.extension.elytron;
 
 import static org.jboss.as.controller.capability.RuntimeCapability.buildDynamicCapabilityName;
-import static org.jboss.as.controller.security.CredentialReference.credentialReferencePartAsStringIfDefined;
-import static org.wildfly.extension.elytron.Capabilities.CREDENTIAL_STORE_CLIENT_CAPABILITY;
-import static org.wildfly.extension.elytron.Capabilities.CREDENTIAL_STORE_CLIENT_RUNTIME_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.CREDENTIAL_STORE_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.KEY_MANAGERS_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.KEY_MANAGERS_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.KEY_STORE_CAPABILITY;
@@ -32,8 +30,6 @@ import static org.wildfly.extension.elytron.Capabilities.TRUST_MANAGERS_CAPABILI
 import static org.wildfly.extension.elytron.Capabilities.TRUST_MANAGERS_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
 import static org.wildfly.extension.elytron.ElytronExtension.getRequiredService;
-import static org.wildfly.extension.elytron.KeyStoreDefinition.CREDENTIAL_REFERENCE;
-import static org.wildfly.extension.elytron.CredentialStoreResourceDefinition.CREDENTIAL_STORE_CLIENT_UTIL;
 import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
 
 import java.security.GeneralSecurityException;
@@ -41,7 +37,6 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.Provider;
-import java.security.UnrecoverableKeyException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -69,7 +64,6 @@ import org.jboss.as.controller.ResourceDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
 import org.jboss.as.controller.StringListAttributeDefinition;
-import org.jboss.as.controller.capability.RuntimeCapability;
 import org.jboss.as.controller.logging.ControllerLogger;
 import org.jboss.as.controller.operations.validation.AllowedValuesValidator;
 import org.jboss.as.controller.operations.validation.ModelTypeValidator;
@@ -77,7 +71,6 @@ import org.jboss.as.controller.registry.AttributeAccess;
 import org.jboss.as.controller.registry.ManagementResourceRegistration;
 import org.jboss.as.controller.registry.Resource;
 import org.jboss.as.controller.security.CredentialReference;
-import org.jboss.as.controller.security.CredentialStoreClient;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
 import org.jboss.msc.service.ServiceBuilder;
@@ -86,8 +79,12 @@ import org.jboss.msc.service.ServiceController.State;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.StartException;
 import org.jboss.msc.value.InjectedValue;
+import org.wildfly.common.function.ExceptionSupplier;
 import org.wildfly.extension.elytron.TrivialService.ValueSupplier;
 import org.wildfly.security.auth.server.SecurityDomain;
+import org.wildfly.security.credential.PasswordCredential;
+import org.wildfly.security.credential.source.CredentialSource;
+import org.wildfly.security.password.interfaces.ClearPassword;
 import org.wildfly.security.ssl.CipherSuiteSelector;
 import org.wildfly.security.ssl.Protocol;
 import org.wildfly.security.ssl.ProtocolSelector;
@@ -261,7 +258,7 @@ class SSLDefinitions {
 
         AttributeDefinition[] attributes = new AttributeDefinition[] { ALGORITHM, providerLoaderDefinition, PROVIDER, keystoreDefinition, credentialReference};
 
-        AbstractAddStepHandler add = new TrivialAddHandler<KeyManager[]>(KeyManager[].class, attributes, KEY_MANAGERS_RUNTIME_CAPABILITY, CREDENTIAL_STORE_CLIENT_RUNTIME_CAPABILITY) {
+        AbstractAddStepHandler add = new TrivialAddHandler<KeyManager[]>(KeyManager[].class, attributes, KEY_MANAGERS_RUNTIME_CAPABILITY, CREDENTIAL_STORE_RUNTIME_CAPABILITY) {
 
             @Override
             protected ValueSupplier<KeyManager[]> getValueSupplier(ServiceBuilder<KeyManager[]> serviceBuilder, OperationContext context, ModelNode model) throws OperationFailedException {
@@ -284,24 +281,10 @@ class SSLDefinitions {
                             KeyStore.class, keyStoreInjector);
                 }
 
-                String credentialStoreName = credentialReferencePartAsStringIfDefined(context, CREDENTIAL_REFERENCE, model, CredentialReference.STORE);
-                String credentialAlias = credentialReferencePartAsStringIfDefined(context, CREDENTIAL_REFERENCE, model, CredentialReference.ALIAS);
-                String credentialType = credentialReferencePartAsStringIfDefined(context, CREDENTIAL_REFERENCE, model, CredentialReference.TYPE);
-                String secret = credentialReferencePartAsStringIfDefined(context, CREDENTIAL_REFERENCE, model, CredentialReference.CLEAR_TEXT);
-
-                final CredentialReference credentialReference;
-                if (credentialStoreName != null && !credentialStoreName.isEmpty()) {
-                    credentialReference = CredentialReference.createCredentialReference(credentialStoreName, credentialAlias, credentialType);
-                } else {
-                    credentialReference = CredentialReference.createCredentialReference(secret != null ? secret.toCharArray() : null);
-                }
-
-                final InjectedValue<CredentialStoreClient> credentialStoreClientInjector = new InjectedValue<>();
-                if (credentialReference.getAlias() != null) {
-                    String credentialStoreClientCapabilityName = RuntimeCapability.buildDynamicCapabilityName(CREDENTIAL_STORE_CLIENT_CAPABILITY, credentialReference.getCredentialStoreName());
-                    ServiceName credentialStoreClientServiceName = context.getCapabilityServiceName(credentialStoreClientCapabilityName, CredentialStoreClient.class);
-                    CREDENTIAL_STORE_CLIENT_UTIL.addInjection(serviceBuilder, credentialStoreClientInjector, credentialStoreClientServiceName);
-                }
+                final InjectedValue<ExceptionSupplier<CredentialSource, Exception>> credentialSourceSupplierInjector = new InjectedValue<>();
+                credentialSourceSupplierInjector.inject(
+                        CredentialStoreResourceDefinition.createCredentialSource(context, model, serviceBuilder)
+                );
 
                 return () -> {
                     Provider[] providers = providersInjector.getOptionalValue();
@@ -328,10 +311,15 @@ class SSLDefinitions {
                     }
 
                     try {
-                        CredentialReference.reinjectCredentialStoreClient(credentialStoreClientInjector, credentialReference);
-                        CredentialStoreClient credentialStoreClient = credentialStoreClientInjector.getOptionalValue();
+                        ExceptionSupplier<CredentialSource, Exception> sourceSupplier = credentialSourceSupplierInjector.getValue();
+                        CredentialSource cs = sourceSupplier.get();
+                        char[] password;
+                        if (cs != null) {
+                            password = cs.getCredential(PasswordCredential.class).getPassword(ClearPassword.class).getPassword();
+                        } else {
+                            throw new StartException(ROOT_LOGGER.keyStorePasswordCannotBeResolved(keyStoreName));
+                        }
                         KeyStore keyStore = keyStoreInjector.getOptionalValue();
-                        char[] password = credentialStoreClient != null ? credentialStoreClient.getSecret() : credentialReference.getSecret();
 
                         if (ROOT_LOGGER.isTraceEnabled()) {
                             ROOT_LOGGER.tracef(
@@ -342,7 +330,7 @@ class SSLDefinitions {
                         }
 
                         keyManagerFactory.init(keyStore, password);
-                    } catch (UnrecoverableKeyException | KeyStoreException | NoSuchAlgorithmException | ClassNotFoundException e) {
+                    } catch (Exception e) {
                         throw new StartException(e);
                     }
 
@@ -436,7 +424,7 @@ class SSLDefinitions {
             }
         };
 
-        return new TrivialResourceDefinition(ElytronDescriptionConstants.TRUST_MANAGERS, add, attributes, TRUST_MANAGERS_RUNTIME_CAPABILITY, CREDENTIAL_STORE_CLIENT_RUNTIME_CAPABILITY);
+        return new TrivialResourceDefinition(ElytronDescriptionConstants.TRUST_MANAGERS, add, attributes, TRUST_MANAGERS_RUNTIME_CAPABILITY, CREDENTIAL_STORE_RUNTIME_CAPABILITY);
     }
 
     private static class SSLContextDefinition extends TrivialResourceDefinition {
