@@ -77,6 +77,12 @@ class Capabilities {
             .Builder.of(CREDENTIAL_STORE_CAPABILITY, true, CredentialStore.class)
             .build();
 
+    static final String ELYTRON_CAPABILITY = CAPABILITY_BASE + "elytron";
+
+    static final RuntimeCapability<Void> ELYTRON_RUNTIME_CAPABILITY = RuntimeCapability
+            .Builder.of(ELYTRON_CAPABILITY, false)
+            .build();
+
     static final String HTTP_AUTHENTICATION_FACTORY_CAPABILITY = CAPABILITY_BASE + "http-authentication-factory";
 
     static final RuntimeCapability<Void> HTTP_AUTHENTICATION_FACTORY_RUNTIME_CAPABILITY = RuntimeCapability

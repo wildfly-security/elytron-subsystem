@@ -122,6 +122,7 @@ interface ElytronDescriptionConstants {
 
     String DATA_SOURCE = "data-source";
     String DEBUG = "debug";
+    String DEFAULT_AUTHENTICATION_CONTEXT = "default-authentication-context";
     String DEFAULT_REALM = "default-realm";
     String DELEGATE_REALM_MAPPER = "delegate-realm-mapper";
     String DIGEST = "digest";

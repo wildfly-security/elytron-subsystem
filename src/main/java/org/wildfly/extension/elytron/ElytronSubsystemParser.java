@@ -30,9 +30,10 @@ import static org.jboss.as.controller.parsing.ParseUtils.unexpectedAttribute;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedElement;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AUTHENTICATION_CLIENT;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CLASS_NAME;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CREDENTIAL_SECURITY_FACTORIES;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CONFIGURATION;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CREDENTIAL_SECURITY_FACTORIES;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CREDENTIAL_STORES;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.DEFAULT_AUTHENTICATION_CONTEXT;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.DIR_CONTEXTS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.HTTP;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MAPPERS;
@@ -93,7 +94,22 @@ class ElytronSubsystemParser implements XMLElementReader<List<ModelNode>>, XMLEl
         operations.add(subsystemAdd);
         ModelNode parentAddress = subsystemAdd.get(OP_ADDR);
 
-        requireNoAttributes(reader);
+        final int count = reader.getAttributeCount();
+        for (int i = 0; i < count; i++) {
+            final String value = reader.getAttributeValue(i);
+            if (!isNoNamespaceAttribute(reader, i)) {
+                throw unexpectedAttribute(reader, i);
+            } else {
+                String attribute = reader.getAttributeLocalName(i);
+                switch (attribute) {
+                    case DEFAULT_AUTHENTICATION_CONTEXT:
+                        ElytronDefinition.DEFAULT_AUTHENTICATION_CONTEXT.parseAndSetParameter(value, subsystemAdd, reader);
+                        break;
+                    default:
+                        throw unexpectedAttribute(reader, i);
+                }
+            }
+        }
 
         Set<String> foundElements = new HashSet<>();
         while (reader.hasNext() && reader.nextTag() != END_ELEMENT) {
@@ -343,6 +359,9 @@ class ElytronSubsystemParser implements XMLElementReader<List<ModelNode>>, XMLEl
         context.startSubsystemElement(ElytronExtension.NAMESPACE, false);
 
         ModelNode model = context.getModelNode();
+
+        ElytronDefinition.DEFAULT_AUTHENTICATION_CONTEXT.marshallAsAttribute(model, writer);
+
         if (model.hasDefined(SECURITY_PROPERTY)) {
             writer.writeStartElement(SECURITY_PROPERTIES);
             ModelNode securityProperties = model.require(SECURITY_PROPERTY);
