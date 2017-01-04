@@ -308,6 +308,18 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <dependency>
+            <groupId>org.wildfly.core</groupId>
+            <artifactId>wildfly-server</artifactId>
+            <version>${version.wildfly.core}</version>
+            <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.wildfly.core</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
 
         <dependency>
             <groupId>org.wildfly.security</groupId>

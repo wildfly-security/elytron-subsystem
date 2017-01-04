@@ -43,6 +43,13 @@
             <xs:element name="credential-stores" type="credentialStoresType" minOccurs="0" />
             <xs:element name="dir-contexts" type="dirContextsType" minOccurs="0" />
         </xs:all>
+        <xs:attribute name="default-authentication-context" type="xs:string">
+            <xs:annotation>
+                <xs:documentation>
+                    Reference to the default authentication context to be associated with all deployments. 
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
     </xs:complexType>
 
     <!--
