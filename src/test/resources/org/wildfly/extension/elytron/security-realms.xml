@@ -116,8 +116,9 @@
         </key-stores>
     </tls>
     <dir-contexts>
-        <dir-context name="dircontext1" url="ldap://localhost:11390" principal="uid=server,dc=elytron,dc=wildfly,dc=org" credential="serverPassword"
-                     enable-connection-pooling="true"/>
+        <dir-context name="dircontext1" url="ldap://localhost:11390" principal="uid=server,dc=elytron,dc=wildfly,dc=org" enable-connection-pooling="true">
+            <credential-reference clear-text="serverPassword"/>
+        </dir-context>
         <dir-context name="dircontext2" url="ldap://localhost:11390"/>
     </dir-contexts>
 </subsystem>

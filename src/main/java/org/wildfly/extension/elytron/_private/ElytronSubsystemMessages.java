@@ -300,6 +300,9 @@ public interface ElytronSubsystemMessages extends BasicLogger {
     @Message(id = 916, value = "Credential cannot be resolved")
     IllegalStateException credentialCannotBeResolved();
 
+    @Message(id = 917, value = "Password cannot be resolved for dir-context")
+    StartException dirContextPasswordCannotBeResolved(@Cause Exception cause);
+
     /*
      * Identity Resource Messages - 1000
      */

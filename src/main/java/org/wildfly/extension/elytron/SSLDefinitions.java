@@ -58,7 +58,6 @@ import javax.net.ssl.X509ExtendedTrustManager;
 import org.jboss.as.controller.AbstractAddStepHandler;
 import org.jboss.as.controller.AbstractRuntimeOnlyHandler;
 import org.jboss.as.controller.AttributeDefinition;
-import org.jboss.as.controller.AttributeMarshaller;
 import org.jboss.as.controller.ObjectTypeAttributeDefinition;
 import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
@@ -259,7 +258,6 @@ class SSLDefinitions {
 
         final ObjectTypeAttributeDefinition credentialReference = CredentialReference.getAttributeBuilder(CredentialReference.CREDENTIAL_REFERENCE, CredentialReference.CREDENTIAL_REFERENCE, false)
                 .setCapabilityReference(CREDENTIAL_STORE_CAPABILITY)
-                .setAttributeMarshaller(AttributeMarshaller.ATTRIBUTE_OBJECT)  // temporary fix [WFCORE-2210]
                 .build();
 
         AttributeDefinition[] attributes = new AttributeDefinition[] { ALGORITHM, providersDefinition, PROVIDER_NAME, keystoreDefinition, credentialReference};

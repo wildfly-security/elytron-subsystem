@@ -1,10 +1,10 @@
 <!-- for needs of LdapTestCase -->
 <subsystem xmlns="urn:wildfly:elytron:1.0" initial-providers="elytron">
- <providers>
-        <provider-loader name="elytron" class-names="org.wildfly.security.WildFlyElytronProvider" />
- </providers>
- <security-realms>
-        <ldap-realm name="LdapRealm" dir-context="DirContextSsl">
+   <providers>
+      <provider-loader name="elytron" class-names="org.wildfly.security.WildFlyElytronProvider" />
+   </providers>
+   <security-realms>
+      <ldap-realm name="LdapRealm" dir-context="DirContextSsl">
          <identity-mapping filter-name="(|(objectclass=referral)(uid={0}))" iterator-filter="(|(objectclass=referral)(uid=*))" new-identity-parent-dn="dc=users,dc=elytron,dc=wildfly,dc=org" rdn-identifier="uid" search-base-dn="dc=users,dc=elytron,dc=wildfly,dc=org" use-recursive-search="true">
             <attribute-mapping>
                <attribute to="userDn"/>
@@ -59,10 +59,11 @@
    </tls>
    <dir-contexts>
       <dir-context authentication-level="none" name="DirContextInsecure" url="ldap://localhost:11391/"/>
-       <dir-context credential="serverPassword" name="DirContextSsl" principal="uid=server,dc=users,dc=elytron,dc=wildfly,dc=org" referral-mode="THROW" ssl-context="LdapSslContext" url="ldaps://localhost:11391/" connection-timeout="6000" read-timeout="10000">
-           <properties>
-               <property name="java.naming.dns.url" value="dns://dnsserver/wiz.com"/>
-           </properties>
-       </dir-context>
+      <dir-context name="DirContextSsl" principal="uid=server,dc=users,dc=elytron,dc=wildfly,dc=org" referral-mode="THROW" ssl-context="LdapSslContext" url="ldaps://localhost:11391/" connection-timeout="6000" read-timeout="10000">
+         <credential-reference clear-text="serverPassword"/>
+         <properties>
+            <property name="java.naming.dns.url" value="dns://dnsserver/wiz.com"/>
+         </properties>
+      </dir-context>
    </dir-contexts>
 </subsystem>

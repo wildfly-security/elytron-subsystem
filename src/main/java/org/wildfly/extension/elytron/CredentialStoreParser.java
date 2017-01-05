@@ -147,9 +147,7 @@ class CredentialStoreParser {
                 CredentialStoreResourceDefinition.PROVIDERS.marshallAsAttribute(credentialStoreModelNode, writer);
                 CredentialStoreResourceDefinition.RELATIVE_TO.marshallAsAttribute(credentialStoreModelNode, writer);
                 CredentialStoreResourceDefinition.URI.marshallAsElement(credentialStoreModelNode, writer);
-                if (credentialStoreModelNode.hasDefined(CredentialStoreResourceDefinition.CREDENTIAL_REFERENCE.getName())) {
-                    CredentialStoreResourceDefinition.CREDENTIAL_REFERENCE.marshallAsElement(credentialStoreModelNode, writer);
-                }
+                CredentialStoreResourceDefinition.CREDENTIAL_REFERENCE.marshallAsElement(credentialStoreModelNode, writer);
                 writer.writeEndElement();
             }
 
