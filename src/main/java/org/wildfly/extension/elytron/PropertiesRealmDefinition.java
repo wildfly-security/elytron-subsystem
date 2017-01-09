@@ -83,7 +83,7 @@ import org.wildfly.security.evidence.Evidence;
 class PropertiesRealmDefinition extends TrivialResourceDefinition {
 
     static final SimpleAttributeDefinition PATH = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PATH, FileAttributeDefinitions.PATH)
-            .setAllowNull(false)
+            .setRequired(true)
             .build();
 
     static final ObjectTypeAttributeDefinition USERS_PROPERTIES = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.USERS_PROPERTIES, PATH, RELATIVE_TO)

@@ -59,7 +59,7 @@ import org.wildfly.security.auth.util.GSSCredentialSecurityFactory;
 class KerberosSecurityFactoryDefinition {
 
     static final SimpleAttributeDefinition PATH = new SimpleAttributeDefinitionBuilder(FileAttributeDefinitions.PATH)
-        .setAllowNull(false)
+        .setRequired(true)
         .build();
 
     static final SimpleAttributeDefinition PRINCIPAL = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PRINCIPAL, ModelType.STRING, false)
@@ -94,7 +94,7 @@ class KerberosSecurityFactoryDefinition {
 
     static final StringListAttributeDefinition MECHANISM_OIDS = new StringListAttributeDefinition.Builder(ElytronDescriptionConstants.MECHANISM_OIDS)
         .setAllowExpression(true)
-        .setAllowNull(false)
+        .setRequired(true)
         .setMinSize(1)
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
         .build();

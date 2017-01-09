@@ -148,7 +148,7 @@ class DomainDefinition extends SimpleResourceDefinition {
         .build();
 
     static final StringListAttributeDefinition TRUSTED_SECURITY_DOMAINS = new StringListAttributeDefinition.Builder(ElytronDescriptionConstants.TRUSTED_SECURITY_DOMAINS)
-            .setAllowNull(true)
+            .setRequired(false)
             .setMinSize(1)
             .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
             .setCapabilityReference(SECURITY_DOMAIN_CAPABILITY, SECURITY_DOMAIN_CAPABILITY, true)

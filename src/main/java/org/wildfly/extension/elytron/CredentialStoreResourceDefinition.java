@@ -272,7 +272,7 @@ final class CredentialStoreResourceDefinition extends SimpleResourceDefinition {
         @Override
         protected void executeRuntimeStep(OperationContext context, ModelNode operation) throws OperationFailedException {
             ServiceName credentialStoreServiceName = CREDENTIAL_STORE_UTIL.serviceName(operation);
-            ServiceController<CredentialStore> credentialStoreServiceController = (ServiceController<CredentialStore>) context.getServiceRegistry(writeAccess).getRequiredService(credentialStoreServiceName);
+            ServiceController<?> credentialStoreServiceController = context.getServiceRegistry(writeAccess).getRequiredService(credentialStoreServiceName);
             State serviceState;
             if ((serviceState = credentialStoreServiceController.getState()) != State.UP) {
                 if (serviceMustBeUp) {
