@@ -38,6 +38,7 @@ import org.jboss.as.controller.ResourceDefinition;
 import org.jboss.as.controller.RestartParentWriteAttributeHandler;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
+import org.jboss.as.controller.SimpleMapAttributeDefinition;
 import org.jboss.as.controller.SimpleResourceDefinition;
 import org.jboss.as.controller.capability.RuntimeCapability;
 import org.jboss.as.controller.operations.validation.EnumValidator;
@@ -46,6 +47,7 @@ import org.jboss.as.controller.registry.ManagementResourceRegistration;
 import org.jboss.as.controller.registry.OperationEntry;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
+import org.jboss.dmr.Property;
 import org.jboss.msc.service.ServiceBuilder;
 import org.jboss.msc.service.ServiceController;
 import org.jboss.msc.service.ServiceName;
@@ -115,7 +117,10 @@ public class DirContextDefinition extends SimpleResourceDefinition {
             .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
             .build();
 
-    static final SimpleAttributeDefinition[] ATTRIBUTES = new SimpleAttributeDefinition[] {URL, AUTHENTICATION_LEVEL, PRINCIPAL, CREDENTIAL, ENABLE_CONNECTION_POOLING, REFERRAL_MODE, SSL_CONTEXT, CONNECTION_TIMEOUT, READ_TIMEOUT};
+    static final SimpleMapAttributeDefinition PROPERTIES = new SimpleMapAttributeDefinition.Builder(ElytronDescriptionConstants.PROPERTIES, ModelType.STRING, true)
+            .build();
+
+    static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] {URL, AUTHENTICATION_LEVEL, PRINCIPAL, CREDENTIAL, ENABLE_CONNECTION_POOLING, REFERRAL_MODE, SSL_CONTEXT, CONNECTION_TIMEOUT, READ_TIMEOUT, PROPERTIES};
 
     DirContextDefinition() {
         super(new SimpleResourceDefinition.Parameters(PathElement.pathElement(ElytronDescriptionConstants.DIR_CONTEXT), ElytronExtension.getResourceDescriptionResolver(ElytronDescriptionConstants.DIR_CONTEXT))
@@ -144,6 +149,12 @@ public class DirContextDefinition extends SimpleResourceDefinition {
         Properties connectionProperties = new Properties();
         ModelNode enableConnectionPoolingNode = ENABLE_CONNECTION_POOLING.resolveModelAttribute(context, model);
         connectionProperties.put(CONNECTION_POOLING_PROPERTY, enableConnectionPoolingNode.asBoolean());
+        ModelNode properties = PROPERTIES.resolveModelAttribute(context, model);
+        if (properties.isDefined()) {
+            for (Property property : properties.asPropertyList()) {
+                connectionProperties.put(property.getName(), property.getValue());
+            }
+        }
         ModelNode connectionTimeout = CONNECTION_TIMEOUT.resolveModelAttribute(context, model);
         ModelNode readTimeout = READ_TIMEOUT.resolveModelAttribute(context, model);
         ReferralMode referralMode = ReferralMode.valueOf(REFERRAL_MODE.resolveModelAttribute(context, model).asString().toUpperCase());

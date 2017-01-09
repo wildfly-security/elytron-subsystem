@@ -53,6 +53,10 @@
    </tls>
    <dir-contexts>
       <dir-context authentication-level="none" name="DirContextInsecure" url="ldap://localhost:11391/"/>
-      <dir-context credential="serverPassword" name="DirContextSsl" principal="uid=server,dc=users,dc=elytron,dc=wildfly,dc=org" referral-mode="THROW" ssl-context="LdapSslContext" url="ldaps://localhost:11391/" connection-timeout="6000" read-timeout="10000"/>
+       <dir-context credential="serverPassword" name="DirContextSsl" principal="uid=server,dc=users,dc=elytron,dc=wildfly,dc=org" referral-mode="THROW" ssl-context="LdapSslContext" url="ldaps://localhost:11391/" connection-timeout="6000" read-timeout="10000">
+           <properties>
+               <property name="java.naming.dns.url" value="dns://dnsserver/wiz.com"/>
+           </properties>
+       </dir-context>
    </dir-contexts>
 </subsystem>
