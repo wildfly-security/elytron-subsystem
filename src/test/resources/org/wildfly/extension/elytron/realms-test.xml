@@ -2,7 +2,7 @@
 <subsystem xmlns="urn:wildfly:elytron:1.0">
     <security-realms>
 
-        <properties-realm name="HashedPropertyRealm">
+        <properties-realm name="HashedPropertyRealm" default-realm="Hashed">
             <users-properties path="target/test-classes/org/wildfly/extension/elytron/users-hashed.properties" />
         </properties-realm>
 
