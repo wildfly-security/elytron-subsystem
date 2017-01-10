@@ -375,7 +375,14 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
         .build();
 
-    static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] {IdentityMappingObjectDefinition.OBJECT_DEFINITION, DIR_CONTEXT, DIRECT_VERIFICATION};
+    static final SimpleAttributeDefinition ALLOW_BLANK_PASSWORD = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ALLOW_BLANK_PASSWORD, ModelType.BOOLEAN, true)
+            .setDefaultValue(new ModelNode(false))
+            .setRequires(ElytronDescriptionConstants.DIRECT_VERIFICATION)
+            .setAllowExpression(true)
+            .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+            .build();
+
+    static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] {IdentityMappingObjectDefinition.OBJECT_DEFINITION, DIR_CONTEXT, DIRECT_VERIFICATION, ALLOW_BLANK_PASSWORD};
 
     private static final AbstractAddStepHandler ADD = new RealmAddHandler();
     private static final OperationStepHandler REMOVE = new TrivialCapabilityServiceRemoveHandler(ADD, MODIFIABLE_SECURITY_REALM_RUNTIME_CAPABILITY, SECURITY_REALM_RUNTIME_CAPABILITY);
@@ -415,7 +422,8 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
             final LdapSecurityRealmBuilder builder = LdapSecurityRealmBuilder.builder();
 
             if (DIRECT_VERIFICATION.resolveModelAttribute(context, model).asBoolean()) {
-                builder.addDirectEvidenceVerification();
+                boolean allowBlankPassword = ALLOW_BLANK_PASSWORD.resolveModelAttribute(context, model).asBoolean();
+                builder.addDirectEvidenceVerification(allowBlankPassword);
             }
 
             TrivialService<SecurityRealm> ldapRealmService = new TrivialService<>(builder::build);

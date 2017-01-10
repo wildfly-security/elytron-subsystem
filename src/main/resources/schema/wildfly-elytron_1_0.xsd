@@ -1083,7 +1083,14 @@
                 <xs:attribute name="direct-verification" type="xs:boolean" use="optional" default="false">
                     <xs:annotation>
                         <xs:documentation>
-                            Should this realm instance support verification of credentials by directly connecting to LDAP as the account being authenticated.
+                            Should this realm instance support verification of credentials by directly connecting to LDAP as the account being authenticated?
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+                <xs:attribute name="allow-blank-password" type="xs:boolean" use="optional" default="false">
+                    <xs:annotation>
+                        <xs:documentation>
+                            Should direct verification in this realm to allow login attempt with blank password?
                         </xs:documentation>
                     </xs:annotation>
                 </xs:attribute>
