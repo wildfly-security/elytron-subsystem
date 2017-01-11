@@ -139,11 +139,11 @@ public class DomainTestCase extends AbstractSubsystemTest {
         SecurityDomain domain = (SecurityDomain) services.getContainer().getService(serviceName).getValue();
         Assert.assertNotNull(domain);
 
-        Assert.assertFalse(domain.mapName("wrong").exists());
-        Assert.assertFalse(domain.mapName("firstUser@wrongRealm").exists());
-        Assert.assertTrue(domain.mapName("firstUser").exists());
-        Assert.assertTrue(domain.mapName("user1@PropRealm").exists());
-        Assert.assertTrue(domain.mapPrincipal(new NamePrincipal("user1@PropRealm")).exists());
+        Assert.assertFalse(domain.getIdentity("wrong").exists());
+        Assert.assertFalse(domain.getIdentity("firstUser@wrongRealm").exists());
+        Assert.assertTrue(domain.getIdentity("firstUser").exists());
+        Assert.assertTrue(domain.getIdentity("user1@PropRealm").exists());
+        Assert.assertTrue(domain.getIdentity(new NamePrincipal("user1@PropRealm")).exists());
     }
 
     @Test
@@ -153,19 +153,19 @@ public class DomainTestCase extends AbstractSubsystemTest {
         SecurityDomain domain = (SecurityDomain) services.getContainer().getService(serviceName).getValue();
         Assert.assertNotNull(domain);
 
-        Assert.assertTrue(domain.mapPrincipal(new X500Principal("cn=firstUser,ou=group")).exists());
+        Assert.assertTrue(domain.getIdentity(new X500Principal("cn=firstUser,ou=group")).exists());
 
         serviceName = Capabilities.SECURITY_DOMAIN_RUNTIME_CAPABILITY.getCapabilityServiceName("X500DomainTwo");
         domain = (SecurityDomain) services.getContainer().getService(serviceName).getValue();
         Assert.assertNotNull(domain);
-        Assert.assertTrue(domain.mapPrincipal(new X500Principal("dc=com,dc=redhat,dc=example,ou=group,cn=First User,cn=firstUser,cn=User,cn=Users")).exists());
+        Assert.assertTrue(domain.getIdentity(new X500Principal("dc=com,dc=redhat,dc=example,ou=group,cn=First User,cn=firstUser,cn=User,cn=Users")).exists());
         // The given principal is missing the required OU component
-        Assert.assertFalse(domain.mapPrincipal(new X500Principal("cn=John Smith,cn=jsmith,dc=example,dc=redhat,dc=com")).exists());
+        Assert.assertFalse(domain.getIdentity(new X500Principal("cn=John Smith,cn=jsmith,dc=example,dc=redhat,dc=com")).exists());
 
         serviceName = Capabilities.SECURITY_DOMAIN_RUNTIME_CAPABILITY.getCapabilityServiceName("X500DomainThree");
         domain = (SecurityDomain) services.getContainer().getService(serviceName).getValue();
         Assert.assertNotNull(domain);
-        Assert.assertTrue(domain.mapPrincipal(new X500Principal("cn=John Smith,cn=jsmith,ou=people,dc=example,dc=redhat,dc=com")).exists());
+        Assert.assertTrue(domain.getIdentity(new X500Principal("cn=John Smith,cn=jsmith,ou=people,dc=example,dc=redhat,dc=com")).exists());
     }
 
     @Test
