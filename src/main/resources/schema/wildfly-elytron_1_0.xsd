@@ -1428,10 +1428,18 @@
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
+        <xs:attribute name="reference" type="xs:string" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    The name of LDAP attribute containing DN of entry to obtain value from.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
         <xs:attribute name="filter" type="xs:string" use="optional">
             <xs:annotation>
                 <xs:documentation>
                     The filter to use to obtain the values for a specific attribute.
+                    String "{0}" will be replaced by username, "{1}" by user identity DN.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
