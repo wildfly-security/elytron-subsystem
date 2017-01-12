@@ -42,6 +42,7 @@ interface ElytronDescriptionConstants {
     String ALGORITHM = "algorithm";
     String ALGORITHM_FROM = "algorithm-from";
     String ALLOW_ALL_MECHANISMS = "allow-all-mechanisms";
+    String ALLOW_BLANK_PASSWORD = "allow-blank-password";
     String ALLOW_SASL_MECHANISMS = "allow-sasl-mechanisms";
     String AND = "and";
     String ANONYMOUS = "anonymous";
