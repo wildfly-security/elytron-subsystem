@@ -138,7 +138,7 @@ class ProviderLoaderService implements Service<Provider[]> {
                         Class<?>[] parameterTypes = current.getParameterTypes();
                         if (parameterTypes.length == 1 && parameterTypes[0].isAssignableFrom(InputStream.class)) {
                             try (InputStream is = configurationStreamSupplier.get()) {
-                                provider = (Provider) current.newInstance(configurationStreamSupplier.get());
+                                provider = (Provider) current.newInstance(is);
                             }
                             break;
                         }
@@ -149,7 +149,7 @@ class ProviderLoaderService implements Service<Provider[]> {
                     provider = providerClazz.newInstance();
                     if (configurationStreamSupplier != null) {
                         try (InputStream is = configurationStreamSupplier.get()) {
-                            provider.load(configurationStreamSupplier.get());
+                            provider.load(is);
                         }
                     }
                 }
@@ -174,8 +174,7 @@ class ProviderLoaderService implements Service<Provider[]> {
 
     private static InputStream toInputStream(final File file) {
         try {
-            SecurityActions.doPrivileged((PrivilegedExceptionAction<InputStream>) () -> new FileInputStream(file) );
-            return new FileInputStream(file);
+            return SecurityActions.doPrivileged((PrivilegedExceptionAction<InputStream>) () -> new FileInputStream(file) );
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
