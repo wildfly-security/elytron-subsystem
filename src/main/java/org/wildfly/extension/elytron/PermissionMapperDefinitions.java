@@ -95,13 +95,13 @@ class PermissionMapperDefinitions {
 
     static final StringListAttributeDefinition PRINCIPALS = new StringListAttributeDefinition.Builder(ElytronDescriptionConstants.PRINCIPALS)
             .setAllowExpression(true)
-            .setAllowNull(true)
+            .setRequired(false)
             .setMinSize(1)
             .build();
 
     static final StringListAttributeDefinition ROLES = new StringListAttributeDefinition.Builder(ElytronDescriptionConstants.ROLES)
             .setAllowExpression(true)
-            .setAllowNull(true)
+            .setRequired(false)
             .setMinSize(1)
             .build();
 

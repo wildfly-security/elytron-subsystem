@@ -141,7 +141,7 @@ class SSLDefinitions {
     static final StringListAttributeDefinition PROTOCOLS = new StringListAttributeDefinition.Builder(ElytronDescriptionConstants.PROTOCOLS)
             .setAllowExpression(true)
             .setMinSize(1)
-            .setAllowNull(true)
+            .setRequired(false)
             .setAllowedValues(ALLOWED_PROTOCOLS)
             .setValidator(new StringValuesValidator(ALLOWED_PROTOCOLS))
             .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)

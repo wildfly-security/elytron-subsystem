@@ -62,7 +62,7 @@ public class RealmDefinitions {
 
     static final StringListAttributeDefinition ATTRIBUTE_VALUES = new StringListAttributeDefinition.Builder(ElytronDescriptionConstants.ATTRIBUTE_VALUES)
             .setMinSize(0)
-            .setAllowNull(true)
+            .setRequired(false)
             .setAllowExpression(true)
             .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
             .build();

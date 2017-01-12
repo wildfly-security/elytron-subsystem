@@ -71,35 +71,35 @@ class CertificateChainAttributeDefinitions {
      */
 
     private static final SimpleAttributeDefinition SUBJECT = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.SUBJECT, ModelType.STRING)
-        .setAllowNull(true)
+        .setRequired(false)
         .build();
 
     private static final SimpleAttributeDefinition ISSUER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ISSUER, ModelType.STRING)
-        .setAllowNull(true)
+        .setRequired(false)
         .build();
 
     private static final SimpleAttributeDefinition NOT_AFTER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.NOT_AFTER, ModelType.STRING)
-        .setAllowNull(true)
+        .setRequired(false)
         .build();
 
     private static final SimpleAttributeDefinition NOT_BEFORE = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.NOT_BEFORE, ModelType.STRING)
-        .setAllowNull(true)
+        .setRequired(false)
         .build();
 
     private static final SimpleAttributeDefinition SERIAL_NUMBER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.SERIAL_NUMBER, ModelType.STRING)
-        .setAllowNull(true)
+        .setRequired(false)
         .build();
 
     private static final SimpleAttributeDefinition SIGNATURE_ALGORITHM = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.SIGNATURE_ALGORITHM, ModelType.STRING)
-        .setAllowNull(true)
+        .setRequired(false)
         .build();
 
     private static final SimpleAttributeDefinition SIGNATURE = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.SIGNATURE, ModelType.STRING)
-        .setAllowNull(true)
+        .setRequired(false)
         .build();
 
     private static final SimpleAttributeDefinition VERSION = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.VERSION, ModelType.STRING)
-        .setAllowNull(true)
+        .setRequired(false)
         .build();
 
     // TODO - Consider adding some of the more detailed fields from X509Certificate

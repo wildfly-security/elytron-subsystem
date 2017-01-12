@@ -66,7 +66,7 @@ class FileSystemRealmDefinition extends SimpleResourceDefinition {
     static final SimpleAttributeDefinition PATH =
             new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PATH, FileAttributeDefinitions.PATH)
                     .setAttributeGroup(ElytronDescriptionConstants.FILE)
-                    .setAllowNull(false)
+                    .setRequired(true)
                     .build();
 
     static final SimpleAttributeDefinition RELATIVE_TO =

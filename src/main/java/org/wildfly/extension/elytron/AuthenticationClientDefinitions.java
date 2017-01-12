@@ -133,7 +133,7 @@ class AuthenticationClientDefinitions {
 
     static final StringListAttributeDefinition ALLOW_SASL_MECHANISMS = new StringListAttributeDefinition.Builder(ElytronDescriptionConstants.ALLOW_SASL_MECHANISMS)
             .setMinSize(0)
-            .setAllowNull(true)
+            .setRequired(false)
             .setAllowExpression(true)
             .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
             .setAlternatives(ElytronDescriptionConstants.ALLOW_ALL_MECHANISMS)
@@ -141,7 +141,7 @@ class AuthenticationClientDefinitions {
 
     static final StringListAttributeDefinition FORBID_SASL_MECHANISMS = new StringListAttributeDefinition.Builder(ElytronDescriptionConstants.FORBID_SASL_MECHANISMS)
             .setMinSize(0)
-            .setAllowNull(true)
+            .setRequired(false)
             .setAllowExpression(true)
             .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
             .build();

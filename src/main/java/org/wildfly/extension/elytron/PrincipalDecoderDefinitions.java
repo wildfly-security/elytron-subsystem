@@ -101,14 +101,14 @@ class PrincipalDecoderDefinitions {
         .build();
 
     static final StringListAttributeDefinition REQUIRED_OIDS = new StringListAttributeDefinition.Builder(ElytronDescriptionConstants.REQUIRED_OIDS)
-        .setAllowNull(true)
+        .setRequired(false)
         .setAllowExpression(true)
         .setMinSize(1)
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
         .build();
 
     static final StringListAttributeDefinition REQUIRED_ATTRIBUTES = new StringListAttributeDefinition.Builder(ElytronDescriptionConstants.REQUIRED_ATTRIBUTES)
-        .setAllowNull(true)
+        .setRequired(false)
         .setMinSize(1)
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
         .build();
@@ -121,7 +121,7 @@ class PrincipalDecoderDefinitions {
 
     static final StringListAttributeDefinition PRINCIPAL_DECODERS = new StringListAttributeDefinition.Builder(ElytronDescriptionConstants.PRINCIPAL_DECODERS)
         .setMinSize(2)
-        .setAllowNull(false)
+        .setRequired(true)
         .setCapabilityReference(PRINCIPAL_DECODER_RUNTIME_CAPABILITY.getName(), PRINCIPAL_DECODER_RUNTIME_CAPABILITY.getName(), true)
         .build();
 

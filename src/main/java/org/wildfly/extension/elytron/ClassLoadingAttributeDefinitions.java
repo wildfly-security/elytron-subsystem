@@ -47,7 +47,7 @@ class ClassLoadingAttributeDefinitions {
     static final StringListAttributeDefinition CLASS_NAMES = new StringListAttributeDefinition.Builder(ElytronDescriptionConstants.CLASS_NAMES)
         .setAttributeGroup(ElytronDescriptionConstants.CLASS_LOADING)
         .setAllowExpression(false)
-        .setAllowNull(true)
+        .setRequired(false)
         .build();
 
     static ClassLoader resolveClassLoader(String module) throws ModuleLoadException {

@@ -89,13 +89,13 @@ class TokenRealmDefinition extends SimpleResourceDefinition {
 
         static final StringListAttributeDefinition ISSUER = new StringListAttributeDefinition.Builder(ElytronDescriptionConstants.ISSUER)
                 .setAllowExpression(true)
-                .setAllowNull(true)
+                .setRequired(false)
                 .setMinSize(1)
                 .build();
 
         static final StringListAttributeDefinition AUDIENCE = new StringListAttributeDefinition.Builder(ElytronDescriptionConstants.AUDIENCE)
                 .setAllowExpression(true)
-                .setAllowNull(true)
+                .setRequired(false)
                 .setMinSize(1)
                 .build();
 
@@ -141,7 +141,7 @@ class TokenRealmDefinition extends SimpleResourceDefinition {
                 .build();
 
         static final SimpleAttributeDefinition HOSTNAME_VERIFICATION_POLICY = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.HOST_NAME_VERIFICATION_POLICY, ModelType.STRING, true)
-                .setValidator(new EnumValidator(HostnameVerificationPolicy.class, true, true))
+                .setValidator(new EnumValidator<>(HostnameVerificationPolicy.class, true, true))
                 .setAllowExpression(true)
                 .setMinSize(1)
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
