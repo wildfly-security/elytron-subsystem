@@ -102,6 +102,12 @@ class PropertiesRealmDefinition extends TrivialResourceDefinition {
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
         .build();
 
+    static final SimpleAttributeDefinition DEFAULT_REALM = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.DEFAULT_REALM, ModelType.STRING, true)
+        .setDefaultValue(new ModelNode(false))
+        .setAllowExpression(true)
+        .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+        .build();
+
     static final SimpleAttributeDefinition GROUPS_ATTRIBUTE = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.GROUPS_ATTRIBUTE, ModelType.STRING, true)
         .setDefaultValue(new ModelNode(ElytronDescriptionConstants.GROUPS))
         .setAllowExpression(true)
@@ -112,7 +118,7 @@ class PropertiesRealmDefinition extends TrivialResourceDefinition {
         .setStorageRuntime()
         .build();
 
-    static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] { USERS_PROPERTIES, GROUPS_PROPERTIES, PLAIN_TEXT, GROUPS_ATTRIBUTE };
+    static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] { USERS_PROPERTIES, GROUPS_PROPERTIES, PLAIN_TEXT, DEFAULT_REALM, GROUPS_ATTRIBUTE };
 
     // Resource Resolver
 
@@ -134,6 +140,7 @@ class PropertiesRealmDefinition extends TrivialResourceDefinition {
             final String groupsPath;
             final String groupsRelativeTo;
             final boolean plainText = PLAIN_TEXT.resolveModelAttribute(context, model).asBoolean();
+            final String defaultRealm = asStringIfDefined(context, DEFAULT_REALM, model);
             final String groupsAttribute = GROUPS_ATTRIBUTE.resolveModelAttribute(context, model).asString();
 
             ModelNode usersProperties = USERS_PROPERTIES.resolveModelAttribute(context, model);
@@ -177,6 +184,7 @@ class PropertiesRealmDefinition extends TrivialResourceDefinition {
                                 .setGroupsStream(groupsInputStream)
                                 .setPlainText(plainText)
                                 .setGroupsAttribute(groupsAttribute)
+                                .setDefaultRealm(defaultRealm)
                                 .build(), usersFile, groupsFile);
 
                     } catch (FileNotFoundException e) {

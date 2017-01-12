@@ -80,7 +80,7 @@
             </security-domain>
         </replacement>
         <replacement placeholder="REALM_DEFINITIONS">
-             <properties-realm name="ApplicationRealm">
+             <properties-realm name="ApplicationRealm" default-realm="ApplicationRealm">
                 <users-properties path="application-users.properties" relative-to="jboss.domain.config.dir" />
                 <groups-properties path="application-roles.properties" relative-to="jboss.domain.config.dir" />
             </properties-realm>
@@ -114,7 +114,7 @@
             </security-domain>
         </replacement>
         <replacement placeholder="REALM_DEFINITIONS">
-            <properties-realm name="ManagementRealm">
+            <properties-realm name="ManagementRealm" default-realm="ManagementRealm">
                 <users-properties path="mgmt-users.properties" relative-to="jboss.domain.config.dir" />
                 <groups-properties path="mgmt-groups.properties" relative-to="jboss.domain.config.dir" />
             </properties-realm>
@@ -153,12 +153,12 @@
         </replacement>
 
         <replacement placeholder="REALM_DEFINITIONS">
-             <properties-realm name="ApplicationRealm">
+             <properties-realm name="ApplicationRealm" default-realm="ApplicationRealm">
                 <users-properties path="application-users.properties" relative-to="jboss.server.config.dir" />
                 <groups-properties path="application-roles.properties" relative-to="jboss.server.config.dir" />
             </properties-realm>
 
-            <properties-realm name="ManagementRealm">
+            <properties-realm name="ManagementRealm" default-realm="ManagementRealm">
                 <users-properties path="mgmt-users.properties" relative-to="jboss.server.config.dir" />
                 <groups-properties path="mgmt-groups.properties" relative-to="jboss.server.config.dir" />
             </properties-realm>

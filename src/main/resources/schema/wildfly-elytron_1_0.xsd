@@ -1049,6 +1049,13 @@
                         </xs:documentation>
                     </xs:annotation>
                 </xs:attribute>
+                <xs:attribute name="default-realm" type="xs:string">
+                    <xs:annotation>
+                        <xs:documentation>
+                            The realm name to use if one is not discovered in the properties file.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
                 <xs:attribute name="groups-attribute" type="xs:string" default="groups">
                     <xs:annotation>
                         <xs:documentation>
