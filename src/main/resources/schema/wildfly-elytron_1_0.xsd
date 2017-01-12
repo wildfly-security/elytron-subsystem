@@ -1240,6 +1240,15 @@
                 The configuration options that define how to connect to the LDAP server.
             </xs:documentation>
         </xs:annotation>
+        <xs:sequence>
+            <xs:element name="properties" minOccurs="0">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="property" type="propertyType" maxOccurs="unbounded" />
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
         <xs:attribute name="name" type="xs:string" use="required">
             <xs:annotation>
                 <xs:documentation>
