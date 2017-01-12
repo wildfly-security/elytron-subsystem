@@ -68,6 +68,7 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.OAUTH2_I
 import static org.wildfly.extension.elytron.TokenRealmDefinition.JwtValidatorAttributes.AUDIENCE;
 import static org.wildfly.extension.elytron.TokenRealmDefinition.JwtValidatorAttributes.ISSUER;
 import static org.wildfly.extension.elytron.TokenRealmDefinition.JwtValidatorAttributes.PUBLIC_KEY;
+import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
 
 
 /**
@@ -128,6 +129,7 @@ class TokenRealmDefinition extends SimpleResourceDefinition {
 
         static final SimpleAttributeDefinition INTROSPECTION_URL = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.INTROSPECTION_URL, ModelType.STRING, false)
                 .setAllowExpression(true)
+                .setValidator(new URLValidator())
                 .setMinSize(1)
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
@@ -309,6 +311,26 @@ class TokenRealmDefinition extends SimpleResourceDefinition {
         protected ServiceName getParentServiceName(PathAddress parentAddress) {
             final String name = parentAddress.getLastElement().getValue();
             return MODIFIABLE_SECURITY_REALM_RUNTIME_CAPABILITY.fromBaseCapability(name).getCapabilityServiceName();
+        }
+    }
+
+    private static class URLValidator extends StringLengthValidator {
+
+        private URLValidator() {
+            super(1, false, false);
+        }
+
+        @Override
+        public void validateParameter(String parameterName, ModelNode value) throws OperationFailedException {
+            super.validateParameter(parameterName, value);
+
+            String url = value.asString();
+
+            try {
+                new URL(url);
+            } catch (MalformedURLException e) {
+                throw ROOT_LOGGER.invalidURL(url, e);
+            }
         }
     }
 }
