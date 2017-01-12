@@ -249,7 +249,7 @@ class ProviderLoaderService implements Service<Provider[]> {
     }
 
     private void unregisterProviders() {
-        for (int i = providers.length - 1; i < 0; i--) {
+        for (int i = providers.length - 1; i >= 0; i--) {
             Security.removeProvider(providers[i].getName());
         }
     }
