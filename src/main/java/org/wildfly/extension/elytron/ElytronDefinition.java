@@ -270,15 +270,13 @@ class ElytronDefinition extends SimpleResourceDefinition {
             installService(SecurityPropertyService.SERVICE_NAME, new SecurityPropertyService(), target);
             installService(CoreService.SERVICE_NAME, new CoreService(), target);
 
-            if (context.isNormalServer()) {
-                context.addStep(new AbstractDeploymentChainStep() {
-                    @Override
-                    protected void execute(DeploymentProcessorTarget processorTarget) {
-                        processorTarget.addDeploymentProcessor(ElytronExtension.SUBSYSTEM_NAME, Phase.CONFIGURE_MODULE, Phase.CONFIGURE_AUTHENTICATION_CONTEXT, AUTHENITCATION_CONTEXT_PROCESSOR);
-                        processorTarget.addDeploymentProcessor(ElytronExtension.SUBSYSTEM_NAME, Phase.FIRST_MODULE_USE, Phase.FIRST_MODULE_USE_AUTHENTICATION_CONTEXT, new AuthenticationContextAssociationProcessor());
-                    }
-                }, Stage.RUNTIME);
-            }
+            context.addStep(new AbstractDeploymentChainStep() {
+                @Override
+                protected void execute(DeploymentProcessorTarget processorTarget) {
+                    processorTarget.addDeploymentProcessor(ElytronExtension.SUBSYSTEM_NAME, Phase.CONFIGURE_MODULE, Phase.CONFIGURE_AUTHENTICATION_CONTEXT, AUTHENITCATION_CONTEXT_PROCESSOR);
+                    processorTarget.addDeploymentProcessor(ElytronExtension.SUBSYSTEM_NAME, Phase.FIRST_MODULE_USE, Phase.FIRST_MODULE_USE_AUTHENTICATION_CONTEXT, new AuthenticationContextAssociationProcessor());
+                }
+            }, Stage.RUNTIME);
         }
 
         @Override
