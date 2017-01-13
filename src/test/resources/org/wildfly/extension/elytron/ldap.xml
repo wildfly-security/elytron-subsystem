@@ -1,5 +1,14 @@
 <!-- for needs of LdapTestCase -->
 <subsystem xmlns="urn:wildfly:elytron:1.0" initial-providers="elytron">
+   <authentication-client>
+      <authentication-configuration name="ldapAuthConfig" authentication-name="uid=server,dc=users,dc=elytron,dc=wildfly,dc=org">
+         <credential-reference clear-text="serverPassword"/>
+      </authentication-configuration>
+      <authentication-context name="ldapAuthContext">
+         <match-rule match-host="localhost" match-purpose="dir-context-connect" match-protocol="ldaps" authentication-configuration="ldapAuthConfig" ssl-context="LdapSslContext"/>
+         <match-rule match-host="localhost" match-purpose="dir-context-connect" match-protocol="ldap" authentication-configuration="ldapAuthConfig"/>
+      </authentication-context>
+   </authentication-client>
    <providers>
       <provider-loader name="elytron" class-names="org.wildfly.security.WildFlyElytronProvider" />
    </providers>
@@ -58,12 +67,14 @@
       </client-ssl-contexts>
    </tls>
    <dir-contexts>
-      <dir-context authentication-level="none" name="DirContextInsecure" url="ldap://localhost:11391/"/>
-      <dir-context name="DirContextSsl" principal="uid=server,dc=users,dc=elytron,dc=wildfly,dc=org" referral-mode="THROW" ssl-context="LdapSslContext" url="ldaps://localhost:11391/" connection-timeout="6000" read-timeout="10000">
-         <credential-reference clear-text="serverPassword"/>
+      <dir-context authentication-level="none" authentication-context="ldapAuthContext" name="DirContextInsecure" url="ldap://localhost:11391/"/>
+      <dir-context name="DirContextSsl" authentication-context="ldapAuthContext" referral-mode="THROW" url="ldaps://localhost:11391/" connection-timeout="6000" read-timeout="10000">
          <properties>
             <property name="java.naming.dns.url" value="dns://dnsserver/wiz.com"/>
          </properties>
+      </dir-context>
+      <dir-context name="DirContextSslCredential" url="ldaps://localhost:11391/" principal="uid=server,dc=users,dc=elytron,dc=wildfly,dc=org" ssl-context="LdapSslContext">
+         <credential-reference clear-text="serverPassword"/>
       </dir-context>
    </dir-contexts>
 </subsystem>
