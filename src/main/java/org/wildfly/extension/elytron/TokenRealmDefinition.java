@@ -55,6 +55,7 @@ import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -226,7 +227,7 @@ class TokenRealmDefinition extends SimpleResourceDefinition {
                         }
 
                         if (publicKey != null) {
-                            jwtValidatorBuilder.publicKey(publicKey.getBytes());
+                            jwtValidatorBuilder.publicKey(publicKey.getBytes(StandardCharsets.UTF_8));
                         }
 
                         return TokenSecurityRealm.builder().principalClaimName(principalClaimNode.asString())
