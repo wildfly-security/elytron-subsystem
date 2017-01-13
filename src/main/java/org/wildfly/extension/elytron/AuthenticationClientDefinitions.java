@@ -315,10 +315,10 @@ class AuthenticationClientDefinitions {
                     configuration = configuration.andThen(c -> c.useMechanismProperties(propertiesMap));
                 }
 
-                final InjectedValue<ExceptionSupplier<CredentialSource, Exception>> credentialSourceSupplierInjector = new InjectedValue<>();
-                credentialSourceSupplierInjector.inject(
-                        CredentialStoreResourceDefinition.createCredentialSource(context, model, serviceBuilder)
-                );
+                ModelNode credentialReference = CREDENTIAL_REFERENCE.resolveModelAttribute(context, model);
+                if (credentialReference.isDefined()) {
+                    final InjectedValue<ExceptionSupplier<CredentialSource, Exception>> credentialSourceSupplierInjector = new InjectedValue<>();
+                    credentialSourceSupplierInjector.inject(CredentialStoreResourceDefinition.createCredentialSource(context, model, serviceBuilder));
 
 /*
                 String credentialStoreName = credentialReferencePartAsStringIfDefined(context, CREDENTIAL_REFERENCE, model, CredentialReference.STORE);
@@ -352,19 +352,21 @@ class AuthenticationClientDefinitions {
                     });
                 }
 */
-                configuration = configuration.andThen( c -> {
-                    ExceptionSupplier<CredentialSource, Exception> sourceSupplier = credentialSourceSupplierInjector.getValue();
-                    try {
-                        CredentialSource cs = sourceSupplier.get();
-                        if (cs != null) {
-                            return c.usePassword(cs.getCredential(PasswordCredential.class).getPassword());
-                        } else {
-                            throw ROOT_LOGGER.credentialCannotBeResolved();
+                    configuration = configuration.andThen(c -> {
+                        ExceptionSupplier<CredentialSource, Exception> sourceSupplier = credentialSourceSupplierInjector
+                                .getValue();
+                        try {
+                            CredentialSource cs = sourceSupplier.get();
+                            if (cs != null) {
+                                return c.usePassword(cs.getCredential(PasswordCredential.class).getPassword());
+                            } else {
+                                throw ROOT_LOGGER.credentialCannotBeResolved();
+                            }
+                        } catch (Exception e) {
+                            throw new IllegalStateException(e);
                         }
-                    } catch (Exception e) {
-                        throw new IllegalStateException(e);
-                    }
-                });
+                    });
+                }
 
                 final Function<AuthenticationConfiguration, AuthenticationConfiguration> finalConfiguration = configuration;
                 return () -> finalConfiguration.apply(null);
