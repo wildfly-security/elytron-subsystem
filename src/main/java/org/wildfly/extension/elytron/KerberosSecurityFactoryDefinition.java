@@ -86,6 +86,12 @@ class KerberosSecurityFactoryDefinition {
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
         .build();
 
+    static final SimpleAttributeDefinition OBTAIN_KERBEROS_TICKET = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.OBTAIN_KERBEROS_TICKET, ModelType.BOOLEAN, true)
+        .setAllowExpression(true)
+        .setDefaultValue(new ModelNode(false))
+        .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+        .build();
+
     static final SimpleAttributeDefinition DEBUG = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.DEBUG, ModelType.STRING, true)
         .setAllowExpression(true)
         .setDefaultValue(new ModelNode(false))
@@ -100,7 +106,7 @@ class KerberosSecurityFactoryDefinition {
         .build();
 
     static ResourceDefinition getKerberosSecurityFactoryDefinition() {
-        final AttributeDefinition[] attributes = new AttributeDefinition[] { PRINCIPAL, RELATIVE_TO, PATH,  MINIMUM_REMAINING_LIFETIME, REQUEST_LIFETIME, SERVER, DEBUG, MECHANISM_OIDS };
+        final AttributeDefinition[] attributes = new AttributeDefinition[] { PRINCIPAL, RELATIVE_TO, PATH,  MINIMUM_REMAINING_LIFETIME, REQUEST_LIFETIME, SERVER, OBTAIN_KERBEROS_TICKET, DEBUG, MECHANISM_OIDS };
         TrivialAddHandler<CredentialSecurityFactory> add = new TrivialAddHandler<CredentialSecurityFactory>(CredentialSecurityFactory.class, attributes, SECURITY_FACTORY_CREDENTIAL_RUNTIME_CAPABILITY) {
 
             @Override
@@ -109,6 +115,7 @@ class KerberosSecurityFactoryDefinition {
                 final int minimumRemainingLifetime = MINIMUM_REMAINING_LIFETIME.resolveModelAttribute(context, model).asInt();
                 final int requestLifetime = REQUEST_LIFETIME.resolveModelAttribute(context, model).asInt();
                 final boolean server = SERVER.resolveModelAttribute(context, model).asBoolean();
+                final boolean obtainKerberosTicket = OBTAIN_KERBEROS_TICKET.resolveModelAttribute(context, model).asBoolean();
                 final boolean debug = DEBUG.resolveModelAttribute(context, model).asBoolean();
                 final List<Oid> mechanaismOids = MECHANISM_OIDS.unwrap(context, model).stream().map(s -> {
                     try {
@@ -141,6 +148,7 @@ class KerberosSecurityFactoryDefinition {
                         .setMinimumRemainingLifetime(minimumRemainingLifetime)
                         .setRequestLifetime(requestLifetime)
                         .setIsServer(server)
+                        .setObtainKerberosTicket(obtainKerberosTicket)
                         .setDebug(debug);
                     mechanaismOids.forEach(builder::addMechanismOid);
 

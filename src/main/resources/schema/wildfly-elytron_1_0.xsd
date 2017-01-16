@@ -1740,6 +1740,15 @@
                         </xs:documentation>
                     </xs:annotation>
                 </xs:attribute>
+                <xs:attribute name="obtain-kerberos-ticket" type="xs:boolean" default="false">
+                    <xs:annotation>
+                        <xs:documentation>
+                            Should the KerberosTicket also be obtained and associated with the credential.
+                            
+                            This is required to be true where credentials are delegated to the server.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
                 <xs:attribute name="debug" type="xs:boolean" default="false">
                     <xs:annotation>
                         <xs:documentation>
