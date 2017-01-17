@@ -283,7 +283,7 @@ class SSLDefinitions {
 
                 final InjectedValue<ExceptionSupplier<CredentialSource, Exception>> credentialSourceSupplierInjector = new InjectedValue<>();
                 credentialSourceSupplierInjector.inject(
-                        CredentialStoreResourceDefinition.createCredentialSource(context, model, serviceBuilder)
+                        CredentialReference.getCredentialSourceSupplier(context, credentialReference, model, serviceBuilder)
                 );
 
                 return () -> {

@@ -18,7 +18,6 @@
 
 package org.wildfly.extension.elytron;
 
-import static org.jboss.as.controller.security.CredentialReference.credentialReferencePartAsStringIfDefined;
 import static org.wildfly.extension.elytron.Capabilities.CREDENTIAL_STORE_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.CREDENTIAL_STORE_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.PROVIDERS_CAPABILITY;
@@ -30,10 +29,7 @@ import static org.wildfly.extension.elytron.ServiceStateDefinition.STATE;
 import static org.wildfly.extension.elytron.ServiceStateDefinition.populateResponse;
 import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
 
-import java.io.IOException;
 import java.security.Provider;
-import java.security.spec.AlgorithmParameterSpec;
-import java.util.StringTokenizer;
 
 import org.jboss.as.controller.AbstractAddStepHandler;
 import org.jboss.as.controller.AbstractRuntimeOnlyHandler;
@@ -70,17 +66,8 @@ import org.jboss.msc.service.ServiceController.State;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.ServiceTarget;
 import org.jboss.msc.service.StartException;
-import org.jboss.msc.value.InjectedValue;
-import org.wildfly.common.function.ExceptionSupplier;
-import org.wildfly.security.auth.SupportLevel;
-import org.wildfly.security.credential.Credential;
-import org.wildfly.security.credential.PasswordCredential;
-import org.wildfly.security.credential.source.CommandCredentialSource;
-import org.wildfly.security.credential.source.CredentialSource;
-import org.wildfly.security.credential.source.CredentialStoreCredentialSource;
 import org.wildfly.security.credential.store.CredentialStore;
 import org.wildfly.security.credential.store.CredentialStoreException;
-import org.wildfly.security.password.interfaces.ClearPassword;
 
 /**
  * A {@link ResourceDefinition} for a CredentialStore.
@@ -224,7 +211,7 @@ final class CredentialStoreResourceDefinition extends SimpleResourceDefinition {
             }
 
             csService.getCredentialSourceSupplierInjector()
-                    .inject(CredentialStoreResourceDefinition.createCredentialSource(context, model, credentialStoreServiceBuilder));
+                    .inject(CredentialReference.getCredentialSourceSupplier(context, CredentialStoreResourceDefinition.CREDENTIAL_REFERENCE, model, credentialStoreServiceBuilder));
 
             commonDependencies(credentialStoreServiceBuilder);
             ServiceController<CredentialStore> credentialStoreServiceController = credentialStoreServiceBuilder.install();
@@ -333,85 +320,6 @@ final class CredentialStoreResourceDefinition extends SimpleResourceDefinition {
         }
 
         return credentialStoreName;
-    }
-
-    static ExceptionSupplier<CredentialSource, Exception> createCredentialSource(OperationContext context, ModelNode model, ServiceBuilder<?> serviceBuilder) throws OperationFailedException {
-
-        String credentialStoreName = credentialReferencePartAsStringIfDefined(context, CREDENTIAL_REFERENCE, model, CredentialReference.STORE);
-        String credentialAlias = credentialReferencePartAsStringIfDefined(context, CREDENTIAL_REFERENCE, model, CredentialReference.ALIAS);
-        String credentialType = credentialReferencePartAsStringIfDefined(context, CREDENTIAL_REFERENCE, model, CredentialReference.TYPE);
-        String secret = credentialReferencePartAsStringIfDefined(context, CREDENTIAL_REFERENCE, model, CredentialReference.CLEAR_TEXT);
-
-        final InjectedValue<CredentialStore> credentialStoreInjectedValue = new InjectedValue<>();
-        if (credentialAlias != null) {
-            // use credential store service
-            String credentialStoreCapabilityName = RuntimeCapability.buildDynamicCapabilityName(CREDENTIAL_STORE_CAPABILITY, credentialStoreName);
-            ServiceName credentialStoreServiceName = context.getCapabilityServiceName(credentialStoreCapabilityName, CredentialStore.class);
-            serviceBuilder.addDependency(ServiceBuilder.DependencyType.REQUIRED, credentialStoreServiceName, CredentialStore.class, credentialStoreInjectedValue);
-        }
-
-        return new ExceptionSupplier<CredentialSource, Exception>() {
-
-            private String[] parseCommand(String command) {
-                // comma can be back slashed
-                final String[] parsedCommand = command.split("(?<!\\\\),");
-                for (int k = 0; k < parsedCommand.length; k++) {
-                    if (parsedCommand[k].indexOf('\\') != -1)
-                        parsedCommand[k] = parsedCommand[k].replaceAll("\\\\,", ",");
-                }
-                return parsedCommand;
-            }
-
-            private String stripType(String commandSpec) {
-                StringTokenizer tokenizer = new StringTokenizer(commandSpec, "{}");
-                tokenizer.nextToken();
-                return tokenizer.nextToken();
-            }
-
-            /**
-             * Gets a Credential Store Supplier.
-             *
-             * @return a supplier
-             */
-            @Override
-            public CredentialSource get() throws Exception {
-                if (credentialAlias != null) {
-                    return new CredentialStoreCredentialSource(credentialStoreInjectedValue.getValue(), credentialAlias);
-                } else if (credentialType != null && credentialType.equalsIgnoreCase("COMMAND")) {
-                    // this is temporary solution until properly moved to WF-CORE
-                    CommandCredentialSource.Builder command = CommandCredentialSource.builder();
-                    String commandSpec = secret.trim();
-                    if (commandSpec.startsWith("{EXT")) {
-                        commandSpec = stripType(commandSpec);
-                        command.addCommand(commandSpec);
-                    } else if (commandSpec.startsWith("{CMD")) {
-                        String[] parts = parseCommand(stripType(commandSpec));
-                        for(String part: parts) {
-                            command.addCommand(part);
-                        }
-                    }
-                    return command.build();
-                } else if (secret != null && secret.startsWith("MASK-")) {
-                    if (credentialStoreName != null) {
-                        return new CredentialStoreCredentialSource(credentialStoreInjectedValue.getValue(), secret.substring("MASK-".length()));
-                    }
-                    throw ROOT_LOGGER.nameOfCredentialStoreHasToBeSpecified();
-                } else {
-                    // clear text password
-                    return new CredentialSource() {
-                        @Override
-                        public SupportLevel getCredentialAcquireSupport(Class<? extends Credential> credentialType, String algorithmName, AlgorithmParameterSpec parameterSpec) throws IOException {
-                            return credentialType == PasswordCredential.class ? SupportLevel.SUPPORTED : SupportLevel.UNSUPPORTED;
-                        }
-
-                        @Override
-                        public <C extends Credential> C getCredential(Class<C> credentialType, String algorithmName, AlgorithmParameterSpec parameterSpec) throws IOException {
-                            return credentialType.cast(new PasswordCredential(ClearPassword.createRaw(ClearPassword.ALGORITHM_CLEAR, secret.toCharArray())));
-                        }
-                    };
-                }
-            }
-        };
     }
 
 }
