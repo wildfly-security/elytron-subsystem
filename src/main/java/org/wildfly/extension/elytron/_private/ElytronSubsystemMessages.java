@@ -272,6 +272,9 @@ public interface ElytronSubsystemMessages extends BasicLogger {
     @Message(id = 29, value = "Failed to parse URL '%s'")
     OperationFailedException invalidURL(String url, @Cause Exception cause);
 
+    @Message(id = 30, value = "Realm '%s' does not support cache")
+    StartException realmDoesNotSupportCache(String realmName);
+
     // CREDENTIAL_STORE section
     @Message(id = 909, value = "Credential store '%s' does not support given credential store entry type '%s'")
     IllegalArgumentException credentialStoreEntryTypeNotSupported(String credentialStoreName, String entryType);

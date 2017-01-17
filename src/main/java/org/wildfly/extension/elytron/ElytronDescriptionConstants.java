@@ -67,6 +67,7 @@ interface ElytronDescriptionConstants {
     String BCRYPT = "bcrypt";
     String BCRYPT_MAPPER = "bcrypt-mapper";
 
+    String CACHING_REALM = "caching-realm";
     String CERTIFICATE = "certificate";
     String CERTIFICATE_ATTRIBUTE = "certificate-attribute";
     String CERTIFICATE_CHAIN = "certificate-chain";
@@ -81,6 +82,7 @@ interface ElytronDescriptionConstants {
     String CLASS_NAME = "class-name";
     String CLASS_NAMES = "class-names";
     String CLEAR = "clear";
+    String CLEAR_CACHE = "clear-cache";
     String CLEAR_PASSWORD_MAPPER = "clear-password-mapper";
     String CLIENT_ID = "client-id";
     String CLIENT_SECRET = "client-secret";
@@ -232,6 +234,7 @@ interface ElytronDescriptionConstants {
     String MATCH_RULES = "match-rules";
     String MATCH_URN = "match-urn";
     String MATCH_USER = "match-user";
+    String MAXIMUM_ENTRIES = "maximum-entries";
     String MAXIMUM_SEGMENTS = "maximum-segments";
     String MAXIMUM_SESSION_CACHE_SIZE = "maximum-session-cache-size";
     String MECHANISM = "mechanism";
