@@ -125,6 +125,22 @@ uid: refUser
 userPassword:: cGxhaW5QYXNzd29yZA==
 # Password plainPassword
 
+dn: cn=RN1,dc=elytron,dc=wildfly,dc=org
+objectclass: top
+objectclass: organizationalRole
+cn: RN1
+postalCode: RN1post
+street: StreetOfRoleByName1
+description: plainUser
+
+dn: cn=RN2,dc=elytron,dc=wildfly,dc=org
+objectclass: top
+objectclass: organizationalRole
+cn: RN2
+postalCode: RN2post
+street: StreetOfRoleByName2
+description: RN1post
+
 # === LDAP keystore ===
 # Base64 attributes can be generated from PEMs+keystore using ldap-keystore-gen.sh
 # utility in wildfly-elytron tests.

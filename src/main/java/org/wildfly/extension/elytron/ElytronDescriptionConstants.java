@@ -337,6 +337,7 @@ interface ElytronDescriptionConstants {
     String RIGHT = "right";
     String ROLE_DECODER = "role-decoder";
     String ROLE_RECURSION = "role-recursion";
+    String ROLE_RECURSION_NAME = "role-recursion-name";
     String ROLE_MAPPER = "role-mapper";
     String ROLE_MAPPERS = "role-mappers";
     String ROLES = "roles";

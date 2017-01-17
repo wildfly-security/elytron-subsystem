@@ -1487,6 +1487,14 @@
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
+        <xs:attribute name="role-recursion-name" type="xs:string" use="optional" default="cn">
+            <xs:annotation>
+                <xs:documentation>
+                    Determine LDAP attribute of role entry which will be substitute for "{0}" in filter-name when searching roles of role.
+                    Used only when role-recursion is set.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
         <xs:attribute name="extract-rdn" type="xs:string" use="optional">
             <xs:annotation>
                 <xs:documentation>
