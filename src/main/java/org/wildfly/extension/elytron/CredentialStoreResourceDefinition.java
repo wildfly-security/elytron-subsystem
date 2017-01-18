@@ -34,6 +34,7 @@ import java.security.Provider;
 import org.jboss.as.controller.AbstractAddStepHandler;
 import org.jboss.as.controller.AbstractRuntimeOnlyHandler;
 import org.jboss.as.controller.AttributeDefinition;
+import org.jboss.as.controller.AttributeMarshaller;
 import org.jboss.as.controller.ModelOnlyWriteAttributeHandler;
 import org.jboss.as.controller.ObjectTypeAttributeDefinition;
 import org.jboss.as.controller.OperationContext;
@@ -88,6 +89,7 @@ final class CredentialStoreResourceDefinition extends SimpleResourceDefinition {
     static final ObjectTypeAttributeDefinition CREDENTIAL_REFERENCE =
             CredentialReference.getAttributeBuilder(CredentialReference.CREDENTIAL_REFERENCE, CredentialReference.CREDENTIAL_REFERENCE, false)
                     .setCapabilityReference(CREDENTIAL_STORE_CAPABILITY)
+                    .setAttributeMarshaller(AttributeMarshaller.ATTRIBUTE_OBJECT)  // temporary fix [WFCORE-2210]
                     .build();
 
     static final SimpleAttributeDefinition TYPE = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.TYPE, ModelType.STRING, true)

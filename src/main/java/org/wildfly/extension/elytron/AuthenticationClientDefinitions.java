@@ -39,6 +39,7 @@ import java.util.function.Supplier;
 import javax.net.ssl.SSLContext;
 
 import org.jboss.as.controller.AttributeDefinition;
+import org.jboss.as.controller.AttributeMarshaller;
 import org.jboss.as.controller.ObjectListAttributeDefinition;
 import org.jboss.as.controller.ObjectTypeAttributeDefinition;
 import org.jboss.as.controller.OperationContext;
@@ -152,8 +153,9 @@ class AuthenticationClientDefinitions {
             .build();
 
     static final ObjectTypeAttributeDefinition CREDENTIAL_REFERENCE = CredentialReference.getAttributeBuilder(CredentialReference.CREDENTIAL_REFERENCE, CredentialReference.CREDENTIAL_REFERENCE, true)
-                    .setCapabilityReference(CREDENTIAL_STORE_CAPABILITY, AUTHENTICATION_CONFIGURATION_CAPABILITY, true)
-                    .build();
+            .setCapabilityReference(CREDENTIAL_STORE_CAPABILITY, AUTHENTICATION_CONFIGURATION_CAPABILITY, true)
+            .setAttributeMarshaller(AttributeMarshaller.ATTRIBUTE_OBJECT)  // temporary fix [WFCORE-2210]
+            .build();
 
     static final AttributeDefinition[] AUTHENTICATION_CONFIGURATION_SIMPLE_ATTRIBUTES = new AttributeDefinition[] { CONFIGURATION_EXTENDS, ANONYMOUS, AUTHENTICATION_NAME, AUTHORIZATION_NAME, HOST, PROTOCOL,
             PORT, REALM, SECURITY_DOMAIN, ALLOW_ALL_MECHANISMS, ALLOW_SASL_MECHANISMS, FORBID_SASL_MECHANISMS };

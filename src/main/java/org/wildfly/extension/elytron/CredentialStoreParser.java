@@ -44,7 +44,6 @@ import java.util.Set;
 import javax.xml.stream.XMLStreamException;
 
 import org.jboss.as.controller.AttributeParser;
-import org.jboss.as.controller.security.CredentialReference;
 import org.jboss.dmr.ModelNode;
 import org.jboss.staxmapper.XMLExtendedStreamReader;
 import org.jboss.staxmapper.XMLExtendedStreamWriter;
@@ -123,7 +122,7 @@ class CredentialStoreParser {
             if (URI.equals(localName)) {
                 String value = reader.getElementText();
                 CredentialStoreResourceDefinition.URI.parseAndSetParameter(value, addCredentialStore, reader);
-            } else if (CredentialReference.CREDENTIAL_REFERENCE.equals(localName)) {
+            } else if (CredentialStoreResourceDefinition.CREDENTIAL_REFERENCE.getXmlName().equals(localName)) {
                 AttributeParser ap = CredentialStoreResourceDefinition.CREDENTIAL_REFERENCE.getParser();
                 ap.parseElement(CredentialStoreResourceDefinition.CREDENTIAL_REFERENCE, reader, addCredentialStore);
             } else {
@@ -148,8 +147,8 @@ class CredentialStoreParser {
                 CredentialStoreResourceDefinition.PROVIDER_LOADER.marshallAsAttribute(credentialStoreModelNode, writer);
                 CredentialStoreResourceDefinition.RELATIVE_TO.marshallAsAttribute(credentialStoreModelNode, writer);
                 CredentialStoreResourceDefinition.URI.marshallAsElement(credentialStoreModelNode, writer);
-                if (credentialStoreModelNode.hasDefined(CredentialReference.CREDENTIAL_REFERENCE)) {
-                    CredentialReference.getAttributeDefinition().marshallAsElement(credentialStoreModelNode.get(CredentialReference.CREDENTIAL_REFERENCE), writer);
+                if (credentialStoreModelNode.hasDefined(CredentialStoreResourceDefinition.CREDENTIAL_REFERENCE.getName())) {
+                    CredentialStoreResourceDefinition.CREDENTIAL_REFERENCE.marshallAsElement(credentialStoreModelNode, writer);
                 }
                 writer.writeEndElement();
             }

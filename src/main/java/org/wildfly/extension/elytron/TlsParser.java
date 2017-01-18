@@ -779,7 +779,8 @@ class TlsParser {
                 SSLDefinitions.PROVIDER.marshallAsAttribute(keyManager, writer);
 
                 if (keyManager.hasDefined(CredentialReference.CREDENTIAL_REFERENCE)) {
-                    CredentialReference.getAttributeDefinition().marshallAsElement(keyManager.get(CredentialReference.CREDENTIAL_REFERENCE), writer);
+                    // when [WFCORE-2210] use this marshallAsElement and delete next line: CredentialReference.getAttributeDefinition().marshallAsElement(keyManager, writer);
+                    KeyStoreDefinition.CREDENTIAL_REFERENCE.marshallAsElement(keyManager, writer);
                 }
 
                 writer.writeEndElement();
@@ -902,8 +903,8 @@ class TlsParser {
 
                         writer.writeEndElement();
                     }
-                    if (keyStore.hasDefined(CredentialReference.CREDENTIAL_REFERENCE)) {
-                        KeyStoreDefinition.CREDENTIAL_REFERENCE.marshallAsElement(keyStore.get(CredentialReference.CREDENTIAL_REFERENCE), writer);
+                    if (keyStore.hasDefined(KeyStoreDefinition.CREDENTIAL_REFERENCE.getName())) {
+                        KeyStoreDefinition.CREDENTIAL_REFERENCE.marshallAsElement(keyStore, writer);
                     }
 
                     writer.writeEndElement(); // end of KEY_STORE
