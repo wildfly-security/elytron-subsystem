@@ -363,10 +363,38 @@
              </xs:documentation>
          </xs:annotation>
          <xs:choice maxOccurs="unbounded">
+             <xs:element name="aggregate-providers" type="aggregateProivdersType" />
              <xs:element name="provider-loader" type="providerLoaderType" />
          </xs:choice>
      </xs:complexType>
 
+    <xs:complexType name="aggregateProivdersType">
+        <xs:annotation>
+            <xs:documentation>
+                A PrincipalDecoder definition that is actually an aggregation of other PrincipalDecoders.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="providers" type="providersRefType" minOccurs="2" maxOccurs="unbounded" />
+        </xs:sequence>
+        <xs:attribute name="name" type="xs:string" use="required">
+            <xs:annotation>
+                <xs:documentation>
+                    The name to use to represent this provider loader in the management model.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+     </xs:complexType>
+     
+         <xs:complexType name="providersRefType">
+        <xs:annotation>
+            <xs:documentation>
+                A reference to a Provider[] resource.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="name" type="xs:string" use="required" />
+    </xs:complexType>
+    
      <xs:complexType name="providerLoaderType">
          <xs:annotation>
              <xs:documentation>

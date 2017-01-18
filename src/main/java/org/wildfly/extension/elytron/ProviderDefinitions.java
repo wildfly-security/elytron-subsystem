@@ -49,6 +49,7 @@ import java.util.function.Supplier;
 import org.jboss.as.controller.AbstractAddStepHandler;
 import org.jboss.as.controller.AbstractRuntimeOnlyHandler;
 import org.jboss.as.controller.AttributeDefinition;
+import org.jboss.as.controller.ListAttributeDefinition;
 import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
 import org.jboss.as.controller.ResourceDefinition;
@@ -67,9 +68,9 @@ import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
 import org.jboss.msc.service.ServiceBuilder;
 import org.jboss.msc.service.ServiceController;
+import org.jboss.msc.service.ServiceController.State;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.StartException;
-import org.jboss.msc.service.ServiceController.State;
 import org.jboss.msc.value.InjectedValue;
 import org.wildfly.extension.elytron.TrivialService.ValueSupplier;
 
@@ -96,6 +97,15 @@ class ProviderDefinitions {
             .setAllowExpression(true)
             .setAlternatives(ElytronDescriptionConstants.PATH)
             .build();
+
+    private static final AggregateComponentDefinition<Provider[]> AGGREGATE_PROVIDERS = AggregateComponentDefinition.create(Provider[].class,
+            ElytronDescriptionConstants.AGGREGATE_PROVIDERS, ElytronDescriptionConstants.PROVIDERS, PROVIDERS_RUNTIME_CAPABILITY, ProviderDefinitions::aggregate);
+
+    static final ListAttributeDefinition REFERENCES = AGGREGATE_PROVIDERS.getReferencesAttribute();
+
+    static AggregateComponentDefinition<Provider[]> getAggregateProvidersDefinition() {
+        return AGGREGATE_PROVIDERS;
+    }
 
     static ResourceDefinition getProviderLoaderDefinition() {
         AttributeDefinition[] attributes = new AttributeDefinition[] { MODULE, CLASS_NAMES, PATH, RELATIVE_TO, CONFIGURATION };
@@ -217,6 +227,22 @@ class ProviderDefinitions {
                 resourceRegistration.registerReadOnlyAttribute(LOADED_PROVIDERS, new LoadedProvidersAttributeHandler());
             }
         };
+    }
+
+    private static Provider[] aggregate(Provider[] ... providers) {
+        int length = 0;
+        for (Provider[] current : providers) {
+            length += current.length;
+        }
+
+        Provider[] combined = new Provider[length];
+        int startPos = 0;
+        for (Provider[] current : providers) {
+            System.arraycopy(current, 0, combined, startPos, current.length);
+            startPos += current.length;
+        }
+
+        return combined;
     }
 
     private static Supplier<InputStream> getConfigurationSupplier(final File location) throws StartException {

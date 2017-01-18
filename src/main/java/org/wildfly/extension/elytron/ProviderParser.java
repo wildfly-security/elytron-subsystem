@@ -19,9 +19,18 @@ package org.wildfly.extension.elytron;
 
 import static javax.xml.stream.XMLStreamConstants.END_ELEMENT;
 import static org.jboss.as.controller.PersistentResourceXMLDescription.builder;
+import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.ADD;
+import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP;
+import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP_ADDR;
+import static org.jboss.as.controller.parsing.ParseUtils.isNoNamespaceAttribute;
+import static org.jboss.as.controller.parsing.ParseUtils.missingRequired;
 import static org.jboss.as.controller.parsing.ParseUtils.requireNoAttributes;
+import static org.jboss.as.controller.parsing.ParseUtils.requireNoContent;
+import static org.jboss.as.controller.parsing.ParseUtils.requireSingleAttribute;
+import static org.jboss.as.controller.parsing.ParseUtils.unexpectedAttribute;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedElement;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AGGREGATE_PROVIDERS;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDERS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDER_LOADER;
 import static org.wildfly.extension.elytron.ElytronSubsystemParser.verifyNamespace;
@@ -58,7 +67,7 @@ class ProviderParser {
             PathAddress parentAddress = PathAddress.pathAddress(parentAddressNode);
             switch (localName) {
                 case AGGREGATE_PROVIDERS:
-                    //aggregateRealmParser.parse(reader, parentAddress, operations);
+                    readAggregateProviders(parentAddressNode, reader, operations);
                     break;
                 case PROVIDER_LOADER:
                     providerLoaderParser.parse(reader, parentAddress, operations);
@@ -69,6 +78,55 @@ class ProviderParser {
         }
     }
 
+    private void readAggregateProviders(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations)
+            throws XMLStreamException {
+        ModelNode addProviders = new ModelNode();
+        addProviders.get(OP).set(ADD);
+
+        String name = null;
+
+        final int count = reader.getAttributeCount();
+        for (int i = 0; i < count; i++) {
+            final String value = reader.getAttributeValue(i);
+            if (!isNoNamespaceAttribute(reader, i)) {
+                throw unexpectedAttribute(reader, i);
+            } else {
+                String attribute = reader.getAttributeLocalName(i);
+                switch (attribute) {
+                    case NAME:
+                        name = value;
+                        break;
+                    default:
+                        throw unexpectedAttribute(reader, i);
+                }
+            }
+        }
+
+        if (name == null) {
+            throw missingRequired(reader, NAME);
+        }
+
+        addProviders.get(OP_ADDR).set(parentAddress).add(AGGREGATE_PROVIDERS, name);
+
+        operations.add(addProviders);
+
+        while (reader.hasNext() && reader.nextTag() != END_ELEMENT) {
+            verifyNamespace(reader);
+            String localName = reader.getLocalName();
+            if (PROVIDERS.equals(localName) == false) {
+                throw unexpectedElement(reader);
+            }
+
+            requireSingleAttribute(reader, NAME);
+            String providersName = reader.getAttributeValue(0);
+
+
+            ProviderDefinitions.REFERENCES.parseAndAddParameterElement(providersName, addProviders, reader);
+
+            requireNoContent(reader);
+        }
+    }
+
     void writeProviders(ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (shouldWrite(subsystem) == false) {
             return;
@@ -76,12 +134,31 @@ class ProviderParser {
 
         writer.writeStartElement(PROVIDERS);
 
-        //aggregateRealmParser.persist(writer, subsystem);
+        writeAggregateProviders(subsystem, writer);
         providerLoaderParser.persist(writer, subsystem);
 
         writer.writeEndElement();
     }
 
+    private void writeAggregateProviders(ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
+        if (subsystem.hasDefined(AGGREGATE_PROVIDERS)) {
+            ModelNode aggregateProviders = subsystem.require(AGGREGATE_PROVIDERS);
+            for (String name : aggregateProviders.keys()) {
+                ModelNode aggregateProvider = aggregateProviders.require(name);
+                writer.writeStartElement(AGGREGATE_PROVIDERS);
+                writer.writeAttribute(NAME, name);
+
+                List<ModelNode> providersReferences = aggregateProvider.get(PROVIDERS).asList();
+                for (ModelNode currentReference : providersReferences) {
+                    writer.writeStartElement(PROVIDERS);
+                    writer.writeAttribute(NAME, currentReference.asString());
+                    writer.writeEndElement();
+                }
+
+                writer.writeEndElement();
+            }
+        }
+    }
     private boolean shouldWrite(ModelNode subsystem) {
         return subsystem.hasDefined(AGGREGATE_PROVIDERS) || subsystem.hasDefined(PROVIDER_LOADER);
     }
