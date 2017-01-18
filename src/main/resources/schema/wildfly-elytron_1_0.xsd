@@ -32,7 +32,7 @@
         <xs:all>
             <xs:element name="security-properties" type="securityPropertiesType" minOccurs="0" />
             <xs:element name="authentication-client" type="authenticationClientType" minOccurs="0" />
-            <xs:element name="provider-loaders" type="providerLoadersType" minOccurs="0" />
+            <xs:element name="providers" type="providersType" minOccurs="0" />
             <xs:element name="security-domains" type="securityDomainsType" minOccurs="0" />
             <xs:element name="security-realms" type="realmsType" minOccurs="0" />
             <xs:element name="credential-security-factories" type="credentialSecurityFactoriesType" minOccurs="0" />
@@ -356,108 +356,72 @@
         Providers
      -->
 
-     <xs:complexType name="providerLoadersType">
+     <xs:complexType name="providersType">
          <xs:annotation>
              <xs:documentation>
-                 Container for definitions of java.security.Provider loaders.
+                 Container of Provider configuration.
+             </xs:documentation>
+         </xs:annotation>
+         <xs:choice maxOccurs="unbounded">
+             <xs:element name="provider-loader" type="providerLoaderType" />
+         </xs:choice>
+     </xs:complexType>
+
+     <xs:complexType name="providerLoaderType">
+         <xs:annotation>
+             <xs:documentation>
+                 Definition of a single provider loader.
              </xs:documentation>
          </xs:annotation>
          <xs:sequence>
-             <xs:element name="provider-loader" maxOccurs="unbounded">
-                 <xs:annotation>
-                     <xs:documentation>
-                         An individual provider loader definitions.
-                     </xs:documentation>
-                 </xs:annotation>
+             <xs:element name="configuration" minOccurs="0" >
                  <xs:complexType>
                      <xs:sequence>
-                         <xs:element name="provider" minOccurs="0" maxOccurs="unbounded">
-                             <xs:complexType>
-                                 <xs:choice minOccurs="0">
-                                     <xs:element name="configuration-file">
-                                         <xs:complexType>
-                                                 <!-- TODO Put this pair of attributes in a common type or attribute group. -->
-                                                 <xs:attribute name="relative-to" type="xs:string" use="optional">
-                                                     <xs:annotation>
-                                                         <xs:documentation>
-                                                             A reference to a previously defined path that the file name is
-                                                             relative to.
-                                                         </xs:documentation>
-                                                     </xs:annotation>
-                                                 </xs:attribute>
-                                                 <xs:attribute name="path" type="xs:string" use="required">
-                                                     <xs:annotation>
-                                                         <xs:documentation>
-                                                             The remaining path to the file referenced.
-                                                         </xs:documentation>
-                                                     </xs:annotation>
-                                                 </xs:attribute>
-                                         </xs:complexType>
-                                     </xs:element>
-                                     <xs:element name="configuration-properties">
-                                         <xs:annotation>
-                                             <xs:documentation>
-                                                 An ordered list of properties to be used to configure all of the providers.
-                                             </xs:documentation>
-                                         </xs:annotation>
-                                         <xs:complexType>
-                                             <xs:sequence>
-                                                 <xs:element name="property" type="propertyType" maxOccurs="unbounded" />
-                                             </xs:sequence>
-                                         </xs:complexType>
-                                     </xs:element>
-                                 </xs:choice>
-                                 <xs:attribute name="module" type="xs:string" use="optional">
-                                     <xs:annotation>
-                                         <xs:documentation>
-                                             The name of the module to use to load the providers.
-
-                                             If this is not specified the ClassLoader used to load the service will be used instead.
-                                         </xs:documentation>
-                                     </xs:annotation>
-                                 </xs:attribute>
-                                 <xs:attribute name="load-services" type="xs:boolean" default="false">
-                                     <xs:annotation>
-                                         <xs:documentation>
-                                             Should ServiceLoader discovery be used to identify the providers?
-
-                                             Note: ServiceLoader discovery happens before any specified classes are loaded.
-                                         </xs:documentation>
-                                     </xs:annotation>
-                                 </xs:attribute>
-                                 <xs:attribute name="class-names" type="stringListType" use="optional">
-                                     <xs:annotation>
-                                         <xs:documentation>
-                                             The fully qualified class names of the providers to load.
-
-                                             These providers are loaded after ServiceLoader based discovery, duplicates are silently skipped.
-                                         </xs:documentation>
-                                     </xs:annotation>
-                                 </xs:attribute>
-                             </xs:complexType>
-                         </xs:element>
+                         <xs:element name="property" type="propertyType" maxOccurs="unbounded" />
                      </xs:sequence>
-                     <xs:attribute name="name" type="xs:string" use="required">
-                         <xs:annotation>
-                             <xs:documentation>
-                                 The name to use to represent this provider loader in the management model.
-                             </xs:documentation>
-                         </xs:annotation>
-                     </xs:attribute>
-                     <xs:attribute name="register" type="xs:boolean" default="false">
-                         <xs:annotation>
-                             <xs:documentation>
-                                 Should the providers defined here be globally registered.
-
-                                 If not registered globally security definitions within the subsystem can still use a provider by
-                                 referencing it's name as defined here.
-                             </xs:documentation>
-                         </xs:annotation>
-                     </xs:attribute>
                  </xs:complexType>
              </xs:element>
-
          </xs:sequence>
+         <xs:attribute name="name" type="xs:string" use="required">
+             <xs:annotation>
+                 <xs:documentation>
+                     The name to use to represent this provider loader in the management model.
+                 </xs:documentation>
+             </xs:annotation>
+         </xs:attribute>
+         <xs:attribute name="module" type="xs:string">
+             <xs:annotation>
+                 <xs:documentation>
+                     The name of the module to use to load the providers.
+
+                     If this is not specified the ClassLoader used to load the service will be used instead.
+                 </xs:documentation>
+             </xs:annotation>
+         </xs:attribute>
+         <xs:attribute name="class-names" type="stringListType">
+             <xs:annotation>
+                 <xs:documentation>
+                     The fully qualified class names of the providers to load.
+
+                     If this attribute is not specified then service loader based discovery will be used instead.
+                 </xs:documentation>
+             </xs:annotation>
+         </xs:attribute>
+         <xs:attribute name="path" type="xs:string">
+             <xs:annotation>
+                 <xs:documentation>
+                     The path to the configuration to use to initialise the provider.
+                 </xs:documentation>
+             </xs:annotation>
+         </xs:attribute>
+         <xs:attribute name="relative-to" type="xs:string">
+             <xs:annotation>
+                 <xs:documentation>
+                     A reference to a previously defined path that the path of the configuration is
+                     relative to.
+                 </xs:documentation>
+             </xs:annotation>
+         </xs:attribute>
      </xs:complexType>
 
     <!--

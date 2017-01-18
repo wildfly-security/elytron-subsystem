@@ -97,7 +97,7 @@ class ElytronDefinition extends SimpleResourceDefinition {
         resourceRegistration.registerSubModel(new SecurityPropertyResourceDefinition());
 
         // Provider Loader
-        resourceRegistration.registerSubModel(new ProviderLoaderDefinition());
+        resourceRegistration.registerSubModel(ProviderDefinitions.getProviderLoaderDefinition());
 
         // Security Domain SASL / HTTP Configurations
         resourceRegistration.registerSubModel(AuthenticationFactoryDefinitions.getSaslAuthenticationFactory());

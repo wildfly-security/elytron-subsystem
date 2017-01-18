@@ -33,6 +33,7 @@ interface ElytronDescriptionConstants {
     String AGGREGATE_HTTP_SERVER_MECHANISM_FACTORY = "aggregate-http-server-mechanism-factory";
     String AGGREGATE_PRINCIPAL_DECODER = "aggregate-principal-decoder";
     String AGGREGATE_PRINCIPAL_TRANSFORMER = "aggregate-principal-transformer";
+    String AGGREGATE_PROVIDERS = "aggregate-providers";
     String AGGREGATE_REALM = "aggregate-realm";
     String AGGREGATE_ROLE_MAPPER = "aggregate-role-mapper";
     String AGGREGATE_SASL_SERVER_FACTORY = "aggregate-sasl-server-factory";

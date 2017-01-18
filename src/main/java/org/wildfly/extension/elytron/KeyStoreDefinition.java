@@ -32,7 +32,6 @@ import static org.wildfly.extension.elytron.FileAttributeDefinitions.RELATIVE_TO
 import static org.wildfly.extension.elytron.FileAttributeDefinitions.pathName;
 import static org.wildfly.extension.elytron.ProviderAttributeDefinition.LOADED_PROVIDER;
 import static org.wildfly.extension.elytron.ProviderAttributeDefinition.populateProvider;
-import static org.wildfly.extension.elytron.ProviderLoaderDefinition.PROVIDER_LOADER_SERVICE_UTIL;
 import static org.wildfly.extension.elytron.ServiceStateDefinition.STATE;
 import static org.wildfly.extension.elytron.ServiceStateDefinition.populateResponse;
 import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
@@ -282,7 +281,7 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
             if (providerLoader != null) {
                 String providersCapabilityName = RuntimeCapability.buildDynamicCapabilityName(PROVIDERS_CAPABILITY, providerLoader);
                 ServiceName providerLoaderServiceName = context.getCapabilityServiceName(providersCapabilityName, Provider[].class);
-                PROVIDER_LOADER_SERVICE_UTIL.addInjection(serviceBuilder, keyStoreService.getProvidersInjector(), providerLoaderServiceName);
+                serviceBuilder.addDependency(providerLoaderServiceName, Provider[].class, keyStoreService.getProvidersInjector());
             }
 
             keyStoreService.getCredentialSourceSupplierInjector()

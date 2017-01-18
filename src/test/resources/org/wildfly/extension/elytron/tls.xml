@@ -1,7 +1,7 @@
 <subsystem xmlns="urn:wildfly:elytron:1.0">
-    <provider-loaders>
+    <providers>
         <provider-loader name="custom-loader" />
-    </provider-loaders>
+    </providers>
     <tls>
         <key-stores>
             <key-store name="PKCS_11" type="PKCS#11" provider="SunPKCS#11">

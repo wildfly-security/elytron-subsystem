@@ -1,9 +1,7 @@
 <subsystem xmlns="urn:wildfly:elytron:1.0">
-    <provider-loaders>
-        <provider-loader name="TestProviderLoader">
-            <provider module="test.module"/>
-        </provider-loader>
-    </provider-loaders>
+    <providers>
+        <provider-loader name="TestProviderLoader" module="test.module" />
+    </providers>
     <security-domains>
         <security-domain name="MyDomain" default-realm="RealmTwo">
             <realm name="RealmTwo"/>

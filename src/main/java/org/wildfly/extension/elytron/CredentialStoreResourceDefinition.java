@@ -25,7 +25,6 @@ import static org.wildfly.extension.elytron.Capabilities.PROVIDERS_CAPABILITY;
 import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
 import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
 import static org.wildfly.extension.elytron.FileAttributeDefinitions.pathName;
-import static org.wildfly.extension.elytron.ProviderLoaderDefinition.PROVIDER_LOADER_SERVICE_UTIL;
 import static org.wildfly.extension.elytron.ServiceStateDefinition.STATE;
 import static org.wildfly.extension.elytron.ServiceStateDefinition.populateResponse;
 import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
@@ -220,7 +219,7 @@ final class CredentialStoreResourceDefinition extends SimpleResourceDefinition {
             if (providerLoader != null) {
                 String providersCapabilityName = RuntimeCapability.buildDynamicCapabilityName(PROVIDERS_CAPABILITY, providerLoader);
                 ServiceName providerLoaderServiceName = context.getCapabilityServiceName(providersCapabilityName, Provider[].class);
-                PROVIDER_LOADER_SERVICE_UTIL.addInjection(credentialStoreServiceBuilder, csService.getProvidersInjector(), providerLoaderServiceName);
+                credentialStoreServiceBuilder.addDependency(providerLoaderServiceName, Provider[].class, csService.getProvidersInjector());
             }
 
             csService.getCredentialSourceSupplierInjector()
