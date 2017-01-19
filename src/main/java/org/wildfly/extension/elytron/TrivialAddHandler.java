@@ -76,9 +76,17 @@ abstract class TrivialAddHandler<T> extends BaseAddHandler {
 
         trivialService.setValueSupplier(getValueSupplier(serviceBuilder, context, resource.getModel()));
 
-        installedForResource(commonDependencies(serviceBuilder)
+        installedForResource(commonDependencies(serviceBuilder, dependOnProperties(), dependOnProviderRegistration())
                 .setInitialMode(initialMode)
                 .install(), resource);
+    }
+
+    protected boolean dependOnProperties() {
+        return true;
+    }
+
+    protected boolean dependOnProviderRegistration() {
+        return true;
     }
 
     protected void installedForResource(ServiceController<T> serviceController, Resource resource) {}

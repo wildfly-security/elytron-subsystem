@@ -99,7 +99,7 @@ class ProviderDefinitions {
             .build();
 
     private static final AggregateComponentDefinition<Provider[]> AGGREGATE_PROVIDERS = AggregateComponentDefinition.create(Provider[].class,
-            ElytronDescriptionConstants.AGGREGATE_PROVIDERS, ElytronDescriptionConstants.PROVIDERS, PROVIDERS_RUNTIME_CAPABILITY, ProviderDefinitions::aggregate);
+            ElytronDescriptionConstants.AGGREGATE_PROVIDERS, ElytronDescriptionConstants.PROVIDERS, PROVIDERS_RUNTIME_CAPABILITY, ProviderDefinitions::aggregate, false);
 
     static final ListAttributeDefinition REFERENCES = AGGREGATE_PROVIDERS.getReferencesAttribute();
 
@@ -110,6 +110,11 @@ class ProviderDefinitions {
     static ResourceDefinition getProviderLoaderDefinition() {
         AttributeDefinition[] attributes = new AttributeDefinition[] { MODULE, CLASS_NAMES, PATH, RELATIVE_TO, CONFIGURATION };
         AbstractAddStepHandler add = new TrivialAddHandler<Provider[]>(Provider[].class, attributes, PROVIDERS_RUNTIME_CAPABILITY) {
+
+            @Override
+            protected boolean dependOnProviderRegistration() {
+                return false;
+            }
 
             @Override
             protected ValueSupplier<Provider[]> getValueSupplier(ServiceBuilder<Provider[]> serviceBuilder,OperationContext context, ModelNode model) throws OperationFailedException {

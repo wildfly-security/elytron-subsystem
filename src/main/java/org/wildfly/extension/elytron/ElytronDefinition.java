@@ -223,8 +223,12 @@ class ElytronDefinition extends SimpleResourceDefinition {
     }
 
     static <T> ServiceBuilder<T>  commonDependencies(ServiceBuilder<T> serviceBuilder) {
-        serviceBuilder.addDependencies(SecurityPropertyService.SERVICE_NAME);
-        serviceBuilder.addDependencies(CoreService.SERVICE_NAME);
+        return commonDependencies(serviceBuilder, true, true);
+    }
+
+    static <T> ServiceBuilder<T>  commonDependencies(ServiceBuilder<T> serviceBuilder, boolean dependOnProperties, boolean dependOnProviderRegistration) {
+        if (dependOnProperties) serviceBuilder.addDependencies(SecurityPropertyService.SERVICE_NAME);
+        if (dependOnProviderRegistration) serviceBuilder.addDependencies(CoreService.SERVICE_NAME);
         return serviceBuilder;
     }
 

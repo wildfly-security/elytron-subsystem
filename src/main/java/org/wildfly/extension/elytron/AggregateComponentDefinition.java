@@ -79,6 +79,11 @@ class AggregateComponentDefinition<T> extends SimpleResourceDefinition {
     }
 
     static <T> AggregateComponentDefinition<T> create(Class<T> aggregationType, String componentName, String referencesName, RuntimeCapability<?> runtimeCapability, Function<T[], T> aggregator) {
+        return create(aggregationType, componentName, referencesName, runtimeCapability, aggregator, true);
+    }
+
+    static <T> AggregateComponentDefinition<T> create(Class<T> aggregationType, String componentName, String referencesName,
+            RuntimeCapability<?> runtimeCapability, Function<T[], T> aggregator, boolean dependOnProviderRegistration) {
         String capabilityName = runtimeCapability.getName();
         StringListAttributeDefinition aggregateReferences = new StringListAttributeDefinition.Builder(referencesName)
             .setMinSize(2)
@@ -86,7 +91,7 @@ class AggregateComponentDefinition<T> extends SimpleResourceDefinition {
             .setCapabilityReference(capabilityName, capabilityName, true)
             .build();
 
-        AbstractAddStepHandler add = new AggregateComponentAddHandler<T>(aggregationType, aggregator, aggregateReferences, runtimeCapability);
+        AbstractAddStepHandler add = new AggregateComponentAddHandler<T>(aggregationType, aggregator, aggregateReferences, runtimeCapability, dependOnProviderRegistration);
         OperationStepHandler remove = new TrivialCapabilityServiceRemoveHandler(add, runtimeCapability);
         OperationStepHandler write = new WriteAttributeHandler<T>(aggregationType, runtimeCapability, componentName, aggregateReferences);
 
@@ -99,13 +104,17 @@ class AggregateComponentDefinition<T> extends SimpleResourceDefinition {
         private final Function<T[], T> aggregator;
         private final StringListAttributeDefinition aggregateReferences;
         private final RuntimeCapability<?> runtimeCapability;
+        private final boolean dependOnProviderRegistration;
 
-        private AggregateComponentAddHandler(Class<T> aggregationType, Function<T[], T> aggregator, StringListAttributeDefinition aggregateReferences, RuntimeCapability<?> runtimeCapability) {
+        private AggregateComponentAddHandler(Class<T> aggregationType, Function<T[], T> aggregator,
+                StringListAttributeDefinition aggregateReferences, RuntimeCapability<?> runtimeCapability,
+                boolean dependOnProviderRegistration) {
             super(runtimeCapability, aggregateReferences);
             this.aggregationType = aggregationType;
             this.aggregator = aggregator;
             this.aggregateReferences = aggregateReferences;
             this.runtimeCapability = runtimeCapability;
+            this.dependOnProviderRegistration = dependOnProviderRegistration;
         }
 
         @Override
@@ -129,10 +138,9 @@ class AggregateComponentDefinition<T> extends SimpleResourceDefinition {
                 serviceBuilder.addDependency(realmServiceName, aggregationType, aggregateComponentService.newInjector());
             }
 
-            commonDependencies(serviceBuilder)
+            commonDependencies(serviceBuilder, true, dependOnProviderRegistration)
                 .setInitialMode(Mode.LAZY)
                 .install();
-
         }
 
     }
