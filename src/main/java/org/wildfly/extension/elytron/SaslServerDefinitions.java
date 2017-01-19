@@ -120,7 +120,7 @@ class SaslServerDefinitions {
         .setCapabilityReference(SASL_SERVER_FACTORY_CAPABILITY, SASL_SERVER_FACTORY_CAPABILITY, true)
         .build();
 
-    static final SimpleAttributeDefinition PROVIDER_LOADER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PROVIDER_LOADER, ModelType.STRING, true)
+    static final SimpleAttributeDefinition PROVIDERS = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PROVIDERS, ModelType.STRING, true)
         .setMinSize(1)
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
         .setCapabilityReference(PROVIDERS_CAPABILITY, SASL_SERVER_FACTORY_CAPABILITY, true)
@@ -294,16 +294,16 @@ class SaslServerDefinitions {
     }
 
     static ResourceDefinition getProviderSaslServerFactoryDefinition() {
-        AbstractAddStepHandler add = new SaslServerAddHandler(PROVIDER_LOADER) {
+        AbstractAddStepHandler add = new SaslServerAddHandler(PROVIDERS) {
 
             @Override
             protected ServiceBuilder<SaslServerFactory> installService(OperationContext context,
                     ServiceName saslServerFactoryName, ModelNode model) throws OperationFailedException {
 
-                String provider = asStringIfDefined(context, PROVIDER_LOADER, model);
+                String providers = asStringIfDefined(context, PROVIDERS, model);
 
                 final InjectedValue<Provider[]> providerInjector = new InjectedValue<Provider[]>();
-                final Supplier<Provider[]> providerSupplier = provider != null ? (providerInjector::getValue) : (Security::getProviders);
+                final Supplier<Provider[]> providerSupplier = providers != null ? (providerInjector::getValue) : (Security::getProviders);
 
                 TrivialService<SaslServerFactory> saslServiceFactoryService = new TrivialService<SaslServerFactory>(() -> new SecurityProviderSaslServerFactory(providerSupplier));
 
@@ -311,8 +311,8 @@ class SaslServerDefinitions {
 
                 ServiceBuilder<SaslServerFactory> serviceBuilder = serviceTarget.addService(saslServerFactoryName, saslServiceFactoryService);
 
-                if (provider != null) {
-                    serviceBuilder.addDependency(context.getCapabilityServiceName(RuntimeCapability.buildDynamicCapabilityName(PROVIDERS_CAPABILITY, provider),
+                if (providers != null) {
+                    serviceBuilder.addDependency(context.getCapabilityServiceName(RuntimeCapability.buildDynamicCapabilityName(PROVIDERS_CAPABILITY, providers),
                             Provider[].class), Provider[].class, providerInjector);
                 }
 
@@ -320,7 +320,7 @@ class SaslServerDefinitions {
             }
         };
 
-        return wrap(new SaslServerResourceDefinition(ElytronDescriptionConstants.PROVIDER_SASL_SERVER_FACTORY, add, PROVIDER_LOADER), SaslServerDefinitions::getSaslServerAvailableMechanisms);
+        return wrap(new SaslServerResourceDefinition(ElytronDescriptionConstants.PROVIDER_SASL_SERVER_FACTORY, add, PROVIDERS), SaslServerDefinitions::getSaslServerAvailableMechanisms);
     }
 
     static ResourceDefinition getServiceLoaderSaslServerFactoryDefinition() {

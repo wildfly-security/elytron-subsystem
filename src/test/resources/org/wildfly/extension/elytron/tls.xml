@@ -1,10 +1,10 @@
 <subsystem xmlns="urn:wildfly:elytron:1.0">
-    <provider-loaders>
+    <providers>
         <provider-loader name="custom-loader" />
-    </provider-loaders>
+    </providers>
     <tls>
         <key-stores>
-            <key-store name="PKCS_11" type="PKCS#11" provider="SunPKCS#11">
+            <key-store name="PKCS_11" type="PKCS#11" provider-name="SunPKCS#11">
                 <credential-reference clear-text="password"/>
             </key-store>
             <key-store name="jks_store" type="jks" alias-filter="one,two,three">
@@ -15,7 +15,7 @@
                 <file relative-to="jboss.server.config.dir" path="keystore.jceks" />
                 <credential-reference clear-text="password"/>
             </key-store>
-            <key-store name="Custom_PKCS_11" type="PKCS#11" provider="SunPKCS#11" provider-loader="custom-loader">
+            <key-store name="Custom_PKCS_11" type="PKCS#11" provider-name="SunPKCS#11" providers="custom-loader">
                 <credential-reference clear-text="password"/>
             </key-store>
             <filtering-key-store name="FilteringKeyStore" key-store="Custom_PKCS_11" alias-filter="NONE:+firefly"/>
@@ -24,7 +24,7 @@
             <key-manager name="serverKey" algorithm="SunX509" key-store="jks_store">
                 <credential-reference clear-text="password"/>
             </key-manager>
-            <key-manager name="serverKey2" algorithm="SunX509" key-store="jks_store" provider-loader="test" provider="first">
+            <key-manager name="serverKey2" algorithm="SunX509" key-store="jks_store" providers="test" provider-name="first">
                 <credential-reference store="credstore1" alias="password-alias" type="PasswordCredential"/>
             </key-manager>
             <key-manager name="clientKey" algorithm="SunX509" key-store="jks_store">
@@ -33,14 +33,14 @@
         </key-managers>
         <trust-managers>
             <trust-manager name="serverTrust" algorithm="SunX509" key-store="jks_store" />
-            <trust-manager name="serverTrust2" algorithm="SunX509" key-store="jks_store" provider-loader="test" provider="first" />
+            <trust-manager name="serverTrust2" algorithm="SunX509" key-store="jks_store" providers="test" provider-name="first" />
         </trust-managers>
         <server-ssl-contexts>
             <server-ssl-context name="server" protocols="TLSv1.2" want-client-auth="true" need-client-auth="true" authentication-optional="true" use-cipher-suites-order="false" maximum-session-cache-size="10"
-                session-timeout="120" key-managers="serverKey" trust-managers="serverTrust" />
+                session-timeout="120" key-managers="serverKey" trust-managers="serverTrust" providers="test" provider-name="first" />
         </server-ssl-contexts>
         <client-ssl-contexts>
-            <client-ssl-context name="client" protocols="TLSv1.3 TLSv1.2" use-cipher-suites-order="true" key-managers="clientKey" trust-managers="serverTrust" />
+            <client-ssl-context name="client" protocols="TLSv1.3 TLSv1.2" use-cipher-suites-order="true" key-managers="clientKey" trust-managers="serverTrust" providers="test" provider-name="first" />
         </client-ssl-contexts>
     </tls>
     <credential-stores>

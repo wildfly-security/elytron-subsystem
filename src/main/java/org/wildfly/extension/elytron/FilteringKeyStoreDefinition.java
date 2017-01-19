@@ -18,6 +18,15 @@
 
 package org.wildfly.extension.elytron;
 
+import static org.wildfly.extension.elytron.Capabilities.KEY_STORE_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.KEY_STORE_RUNTIME_CAPABILITY;
+import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
+import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
+import static org.wildfly.extension.elytron.ServiceStateDefinition.STATE;
+import static org.wildfly.extension.elytron.ServiceStateDefinition.populateResponse;
+
+import java.security.KeyStore;
+
 import org.jboss.as.controller.AbstractRuntimeOnlyHandler;
 import org.jboss.as.controller.AttributeDefinition;
 import org.jboss.as.controller.OperationContext;
@@ -45,15 +54,6 @@ import org.jboss.msc.service.ServiceRegistry;
 import org.jboss.msc.service.ServiceTarget;
 import org.jboss.msc.value.InjectedValue;
 import org.wildfly.security.keystore.FilteringKeyStore;
-
-import java.security.KeyStore;
-
-import static org.wildfly.extension.elytron.Capabilities.KEY_STORE_CAPABILITY;
-import static org.wildfly.extension.elytron.Capabilities.KEY_STORE_RUNTIME_CAPABILITY;
-import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
-import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
-import static org.wildfly.extension.elytron.ServiceStateDefinition.STATE;
-import static org.wildfly.extension.elytron.ServiceStateDefinition.populateResponse;
 
 /**
  * A {@link ResourceDefinition} for a single {@link FilteringKeyStore}.

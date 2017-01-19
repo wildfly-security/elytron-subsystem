@@ -18,23 +18,24 @@
 
 package org.wildfly.extension.elytron;
 
+import static javax.xml.stream.XMLStreamConstants.END_ELEMENT;
+import static org.jboss.as.controller.PersistentResourceXMLDescription.builder;
+import static org.jboss.as.controller.parsing.ParseUtils.requireNoAttributes;
+import static org.jboss.as.controller.parsing.ParseUtils.unexpectedElement;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.DIR_CONTEXT;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.DIR_CONTEXTS;
+import static org.wildfly.extension.elytron.ElytronSubsystemParser.verifyNamespace;
+
+import java.util.List;
+
+import javax.xml.stream.XMLStreamException;
+
 import org.jboss.as.controller.PathAddress;
 import org.jboss.as.controller.PathElement;
 import org.jboss.as.controller.PersistentResourceXMLDescription;
 import org.jboss.dmr.ModelNode;
 import org.jboss.staxmapper.XMLExtendedStreamReader;
 import org.jboss.staxmapper.XMLExtendedStreamWriter;
-
-import javax.xml.stream.XMLStreamException;
-import java.util.List;
-
-import static javax.xml.stream.XMLStreamConstants.END_ELEMENT;
-import static org.jboss.as.controller.PersistentResourceXMLDescription.builder;
-import static org.jboss.as.controller.parsing.ParseUtils.requireNoAttributes;
-import static org.jboss.as.controller.parsing.ParseUtils.unexpectedElement;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.DIR_CONTEXTS;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.DIR_CONTEXT;
-import static org.wildfly.extension.elytron.ElytronSubsystemParser.verifyNamespace;
 
 /**
  * A parser for the DirContext definition.

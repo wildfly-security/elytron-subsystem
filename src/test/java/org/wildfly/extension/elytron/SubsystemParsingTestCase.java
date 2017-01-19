@@ -61,7 +61,7 @@ public class SubsystemParsingTestCase extends AbstractSubsystemBaseTest {
 
     @Test
     public void testParseAndMarshalModel_ProviderLoader() throws Exception {
-        standardSubsystemTest("provider-loader.xml");
+        standardSubsystemTest("providers.xml");
     }
 
     @Test

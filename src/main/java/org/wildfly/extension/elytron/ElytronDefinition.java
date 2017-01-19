@@ -24,12 +24,16 @@ import static org.wildfly.extension.elytron.Capabilities.MODIFIABLE_SECURITY_REA
 import static org.wildfly.extension.elytron.Capabilities.PERMISSION_MAPPER_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.PRINCIPAL_DECODER_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.PRINCIPAL_TRANSFORMER_RUNTIME_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.PROVIDERS_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.REALM_MAPPER_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.ROLE_DECODER_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.ROLE_MAPPER_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SECURITY_FACTORY_CREDENTIAL_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY;
+import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
 import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
+
+import java.security.Provider;
 
 import org.jboss.as.controller.AbstractBoottimeAddStepHandler;
 import org.jboss.as.controller.AbstractRemoveStepHandler;
@@ -38,6 +42,8 @@ import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationContext.AttachmentKey;
 import org.jboss.as.controller.OperationContext.Stage;
 import org.jboss.as.controller.OperationFailedException;
+import org.jboss.as.controller.OperationStepHandler;
+import org.jboss.as.controller.ReloadRequiredWriteAttributeHandler;
 import org.jboss.as.controller.ResourceDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
@@ -82,6 +88,14 @@ class ElytronDefinition extends SimpleResourceDefinition {
             .setCapabilityReference(AUTHENTICATION_CONTEXT_CAPABILITY, ELYTRON_RUNTIME_CAPABILITY)
             .build();
 
+    static final SimpleAttributeDefinition INITIAL_PROVIDERS = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.INITIAL_PROVIDERS, ModelType.STRING, true)
+            .setCapabilityReference(PROVIDERS_CAPABILITY, ELYTRON_RUNTIME_CAPABILITY)
+            .build();
+
+    static final SimpleAttributeDefinition FINAL_PROVIDERS = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.FINAL_PROVIDERS, ModelType.STRING, true)
+            .setCapabilityReference(PROVIDERS_CAPABILITY, ELYTRON_RUNTIME_CAPABILITY)
+            .build();
+
     public static final ElytronDefinition INSTANCE = new ElytronDefinition();
 
     private ElytronDefinition() {
@@ -97,7 +111,8 @@ class ElytronDefinition extends SimpleResourceDefinition {
         resourceRegistration.registerSubModel(new SecurityPropertyResourceDefinition());
 
         // Provider Loader
-        resourceRegistration.registerSubModel(new ProviderLoaderDefinition());
+        resourceRegistration.registerSubModel(ProviderDefinitions.getAggregateProvidersDefinition());
+        resourceRegistration.registerSubModel(ProviderDefinitions.getProviderLoaderDefinition());
 
         // Security Domain SASL / HTTP Configurations
         resourceRegistration.registerSubModel(AuthenticationFactoryDefinitions.getSaslAuthenticationFactory());
@@ -200,6 +215,9 @@ class ElytronDefinition extends SimpleResourceDefinition {
 
     @Override
     public void registerAttributes(ManagementResourceRegistration resourceRegistration) {
+        OperationStepHandler writeHandler = new ReloadRequiredWriteAttributeHandler(INITIAL_PROVIDERS, FINAL_PROVIDERS);
+        resourceRegistration.registerReadWriteAttribute(INITIAL_PROVIDERS, null, writeHandler);
+        resourceRegistration.registerReadWriteAttribute(FINAL_PROVIDERS, null, writeHandler);
         resourceRegistration.registerReadWriteAttribute(DEFAULT_AUTHENTICATION_CONTEXT, null, new AbstractWriteAttributeHandler<Void>(DEFAULT_AUTHENTICATION_CONTEXT) {
 
             @Override
@@ -223,8 +241,12 @@ class ElytronDefinition extends SimpleResourceDefinition {
     }
 
     static <T> ServiceBuilder<T>  commonDependencies(ServiceBuilder<T> serviceBuilder) {
-        serviceBuilder.addDependencies(SecurityPropertyService.SERVICE_NAME);
-        serviceBuilder.addDependencies(CoreService.SERVICE_NAME);
+        return commonDependencies(serviceBuilder, true, true);
+    }
+
+    static <T> ServiceBuilder<T>  commonDependencies(ServiceBuilder<T> serviceBuilder, boolean dependOnProperties, boolean dependOnProviderRegistration) {
+        if (dependOnProperties) serviceBuilder.addDependencies(SecurityPropertyService.SERVICE_NAME);
+        if (dependOnProviderRegistration) serviceBuilder.addDependencies(ProviderRegistrationService.SERVICE_NAME);
         return serviceBuilder;
     }
 
@@ -252,7 +274,7 @@ class ElytronDefinition extends SimpleResourceDefinition {
     private static class ElytronAdd extends AbstractBoottimeAddStepHandler {
 
         private ElytronAdd() {
-            super(ELYTRON_RUNTIME_CAPABILITY, DEFAULT_AUTHENTICATION_CONTEXT);
+            super(ELYTRON_RUNTIME_CAPABILITY, DEFAULT_AUTHENTICATION_CONTEXT, INITIAL_PROVIDERS, FINAL_PROVIDERS);
         }
 
         @Override
@@ -269,7 +291,26 @@ class ElytronDefinition extends SimpleResourceDefinition {
 
             ServiceTarget target = context.getServiceTarget();
             installService(SecurityPropertyService.SERVICE_NAME, new SecurityPropertyService(), target);
-            installService(CoreService.SERVICE_NAME, new CoreService(), target);
+
+            ProviderRegistrationService prs = new ProviderRegistrationService();
+            ServiceBuilder<Void> builder = target.addService(ProviderRegistrationService.SERVICE_NAME, prs)
+                .setInitialMode(Mode.ACTIVE);
+
+            String initialProviders = asStringIfDefined(context, INITIAL_PROVIDERS, model);
+            if (initialProviders != null) {
+                builder.addDependency(
+                        context.getCapabilityServiceName(PROVIDERS_CAPABILITY, initialProviders, Provider[].class),
+                        Provider[].class, prs.getInitialProivders());
+            }
+
+            String finalProviders = asStringIfDefined(context, FINAL_PROVIDERS, model);
+            if (finalProviders != null) {
+                builder.addDependency(
+                        context.getCapabilityServiceName(PROVIDERS_CAPABILITY, finalProviders, Provider[].class),
+                        Provider[].class, prs.getFinalProviders());
+            }
+
+            builder.install();
 
             if (context.isNormalServer()) {
                 context.addStep(new AbstractDeploymentChainStep() {
@@ -285,7 +326,7 @@ class ElytronDefinition extends SimpleResourceDefinition {
         @Override
         protected void rollbackRuntime(OperationContext context, ModelNode operation, Resource resource) {
             uninstallSecurityPropertyService(context);
-            context.removeService(CoreService.SERVICE_NAME);
+            context.removeService(ProviderRegistrationService.SERVICE_NAME);
             AUTHENITCATION_CONTEXT_PROCESSOR.setDefaultAuthenticationContext(null);
         }
 
@@ -304,7 +345,7 @@ class ElytronDefinition extends SimpleResourceDefinition {
                 if (securityPropertyService != null) {
                     context.attach(SECURITY_PROPERTY_SERVICE_KEY, securityPropertyService);
                 }
-                context.removeService(CoreService.SERVICE_NAME);
+                context.removeService(ProviderRegistrationService.SERVICE_NAME);
             } else {
                 context.reloadRequired();
             }
@@ -318,10 +359,8 @@ class ElytronDefinition extends SimpleResourceDefinition {
             if (securityPropertyService != null) {
                 installService(SecurityPropertyService.SERVICE_NAME, securityPropertyService, target);
             }
-            installService(CoreService.SERVICE_NAME, new CoreService(), target);
+            installService(ProviderRegistrationService.SERVICE_NAME, new ProviderRegistrationService(), target);
         }
 
     }
-
-
 }

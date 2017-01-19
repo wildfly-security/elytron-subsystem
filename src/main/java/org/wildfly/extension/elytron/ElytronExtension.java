@@ -23,6 +23,8 @@ import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP;
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP_ADDR;
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.SUBSYSTEM;
 
+import java.util.List;
+
 import org.jboss.as.controller.AttributeDefinition;
 import org.jboss.as.controller.Extension;
 import org.jboss.as.controller.ExtensionContext;
@@ -31,6 +33,7 @@ import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
 import org.jboss.as.controller.PathElement;
 import org.jboss.as.controller.SimpleAttributeDefinition;
+import org.jboss.as.controller.StringListAttributeDefinition;
 import org.jboss.as.controller.SubsystemRegistration;
 import org.jboss.as.controller.descriptions.StandardResourceDescriptionResolver;
 import org.jboss.as.controller.operations.common.GenericSubsystemDescribeHandler;
@@ -122,6 +125,19 @@ public class ElytronExtension implements Extension {
             return value.asString();
         }
 
+        return null;
+    }
+
+    static String[] asStringArrayIfDefined(OperationContext context, StringListAttributeDefinition attributeDefinition, ModelNode model) throws OperationFailedException {
+        ModelNode resolved = attributeDefinition.resolveModelAttribute(context, model);
+        if (resolved.isDefined()) {
+            List<ModelNode> values = resolved.asList();
+            String[] response = new String[values.size()];
+            for (int i = 0; i < response.length; i++) {
+                response[i] = values.get(i).asString();
+            }
+            return response;
+        }
         return null;
     }
 

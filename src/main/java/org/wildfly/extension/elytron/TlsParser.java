@@ -64,8 +64,8 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NEW_ITEM
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PASSWORD;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PATH;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROTOCOLS;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDER;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDER_LOADER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDERS;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDER_NAME;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.RELATIVE_TO;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REQUIRED;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SEARCH_PATH;
@@ -172,11 +172,11 @@ class TlsParser {
                     case KEY_STORE:
                         SSLDefinitions.KEYSTORE.parseAndSetParameter(value, addKeyManager, reader);
                         break;
-                    case PROVIDER_LOADER:
-                        SSLDefinitions.PROVIDER_LOADER.parseAndSetParameter(value, addKeyManager, reader);
+                    case PROVIDERS:
+                        SSLDefinitions.PROVIDERS.parseAndSetParameter(value, addKeyManager, reader);
                         break;
-                    case PROVIDER:
-                        SSLDefinitions.PROVIDER.parseAndSetParameter(value, addKeyManager, reader);
+                    case PROVIDER_NAME:
+                        SSLDefinitions.PROVIDER_NAME.parseAndSetParameter(value, addKeyManager, reader);
                         break;
                     default:
                         throw unexpectedAttribute(reader, i);
@@ -239,11 +239,11 @@ class TlsParser {
                     case KEY_STORE:
                         SSLDefinitions.KEYSTORE.parseAndSetParameter(value, addKeyManager, reader);
                         break;
-                    case PROVIDER_LOADER:
-                        SSLDefinitions.PROVIDER_LOADER.parseAndSetParameter(value, addKeyManager, reader);
+                    case PROVIDERS:
+                        SSLDefinitions.PROVIDERS.parseAndSetParameter(value, addKeyManager, reader);
                         break;
-                    case PROVIDER:
-                        SSLDefinitions.PROVIDER.parseAndSetParameter(value, addKeyManager, reader);
+                    case PROVIDER_NAME:
+                        SSLDefinitions.PROVIDER_NAME.parseAndSetParameter(value, addKeyManager, reader);
                         break;
                     default:
                         throw unexpectedAttribute(reader, i);
@@ -327,8 +327,11 @@ class TlsParser {
                     case TRUST_MANAGERS:
                         SSLDefinitions.TRUST_MANAGERS.parseAndSetParameter(value, addServerSSLContext, reader);
                         break;
-                    case PROVIDER:
-                        SSLDefinitions.PROVIDER_LOADER.parseAndSetParameter(value, addServerSSLContext, reader);
+                    case PROVIDERS:
+                        SSLDefinitions.PROVIDERS.parseAndSetParameter(value, addServerSSLContext, reader);
+                        break;
+                    case PROVIDER_NAME:
+                        SSLDefinitions.PROVIDER_NAME.parseAndSetParameter(value, addServerSSLContext, reader);
                         break;
                     default:
                         throw unexpectedAttribute(reader, i);
@@ -400,8 +403,11 @@ class TlsParser {
                     case TRUST_MANAGERS:
                         SSLDefinitions.TRUST_MANAGERS.parseAndSetParameter(value, addServerSSLContext, reader);
                         break;
-                    case PROVIDER:
-                        SSLDefinitions.PROVIDER_LOADER.parseAndSetParameter(value, addServerSSLContext, reader);
+                    case PROVIDERS:
+                        SSLDefinitions.PROVIDERS.parseAndSetParameter(value, addServerSSLContext, reader);
+                        break;
+                    case PROVIDER_NAME:
+                        SSLDefinitions.PROVIDER_NAME.parseAndSetParameter(value, addServerSSLContext, reader);
                         break;
                     default:
                         throw unexpectedAttribute(reader, i);
@@ -457,11 +463,11 @@ class TlsParser {
                     case TYPE:
                         KeyStoreDefinition.TYPE.parseAndSetParameter(value, addKeyStore, reader);
                         break;
-                    case PROVIDER:
-                        KeyStoreDefinition.PROVIDER.parseAndSetParameter(value, addKeyStore, reader);
+                    case PROVIDER_NAME:
+                        KeyStoreDefinition.PROVIDER_NAME.parseAndSetParameter(value, addKeyStore, reader);
                         break;
-                    case PROVIDER_LOADER:
-                        KeyStoreDefinition.PROVIDER_LOADER.parseAndSetParameter(value, addKeyStore, reader);
+                    case PROVIDERS:
+                        KeyStoreDefinition.PROVIDERS.parseAndSetParameter(value, addKeyStore, reader);
                         break;
                     case PASSWORD:
                         KeyStoreDefinition.CREDENTIAL_REFERENCE.parseAndSetParameter(value, addKeyStore, reader);
@@ -775,8 +781,8 @@ class TlsParser {
                 writer.writeAttribute(NAME, name);
                 SSLDefinitions.ALGORITHM.marshallAsAttribute(keyManager, writer);
                 SSLDefinitions.KEYSTORE.marshallAsAttribute(keyManager, writer);
-                SSLDefinitions.PROVIDER_LOADER.marshallAsAttribute(keyManager, writer);
-                SSLDefinitions.PROVIDER.marshallAsAttribute(keyManager, writer);
+                SSLDefinitions.PROVIDERS.marshallAsAttribute(keyManager, writer);
+                SSLDefinitions.PROVIDER_NAME.marshallAsAttribute(keyManager, writer);
 
                 if (keyManager.hasDefined(CredentialReference.CREDENTIAL_REFERENCE)) {
                     // when [WFCORE-2210] use this marshallAsElement and delete next line: CredentialReference.getAttributeDefinition().marshallAsElement(keyManager, writer);
@@ -804,8 +810,8 @@ class TlsParser {
                 writer.writeAttribute(NAME, name);
                 SSLDefinitions.ALGORITHM.marshallAsAttribute(trustManager, writer);
                 SSLDefinitions.KEYSTORE.marshallAsAttribute(trustManager, writer);
-                SSLDefinitions.PROVIDER_LOADER.marshallAsAttribute(trustManager, writer);
-                SSLDefinitions.PROVIDER.marshallAsAttribute(trustManager, writer);
+                SSLDefinitions.PROVIDERS.marshallAsAttribute(trustManager, writer);
+                SSLDefinitions.PROVIDER_NAME.marshallAsAttribute(trustManager, writer);
 
                 writer.writeEndElement();
             }
@@ -838,7 +844,8 @@ class TlsParser {
                 SSLDefinitions.SESSION_TIMEOUT.marshallAsAttribute(serverSSLContext, writer);
                 SSLDefinitions.KEY_MANAGERS.marshallAsAttribute(serverSSLContext, writer);
                 SSLDefinitions.TRUST_MANAGERS.marshallAsAttribute(serverSSLContext, writer);
-                SSLDefinitions.PROVIDER_LOADER.marshallAsAttribute(serverSSLContext, writer);
+                SSLDefinitions.PROVIDERS.marshallAsAttribute(serverSSLContext, writer);
+                SSLDefinitions.PROVIDER_NAME.marshallAsAttribute(serverSSLContext, writer);
 
                 writer.writeEndElement();
             }
@@ -867,7 +874,8 @@ class TlsParser {
                 SSLDefinitions.SESSION_TIMEOUT.marshallAsAttribute(serverSSLContext, writer);
                 SSLDefinitions.KEY_MANAGERS.marshallAsAttribute(serverSSLContext, writer);
                 SSLDefinitions.TRUST_MANAGERS.marshallAsAttribute(serverSSLContext, writer);
-                SSLDefinitions.PROVIDER_LOADER.marshallAsAttribute(serverSSLContext, writer);
+                SSLDefinitions.PROVIDERS.marshallAsAttribute(serverSSLContext, writer);
+                SSLDefinitions.PROVIDER_NAME.marshallAsAttribute(serverSSLContext, writer);
 
                 writer.writeEndElement();
             }
@@ -891,8 +899,8 @@ class TlsParser {
                     writer.writeStartElement(KEY_STORE);
                     writer.writeAttribute(NAME, name);
                     KeyStoreDefinition.TYPE.marshallAsAttribute(keyStore, writer);
-                    KeyStoreDefinition.PROVIDER.marshallAsAttribute(keyStore, writer);
-                    KeyStoreDefinition.PROVIDER_LOADER.marshallAsAttribute(keyStore, writer);
+                    KeyStoreDefinition.PROVIDER_NAME.marshallAsAttribute(keyStore, writer);
+                    KeyStoreDefinition.PROVIDERS.marshallAsAttribute(keyStore, writer);
                     KeyStoreDefinition.ALIAS_FILTER.marshallAsAttribute(keyStore, writer);
 
                     if (keyStore.hasDefined(PATH)) {

@@ -1,5 +1,8 @@
 <!-- for needs of RealmsTestCase -->
-<subsystem xmlns="urn:wildfly:elytron:1.0">
+<subsystem xmlns="urn:wildfly:elytron:1.0" initial-providers="elytron">
+    <providers>
+        <provider-loader name="elytron" class-names="org.wildfly.security.WildFlyElytronProvider" />
+    </providers>
     <security-realms>
 
         <properties-realm name="HashedPropertyRealm">

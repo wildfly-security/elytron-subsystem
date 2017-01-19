@@ -32,7 +32,6 @@ import static org.wildfly.extension.elytron.FileAttributeDefinitions.RELATIVE_TO
 import static org.wildfly.extension.elytron.FileAttributeDefinitions.pathName;
 import static org.wildfly.extension.elytron.ProviderAttributeDefinition.LOADED_PROVIDER;
 import static org.wildfly.extension.elytron.ProviderAttributeDefinition.populateProvider;
-import static org.wildfly.extension.elytron.ProviderLoaderDefinition.PROVIDER_LOADER_SERVICE_UTIL;
 import static org.wildfly.extension.elytron.ServiceStateDefinition.STATE;
 import static org.wildfly.extension.elytron.ServiceStateDefinition.populateResponse;
 import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
@@ -95,14 +94,14 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
         .build();
 
-    static final SimpleAttributeDefinition PROVIDER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PROVIDER, ModelType.STRING, true)
+    static final SimpleAttributeDefinition PROVIDER_NAME = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PROVIDER_NAME, ModelType.STRING, true)
         .setAttributeGroup(ElytronDescriptionConstants.IMPLEMENTATION)
         .setAllowExpression(true)
         .setMinSize(1)
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
         .build();
 
-    static final SimpleAttributeDefinition PROVIDER_LOADER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PROVIDER_LOADER, ModelType.STRING, true)
+    static final SimpleAttributeDefinition PROVIDERS = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PROVIDERS, ModelType.STRING, true)
         .setAttributeGroup(ElytronDescriptionConstants.IMPLEMENTATION)
         .setMinSize(1)
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
@@ -155,7 +154,7 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
     static final SimpleOperationDefinition STORE = new SimpleOperationDefinitionBuilder(ElytronDescriptionConstants.STORE, RESOURCE_RESOLVER)
         .build();
 
-    private static final AttributeDefinition[] CONFIG_ATTRIBUTES = new AttributeDefinition[] { TYPE, PROVIDER, PROVIDER_LOADER, CREDENTIAL_REFERENCE, PATH, RELATIVE_TO, REQUIRED, ALIAS_FILTER };
+    private static final AttributeDefinition[] CONFIG_ATTRIBUTES = new AttributeDefinition[] { TYPE, PROVIDER_NAME, PROVIDERS, CREDENTIAL_REFERENCE, PATH, RELATIVE_TO, REQUIRED, ALIAS_FILTER };
 
     private static final KeyStoreAddHandler ADD = new KeyStoreAddHandler();
     private static final OperationStepHandler REMOVE = new TrivialCapabilityServiceRemoveHandler(ADD, KEY_STORE_RUNTIME_CAPABILITY);
@@ -252,8 +251,8 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
         @Override
         protected void performRuntime(OperationContext context, ModelNode operation, Resource resource) throws OperationFailedException {
             ModelNode model = resource.getModel();
-            String providerLoader = asStringIfDefined(context, PROVIDER_LOADER, model);
-            String provider = asStringIfDefined(context, PROVIDER, model);
+            String providers = asStringIfDefined(context, PROVIDERS, model);
+            String providerName = asStringIfDefined(context, PROVIDER_NAME, model);
             String type = TYPE.resolveModelAttribute(context, model).asString();
             String path = asStringIfDefined(context, PATH, model);
             String relativeTo = null;
@@ -265,9 +264,9 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
                 relativeTo = asStringIfDefined(context, RELATIVE_TO, model);
                 required = REQUIRED.resolveModelAttribute(context, model).asBoolean();
 
-                keyStoreService = KeyStoreService.createFileBasedKeyStoreService(provider, type, relativeTo, path, required, aliasFilter);
+                keyStoreService = KeyStoreService.createFileBasedKeyStoreService(providerName, type, relativeTo, path, required, aliasFilter);
             } else {
-                keyStoreService = KeyStoreService.createFileLessKeyStoreService(provider, type, aliasFilter);
+                keyStoreService = KeyStoreService.createFileLessKeyStoreService(providerName, type, aliasFilter);
             }
 
             ServiceTarget serviceTarget = context.getServiceTarget();
@@ -281,10 +280,10 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
                 serviceBuilder.addDependency(pathName(relativeTo));
             }
 
-            if (providerLoader != null) {
-                String providersCapabilityName = RuntimeCapability.buildDynamicCapabilityName(PROVIDERS_CAPABILITY, providerLoader);
+            if (providers != null) {
+                String providersCapabilityName = RuntimeCapability.buildDynamicCapabilityName(PROVIDERS_CAPABILITY, providers);
                 ServiceName providerLoaderServiceName = context.getCapabilityServiceName(providersCapabilityName, Provider[].class);
-                PROVIDER_LOADER_SERVICE_UTIL.addInjection(serviceBuilder, keyStoreService.getProvidersInjector(), providerLoaderServiceName);
+                serviceBuilder.addDependency(providerLoaderServiceName, Provider[].class, keyStoreService.getProvidersInjector());
             }
 
             keyStoreService.getCredentialSourceSupplierInjector()

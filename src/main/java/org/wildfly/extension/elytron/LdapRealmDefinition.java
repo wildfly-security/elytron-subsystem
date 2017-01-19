@@ -18,6 +18,25 @@
 
 package org.wildfly.extension.elytron;
 
+import static org.wildfly.extension.elytron.Capabilities.DIR_CONTEXT_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.MODIFIABLE_SECURITY_REALM_RUNTIME_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY;
+import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
+import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+
+import javax.naming.InvalidNameException;
+import javax.naming.NamingException;
+import javax.naming.directory.Attributes;
+import javax.naming.directory.BasicAttribute;
+import javax.naming.directory.BasicAttributes;
+import javax.naming.directory.DirContext;
+import javax.naming.ldap.LdapName;
+
 import org.jboss.as.controller.AbstractAddStepHandler;
 import org.jboss.as.controller.AttributeDefinition;
 import org.jboss.as.controller.ObjectListAttributeDefinition;
@@ -50,24 +69,6 @@ import org.wildfly.security.auth.realm.ldap.AttributeMapping;
 import org.wildfly.security.auth.realm.ldap.LdapSecurityRealmBuilder;
 import org.wildfly.security.auth.realm.ldap.LdapSecurityRealmBuilder.IdentityMappingBuilder;
 import org.wildfly.security.auth.server.SecurityRealm;
-
-import javax.naming.InvalidNameException;
-import javax.naming.NamingException;
-import javax.naming.directory.Attributes;
-import javax.naming.directory.BasicAttribute;
-import javax.naming.directory.BasicAttributes;
-import javax.naming.directory.DirContext;
-import javax.naming.ldap.LdapName;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-
-import static org.wildfly.extension.elytron.Capabilities.DIR_CONTEXT_CAPABILITY;
-import static org.wildfly.extension.elytron.Capabilities.MODIFIABLE_SECURITY_REALM_RUNTIME_CAPABILITY;
-import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_CAPABILITY;
-import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY;
-import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
-import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
 
 /**
  * A {@link ResourceDefinition} for a {@link SecurityRealm} backed by LDAP.

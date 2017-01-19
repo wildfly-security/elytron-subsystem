@@ -27,8 +27,8 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CACHING_
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CUSTOM_MODIFIABLE_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CUSTOM_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.FILESYSTEM_REALM;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.JDBC_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.IDENTITY_REALM;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.JDBC_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEY_STORE_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.LDAP_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROPERTIES_REALM;
@@ -37,6 +37,7 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.TOKEN_RE
 import static org.wildfly.extension.elytron.ElytronSubsystemParser.verifyNamespace;
 
 import java.util.List;
+
 import javax.xml.stream.XMLStreamException;
 
 import org.jboss.as.controller.AttributeMarshaller;

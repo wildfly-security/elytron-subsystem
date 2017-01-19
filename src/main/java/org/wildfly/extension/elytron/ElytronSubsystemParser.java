@@ -35,13 +35,14 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CREDENTI
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CREDENTIAL_STORES;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.DEFAULT_AUTHENTICATION_CONTEXT;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.DIR_CONTEXTS;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.FINAL_PROVIDERS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.HTTP;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.INITIAL_PROVIDERS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MAPPERS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MODULE;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROPERTY;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDER_LOADER;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDER_LOADERS;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDERS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SASL;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SECURITY_DOMAIN;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SECURITY_DOMAINS;
@@ -77,7 +78,7 @@ class ElytronSubsystemParser implements XMLElementReader<List<ModelNode>>, XMLEl
     private final DomainParser domainParser = new DomainParser();
     private final RealmParser realmParser = new RealmParser();
     private final TlsParser tlsParser = new TlsParser();
-    private final ProviderLoaderParser providerLoaderParser = new ProviderLoaderParser();
+    private final ProviderParser providerParser = new ProviderParser();
     private final CredentialSecurityFactoryParser credentialSecurityFactoryParser = new CredentialSecurityFactoryParser();
     private final MapperParser mapperParser = new MapperParser();
     private final SaslParser saslParser = new SaslParser();
@@ -105,6 +106,12 @@ class ElytronSubsystemParser implements XMLElementReader<List<ModelNode>>, XMLEl
                     case DEFAULT_AUTHENTICATION_CONTEXT:
                         ElytronDefinition.DEFAULT_AUTHENTICATION_CONTEXT.parseAndSetParameter(value, subsystemAdd, reader);
                         break;
+                    case INITIAL_PROVIDERS:
+                        ElytronDefinition.INITIAL_PROVIDERS.parseAndSetParameter(value, subsystemAdd, reader);
+                        break;
+                    case FINAL_PROVIDERS:
+                        ElytronDefinition.FINAL_PROVIDERS.parseAndSetParameter(value, subsystemAdd, reader);
+                        break;
                     default:
                         throw unexpectedAttribute(reader, i);
                 }
@@ -126,8 +133,8 @@ class ElytronSubsystemParser implements XMLElementReader<List<ModelNode>>, XMLEl
                 case AUTHENTICATION_CLIENT:
                     clientParser.readAuthenitcationClient(parentAddress, reader, operations);
                     break;
-                case PROVIDER_LOADERS:
-                    readProviderLoaders(parentAddress, reader, operations);
+                case PROVIDERS:
+                    providerParser.readProviders(parentAddress, reader, operations);
                     break;
                 case SECURITY_DOMAINS:
                     readDomains(parentAddress, reader, operations);
@@ -202,19 +209,6 @@ class ElytronSubsystemParser implements XMLElementReader<List<ModelNode>>, XMLEl
                 operations.add(operation);
 
                 requireNoContent(reader);
-            } else {
-                throw unexpectedElement(reader);
-            }
-        }
-    }
-
-    public void readProviderLoaders(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations) throws XMLStreamException {
-        requireNoAttributes(reader);
-        while(reader.hasNext() && reader.nextTag() != END_ELEMENT) {
-            verifyNamespace(reader);
-            String localName = reader.getLocalName();
-            if (PROVIDER_LOADER.equals(localName)) {
-               providerLoaderParser.readProviderLoader(parentAddress, reader, operations);
             } else {
                 throw unexpectedElement(reader);
             }
@@ -361,6 +355,8 @@ class ElytronSubsystemParser implements XMLElementReader<List<ModelNode>>, XMLEl
         ModelNode model = context.getModelNode();
 
         ElytronDefinition.DEFAULT_AUTHENTICATION_CONTEXT.marshallAsAttribute(model, writer);
+        ElytronDefinition.INITIAL_PROVIDERS.marshallAsAttribute(model, writer);
+        ElytronDefinition.FINAL_PROVIDERS.marshallAsAttribute(model, writer);
 
         if (model.hasDefined(SECURITY_PROPERTY)) {
             writer.writeStartElement(SECURITY_PROPERTIES);
@@ -375,16 +371,7 @@ class ElytronSubsystemParser implements XMLElementReader<List<ModelNode>>, XMLEl
         }
 
         clientParser.writeAuthenticationClient(model, writer);
-
-        if (model.hasDefined(PROVIDER_LOADER)) {
-            writer.writeStartElement(PROVIDER_LOADERS);
-            ModelNode providerLoaders = model.require(PROVIDER_LOADER);
-            for (String name : providerLoaders.keys()) {
-                ModelNode providerLoader = providerLoaders.require(name);
-                providerLoaderParser.writeProviderLoader(name, providerLoader, writer);
-            }
-            writer.writeEndElement();
-        }
+        providerParser.writeProviders(model, writer);
 
         if (model.hasDefined(SECURITY_DOMAIN)) {
             writer.writeStartElement(SECURITY_DOMAINS);

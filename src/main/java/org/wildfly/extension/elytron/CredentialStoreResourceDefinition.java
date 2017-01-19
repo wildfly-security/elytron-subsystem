@@ -24,7 +24,6 @@ import static org.wildfly.extension.elytron.Capabilities.PROVIDERS_CAPABILITY;
 import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
 import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
 import static org.wildfly.extension.elytron.FileAttributeDefinitions.pathName;
-import static org.wildfly.extension.elytron.ProviderLoaderDefinition.PROVIDER_LOADER_SERVICE_UTIL;
 import static org.wildfly.extension.elytron.ServiceStateDefinition.STATE;
 import static org.wildfly.extension.elytron.ServiceStateDefinition.populateResponse;
 import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
@@ -99,14 +98,14 @@ final class CredentialStoreResourceDefinition extends SimpleResourceDefinition {
             .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
             .build();
 
-    static final SimpleAttributeDefinition PROVIDER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PROVIDER, ModelType.STRING, true)
+    static final SimpleAttributeDefinition PROVIDER_NAME = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PROVIDER_NAME, ModelType.STRING, true)
             .setAttributeGroup(ElytronDescriptionConstants.IMPLEMENTATION)
             .setAllowExpression(true)
             .setMinSize(1)
             .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
             .build();
 
-    static final SimpleAttributeDefinition PROVIDER_LOADER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PROVIDER_LOADER, ModelType.STRING, true)
+    static final SimpleAttributeDefinition PROVIDERS = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PROVIDERS, ModelType.STRING, true)
             .setAttributeGroup(ElytronDescriptionConstants.IMPLEMENTATION)
             .setAllowExpression(false)
             .setMinSize(1)
@@ -128,7 +127,7 @@ final class CredentialStoreResourceDefinition extends SimpleResourceDefinition {
     static final SimpleOperationDefinition RELOAD = new SimpleOperationDefinitionBuilder(ElytronDescriptionConstants.RELOAD, RESOURCE_RESOLVER)
             .build();
 
-    private static final AttributeDefinition[] CONFIG_ATTRIBUTES = new AttributeDefinition[] {URI, CREDENTIAL_REFERENCE, TYPE, PROVIDER, PROVIDER_LOADER, RELATIVE_TO};
+    private static final AttributeDefinition[] CONFIG_ATTRIBUTES = new AttributeDefinition[] {URI, CREDENTIAL_REFERENCE, TYPE, PROVIDER_NAME, PROVIDERS, RELATIVE_TO};
 
     private static final CredentialStoreAddHandler ADD = new CredentialStoreAddHandler();
     private static final OperationStepHandler REMOVE = new TrivialCapabilityServiceRemoveHandler(ADD, CREDENTIAL_STORE_RUNTIME_CAPABILITY);
@@ -185,8 +184,8 @@ final class CredentialStoreResourceDefinition extends SimpleResourceDefinition {
             ModelNode model = resource.getModel();
             String uri = asStringIfDefined(context, URI, model);
             String type = asStringIfDefined(context, TYPE, model);
-            String providerLoader = asStringIfDefined(context, PROVIDER_LOADER, model);
-            String provider = asStringIfDefined(context, PROVIDER, model);
+            String providers = asStringIfDefined(context, PROVIDERS, model);
+            String providerName = asStringIfDefined(context, PROVIDER_NAME, model);
             String name = credentialStoreName(operation);
             String relativeTo = asStringIfDefined(context, RELATIVE_TO, model);
             ServiceTarget serviceTarget = context.getServiceTarget();
@@ -194,7 +193,7 @@ final class CredentialStoreResourceDefinition extends SimpleResourceDefinition {
             // ----------- credential store service ----------------
             final CredentialStoreService csService;
             try {
-                csService = CredentialStoreService.createCredentialStoreService(name, uri, type, provider, relativeTo, providerLoader);
+                csService = CredentialStoreService.createCredentialStoreService(name, uri, type, providerName, relativeTo, providers);
             } catch (CredentialStoreException e) {
                 throw new OperationFailedException(e);
             }
@@ -206,10 +205,10 @@ final class CredentialStoreResourceDefinition extends SimpleResourceDefinition {
                 credentialStoreServiceBuilder.addDependency(PathManagerService.SERVICE_NAME, PathManager.class, csService.getPathManagerInjector());
                 credentialStoreServiceBuilder.addDependency(pathName(relativeTo));
             }
-            if (providerLoader != null) {
-                String providersCapabilityName = RuntimeCapability.buildDynamicCapabilityName(PROVIDERS_CAPABILITY, providerLoader);
+            if (providers != null) {
+                String providersCapabilityName = RuntimeCapability.buildDynamicCapabilityName(PROVIDERS_CAPABILITY, providers);
                 ServiceName providerLoaderServiceName = context.getCapabilityServiceName(providersCapabilityName, Provider[].class);
-                PROVIDER_LOADER_SERVICE_UTIL.addInjection(credentialStoreServiceBuilder, csService.getProvidersInjector(), providerLoaderServiceName);
+                credentialStoreServiceBuilder.addDependency(providerLoaderServiceName, Provider[].class, csService.getProvidersInjector());
             }
 
             csService.getCredentialSourceSupplierInjector()

@@ -29,8 +29,8 @@ import static org.jboss.as.controller.parsing.ParseUtils.unexpectedElement;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CREDENTIAL_STORE;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CREDENTIAL_STORES;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDER;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDER_LOADER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDERS;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDER_NAME;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.RELATIVE_TO;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.TYPE;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.URI;
@@ -95,11 +95,11 @@ class CredentialStoreParser {
                     case TYPE:
                         CredentialStoreResourceDefinition.TYPE.parseAndSetParameter(value, addCredentialStore, reader);
                         break;
-                    case PROVIDER:
-                        CredentialStoreResourceDefinition.PROVIDER.parseAndSetParameter(value, addCredentialStore, reader);
+                    case PROVIDER_NAME:
+                        CredentialStoreResourceDefinition.PROVIDER_NAME.parseAndSetParameter(value, addCredentialStore, reader);
                         break;
-                    case PROVIDER_LOADER:
-                        CredentialStoreResourceDefinition.PROVIDER_LOADER.parseAndSetParameter(value, addCredentialStore, reader);
+                    case PROVIDERS:
+                        CredentialStoreResourceDefinition.PROVIDERS.parseAndSetParameter(value, addCredentialStore, reader);
                         break;
                     case RELATIVE_TO:
                         CredentialStoreResourceDefinition.RELATIVE_TO.parseAndSetParameter(value, addCredentialStore, reader);
@@ -143,8 +143,8 @@ class CredentialStoreParser {
                 writer.writeStartElement(CREDENTIAL_STORE);
                 writer.writeAttribute(NAME, name);
                 CredentialStoreResourceDefinition.TYPE.marshallAsAttribute(credentialStoreModelNode, writer);
-                CredentialStoreResourceDefinition.PROVIDER.marshallAsAttribute(credentialStoreModelNode, writer);
-                CredentialStoreResourceDefinition.PROVIDER_LOADER.marshallAsAttribute(credentialStoreModelNode, writer);
+                CredentialStoreResourceDefinition.PROVIDER_NAME.marshallAsAttribute(credentialStoreModelNode, writer);
+                CredentialStoreResourceDefinition.PROVIDERS.marshallAsAttribute(credentialStoreModelNode, writer);
                 CredentialStoreResourceDefinition.RELATIVE_TO.marshallAsAttribute(credentialStoreModelNode, writer);
                 CredentialStoreResourceDefinition.URI.marshallAsElement(credentialStoreModelNode, writer);
                 if (credentialStoreModelNode.hasDefined(CredentialStoreResourceDefinition.CREDENTIAL_REFERENCE.getName())) {
