@@ -119,6 +119,7 @@ class ElytronDefinition extends SimpleResourceDefinition {
         resourceRegistration.registerSubModel(new TokenRealmDefinition());
         resourceRegistration.registerSubModel(SecurityRealmResourceDecorator.wrap(new LdapRealmDefinition()));
         resourceRegistration.registerSubModel(SecurityRealmResourceDecorator.wrap(new FileSystemRealmDefinition()));
+        resourceRegistration.registerSubModel(new CachingRealmDefinition());
 
         // Security Factories
         resourceRegistration.registerSubModel(new CustomComponentDefinition<CredentialSecurityFactory>(CredentialSecurityFactory.class, ElytronDescriptionConstants.CUSTOM_CREDENTIAL_SECURITY_FACTORY, SECURITY_FACTORY_CREDENTIAL_RUNTIME_CAPABILITY));

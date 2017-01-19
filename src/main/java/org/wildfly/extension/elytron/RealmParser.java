@@ -23,6 +23,7 @@ import static org.jboss.as.controller.PersistentResourceXMLDescription.builder;
 import static org.jboss.as.controller.parsing.ParseUtils.requireNoAttributes;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedElement;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AGGREGATE_REALM;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CACHING_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CUSTOM_MODIFIABLE_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CUSTOM_REALM;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.FILESYSTEM_REALM;
@@ -88,9 +89,11 @@ class RealmParser {
             .addAttributes(FileSystemRealmDefinition.ATTRIBUTES)
             .setMarshallDefaultValues(true)
             .build();
-
     private final PersistentResourceXMLDescription tokenRealmParser = builder(PathElement.pathElement(ElytronDescriptionConstants.TOKEN_REALM), null)
             .addAttributes(TokenRealmDefinition.ATTRIBUTES)
+            .build();
+    private final PersistentResourceXMLDescription cachingRealmParser = builder(PathElement.pathElement(ElytronDescriptionConstants.CACHING_REALM), null)
+            .addAttributes(CachingRealmDefinition.ATTRIBUTES)
             .build();
 
     /*final PersistentResourceXMLDescription realmParser = builder(PathElement.pathElement(ElytronDescriptionConstants.SECURITY_REALMS, "ignored"), null)
@@ -154,6 +157,9 @@ class RealmParser {
                 case TOKEN_REALM:
                     tokenRealmParser.parse(reader, parentAddress, operations);
                     break;
+                case CACHING_REALM:
+                    cachingRealmParser.parse(reader, parentAddress, operations);
+                    break;
                 default:
                     throw unexpectedElement(reader);
             }
@@ -178,6 +184,7 @@ class RealmParser {
         ldapRealmParser.persist(writer, subsystem);
         fileSystemRealmDescription.persist(writer, subsystem);
         tokenRealmParser.persist(writer, subsystem);
+        cachingRealmParser.persist(writer, subsystem);
 
         writer.writeEndElement();
     }
