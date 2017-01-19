@@ -35,7 +35,7 @@
     <packaging>jar</packaging>
 
     <properties>
-        <version.elytron>1.1.0.Beta19</version.elytron>
+        <version.elytron>1.1.0.Beta20</version.elytron>
 
         <version.wildfly.core>3.0.0.Alpha19</version.wildfly.core>
 
