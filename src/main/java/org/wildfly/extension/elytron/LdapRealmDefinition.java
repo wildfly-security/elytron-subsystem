@@ -119,12 +119,19 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
 
+        static final SimpleAttributeDefinition ROLE_RECURSION_NAME = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ROLE_RECURSION_NAME, ModelType.STRING, true)
+                .setDefaultValue(new ModelNode("cn"))
+                .setRequires(ElytronDescriptionConstants.ROLE_RECURSION)
+                .setAllowExpression(true)
+                .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+                .build();
+
         static final SimpleAttributeDefinition EXTRACT_RDN = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.EXTRACT_RDN, ModelType.STRING, true)
                 .setAllowExpression(true)
                 .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
                 .build();
 
-        static final SimpleAttributeDefinition[] ATTRIBUTES = new SimpleAttributeDefinition[] {FROM, TO, REFERENCE, FILTER, FILTER_BASE_DN, RECURSIVE_SEARCH, ROLE_RECURSION, EXTRACT_RDN};
+        static final SimpleAttributeDefinition[] ATTRIBUTES = new SimpleAttributeDefinition[] {FROM, TO, REFERENCE, FILTER, FILTER_BASE_DN, RECURSIVE_SEARCH, ROLE_RECURSION, ROLE_RECURSION_NAME, EXTRACT_RDN};
 
         static final ObjectTypeAttributeDefinition OBJECT_DEFINITION = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.ATTRIBUTE, ATTRIBUTES)
                 .build();
@@ -519,8 +526,12 @@ class LdapRealmDefinition extends SimpleResourceDefinition {
                     }
 
                     ModelNode roleRecursion = AttributeMappingObjectDefinition.ROLE_RECURSION.resolveModelAttribute(context, attributeNode);
+                    ModelNode roleRecursionName = AttributeMappingObjectDefinition.ROLE_RECURSION_NAME.resolveModelAttribute(context, attributeNode);
                     if (roleRecursion.isDefined() && (filter.isDefined() || reference.isDefined())) {
                         b.roleRecursion(roleRecursion.asInt());
+                        if (roleRecursionName.isDefined()) {
+                            b.roleRecursionName(roleRecursionName.asString());
+                        }
                     }
 
                     identityMappingBuilder.map(b.build());

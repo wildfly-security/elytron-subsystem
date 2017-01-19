@@ -13,6 +13,7 @@
                <attribute filter="(&amp;(objectClass=groupOfNames)(member={1}))" filter-base-dn="dc=elytron,dc=wildfly,dc=org" to="rolesRecRdnCn" role-recursion="2" extract-rdn="CN"/>
                <attribute filter="(&amp;(objectClass=groupOfNames)(member={1}))" filter-base-dn="dc=elytron,dc=wildfly,dc=org" to="rolesCn" extract-rdn="CN"/>
                <attribute filter="(&amp;(objectClass=groupOfNames)(member={1}))" filter-base-dn="dc=elytron,dc=wildfly,dc=org" from="description" to="rolesDescription" role-recursion="2"/>
+               <attribute filter="(&amp;(objectClass=organizationalRole)(description={0}))" filter-base-dn="dc=elytron,dc=wildfly,dc=org" from="street" to="rolesByName" role-recursion="2" role-recursion-name="postalCode"/>
                <attribute reference="memberOf" from="description" to="memberOfDescription" role-recursion="5"/>
                <attribute reference="memberOf" to="memberOfDn" role-recursion="3"/>
             </attribute-mapping>
