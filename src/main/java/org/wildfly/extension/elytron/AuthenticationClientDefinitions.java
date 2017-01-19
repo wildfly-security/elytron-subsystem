@@ -39,6 +39,7 @@ import java.util.function.Supplier;
 import javax.net.ssl.SSLContext;
 
 import org.jboss.as.controller.AttributeDefinition;
+import org.jboss.as.controller.AttributeMarshaller;
 import org.jboss.as.controller.ObjectListAttributeDefinition;
 import org.jboss.as.controller.ObjectTypeAttributeDefinition;
 import org.jboss.as.controller.OperationContext;
@@ -152,8 +153,9 @@ class AuthenticationClientDefinitions {
             .build();
 
     static final ObjectTypeAttributeDefinition CREDENTIAL_REFERENCE = CredentialReference.getAttributeBuilder(CredentialReference.CREDENTIAL_REFERENCE, CredentialReference.CREDENTIAL_REFERENCE, true)
-                    .setCapabilityReference(CREDENTIAL_STORE_CAPABILITY, AUTHENTICATION_CONFIGURATION_CAPABILITY, true)
-                    .build();
+            .setCapabilityReference(CREDENTIAL_STORE_CAPABILITY, AUTHENTICATION_CONFIGURATION_CAPABILITY, true)
+            .setAttributeMarshaller(AttributeMarshaller.ATTRIBUTE_OBJECT)  // temporary fix [WFCORE-2210]
+            .build();
 
     static final AttributeDefinition[] AUTHENTICATION_CONFIGURATION_SIMPLE_ATTRIBUTES = new AttributeDefinition[] { CONFIGURATION_EXTENDS, ANONYMOUS, AUTHENTICATION_NAME, AUTHORIZATION_NAME, HOST, PROTOCOL,
             PORT, REALM, SECURITY_DOMAIN, ALLOW_ALL_MECHANISMS, ALLOW_SASL_MECHANISMS, FORBID_SASL_MECHANISMS };
@@ -318,40 +320,7 @@ class AuthenticationClientDefinitions {
                 ModelNode credentialReference = CREDENTIAL_REFERENCE.resolveModelAttribute(context, model);
                 if (credentialReference.isDefined()) {
                     final InjectedValue<ExceptionSupplier<CredentialSource, Exception>> credentialSourceSupplierInjector = new InjectedValue<>();
-                    credentialSourceSupplierInjector.inject(CredentialStoreResourceDefinition.createCredentialSource(context, model, serviceBuilder));
-
-/*
-                String credentialStoreName = credentialReferencePartAsStringIfDefined(context, CREDENTIAL_REFERENCE, model, CredentialReference.STORE);
-                String credentialAlias = credentialReferencePartAsStringIfDefined(context, CREDENTIAL_REFERENCE, model, CredentialReference.ALIAS);
-                String credentialType = credentialReferencePartAsStringIfDefined(context, CREDENTIAL_REFERENCE, model, CredentialReference.TYPE);
-                String secret = credentialReferencePartAsStringIfDefined(context, CREDENTIAL_REFERENCE, model, CredentialReference.CLEAR_TEXT);
-
-                if (credentialStoreName != null || secret != null) {
-                    CredentialReference credentialReference;
-                    if (credentialStoreName != null && !credentialStoreName.isEmpty()) {
-                        credentialReference = CredentialReference.createCredentialReference(credentialStoreName, credentialAlias, credentialType);
-                    } else {
-                        credentialReference = CredentialReference.createCredentialReference(secret != null ? secret.toCharArray() : null);
-                    }
-
-                    InjectedValue<CredentialStoreClient> credentialStoreClientInjector = new InjectedValue<>();
-                    if (credentialReference.getAlias() != null) {
-                        // use credential store service
-                        String credentialStoreClientCapabilityName = RuntimeCapability.buildDynamicCapabilityName(CREDENTIAL_STORE_CAPABILITY, credentialReference.getCredentialStoreName());
-                        ServiceName credentialStoreClientServiceName = context.getCapabilityServiceName(credentialStoreClientCapabilityName, CredentialStoreClient.class);
-                        CREDENTIAL_STORE_UTIL.addInjection(serviceBuilder, credentialStoreClientInjector, credentialStoreClientServiceName);
-                    }
-
-                    configuration = configuration.andThen( c -> {
-                        try {
-                            CredentialReference.reinjectCredentialStoreClient(credentialStoreClientInjector, credentialReference);
-                        } catch (ClassNotFoundException e) {
-                            throw new IllegalStateException(e);
-                        }
-                        return c.usePassword(credentialStoreClientInjector.getValue().getSecret());
-                    });
-                }
-*/
+                    credentialSourceSupplierInjector.inject(CredentialReference.getCredentialSourceSupplier(context, CREDENTIAL_REFERENCE, model, serviceBuilder));
                     configuration = configuration.andThen(c -> {
                         ExceptionSupplier<CredentialSource, Exception> sourceSupplier = credentialSourceSupplierInjector
                                 .getValue();
