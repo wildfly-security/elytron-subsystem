@@ -1025,13 +1025,34 @@
         <xs:complexContent>
             <xs:extension base="realmType">
                 <xs:all>
-                    <xs:element name="users-properties" type="basicFileType">
+                    <xs:element name="users-properties">
                         <xs:annotation>
                             <xs:documentation>
                                 The location of the properties file containing the users and their passwords.
                                 The file should contain realm name declaration.
                             </xs:documentation>
                         </xs:annotation>
+                        <xs:complexType >
+                            <xs:complexContent>
+                                <xs:extension base="basicFileType">
+                                    <xs:attribute name="plain-text" type="xs:boolean" default="false">
+                                        <xs:annotation>
+                                            <xs:documentation>
+                                                Are the passwords in properties file stored in plain text or pre-hashed?
+                                                (Pre-hashed form: HEX( MD5( username ":" realm ":" password ) ) )
+                                            </xs:documentation>
+                                        </xs:annotation>
+                                    </xs:attribute>
+                                    <xs:attribute name="digest-realm-name" type="xs:string">
+                                        <xs:annotation>
+                                            <xs:documentation>
+                                                The realm name to use for digested passwords if one is not discovered in the properties file.
+                                            </xs:documentation>
+                                        </xs:annotation>
+                                    </xs:attribute>
+                                </xs:extension>
+                            </xs:complexContent>
+                        </xs:complexType>
                     </xs:element>
                     <xs:element name="groups-properties" type="basicFileType" minOccurs="0">
                         <xs:annotation>
@@ -1041,21 +1062,6 @@
                         </xs:annotation>
                     </xs:element>
                 </xs:all>
-                <xs:attribute name="plain-text" type="xs:boolean" default="false">
-                    <xs:annotation>
-                        <xs:documentation>
-                            Are the passwords in properties file stored in plain text or pre-hashed?
-                            (Pre-hashed form: HEX( MD5( username ":" realm ":" password ) ) )
-                        </xs:documentation>
-                    </xs:annotation>
-                </xs:attribute>
-                <xs:attribute name="default-realm" type="xs:string">
-                    <xs:annotation>
-                        <xs:documentation>
-                            The realm name to use if one is not discovered in the properties file.
-                        </xs:documentation>
-                    </xs:annotation>
-                </xs:attribute>
                 <xs:attribute name="groups-attribute" type="xs:string" default="groups">
                     <xs:annotation>
                         <xs:documentation>

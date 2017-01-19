@@ -77,7 +77,7 @@ class RealmParser {
             .addAttributes(KeyStoreRealmDefinition.KEYSTORE)
             .build();
     private final PersistentResourceXMLDescription propertiesRealmParser = builder(PathElement.pathElement(ElytronDescriptionConstants.PROPERTIES_REALM), null)
-            .addAttributes(PropertiesRealmDefinition.PLAIN_TEXT, PropertiesRealmDefinition.DEFAULT_REALM, PropertiesRealmDefinition.GROUPS_ATTRIBUTE)
+            .addAttributes(PropertiesRealmDefinition.GROUPS_ATTRIBUTE)
             .addAttribute(PropertiesRealmDefinition.USERS_PROPERTIES, AttributeParser.OBJECT_PARSER, AttributeMarshaller.ATTRIBUTE_OBJECT)
             .addAttribute(PropertiesRealmDefinition.GROUPS_PROPERTIES, AttributeParser.OBJECT_PARSER, AttributeMarshaller.ATTRIBUTE_OBJECT)
             .build();

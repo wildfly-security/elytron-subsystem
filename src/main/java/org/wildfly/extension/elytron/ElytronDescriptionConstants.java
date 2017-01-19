@@ -129,6 +129,7 @@ interface ElytronDescriptionConstants {
     String DIGEST = "digest";
     String DIGEST_ALGORITHM = "digest-algorithm";
     String DIGEST_FROM = "digest-from";
+    String DIGEST_REALM_NAME = "digest-realm-name";
     String DIR_CONTEXT = "dir-context";
     String DIR_CONTEXTS = "dir-contexts";
     String DIRECT_VERIFICATION = "direct-verification";
