@@ -3513,7 +3513,7 @@
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
-        <xs:attribute name="provider" type="xs:string" use="optional">
+        <xs:attribute name="provider-name" type="xs:string" use="optional">
             <xs:annotation>
                 <xs:documentation>
                     The name of the provider to use to
@@ -3574,7 +3574,7 @@
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
-        <xs:attribute name="provider" type="xs:string" use="optional">
+        <xs:attribute name="provider-name" type="xs:string" use="optional">
             <xs:annotation>
                 <xs:documentation>
                     The name of the provider to use to
@@ -3704,7 +3704,7 @@
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
-        <xs:attribute name="provider" type="xs:string" use="optional">
+        <xs:attribute name="provider-name" type="xs:string" use="optional">
             <xs:annotation>
                 <xs:documentation>
                     The name of the provider to use.
@@ -3794,7 +3794,7 @@
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
-        <xs:attribute name="provider" type="xs:string" use="optional">
+        <xs:attribute name="provider-name" type="xs:string" use="optional">
             <xs:annotation>
                 <xs:documentation>
                     The name of the provider to use.
@@ -3857,7 +3857,7 @@
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
-        <xs:attribute name="provider" type="xs:string" use="optional">
+        <xs:attribute name="provider-name" type="xs:string" use="optional">
             <xs:annotation>
                 <xs:documentation>
                     The name of the provider to use to
@@ -4148,7 +4148,7 @@
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
-        <xs:attribute name="provider" type="xs:string" use="optional">
+        <xs:attribute name="provider-name" type="xs:string" use="optional">
             <xs:annotation>
                 <xs:documentation>
                     The name of the provider to use to

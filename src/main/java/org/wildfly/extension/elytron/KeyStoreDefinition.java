@@ -93,7 +93,7 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
         .build();
 
-    static final SimpleAttributeDefinition PROVIDER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PROVIDER, ModelType.STRING, true)
+    static final SimpleAttributeDefinition PROVIDER_NAME = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PROVIDER_NAME, ModelType.STRING, true)
         .setAttributeGroup(ElytronDescriptionConstants.IMPLEMENTATION)
         .setAllowExpression(true)
         .setMinSize(1)
@@ -152,7 +152,7 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
     static final SimpleOperationDefinition STORE = new SimpleOperationDefinitionBuilder(ElytronDescriptionConstants.STORE, RESOURCE_RESOLVER)
         .build();
 
-    private static final AttributeDefinition[] CONFIG_ATTRIBUTES = new AttributeDefinition[] { TYPE, PROVIDER, PROVIDERS, CREDENTIAL_REFERENCE, PATH, RELATIVE_TO, REQUIRED, ALIAS_FILTER };
+    private static final AttributeDefinition[] CONFIG_ATTRIBUTES = new AttributeDefinition[] { TYPE, PROVIDER_NAME, PROVIDERS, CREDENTIAL_REFERENCE, PATH, RELATIVE_TO, REQUIRED, ALIAS_FILTER };
 
     private static final KeyStoreAddHandler ADD = new KeyStoreAddHandler();
     private static final OperationStepHandler REMOVE = new TrivialCapabilityServiceRemoveHandler(ADD, KEY_STORE_RUNTIME_CAPABILITY);
@@ -250,7 +250,7 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
         protected void performRuntime(OperationContext context, ModelNode operation, Resource resource) throws OperationFailedException {
             ModelNode model = resource.getModel();
             String providers = asStringIfDefined(context, PROVIDERS, model);
-            String provider = asStringIfDefined(context, PROVIDER, model);
+            String providerName = asStringIfDefined(context, PROVIDER_NAME, model);
             String type = TYPE.resolveModelAttribute(context, model).asString();
             String path = asStringIfDefined(context, PATH, model);
             String relativeTo = null;
@@ -262,9 +262,9 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
                 relativeTo = asStringIfDefined(context, RELATIVE_TO, model);
                 required = REQUIRED.resolveModelAttribute(context, model).asBoolean();
 
-                keyStoreService = KeyStoreService.createFileBasedKeyStoreService(provider, type, relativeTo, path, required, aliasFilter);
+                keyStoreService = KeyStoreService.createFileBasedKeyStoreService(providerName, type, relativeTo, path, required, aliasFilter);
             } else {
-                keyStoreService = KeyStoreService.createFileLessKeyStoreService(provider, type, aliasFilter);
+                keyStoreService = KeyStoreService.createFileLessKeyStoreService(providerName, type, aliasFilter);
             }
 
             ServiceTarget serviceTarget = context.getServiceTarget();
