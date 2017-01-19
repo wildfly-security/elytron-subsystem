@@ -51,8 +51,8 @@
         <properties-realm name="RealmFive">
             <users-properties path="my.properties"/>
         </properties-realm>
-        <properties-realm name="RealmSix" plain-text="true" groups-attribute="roles">
-            <users-properties path="my.properties" relative-to="my.path"/>
+        <properties-realm name="RealmSix" groups-attribute="roles">
+            <users-properties path="my.properties" relative-to="my.path" plain-text="true"/>
             <groups-properties path="mygroup.properties" relative-to="mygroup.path"/>
         </properties-realm>
         <ldap-realm name="LdapRealmWithAttributeMapping" dir-context="dircontext1">

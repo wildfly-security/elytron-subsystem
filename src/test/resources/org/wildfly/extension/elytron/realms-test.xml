@@ -2,12 +2,12 @@
 <subsystem xmlns="urn:wildfly:elytron:1.0">
     <security-realms>
 
-        <properties-realm name="HashedPropertyRealm" default-realm="Hashed">
-            <users-properties path="target/test-classes/org/wildfly/extension/elytron/users-hashed.properties" />
+        <properties-realm name="HashedPropertyRealm">
+            <users-properties path="target/test-classes/org/wildfly/extension/elytron/users-hashed.properties" digest-realm-name="Hashed" />
         </properties-realm>
 
-        <properties-realm name="ClearPropertyRealm" plain-text="true" groups-attribute="groupAttr">
-            <users-properties path="users-clear.properties" relative-to="jboss.server.config.dir" />
+        <properties-realm name="ClearPropertyRealm" groups-attribute="groupAttr">
+            <users-properties path="users-clear.properties" relative-to="jboss.server.config.dir" plain-text="true" />
             <groups-properties path="groups.properties" relative-to="jboss.server.config.dir" />
         </properties-realm>
 
