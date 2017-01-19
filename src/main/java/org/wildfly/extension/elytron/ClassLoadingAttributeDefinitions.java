@@ -52,7 +52,7 @@ class ClassLoadingAttributeDefinitions {
 
     static ClassLoader resolveClassLoader(String module) throws ModuleLoadException {
         Module current = Module.getCallerModule();
-        if (module != null) {
+        if (module != null && current != null) {
             ModuleIdentifier mi = ModuleIdentifier.fromString(module);
             current = current.getModule(mi);
         }
