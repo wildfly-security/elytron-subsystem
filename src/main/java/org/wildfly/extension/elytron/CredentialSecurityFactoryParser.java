@@ -34,6 +34,7 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KERBEROS
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MECHANISM_OIDS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MINIMUM_REMAINING_LIFETIME;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.OBTAIN_KERBEROS_TICKET;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PATH;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PRINCIPAL;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.RELATIVE_TO;
@@ -111,6 +112,9 @@ class CredentialSecurityFactoryParser {
                     case SERVER:
                         KerberosSecurityFactoryDefinition.SERVER.parseAndSetParameter(value, add, reader);
                         break;
+                    case OBTAIN_KERBEROS_TICKET:
+                        KerberosSecurityFactoryDefinition.OBTAIN_KERBEROS_TICKET.parseAndSetParameter(value, add, reader);
+                        break;
                     case MINIMUM_REMAINING_LIFETIME:
                         KerberosSecurityFactoryDefinition.MINIMUM_REMAINING_LIFETIME.parseAndSetParameter(value, add, reader);
                         break;
@@ -179,6 +183,7 @@ class CredentialSecurityFactoryParser {
                 KerberosSecurityFactoryDefinition.MINIMUM_REMAINING_LIFETIME.marshallAsAttribute(factory, false, writer);
                 KerberosSecurityFactoryDefinition.REQUEST_LIFETIME.marshallAsAttribute(factory, false, writer);
                 KerberosSecurityFactoryDefinition.SERVER.marshallAsAttribute(factory, false, writer);
+                KerberosSecurityFactoryDefinition.OBTAIN_KERBEROS_TICKET.marshallAsAttribute(factory, false, writer);
                 KerberosSecurityFactoryDefinition.DEBUG.marshallAsAttribute(factory, false, writer);
                 KerberosSecurityFactoryDefinition.MECHANISM_OIDS.getAttributeMarshaller().marshallAsAttribute(KerberosSecurityFactoryDefinition.MECHANISM_OIDS, factory, false, writer);
 

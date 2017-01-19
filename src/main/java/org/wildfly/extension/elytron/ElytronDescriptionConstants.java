@@ -268,6 +268,7 @@ interface ElytronDescriptionConstants {
     String NOT_BEFORE = "not-before";
 
     String OAUTH2_INTROSPECTION = "oauth2-introspection";
+    String OBTAIN_KERBEROS_TICKET = "obtain-kerberos-ticket";
     String OID = "oid";
     String OTP_CREDENTIAL_MAPPER = "otp-credential-mapper";
     String OR = "or";
