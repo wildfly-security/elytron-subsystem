@@ -54,7 +54,7 @@
                 <filter mechanism-name="Scram" provider-name="Sun" provider-version="1.5" version-comparison="greater-than" />
             </filters>
         </mechanism-provider-filtering-sasl-server-factory>
-        <provider-sasl-server-factory name="ProviderSaslFactory" provider-loader="TestProviderLoader" />
+        <provider-sasl-server-factory name="ProviderSaslFactory" providers="TestProviderLoader" />
         <service-loader-sasl-server-factory name="ServiceSaslFactory" module="a.b.c" />
     </sasl>
 </subsystem>

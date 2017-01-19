@@ -45,7 +45,7 @@
                 </filter>
             </filters>
         </configurable-http-server-mechanism-factory>
-        <provider-http-server-mechanism-factory name="ProviderHttpFactory" provider-loader="TestProviderLoader" />
+        <provider-http-server-mechanism-factory name="ProviderHttpFactory" providers="TestProviderLoader" />
         <service-loader-http-server-mechanism-factory name="ServiceHttpFactory" module="a.b.c" />
     </http>
 </subsystem>

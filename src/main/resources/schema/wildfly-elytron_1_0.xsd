@@ -3052,7 +3052,7 @@
         </xs:annotation>
         <xs:complexContent>
             <xs:extension base="httpServerMechanismFactoryType">
-                <xs:attribute name="provider-loader" type="xs:string">
+                <xs:attribute name="providers" type="xs:string">
                     <xs:annotation>
                         <xs:documentation>
                             Reference to the Provider[] capability to obtain the array of Providers to use.
@@ -3402,7 +3402,7 @@
         </xs:annotation>
         <xs:complexContent>
             <xs:extension base="saslServerFactoryType">
-                <xs:attribute name="provider-loader" type="xs:string">
+                <xs:attribute name="providers" type="xs:string">
                     <xs:annotation>
                         <xs:documentation>
                             Reference to the Provider[] capability to obtain the array of Providers to use.
@@ -3524,10 +3524,10 @@
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
-        <xs:attribute name="provider-loader" type="xs:string" use="optional">
+        <xs:attribute name="providers" type="xs:string" use="optional">
             <xs:annotation>
                 <xs:documentation>
-                    The name of the provider-loader defined within the subsystem to obtain the Providers
+                    The name of the providers defined within the subsystem to obtain the Providers
                     to search for the one that can create the required KeyManagerFactory type.
 
                     If this is not specified then the global list of Providers is used instead.
@@ -3585,10 +3585,10 @@
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
-        <xs:attribute name="provider-loader" type="xs:string" use="optional">
+        <xs:attribute name="providers" type="xs:string" use="optional">
             <xs:annotation>
                 <xs:documentation>
-                    The name of the provider-loader defined within the subsystem to obtain the Providers
+                    The name of the providers defined within the subsystem to obtain the Providers
                     to search for the one that can create the required TrustManagerFactory type.
 
                     If this is not specified then the global list of Providers is used instead.
@@ -3708,14 +3708,14 @@
             <xs:annotation>
                 <xs:documentation>
                     The name of the provider to use.
-                    If not specified, all providers from provider-loader will be passed to the SSLContext.
+                    If not specified, all providers from providers will be passed to the SSLContext.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
-        <xs:attribute name="provider-loader" type="xs:string" use="optional">
+        <xs:attribute name="providers" type="xs:string" use="optional">
             <xs:annotation>
                 <xs:documentation>
-                    The name of the provider-loader to obtain the Provider[] to use to load the SSLContext.
+                    The name of the providers to obtain the Provider[] to use to load the SSLContext.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
@@ -3798,14 +3798,14 @@
             <xs:annotation>
                 <xs:documentation>
                     The name of the provider to use.
-                    If not specified, all providers from provider-loader will be passed to the SSLContext.
+                    If not specified, all providers from providers will be passed to the SSLContext.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
-        <xs:attribute name="provider-loader" type="xs:string" use="optional">
+        <xs:attribute name="providers" type="xs:string" use="optional">
             <xs:annotation>
                 <xs:documentation>
-                    The name of the provider-loader to obtain the Provider[] to use to load the SSLContext.
+                    The name of the providers to obtain the Provider[] to use to load the SSLContext.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
@@ -3868,10 +3868,10 @@
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
-        <xs:attribute name="provider-loader" type="xs:string" use="optional">
+        <xs:attribute name="providers" type="xs:string" use="optional">
             <xs:annotation>
                 <xs:documentation>
-                    The name of the provider-loader defined within the subsystem to obtain the Providers
+                    The name of the providers defined within the subsystem to obtain the Providers
                     to search for the one that can create the required KeyStore type.
 
                     If this is not specified then the global list of Providers is used instead.
@@ -4159,10 +4159,10 @@
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
-        <xs:attribute name="provider-loader" type="xs:string" use="optional">
+        <xs:attribute name="providers" type="xs:string" use="optional">
             <xs:annotation>
                 <xs:documentation>
-                    The name of the provider-loader defined within the subsystem to obtain the Providers
+                    The name of the providers defined within the subsystem to obtain the Providers
                     to search for the one that can create the required CredentialStore type.
                     If this is not specified then the global list of Providers is used instead.
                 </xs:documentation>

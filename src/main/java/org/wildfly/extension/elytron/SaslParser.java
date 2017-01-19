@@ -42,7 +42,7 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PREDEFIN
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROPERTIES;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROPERTY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROTOCOL;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDER_LOADER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDERS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDER_NAME;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDER_SASL_SERVER_FACTORY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDER_VERSION;
@@ -447,8 +447,8 @@ class SaslParser {
                     case NAME:
                         name = value;
                         break;
-                    case PROVIDER_LOADER:
-                        SaslServerDefinitions.PROVIDER_LOADER.parseAndSetParameter(value, addOperation, reader);
+                    case PROVIDERS:
+                        SaslServerDefinitions.PROVIDERS.parseAndSetParameter(value, addOperation, reader);
                         break;
                     default:
                         throw unexpectedAttribute(reader, i);
@@ -615,7 +615,7 @@ class SaslParser {
                 ModelNode serverFactory = serverFactories.require(name);
                 writer.writeStartElement(PROVIDER_SASL_SERVER_FACTORY);
                 writer.writeAttribute(NAME, name);
-                SaslServerDefinitions.PROVIDER_LOADER.marshallAsAttribute(serverFactory, writer);
+                SaslServerDefinitions.PROVIDERS.marshallAsAttribute(serverFactory, writer);
                 writer.writeEndElement();
             }
             return true;

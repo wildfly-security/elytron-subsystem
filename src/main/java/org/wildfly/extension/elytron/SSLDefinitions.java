@@ -112,7 +112,7 @@ class SSLDefinitions {
             .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
             .build();
 
-    static final SimpleAttributeDefinition PROVIDER_LOADER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PROVIDER_LOADER, ModelType.STRING, true)
+    static final SimpleAttributeDefinition PROVIDERS = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PROVIDERS, ModelType.STRING, true)
             .setAllowExpression(false)
             .setMinSize(1)
             .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
@@ -244,7 +244,7 @@ class SSLDefinitions {
 
     static ResourceDefinition getKeyManagerDefinition() {
 
-        final SimpleAttributeDefinition providerLoaderDefinition = new SimpleAttributeDefinitionBuilder(PROVIDER_LOADER)
+        final SimpleAttributeDefinition providersDefinition = new SimpleAttributeDefinitionBuilder(PROVIDERS)
                 .setCapabilityReference(PROVIDERS_CAPABILITY, KEY_MANAGERS_CAPABILITY, true)
                 .setAllowExpression(false)
                 .build();
@@ -256,7 +256,7 @@ class SSLDefinitions {
 
         final ObjectTypeAttributeDefinition credentialReference = CredentialReference.getAttributeDefinition();
 
-        AttributeDefinition[] attributes = new AttributeDefinition[] { ALGORITHM, providerLoaderDefinition, PROVIDER, keystoreDefinition, credentialReference};
+        AttributeDefinition[] attributes = new AttributeDefinition[] { ALGORITHM, providersDefinition, PROVIDER, keystoreDefinition, credentialReference};
 
         AbstractAddStepHandler add = new TrivialAddHandler<KeyManager[]>(KeyManager[].class, attributes, KEY_MANAGERS_RUNTIME_CAPABILITY, CREDENTIAL_STORE_RUNTIME_CAPABILITY) {
 
@@ -265,11 +265,11 @@ class SSLDefinitions {
                 final String algorithm = ALGORITHM.resolveModelAttribute(context, model).asString();
                 final String provider = PROVIDER.resolveModelAttribute(context, model).isDefined() ? PROVIDER.resolveModelAttribute(context, model).asString() : null;
 
-                String providerLoader = asStringIfDefined(context, providerLoaderDefinition, model);
+                String providersName = asStringIfDefined(context, providersDefinition, model);
                 final InjectedValue<Provider[]> providersInjector = new InjectedValue<>();
-                if (providerLoader != null) {
+                if (providersName != null) {
                     serviceBuilder.addDependency(context.getCapabilityServiceName(
-                            buildDynamicCapabilityName(PROVIDERS_CAPABILITY, providerLoader), Provider[].class),
+                            buildDynamicCapabilityName(PROVIDERS_CAPABILITY, providersName), Provider[].class),
                             Provider[].class, providersInjector);
                 }
 
@@ -345,7 +345,7 @@ class SSLDefinitions {
 
     static ResourceDefinition getTrustManagerDefinition() {
 
-        final SimpleAttributeDefinition providerLoaderDefinition = new SimpleAttributeDefinitionBuilder(PROVIDER_LOADER)
+        final SimpleAttributeDefinition providersDefinition = new SimpleAttributeDefinitionBuilder(PROVIDERS)
                 .setCapabilityReference(PROVIDERS_CAPABILITY, TRUST_MANAGERS_CAPABILITY, true)
                 .setAllowExpression(false)
                 .build();
@@ -355,7 +355,7 @@ class SSLDefinitions {
                 .setAllowExpression(false)
                 .build();
 
-        AttributeDefinition[] attributes = new AttributeDefinition[] { ALGORITHM, providerLoaderDefinition, PROVIDER, keystoreDefinition};
+        AttributeDefinition[] attributes = new AttributeDefinition[] { ALGORITHM, providersDefinition, PROVIDER, keystoreDefinition};
 
         AbstractAddStepHandler add = new TrivialAddHandler<TrustManager[]>(TrustManager[].class, attributes, TRUST_MANAGERS_RUNTIME_CAPABILITY) {
 
@@ -364,7 +364,7 @@ class SSLDefinitions {
                 final String algorithm = ALGORITHM.resolveModelAttribute(context, model).asString();
                 final String provider = PROVIDER.resolveModelAttribute(context, model).isDefined() ? PROVIDER.resolveModelAttribute(context, model).asString() : null;
 
-                String providerLoader = asStringIfDefined(context, providerLoaderDefinition, model);
+                String providerLoader = asStringIfDefined(context, providersDefinition, model);
                 final InjectedValue<Provider[]> providersInjector = new InjectedValue<>();
                 if (providerLoader != null) {
                     serviceBuilder.addDependency(context.getCapabilityServiceName(
@@ -477,13 +477,13 @@ class SSLDefinitions {
 
     static ResourceDefinition getServerSSLContextDefinition() {
 
-        final SimpleAttributeDefinition providerLoaderDefinition = new SimpleAttributeDefinitionBuilder(PROVIDER_LOADER)
+        final SimpleAttributeDefinition providersDefinition = new SimpleAttributeDefinitionBuilder(PROVIDERS)
                 .setCapabilityReference(PROVIDERS_CAPABILITY, SSL_CONTEXT_CAPABILITY, true)
                 .setAllowExpression(false)
                 .build();
 
         AttributeDefinition[] attributes = new AttributeDefinition[] { SECURITY_DOMAIN, CIPHER_SUITE_FILTER, PROTOCOLS, WANT_CLIENT_AUTH, NEED_CLIENT_AUTH, AUTHENTICATION_OPTIONAL,
-                USE_CIPHER_SUITES_ORDER, MAXIMUM_SESSION_CACHE_SIZE, SESSION_TIMEOUT, KEY_MANAGERS, TRUST_MANAGERS, providerLoaderDefinition, PROVIDER };
+                USE_CIPHER_SUITES_ORDER, MAXIMUM_SESSION_CACHE_SIZE, SESSION_TIMEOUT, KEY_MANAGERS, TRUST_MANAGERS, providersDefinition, PROVIDER };
 
         return new SSLContextDefinition(ElytronDescriptionConstants.SERVER_SSL_CONTEXT, true, new TrivialAddHandler<SSLContext>(SSLContext.class, attributes, SSL_CONTEXT_RUNTIME_CAPABILITY) {
             @Override
@@ -492,7 +492,7 @@ class SSLDefinitions {
                 final InjectedValue<SecurityDomain> securityDomainInjector = addDependency(SECURITY_DOMAIN_CAPABILITY, SECURITY_DOMAIN, SecurityDomain.class, serviceBuilder, context, model);
                 final InjectedValue<KeyManager[]> keyManagersInjector = addDependency(KEY_MANAGERS_CAPABILITY, KEY_MANAGERS, KeyManager[].class, serviceBuilder, context, model);
                 final InjectedValue<TrustManager[]> trustManagersInjector = addDependency(TRUST_MANAGERS_CAPABILITY, TRUST_MANAGERS, TrustManager[].class, serviceBuilder, context, model);
-                final InjectedValue<Provider[]> providersInjector = addDependency(PROVIDERS_CAPABILITY, providerLoaderDefinition, Provider[].class, serviceBuilder, context, model);
+                final InjectedValue<Provider[]> providersInjector = addDependency(PROVIDERS_CAPABILITY, providersDefinition, Provider[].class, serviceBuilder, context, model);
 
                 final String provider = PROVIDER.resolveModelAttribute(context, model).isDefined() ? PROVIDER.resolveModelAttribute(context, model).asString() : null;
                 final List<String> protocols = PROTOCOLS.unwrap(context, model);
@@ -560,13 +560,13 @@ class SSLDefinitions {
 
     static ResourceDefinition getClientSSLContextDefinition() {
 
-        final SimpleAttributeDefinition providerLoaderDefinition = new SimpleAttributeDefinitionBuilder(PROVIDER_LOADER)
+        final SimpleAttributeDefinition providersDefinition = new SimpleAttributeDefinitionBuilder(PROVIDERS)
                 .setCapabilityReference(PROVIDERS_CAPABILITY, SSL_CONTEXT_CAPABILITY, true)
                 .setAllowExpression(false)
                 .build();
 
         AttributeDefinition[] attributes = new AttributeDefinition[] { CIPHER_SUITE_FILTER, PROTOCOLS,
-                USE_CIPHER_SUITES_ORDER, MAXIMUM_SESSION_CACHE_SIZE, SESSION_TIMEOUT, KEY_MANAGERS, TRUST_MANAGERS, providerLoaderDefinition, PROVIDER };
+                USE_CIPHER_SUITES_ORDER, MAXIMUM_SESSION_CACHE_SIZE, SESSION_TIMEOUT, KEY_MANAGERS, TRUST_MANAGERS, providersDefinition, PROVIDER };
 
         return new SSLContextDefinition(ElytronDescriptionConstants.CLIENT_SSL_CONTEXT, false, new TrivialAddHandler<SSLContext>(SSLContext.class, attributes, SSL_CONTEXT_RUNTIME_CAPABILITY) {
             @Override
@@ -574,7 +574,7 @@ class SSLDefinitions {
 
                 final InjectedValue<KeyManager[]> keyManagersInjector = addDependency(KEY_MANAGERS_CAPABILITY, KEY_MANAGERS, KeyManager[].class, serviceBuilder, context, model);
                 final InjectedValue<TrustManager[]> trustManagersInjector = addDependency(TRUST_MANAGERS_CAPABILITY, TRUST_MANAGERS, TrustManager[].class, serviceBuilder, context, model);
-                final InjectedValue<Provider[]> providersInjector = addDependency(PROVIDERS_CAPABILITY, providerLoaderDefinition, Provider[].class, serviceBuilder, context, model);
+                final InjectedValue<Provider[]> providersInjector = addDependency(PROVIDERS_CAPABILITY, providersDefinition, Provider[].class, serviceBuilder, context, model);
 
                 final String provider = PROVIDER.resolveModelAttribute(context, model).isDefined() ? PROVIDER.resolveModelAttribute(context, model).asString() : null;
                 final List<String> protocols = PROTOCOLS.unwrap(context, model);

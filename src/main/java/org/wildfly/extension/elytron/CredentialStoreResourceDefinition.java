@@ -116,7 +116,7 @@ final class CredentialStoreResourceDefinition extends SimpleResourceDefinition {
             .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
             .build();
 
-    static final SimpleAttributeDefinition PROVIDER_LOADER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PROVIDER_LOADER, ModelType.STRING, true)
+    static final SimpleAttributeDefinition PROVIDERS = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PROVIDERS, ModelType.STRING, true)
             .setAttributeGroup(ElytronDescriptionConstants.IMPLEMENTATION)
             .setAllowExpression(false)
             .setMinSize(1)
@@ -138,7 +138,7 @@ final class CredentialStoreResourceDefinition extends SimpleResourceDefinition {
     static final SimpleOperationDefinition RELOAD = new SimpleOperationDefinitionBuilder(ElytronDescriptionConstants.RELOAD, RESOURCE_RESOLVER)
             .build();
 
-    private static final AttributeDefinition[] CONFIG_ATTRIBUTES = new AttributeDefinition[] {URI, CREDENTIAL_REFERENCE, TYPE, PROVIDER, PROVIDER_LOADER, RELATIVE_TO};
+    private static final AttributeDefinition[] CONFIG_ATTRIBUTES = new AttributeDefinition[] {URI, CREDENTIAL_REFERENCE, TYPE, PROVIDER, PROVIDERS, RELATIVE_TO};
 
     private static final CredentialStoreAddHandler ADD = new CredentialStoreAddHandler();
     private static final OperationStepHandler REMOVE = new TrivialCapabilityServiceRemoveHandler(ADD, CREDENTIAL_STORE_RUNTIME_CAPABILITY);
@@ -195,7 +195,7 @@ final class CredentialStoreResourceDefinition extends SimpleResourceDefinition {
             ModelNode model = resource.getModel();
             String uri = asStringIfDefined(context, URI, model);
             String type = asStringIfDefined(context, TYPE, model);
-            String providerLoader = asStringIfDefined(context, PROVIDER_LOADER, model);
+            String providers = asStringIfDefined(context, PROVIDERS, model);
             String provider = asStringIfDefined(context, PROVIDER, model);
             String name = credentialStoreName(operation);
             String relativeTo = asStringIfDefined(context, RELATIVE_TO, model);
@@ -204,7 +204,7 @@ final class CredentialStoreResourceDefinition extends SimpleResourceDefinition {
             // ----------- credential store service ----------------
             final CredentialStoreService csService;
             try {
-                csService = CredentialStoreService.createCredentialStoreService(name, uri, type, provider, relativeTo, providerLoader);
+                csService = CredentialStoreService.createCredentialStoreService(name, uri, type, provider, relativeTo, providers);
             } catch (CredentialStoreException e) {
                 throw new OperationFailedException(e);
             }
@@ -216,8 +216,8 @@ final class CredentialStoreResourceDefinition extends SimpleResourceDefinition {
                 credentialStoreServiceBuilder.addDependency(PathManagerService.SERVICE_NAME, PathManager.class, csService.getPathManagerInjector());
                 credentialStoreServiceBuilder.addDependency(pathName(relativeTo));
             }
-            if (providerLoader != null) {
-                String providersCapabilityName = RuntimeCapability.buildDynamicCapabilityName(PROVIDERS_CAPABILITY, providerLoader);
+            if (providers != null) {
+                String providersCapabilityName = RuntimeCapability.buildDynamicCapabilityName(PROVIDERS_CAPABILITY, providers);
                 ServiceName providerLoaderServiceName = context.getCapabilityServiceName(providersCapabilityName, Provider[].class);
                 credentialStoreServiceBuilder.addDependency(providerLoaderServiceName, Provider[].class, csService.getProvidersInjector());
             }

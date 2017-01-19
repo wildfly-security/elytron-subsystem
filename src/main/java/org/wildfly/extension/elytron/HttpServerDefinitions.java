@@ -83,7 +83,7 @@ class HttpServerDefinitions {
         .setCapabilityReference(HTTP_SERVER_MECHANISM_FACTORY_CAPABILITY, HTTP_SERVER_MECHANISM_FACTORY_CAPABILITY, true)
         .build();
 
-    static final SimpleAttributeDefinition PROVIDER_LOADER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PROVIDER_LOADER, ModelType.STRING, true)
+    static final SimpleAttributeDefinition PROVIDERS = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PROVIDERS, ModelType.STRING, true)
         .setMinSize(1)
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
         .setCapabilityReference(PROVIDERS_CAPABILITY, HTTP_SERVER_MECHANISM_FACTORY_CAPABILITY, true)
@@ -180,7 +180,7 @@ class HttpServerDefinitions {
     }
 
     static ResourceDefinition getProviderHttpServerMechanismFactoryDefinition() {
-        AttributeDefinition[] attributes = new AttributeDefinition[] { PROVIDER_LOADER };
+        AttributeDefinition[] attributes = new AttributeDefinition[] { PROVIDERS };
         AbstractAddStepHandler add = new TrivialAddHandler<HttpServerAuthenticationMechanismFactory>(HttpServerAuthenticationMechanismFactory.class, attributes, HTTP_SERVER_MECHANISM_FACTORY_RUNTIME_CAPABILITY) {
 
             @Override
@@ -188,12 +188,12 @@ class HttpServerDefinitions {
                     ServiceBuilder<HttpServerAuthenticationMechanismFactory> serviceBuilder, OperationContext context,
                     ModelNode model) throws OperationFailedException {
 
-                String provider = asStringIfDefined(context, PROVIDER_LOADER, model);
+                String providers = asStringIfDefined(context, PROVIDERS, model);
                 final Supplier<Provider[]> providerSupplier;
-                if (provider != null) {
+                if (providers != null) {
                     final InjectedValue<Provider[]> providersInjector = new InjectedValue<Provider[]>();
                     serviceBuilder.addDependency(context.getCapabilityServiceName(
-                            buildDynamicCapabilityName(PROVIDERS_CAPABILITY, provider), Provider[].class),
+                            buildDynamicCapabilityName(PROVIDERS_CAPABILITY, providers), Provider[].class),
                             Provider[].class, providersInjector);
                     providerSupplier = providersInjector::getValue;
                 } else {

@@ -306,7 +306,6 @@ interface ElytronDescriptionConstants {
     String PROVIDER = "provider";
     String PROVIDER_HTTP_SERVER_MECHANISM_FACTORY = "provider-http-server-mechanism-factory";
     String PROVIDER_LOADER = "provider-loader";
-    String PROVIDER_LOADERS = "provider-loaders";
     String PROVIDER_NAME = "provider-name";
     String PROVIDER_REGISTRATION = "provider-registration";
     String PROVIDER_SASL_SERVER_FACTORY = "provider-sasl-server-factory";

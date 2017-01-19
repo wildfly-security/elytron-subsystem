@@ -30,7 +30,7 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CREDENTI
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CREDENTIAL_STORES;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDER;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDER_LOADER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDERS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.RELATIVE_TO;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.TYPE;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.URI;
@@ -99,8 +99,8 @@ class CredentialStoreParser {
                     case PROVIDER:
                         CredentialStoreResourceDefinition.PROVIDER.parseAndSetParameter(value, addCredentialStore, reader);
                         break;
-                    case PROVIDER_LOADER:
-                        CredentialStoreResourceDefinition.PROVIDER_LOADER.parseAndSetParameter(value, addCredentialStore, reader);
+                    case PROVIDERS:
+                        CredentialStoreResourceDefinition.PROVIDERS.parseAndSetParameter(value, addCredentialStore, reader);
                         break;
                     case RELATIVE_TO:
                         CredentialStoreResourceDefinition.RELATIVE_TO.parseAndSetParameter(value, addCredentialStore, reader);
@@ -145,7 +145,7 @@ class CredentialStoreParser {
                 writer.writeAttribute(NAME, name);
                 CredentialStoreResourceDefinition.TYPE.marshallAsAttribute(credentialStoreModelNode, writer);
                 CredentialStoreResourceDefinition.PROVIDER.marshallAsAttribute(credentialStoreModelNode, writer);
-                CredentialStoreResourceDefinition.PROVIDER_LOADER.marshallAsAttribute(credentialStoreModelNode, writer);
+                CredentialStoreResourceDefinition.PROVIDERS.marshallAsAttribute(credentialStoreModelNode, writer);
                 CredentialStoreResourceDefinition.RELATIVE_TO.marshallAsAttribute(credentialStoreModelNode, writer);
                 CredentialStoreResourceDefinition.URI.marshallAsElement(credentialStoreModelNode, writer);
                 if (credentialStoreModelNode.hasDefined(CredentialReference.CREDENTIAL_REFERENCE)) {

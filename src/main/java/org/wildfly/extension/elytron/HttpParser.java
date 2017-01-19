@@ -42,8 +42,8 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PATTERN_FILTER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROPERTIES;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROPERTY;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDERS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDER_HTTP_SERVER_MECHANISM_FACTORY;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDER_LOADER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SERVICE_LOADER_HTTP_SERVER_MECHANISM_FACTORY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.VALUE;
 import static org.wildfly.extension.elytron.ElytronSubsystemParser.verifyNamespace;
@@ -324,8 +324,8 @@ class HttpParser {
                     case NAME:
                         name = value;
                         break;
-                    case PROVIDER_LOADER:
-                        HttpServerDefinitions.PROVIDER_LOADER.parseAndSetParameter(value, addOperation, reader);
+                    case PROVIDERS:
+                        HttpServerDefinitions.PROVIDERS.parseAndSetParameter(value, addOperation, reader);
                         break;
                     default:
                         throw unexpectedAttribute(reader, i);
@@ -454,7 +454,7 @@ class HttpParser {
                 ModelNode serverFactory = serverFactories.require(name);
                 writer.writeStartElement(PROVIDER_HTTP_SERVER_MECHANISM_FACTORY);
                 writer.writeAttribute(NAME, name);
-                HttpServerDefinitions.PROVIDER_LOADER.marshallAsAttribute(serverFactory, writer);
+                HttpServerDefinitions.PROVIDERS.marshallAsAttribute(serverFactory, writer);
                 writer.writeEndElement();
             }
             return true;
