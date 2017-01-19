@@ -3707,7 +3707,15 @@
         <xs:attribute name="provider" type="xs:string" use="optional">
             <xs:annotation>
                 <xs:documentation>
-                    Reference to the Providers to use to initialise the SSLContext.
+                    The name of the provider to use.
+                    If not specified, all providers from provider-loader will be passed to the SSLContext.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="provider-loader" type="xs:string" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    The name of the provider-loader to obtain the Provider[] to use to load the SSLContext.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
@@ -3734,13 +3742,6 @@
             <xs:annotation>
                 <xs:documentation>
                     The unique name of this client side SSLContext.
-                </xs:documentation>
-            </xs:annotation>
-        </xs:attribute>
-        <xs:attribute name="security-domain" type="xs:string" use="optional">
-            <xs:annotation>
-                <xs:documentation>
-                    Reference to the SecurityDomain to use for authentication during SSL session establishment.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
@@ -3796,7 +3797,15 @@
         <xs:attribute name="provider" type="xs:string" use="optional">
             <xs:annotation>
                 <xs:documentation>
-                    Reference to the Providers to use to initialise the SSLContext.
+                    The name of the provider to use.
+                    If not specified, all providers from provider-loader will be passed to the SSLContext.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="provider-loader" type="xs:string" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    The name of the provider-loader to obtain the Provider[] to use to load the SSLContext.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>

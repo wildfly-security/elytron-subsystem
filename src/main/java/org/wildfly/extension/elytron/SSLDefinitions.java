@@ -483,7 +483,7 @@ class SSLDefinitions {
                 .build();
 
         AttributeDefinition[] attributes = new AttributeDefinition[] { SECURITY_DOMAIN, CIPHER_SUITE_FILTER, PROTOCOLS, WANT_CLIENT_AUTH, NEED_CLIENT_AUTH, AUTHENTICATION_OPTIONAL,
-                USE_CIPHER_SUITES_ORDER, MAXIMUM_SESSION_CACHE_SIZE, SESSION_TIMEOUT, KEY_MANAGERS, TRUST_MANAGERS, providerLoaderDefinition };
+                USE_CIPHER_SUITES_ORDER, MAXIMUM_SESSION_CACHE_SIZE, SESSION_TIMEOUT, KEY_MANAGERS, TRUST_MANAGERS, providerLoaderDefinition, PROVIDER };
 
         return new SSLContextDefinition(ElytronDescriptionConstants.SERVER_SSL_CONTEXT, true, new TrivialAddHandler<SSLContext>(SSLContext.class, attributes, SSL_CONTEXT_RUNTIME_CAPABILITY) {
             @Override
@@ -494,6 +494,7 @@ class SSLDefinitions {
                 final InjectedValue<TrustManager[]> trustManagersInjector = addDependency(TRUST_MANAGERS_CAPABILITY, TRUST_MANAGERS, TrustManager[].class, serviceBuilder, context, model);
                 final InjectedValue<Provider[]> providersInjector = addDependency(PROVIDERS_CAPABILITY, providerLoaderDefinition, Provider[].class, serviceBuilder, context, model);
 
+                final String provider = PROVIDER.resolveModelAttribute(context, model).isDefined() ? PROVIDER.resolveModelAttribute(context, model).asString() : null;
                 final List<String> protocols = PROTOCOLS.unwrap(context, model);
                 final String cipherSuiteFilter = asStringIfDefined(context, CIPHER_SUITE_FILTER, model);
                 final boolean wantClientAuth = WANT_CLIENT_AUTH.resolveModelAttribute(context, model).asBoolean();
@@ -507,7 +508,7 @@ class SSLDefinitions {
                     SecurityDomain securityDomain = securityDomainInjector.getOptionalValue();
                     X509ExtendedKeyManager keyManager = getX509KeyManager(keyManagersInjector.getOptionalValue());
                     X509ExtendedTrustManager trustManager = getX509TrustManager(trustManagersInjector.getOptionalValue());
-                    Provider[] providers = providersInjector.getOptionalValue();
+                    Provider[] providers = filterProviders(providersInjector.getOptionalValue(), provider);
 
                     SSLContextBuilder builder = new SSLContextBuilder();
                     if (securityDomain != null) builder.setSecurityDomain(securityDomain);
@@ -565,7 +566,7 @@ class SSLDefinitions {
                 .build();
 
         AttributeDefinition[] attributes = new AttributeDefinition[] { CIPHER_SUITE_FILTER, PROTOCOLS,
-                USE_CIPHER_SUITES_ORDER, MAXIMUM_SESSION_CACHE_SIZE, SESSION_TIMEOUT, KEY_MANAGERS, TRUST_MANAGERS, providerLoaderDefinition };
+                USE_CIPHER_SUITES_ORDER, MAXIMUM_SESSION_CACHE_SIZE, SESSION_TIMEOUT, KEY_MANAGERS, TRUST_MANAGERS, providerLoaderDefinition, PROVIDER };
 
         return new SSLContextDefinition(ElytronDescriptionConstants.CLIENT_SSL_CONTEXT, false, new TrivialAddHandler<SSLContext>(SSLContext.class, attributes, SSL_CONTEXT_RUNTIME_CAPABILITY) {
             @Override
@@ -575,6 +576,7 @@ class SSLDefinitions {
                 final InjectedValue<TrustManager[]> trustManagersInjector = addDependency(TRUST_MANAGERS_CAPABILITY, TRUST_MANAGERS, TrustManager[].class, serviceBuilder, context, model);
                 final InjectedValue<Provider[]> providersInjector = addDependency(PROVIDERS_CAPABILITY, providerLoaderDefinition, Provider[].class, serviceBuilder, context, model);
 
+                final String provider = PROVIDER.resolveModelAttribute(context, model).isDefined() ? PROVIDER.resolveModelAttribute(context, model).asString() : null;
                 final List<String> protocols = PROTOCOLS.unwrap(context, model);
                 final String cipherSuiteFilter = asStringIfDefined(context, CIPHER_SUITE_FILTER, model);
                 final boolean useCipherSuitesOrder = USE_CIPHER_SUITES_ORDER.resolveModelAttribute(context, model).asBoolean();
@@ -584,7 +586,7 @@ class SSLDefinitions {
                 return () -> {
                     X509ExtendedKeyManager keyManager = getX509KeyManager(keyManagersInjector.getOptionalValue());
                     X509ExtendedTrustManager trustManager = getX509TrustManager(trustManagersInjector.getOptionalValue());
-                    Provider[] providers = providersInjector.getOptionalValue();
+                    Provider[] providers = filterProviders(providersInjector.getOptionalValue(), provider);
 
                     SSLContextBuilder builder = new SSLContextBuilder();
                     if (keyManager != null) builder.setKeyManager(keyManager);
@@ -628,6 +630,13 @@ class SSLDefinitions {
                 ((SSLContextResource)resource).setSSLContextServiceController(serviceController);
             }
         }, attributes);
+    }
+
+    private static Provider[] filterProviders(Provider[] all, String provider) {
+        if (provider == null || all == null) return all;
+        return Arrays.stream(all)
+                .filter(current -> provider.equals(current.getName()))
+                .toArray(Provider[]::new);
     }
 
     private static X509ExtendedKeyManager getX509KeyManager(KeyManager[] keyManagers) throws StartException {
