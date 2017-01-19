@@ -50,6 +50,20 @@
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
+        <xs:attribute name="initial-providers" type="xs:string">
+            <xs:annotation>
+                <xs:documentation>
+                    Reference to a capability providing a Provider[] which will be registered globally ahead of all existing Provider registrations. 
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="final-providers" type="xs:string">
+            <xs:annotation>
+                <xs:documentation>
+                    Reference to a capability providing a Provider[] which will be registered globally after all existing Provider registrations. 
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
     </xs:complexType>
 
     <!--

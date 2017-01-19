@@ -1,4 +1,7 @@
-<subsystem xmlns="urn:wildfly:elytron:1.0">
+<subsystem xmlns="urn:wildfly:elytron:1.0" initial-providers="elytron">
+    <providers>
+        <provider-loader name="elytron" class-names="org.wildfly.security.WildFlyElytronProvider" />
+    </providers>
     <security-domains>
         <security-domain name="FileSystemDomain" default-realm="FileSystemRealm" permission-mapper="LoginPermissionMapper">
             <realm name="FileSystemRealm" />

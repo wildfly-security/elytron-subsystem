@@ -100,7 +100,6 @@ interface ElytronDescriptionConstants {
     String CONSTANT_PRINCIPAL_TRANSFORMER = "constant-principal-transformer";
     String CONSTANT_REALM_MAPPER = "constant-realm-mapper";
     String CONSTANT_ROLE_MAPPER = "constant-role-mapper";
-    String CORE_SERVICE = "core-service";
     String CREATION_DATE = "creation-date";
     String CREATION_TIME = "creation-time";
     String CREDENTIAL = "credential";
@@ -152,6 +151,7 @@ interface ElytronDescriptionConstants {
     String FILTERING_KEY_STORE = "filtering-key-store";
     String FILTERS = "filters";
     String FINAL_PRINCIPAL_TRANSFORMER = "final-principal-transformer";
+    String FINAL_PROVIDERS = "final-providers";
     String FINGER_PRINT = "finger-print";
     String FINGER_PRINTS = "finger-prints";
     String FIRST = "first";
@@ -179,6 +179,7 @@ interface ElytronDescriptionConstants {
     String IMPLEMENTATION = "implementation";
     String INDEX = "index";
     String INFO = "info";
+    String INITIAL_PROVIDERS = "initial-providers";
     String INTROSPECTION_URL = "introspection-url";
     String INVALIDATE = "invalidate";
     String ISSUER = "issuer";
@@ -307,6 +308,7 @@ interface ElytronDescriptionConstants {
     String PROVIDER_LOADER = "provider-loader";
     String PROVIDER_LOADERS = "provider-loaders";
     String PROVIDER_NAME = "provider-name";
+    String PROVIDER_REGISTRATION = "provider-registration";
     String PROVIDER_SASL_SERVER_FACTORY = "provider-sasl-server-factory";
     String PROVIDER_VERSION = "provider-version";
     String PROVIDERS = "providers";

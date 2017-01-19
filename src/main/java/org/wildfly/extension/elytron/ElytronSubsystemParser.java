@@ -35,7 +35,9 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CREDENTI
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CREDENTIAL_STORES;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.DEFAULT_AUTHENTICATION_CONTEXT;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.DIR_CONTEXTS;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.FINAL_PROVIDERS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.HTTP;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.INITIAL_PROVIDERS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MAPPERS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MODULE;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME;
@@ -103,6 +105,12 @@ class ElytronSubsystemParser implements XMLElementReader<List<ModelNode>>, XMLEl
                 switch (attribute) {
                     case DEFAULT_AUTHENTICATION_CONTEXT:
                         ElytronDefinition.DEFAULT_AUTHENTICATION_CONTEXT.parseAndSetParameter(value, subsystemAdd, reader);
+                        break;
+                    case INITIAL_PROVIDERS:
+                        ElytronDefinition.INITIAL_PROVIDERS.parseAndSetParameter(value, subsystemAdd, reader);
+                        break;
+                    case FINAL_PROVIDERS:
+                        ElytronDefinition.FINAL_PROVIDERS.parseAndSetParameter(value, subsystemAdd, reader);
                         break;
                     default:
                         throw unexpectedAttribute(reader, i);
@@ -347,6 +355,8 @@ class ElytronSubsystemParser implements XMLElementReader<List<ModelNode>>, XMLEl
         ModelNode model = context.getModelNode();
 
         ElytronDefinition.DEFAULT_AUTHENTICATION_CONTEXT.marshallAsAttribute(model, writer);
+        ElytronDefinition.INITIAL_PROVIDERS.marshallAsAttribute(model, writer);
+        ElytronDefinition.FINAL_PROVIDERS.marshallAsAttribute(model, writer);
 
         if (model.hasDefined(SECURITY_PROPERTY)) {
             writer.writeStartElement(SECURITY_PROPERTIES);

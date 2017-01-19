@@ -1,5 +1,8 @@
 <!-- for needs of LdapTestCase -->
-<subsystem xmlns="urn:wildfly:elytron:1.0">
+<subsystem xmlns="urn:wildfly:elytron:1.0" initial-providers="elytron">
+ <providers>
+        <provider-loader name="elytron" class-names="org.wildfly.security.WildFlyElytronProvider" />
+ </providers>
  <security-realms>
         <ldap-realm name="LdapRealm" dir-context="DirContextSsl">
          <identity-mapping filter-name="(|(objectclass=referral)(uid={0}))" iterator-filter="(|(objectclass=referral)(uid=*))" new-identity-parent-dn="dc=users,dc=elytron,dc=wildfly,dc=org" rdn-identifier="uid" search-base-dn="dc=users,dc=elytron,dc=wildfly,dc=org" use-recursive-search="true">

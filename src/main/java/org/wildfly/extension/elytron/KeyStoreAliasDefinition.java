@@ -53,7 +53,6 @@ import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
 import org.jboss.msc.service.ServiceController;
 import org.jboss.msc.service.ServiceName;
-import org.wildfly.extension.elytron.KeyStoreDefinition.KeyStoreRuntimeOnlyHandler;
 import org.wildfly.security.keystore.PasswordEntry;
 
 /**

@@ -18,9 +18,9 @@
 
 package org.wildfly.extension.elytron;
 
-import org.jboss.msc.service.Service;
-
 import java.security.KeyStore;
+
+import org.jboss.msc.service.Service;
 
 /**
  * An interface for KeyStore services, which provide modifiable KeyStore.
