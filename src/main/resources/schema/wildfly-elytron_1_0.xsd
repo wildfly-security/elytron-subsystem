@@ -681,6 +681,13 @@
                         </xs:documentation>
                     </xs:annotation>
                 </xs:attribute>
+                <xs:attribute name="maximum-age" type="xs:long" use="optional" default="-1">
+                    <xs:annotation>
+                        <xs:documentation>
+                            The time in milliseconds that an item can stay in the cache.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
             </xs:extension>
         </xs:complexContent>
     </xs:complexType>

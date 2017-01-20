@@ -237,6 +237,7 @@ interface ElytronDescriptionConstants {
     String MATCH_RULES = "match-rules";
     String MATCH_URN = "match-urn";
     String MATCH_USER = "match-user";
+    String MAXIMUM_AGE = "maximum-age";
     String MAXIMUM_ENTRIES = "maximum-entries";
     String MAXIMUM_SEGMENTS = "maximum-segments";
     String MAXIMUM_SESSION_CACHE_SIZE = "maximum-session-cache-size";

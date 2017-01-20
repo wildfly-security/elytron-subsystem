@@ -77,7 +77,12 @@ class CachingRealmDefinition extends SimpleResourceDefinition {
             .setMinSize(1)
             .build();
 
-    static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] {REALM_NAME, MAXIMUM_ENTRIES};
+    static final SimpleAttributeDefinition MAXIMUM_AGE = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.MAXIMUM_AGE, ModelType.LONG, true)
+            .setDefaultValue(new ModelNode(-1L))
+            .setMinSize(1)
+            .build();
+
+    static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] {REALM_NAME, MAXIMUM_ENTRIES, MAXIMUM_AGE};
 
     private static final AbstractAddStepHandler ADD = new RealmAddHandler();
     private static final OperationStepHandler REMOVE = new TrivialCapabilityServiceRemoveHandler(ADD, SECURITY_REALM_RUNTIME_CAPABILITY);
@@ -119,19 +124,20 @@ class CachingRealmDefinition extends SimpleResourceDefinition {
             ServiceName realmName = runtimeCapability.getCapabilityServiceName(SecurityRealm.class);
             String cacheableRealm = REALM_NAME.resolveModelAttribute(context, model).asString();
             int maxEntries = MAXIMUM_ENTRIES.resolveModelAttribute(context, model).asInt();
+            long maxAge = MAXIMUM_AGE.resolveModelAttribute(context, model).asInt();
             InjectedValue<SecurityRealm> cacheableRealmValue = new InjectedValue<>();
-            ServiceBuilder<SecurityRealm> serviceBuilder = serviceTarget.addService(realmName, createService(cacheableRealm, maxEntries, cacheableRealmValue));
+            ServiceBuilder<SecurityRealm> serviceBuilder = serviceTarget.addService(realmName, createService(cacheableRealm, maxEntries, maxAge, cacheableRealmValue));
 
             addRealmDependency(context, serviceBuilder, cacheableRealm, cacheableRealmValue);
             commonDependencies(serviceBuilder).setInitialMode(Mode.ACTIVE).install();
         }
 
-        private TrivialService<SecurityRealm> createService(String realmName, int maxEntries, InjectedValue<SecurityRealm> injector) {
+        private TrivialService<SecurityRealm> createService(String realmName, int maxEntries, long maxAge, InjectedValue<SecurityRealm> injector) {
             return new TrivialService<>((TrivialService.ValueSupplier<SecurityRealm>) () -> {
                 SecurityRealm securityRealm = injector.getValue();
 
                 if (securityRealm instanceof CacheableSecurityRealm) {
-                    RealmIdentityCache cache = createRealmIdentityCache(maxEntries);
+                    RealmIdentityCache cache = createRealmIdentityCache(maxEntries, maxAge);
                     CacheableSecurityRealm cacheableRealm = CacheableSecurityRealm.class.cast(securityRealm);
 
                     if (securityRealm instanceof ModifiableSecurityRealm) {
@@ -145,8 +151,8 @@ class CachingRealmDefinition extends SimpleResourceDefinition {
             });
         }
 
-        private LRURealmIdentityCache createRealmIdentityCache(int maxEntries) {
-            return new LRURealmIdentityCache(maxEntries);
+        private LRURealmIdentityCache createRealmIdentityCache(int maxEntries, long maxAge) {
+            return new LRURealmIdentityCache(maxEntries, maxAge);
         }
 
         private void addRealmDependency(OperationContext context, ServiceBuilder<SecurityRealm> serviceBuilder, String realmName, Injector<SecurityRealm> securityRealmInjector) {
