@@ -33,7 +33,8 @@ import java.nio.file.attribute.BasicFileAttributes;
 
 class TestEnvironment extends AdditionalInitialization {
 
-    static final int LDAP_PORT = 11391;
+    static final int LDAPS1_PORT = 11391;
+    static final int LDAPS2_PORT = 11392;
 
     @Override
     protected ControllerInitializer createControllerInitializer() {
@@ -56,15 +57,23 @@ class TestEnvironment extends AdditionalInitialization {
         return initializer;
     }
 
-    public static LdapService startLdapService() {
+    public static void startLdapService() {
         try {
-            return LdapService.builder()
-                    .setWorkingDir(new File("./target/apache-ds/working"))
+            LdapService.builder()
+                    .setWorkingDir(new File("./target/apache-ds/working1"))
                     .createDirectoryService("Test Service")
                     .addPartition("Elytron", "dc=elytron,dc=wildfly,dc=org", 5, "uid")
                     .importLdif(TestEnvironment.class.getResourceAsStream("ldap-schemas.ldif"))
                     .importLdif(TestEnvironment.class.getResourceAsStream("ldap-data.ldif"))
-                    .addTcpServer("Default TCP", "localhost", LDAP_PORT, "localhost.keystore", "Elytron")
+                    .addTcpServer("Default TCP", "localhost", LDAPS1_PORT, "localhost.keystore", "Elytron")
+                    .start();
+            LdapService.builder()
+                    .setWorkingDir(new File("./target/apache-ds/working2"))
+                    .createDirectoryService("Test Service")
+                    .addPartition("Elytron", "dc=elytron,dc=wildfly,dc=org", 5, "uid")
+                    .importLdif(TestEnvironment.class.getResourceAsStream("ldap-schemas.ldif"))
+                    .importLdif(TestEnvironment.class.getResourceAsStream("ldap-referred.ldif"))
+                    .addTcpServer("Default TCP", "localhost", LDAPS2_PORT, "localhost.keystore", "Elytron")
                     .start();
         } catch (Exception e) {
             throw new RuntimeException("Could not start LDAP embedded server.", e);

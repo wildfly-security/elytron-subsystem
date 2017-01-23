@@ -107,23 +107,7 @@ objectClass: extensibleObject
 objectClass: referral
 objectClass: top
 ou: refUsers
-ref: ldaps://localhost:11391/dc=referredUsers,dc=elytron,dc=wildfly,dc=org
-
-dn: dc=referredUsers,dc=elytron,dc=wildfly,dc=org
-objectclass: top
-objectclass: domain
-dc: referredUsers
-
-dn: uid=refUser,dc=referredUsers,dc=elytron,dc=wildfly,dc=org
-objectClass: top
-objectClass: inetOrgPerson
-objectClass: person
-objectClass: organizationalPerson
-cn: refUserCn
-sn: refUserSn
-uid: refUser
-userPassword:: cGxhaW5QYXNzd29yZA==
-# Password plainPassword
+ref: ldaps://localhost:11392/dc=referredUsers,dc=elytron,dc=wildfly,dc=org
 
 dn: cn=RN1,dc=elytron,dc=wildfly,dc=org
 objectclass: top
