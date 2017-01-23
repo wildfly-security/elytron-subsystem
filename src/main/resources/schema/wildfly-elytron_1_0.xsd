@@ -1293,7 +1293,7 @@
                 The configuration options that define how to connect to the LDAP server.
             </xs:documentation>
         </xs:annotation>
-        <xs:sequence>
+        <xs:all>
             <xs:element name="properties" minOccurs="0">
                 <xs:complexType>
                     <xs:sequence>
@@ -1301,7 +1301,16 @@
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-        </xs:sequence>
+            <xs:element name="credential-reference" type="credentialReferenceType" minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>
+                        The credential reference to credential store or clear text (password)
+                        to use to authenticate and connect to the LDAP server.
+                        Can be omitted if authentication-level is "none" (anonymous).
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:all>
         <xs:attribute name="name" type="xs:string" use="required">
             <xs:annotation>
                 <xs:documentation>
@@ -1329,14 +1338,6 @@
             <xs:annotation>
                 <xs:documentation>
                     The principal to authenticate and connect to the LDAP server.
-                    Can be omitted if authentication-level is "none" (anonymous).
-                </xs:documentation>
-            </xs:annotation>
-        </xs:attribute>
-        <xs:attribute name="credential" type="xs:string" use="optional">
-            <xs:annotation>
-                <xs:documentation>
-                    The credential to authenticate and connect to the LDAP server.
                     Can be omitted if authentication-level is "none" (anonymous).
                 </xs:documentation>
             </xs:annotation>
