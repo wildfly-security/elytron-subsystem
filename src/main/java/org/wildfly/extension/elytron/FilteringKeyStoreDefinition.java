@@ -60,7 +60,7 @@ import org.wildfly.security.keystore.FilteringKeyStore;
  *
  * @author <a href="mailto:jkalina@redhat.com">Jan Kalina</a>
  */
-public class FilteringKeyStoreDefinition extends SimpleResourceDefinition {
+class FilteringKeyStoreDefinition extends SimpleResourceDefinition {
 
     static final ServiceUtil<KeyStore> FILTERING_KEY_STORE_UTIL = ServiceUtil.newInstance(KEY_STORE_RUNTIME_CAPABILITY, ElytronDescriptionConstants.FILTERING_KEY_STORE, KeyStore.class);
 

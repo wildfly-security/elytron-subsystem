@@ -46,7 +46,7 @@ import org.wildfly.security.authz.MapAttributes;
  *
  * @author <a href="mailto:darran.lofthouse@jboss.com">Darran Lofthouse</a>
  */
-public class RealmDefinitions {
+class RealmDefinitions {
 
     static final AttributeDefinition IDENTITY = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.IDENTITY, ModelType.STRING, false)
             .setAllowExpression(true)

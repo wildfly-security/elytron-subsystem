@@ -68,7 +68,7 @@ import org.wildfly.security.credential.source.CredentialSource;
  *
  * @author <a href="mailto:jkalina@redhat.com">Jan Kalina</a>
  */
-public class DirContextDefinition extends SimpleResourceDefinition {
+class DirContextDefinition extends SimpleResourceDefinition {
 
     public static final String CONNECTION_POOLING_PROPERTY = "com.sun.jndi.ldap.connect.pool";
 

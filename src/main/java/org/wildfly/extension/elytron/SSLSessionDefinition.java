@@ -56,7 +56,7 @@ import org.wildfly.security.util.ByteIterator;
  *
  * @author <a href="mailto:darran.lofthouse@jboss.com">Darran Lofthouse</a>
  */
-public class SSLSessionDefinition extends SimpleResourceDefinition {
+class SSLSessionDefinition extends SimpleResourceDefinition {
 
     private static final SimpleAttributeDefinition APPLICATION_BUFFER_SIZE = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.APPLICATION_BUFFER_SIZE, ModelType.INT)
             .setStorageRuntime()
