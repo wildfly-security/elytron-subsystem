@@ -3611,6 +3611,9 @@
                 Definition of a single TrustManager.
             </xs:documentation>
         </xs:annotation>
+        <xs:all>
+            <xs:element name="certificate-revocation-list" type="certificateRevocationListType" minOccurs="0" maxOccurs="1"/>
+        </xs:all>
         <xs:attribute name="name" type="xs:string" use="required">
             <xs:annotation>
                 <xs:documentation>
@@ -3650,6 +3653,35 @@
                     to search for the one that can create the required TrustManagerFactory type.
 
                     If this is not specified then the global list of Providers is used instead.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="certificateRevocationListType">
+        <xs:annotation>
+            <xs:documentation>
+                Enables certificate revocation list checks to a trust manager.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="path" type="xs:string" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    The path to the configuration to use to initialise the provider.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="relative-to" type="xs:string" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    The base path of the certificate revocation list file.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="maximum-cert-path" type="xs:int" use="optional" default="5">
+            <xs:annotation>
+                <xs:documentation>
+                    The maximum number of non-self-issued intermediate certificates that may exist in a certification path.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>

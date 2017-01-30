@@ -59,6 +59,12 @@
         <trust-managers>
             <trust-manager name="CaTrustManager" algorithm="SunX509" key-store="ElytronCaTruststore"/>
             <trust-manager name="MyTrustManager" algorithm="SunX509" key-store="ElytronCaTruststore" providers="ManagerProviderLoader" provider-name="SunJSSE"/>
+            <trust-manager name="trust-with-crl" algorithm="SunX509" key-store="ElytronCaTruststore">
+                <certificate-revocation-list path="crl.pem" relative-to="jboss.server.config.dir" maximum-cert-path="2"/>
+            </trust-manager>
+            <trust-manager name="trust-with-crl-dp" algorithm="SunX509" key-store="ElytronCaTruststore">
+                <certificate-revocation-list />
+            </trust-manager>
         </trust-managers>
         <server-ssl-contexts>
             <server-ssl-context name="ServerSslContextNoAuth" key-managers="ServerKeyManager" trust-managers="CaTrustManager"/>

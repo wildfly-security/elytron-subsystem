@@ -275,6 +275,12 @@ public interface ElytronSubsystemMessages extends BasicLogger {
     @Message(id = 30, value = "Realm '%s' does not support cache")
     StartException realmDoesNotSupportCache(String realmName);
 
+    @Message(id = 31, value = "Unable to access CRL file.")
+    StartException unableToAccessCRL(@Cause Exception cause);
+
+    @Message(id = 32, value = "Unable to reload CRL file.")
+    RuntimeException unableToReloadCRL(@Cause Exception cause);
+
     // CREDENTIAL_STORE section
     @Message(id = 909, value = "Credential store '%s' does not support given credential store entry type '%s'")
     IllegalArgumentException credentialStoreEntryTypeNotSupported(String credentialStoreName, String entryType);
