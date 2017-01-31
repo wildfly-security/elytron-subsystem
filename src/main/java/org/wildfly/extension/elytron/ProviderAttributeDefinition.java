@@ -89,6 +89,7 @@ class ProviderAttributeDefinition {
     static final SimpleAttributeDefinition LOAD_SERVICES = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.LOAD_SERVICES, ModelType.BOOLEAN)
         .setAttributeGroup(ElytronDescriptionConstants.CLASS_LOADING)
         .setAllowExpression(true)
+        .setRequired(false)
         .setDefaultValue(new ModelNode(false))
         .build();
 

@@ -407,7 +407,8 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
     static class PasswordSetHandler implements OperationStepHandler {
 
         static class Bcrypt {
-            static final SimpleAttributeDefinition ALGORITHM = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ALGORITHM, ModelType.STRING, false)
+            static final SimpleAttributeDefinition ALGORITHM = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ALGORITHM, ModelType.STRING)
+                    .setRequired(false)
                     .setDefaultValue(new ModelNode(BCryptPassword.ALGORITHM_BCRYPT))
                     .setValidator(new StringValuesValidator(BCryptPassword.ALGORITHM_BCRYPT))
                     .setAllowExpression(false)
@@ -433,7 +434,8 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
         }
 
         static class Clear {
-            static final SimpleAttributeDefinition ALGORITHM = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ALGORITHM, ModelType.STRING, false)
+            static final SimpleAttributeDefinition ALGORITHM = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ALGORITHM, ModelType.STRING)
+                    .setRequired(false)
                     .setDefaultValue(new ModelNode(ClearPassword.ALGORITHM_CLEAR))
                     .setValidator(new StringValuesValidator(ClearPassword.ALGORITHM_CLEAR))
                     .setAllowExpression(false)
@@ -452,7 +454,8 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
         }
 
         static class SimpleDigest {
-            static final SimpleAttributeDefinition ALGORITHM = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ALGORITHM, ModelType.STRING, false)
+            static final SimpleAttributeDefinition ALGORITHM = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ALGORITHM, ModelType.STRING)
+                    .setRequired(false)
                     .setDefaultValue(new ModelNode(SimpleDigestPassword.ALGORITHM_SIMPLE_DIGEST_SHA_512))
                     .setValidator(new StringValuesValidator(
                             SimpleDigestPassword.ALGORITHM_SIMPLE_DIGEST_MD2,
@@ -478,7 +481,8 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
         }
 
         static class SaltedSimpleDigest {
-            static final SimpleAttributeDefinition ALGORITHM = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ALGORITHM, ModelType.STRING, false)
+            static final SimpleAttributeDefinition ALGORITHM = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ALGORITHM, ModelType.STRING)
+                    .setRequired(false)
                     .setDefaultValue(new ModelNode(SaltedSimpleDigestPassword.ALGORITHM_PASSWORD_SALT_DIGEST_SHA_512))
                     .setValidator(new StringValuesValidator(
                             SaltedSimpleDigestPassword.ALGORITHM_PASSWORD_SALT_DIGEST_MD5,
@@ -510,7 +514,8 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
         }
 
         static class Digest {
-            static final SimpleAttributeDefinition ALGORITHM = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ALGORITHM, ModelType.STRING, false)
+            static final SimpleAttributeDefinition ALGORITHM = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ALGORITHM, ModelType.STRING)
+                    .setRequired(false)
                     .setDefaultValue(new ModelNode(DigestPassword.ALGORITHM_DIGEST_SHA_512))
                     .setValidator(new StringValuesValidator(
                             DigestPassword.ALGORITHM_DIGEST_MD5,
