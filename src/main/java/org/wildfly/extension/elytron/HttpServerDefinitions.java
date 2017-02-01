@@ -94,7 +94,8 @@ class HttpServerDefinitions {
         .setName(ElytronDescriptionConstants.PATTERN_FILTER)
         .build();
 
-    static final SimpleAttributeDefinition ENABLING = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ENABLING, ModelType.BOOLEAN, false)
+    static final SimpleAttributeDefinition ENABLING = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ENABLING, ModelType.BOOLEAN)
+        .setRequired(false)
         .setAllowExpression(true)
         .setDefaultValue(new ModelNode(true))
         .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
