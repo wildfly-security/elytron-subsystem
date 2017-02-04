@@ -29,10 +29,15 @@ import static org.wildfly.extension.elytron.Capabilities.SECURITY_DOMAIN_RUNTIME
 import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.INITIAL;
 import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
 import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.function.Predicate;
 
 import org.jboss.as.controller.AttributeDefinition;
 import org.jboss.as.controller.ObjectListAttributeDefinition;
@@ -61,7 +66,10 @@ import org.jboss.msc.service.ServiceController;
 import org.jboss.msc.service.ServiceController.Mode;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.ServiceTarget;
+import org.jboss.msc.service.StartException;
+import org.jboss.msc.value.InjectedValue;
 import org.wildfly.extension.elytron.DomainService.RealmDependency;
+import org.wildfly.extension.elytron.TrivialService.ValueSupplier;
 import org.wildfly.extension.elytron.capabilities.PrincipalTransformer;
 import org.wildfly.security.auth.server.PrincipalDecoder;
 import org.wildfly.security.auth.server.RealmMapper;
@@ -188,17 +196,11 @@ class DomainDefinition extends SimpleResourceDefinition {
         IdentityResourceDefinition.AuthenticatorOperationHandler.register(resourceRegistration, getResourceDescriptionResolver());
     }
 
-    private static ServiceController<SecurityDomain> installService(OperationContext context, ServiceName domainName, ModelNode model) throws OperationFailedException {
+    private static ServiceController<SecurityDomain> installInitialService(OperationContext context, ServiceName initialName, ModelNode model, Predicate<SecurityDomain> trustedSecurityDomain) throws OperationFailedException {
         ServiceTarget serviceTarget = context.getServiceTarget();
-        String simpleName = domainName.getSimpleName();
 
         String defaultRealm = DomainDefinition.DEFAULT_REALM.resolveModelAttribute(context, model).asString();
         List<ModelNode> realms = REALMS.resolveModelAttribute(context, model).asList();
-        List<String> trustedSecurityDomains = TRUSTED_SECURITY_DOMAINS.unwrap(context, model);
-
-        if (trustedSecurityDomains.contains(simpleName)) {
-            throw ROOT_LOGGER.trustedDomainsCannotContainDomainItself(simpleName);
-        }
 
         String preRealmPrincipalTransformer = asStringIfDefined(context, PRE_REALM_PRINCIPAL_TRANSFORMER, model);
         String postRealmPrincipalTransformer = asStringIfDefined(context, POST_REALM_PRINCIPAL_TRANSFORMER, model);
@@ -207,9 +209,9 @@ class DomainDefinition extends SimpleResourceDefinition {
         String realmMapper = asStringIfDefined(context, REALM_MAPPER, model);
         String roleMapper = asStringIfDefined(context, ROLE_MAPPER, model);
 
-        DomainService domain = new DomainService(simpleName, defaultRealm, trustedSecurityDomains);
+        DomainService domain = new DomainService(defaultRealm, trustedSecurityDomain);
 
-        ServiceBuilder<SecurityDomain> domainBuilder = serviceTarget.addService(domainName, domain)
+        ServiceBuilder<SecurityDomain> domainBuilder = serviceTarget.addService(initialName, domain)
                 .setInitialMode(Mode.ACTIVE);
 
         if (preRealmPrincipalTransformer != null) {
@@ -264,6 +266,47 @@ class DomainDefinition extends SimpleResourceDefinition {
         }
 
         commonDependencies(domainBuilder);
+        return domainBuilder.install();
+    }
+
+    private static ServiceController<SecurityDomain> installService(OperationContext context, ServiceName domainName, ModelNode model) throws OperationFailedException {
+        ServiceName initialName = domainName.append(INITIAL);
+
+        final InjectedValue<SecurityDomain> securityDomain = new InjectedValue<>();
+
+        List<String> trustedSecurityDomainNames = TRUSTED_SECURITY_DOMAINS.unwrap(context, model);
+        final List<InjectedValue<SecurityDomain>> trustedSecurityDomainInjectors = new ArrayList<>(trustedSecurityDomainNames.size());
+        final Set<SecurityDomain> trustedSecurityDomains = new HashSet<>();
+
+        installInitialService(context, initialName, model, trustedSecurityDomains::contains);
+
+        TrivialService<SecurityDomain> finalDomainService = new TrivialService<SecurityDomain>();
+        finalDomainService.setValueSupplier(new ValueSupplier<SecurityDomain>() {
+
+            @Override
+            public SecurityDomain get() throws StartException {
+                trustedSecurityDomainInjectors.forEach(i -> trustedSecurityDomains.add(i.getValue()));
+                return securityDomain.getValue();
+            }
+
+            @Override
+            public void dispose() {
+                trustedSecurityDomains.clear();
+            }
+
+        });
+
+        ServiceTarget serviceTarget = context.getServiceTarget();
+        ServiceBuilder<SecurityDomain> domainBuilder = serviceTarget.addService(domainName, finalDomainService)
+                .setInitialMode(Mode.ACTIVE);
+        domainBuilder.addDependency(initialName, SecurityDomain.class, securityDomain);
+        for (String trustedDomainName : trustedSecurityDomainNames) {
+            InjectedValue<SecurityDomain> trustedDomainInjector = new InjectedValue<>();
+            domainBuilder.addDependency(context.getCapabilityServiceName(SECURITY_DOMAIN_CAPABILITY, trustedDomainName, SecurityDomain.class).append(INITIAL), SecurityDomain.class, trustedDomainInjector);
+            trustedSecurityDomainInjectors.add(trustedDomainInjector);
+        }
+
+        // This depends on the initial service which depends on the common dependencies so no need to add them for this one.
         return domainBuilder.install();
     }
 

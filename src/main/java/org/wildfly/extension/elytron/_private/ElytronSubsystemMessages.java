@@ -38,7 +38,6 @@ import org.jboss.msc.service.ServiceController.State;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.StartException;
 import org.wildfly.extension.elytron.Configurable;
-import org.wildfly.security.auth.server.SecurityDomain;
 import org.wildfly.security.auth.server.SecurityRealm;
 
 /**
@@ -62,11 +61,10 @@ public interface ElytronSubsystemMessages extends BasicLogger {
      * {@link OperationFailedException} if the same realm is injected multiple times for a single domain.
      *
      * @param realmName - the name of the {@link SecurityRealm} being injected.
-     * @param domainName - the name of the {@link SecurityDomain} the realm is being injected for.
      * @return The {@link OperationFailedException} for the error.
      */
-    @Message(id = 2, value = "Can not inject the same realm '%s' in a single security domain '%s'.")
-    OperationFailedException duplicateRealmInjection(final String realmName, final String domainName);
+    @Message(id = 2, value = "Can not inject the same realm '%s' in a single security domain.")
+    OperationFailedException duplicateRealmInjection(final String realmName);
 
     /**
      * An {@link IllegalArgumentException} if the supplied operation did not contain an address with a value for the required key.
@@ -260,8 +258,8 @@ public interface ElytronSubsystemMessages extends BasicLogger {
     @Message(id = 25, value = "Referenced property file is invalid: %s")
     StartException propertyFileIsInvalid(String message, @Cause Throwable cause);
 
-    @Message(id = 26, value = "trusted-security-domains cannot contain the security-domain \"%s\" itself")
-    OperationFailedException trustedDomainsCannotContainDomainItself(String domain);
+    //@Message(id = 26, value = "trusted-security-domains cannot contain the security-domain \"%s\" itself")
+    //OperationFailedException trustedDomainsCannotContainDomainItself(String domain);
 
     @Message(id = 27, value = "Unable to obtain OID for X.500 attribute '%s'")
     OperationFailedException unableToObtainOidForX500Attribute(String attribute);
