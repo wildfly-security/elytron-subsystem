@@ -27,7 +27,7 @@ import org.jboss.msc.service.Service;
  *
  * @author <a href="mailto:jkalina@redhat.com">Jan Kalina</a>
  */
-public interface ModifiableKeyStoreService extends Service<KeyStore> {
+interface ModifiableKeyStoreService extends Service<KeyStore> {
 
     KeyStore getModifiableValue();
 
