@@ -38,3 +38,11 @@ sn: refUserSn
 uid: refUser
 userPassword:: cGxhaW5QYXNzd29yZA==
 # Password plainPassword
+
+# Referral back to create infinite loop
+dn: ou=refLoop,dc=referredUsers,dc=elytron,dc=wildfly,dc=org
+objectClass: extensibleObject
+objectClass: referral
+objectClass: top
+ou: refLoop
+ref: ldaps://localhost:11391/dc=elytron,dc=wildfly,dc=org
