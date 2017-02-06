@@ -154,6 +154,7 @@
         <replacement placeholder="DOMAIN_DEFINITIONS">
             <security-domain name="ApplicationDomain" default-realm="ApplicationRealm" permission-mapper="default-permission-mapper">
                 <realm name="ApplicationRealm" role-decoder="groups-to-roles" />
+                <realm name="local"/>
             </security-domain>
 
             <security-domain name="ManagementDomain" default-realm="ManagementRealm" permission-mapper="default-permission-mapper">
@@ -200,7 +201,14 @@
                     </mechanism>
                 </mechanism-configuration>
             </sasl-authentication-factory>
-            <sasl-authentication-factory name="application-sasl-authentication" sasl-server-factory="configured" security-domain="ApplicationDomain"/>
+            <sasl-authentication-factory name="application-sasl-authentication" sasl-server-factory="configured" security-domain="ApplicationDomain">
+                <mechanism-configuration>
+                    <mechanism mechanism-name="JBOSS-LOCAL-USER" realm-mapper="local" />
+                    <mechanism mechanism-name="DIGEST-MD5">
+                        <mechanism-realm realm-name="ApplicationRealm" />
+                    </mechanism>
+                </mechanism-configuration>
+            </sasl-authentication-factory>
         </replacement>
     </supplement>
 
