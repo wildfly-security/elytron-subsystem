@@ -38,7 +38,6 @@ import java.util.Date;
 import java.util.List;
 
 import org.jboss.as.controller.AbstractAddStepHandler;
-import org.jboss.as.controller.AbstractRuntimeOnlyHandler;
 import org.jboss.as.controller.AttributeDefinition;
 import org.jboss.as.controller.ObjectTypeAttributeDefinition;
 import org.jboss.as.controller.OperationContext;
@@ -265,7 +264,7 @@ class PropertiesRealmDefinition extends TrivialResourceDefinition {
         });
     }
 
-    abstract static class PropertiesRuntimeHandler extends AbstractRuntimeOnlyHandler {
+    abstract static class PropertiesRuntimeHandler extends ElytronRuntimeOnlyHandler {
 
         private final boolean writeAccess;
 

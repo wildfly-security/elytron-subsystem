@@ -40,7 +40,6 @@ import org.jboss.as.controller.OperationFailedException;
 import org.jboss.as.controller.OperationStepHandler;
 import org.jboss.as.controller.PathAddress;
 import org.jboss.as.controller.PathElement;
-import org.jboss.as.controller.RestartParentWriteAttributeHandler;
 import org.jboss.as.controller.SimpleMapAttributeDefinition;
 import org.jboss.as.controller.SimpleResourceDefinition;
 import org.jboss.as.controller.capability.RuntimeCapability;
@@ -179,7 +178,7 @@ class CustomComponentDefinition<T> extends SimpleResourceDefinition {
         }
     }
 
-    private static class WriteAttributeHandler<T> extends RestartParentWriteAttributeHandler {
+    private static class WriteAttributeHandler<T> extends ElytronRestartParentWriteAttributeHandler {
 
         private final RuntimeCapability<?> runtimeCapability;
         private final Class<T> serviceType;

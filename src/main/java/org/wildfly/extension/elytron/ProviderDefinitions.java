@@ -47,7 +47,6 @@ import java.util.ServiceLoader;
 import java.util.function.Supplier;
 
 import org.jboss.as.controller.AbstractAddStepHandler;
-import org.jboss.as.controller.AbstractRuntimeOnlyHandler;
 import org.jboss.as.controller.AttributeDefinition;
 import org.jboss.as.controller.ListAttributeDefinition;
 import org.jboss.as.controller.OperationContext;
@@ -272,7 +271,7 @@ class ProviderDefinitions {
         }
     }
 
-    private static class LoadedProvidersAttributeHandler extends AbstractRuntimeOnlyHandler {
+    private static class LoadedProvidersAttributeHandler extends ElytronRuntimeOnlyHandler {
 
         @Override
         protected void executeRuntimeStep(OperationContext context, ModelNode operation) throws OperationFailedException {

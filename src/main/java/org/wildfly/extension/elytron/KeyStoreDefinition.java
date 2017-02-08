@@ -42,7 +42,6 @@ import java.security.Provider;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import org.jboss.as.controller.AbstractRuntimeOnlyHandler;
 import org.jboss.as.controller.AttributeDefinition;
 import org.jboss.as.controller.ObjectTypeAttributeDefinition;
 import org.jboss.as.controller.OperationContext;
@@ -52,7 +51,6 @@ import org.jboss.as.controller.OperationStepHandler;
 import org.jboss.as.controller.PathAddress;
 import org.jboss.as.controller.PathElement;
 import org.jboss.as.controller.ResourceDefinition;
-import org.jboss.as.controller.RestartParentWriteAttributeHandler;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
 import org.jboss.as.controller.SimpleOperationDefinition;
@@ -173,7 +171,7 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
             resourceRegistration.registerReadWriteAttribute(current, null, WRITE);
         }
 
-        resourceRegistration.registerReadOnlyAttribute(STATE, new AbstractRuntimeOnlyHandler() {
+        resourceRegistration.registerReadOnlyAttribute(STATE, new ElytronRuntimeOnlyHandler() {
 
             @Override
             protected void executeRuntimeStep(OperationContext context, ModelNode operation) throws OperationFailedException {
@@ -304,7 +302,7 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
 
     }
 
-    private static class WriteAttributeHandler extends RestartParentWriteAttributeHandler {
+    private static class WriteAttributeHandler extends ElytronRestartParentWriteAttributeHandler {
 
         WriteAttributeHandler() {
             super(ElytronDescriptionConstants.KEY_STORE, CONFIG_ATTRIBUTES);
@@ -320,7 +318,7 @@ final class KeyStoreDefinition extends SimpleResourceDefinition {
      * Runtime Attribute and Operation Handlers
      */
 
-    abstract static class KeyStoreRuntimeOnlyHandler extends AbstractRuntimeOnlyHandler {
+    abstract static class KeyStoreRuntimeOnlyHandler extends ElytronRuntimeOnlyHandler {
 
         private final boolean serviceMustBeUp;
         private final boolean writeAccess;

@@ -30,8 +30,6 @@ import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.RO
 
 import java.security.Provider;
 
-import org.jboss.as.controller.AbstractAddStepHandler;
-import org.jboss.as.controller.AbstractRuntimeOnlyHandler;
 import org.jboss.as.controller.AttributeDefinition;
 import org.jboss.as.controller.ModelOnlyWriteAttributeHandler;
 import org.jboss.as.controller.ObjectTypeAttributeDefinition;
@@ -145,7 +143,7 @@ final class CredentialStoreResourceDefinition extends SimpleResourceDefinition {
             resourceRegistration.registerReadWriteAttribute(current, null, WRITE);
         }
 
-        resourceRegistration.registerReadOnlyAttribute(STATE, new AbstractRuntimeOnlyHandler() {
+        resourceRegistration.registerReadOnlyAttribute(STATE, new ElytronRuntimeOnlyHandler() {
 
             @Override
             protected void executeRuntimeStep(OperationContext context, ModelNode operation) throws OperationFailedException {
@@ -170,7 +168,7 @@ final class CredentialStoreResourceDefinition extends SimpleResourceDefinition {
         resourceRegistration.registerSubModel(new CredentialStoreAliasDefinition());
     }
 
-    private static class CredentialStoreAddHandler extends AbstractAddStepHandler {
+    private static class CredentialStoreAddHandler extends BaseAddHandler {
 
         private CredentialStoreAddHandler() {
             super(CREDENTIAL_STORE_RUNTIME_CAPABILITY, CONFIG_ATTRIBUTES);
@@ -240,7 +238,7 @@ final class CredentialStoreResourceDefinition extends SimpleResourceDefinition {
      * Runtime Attribute and Operation Handlers
      */
 
-    abstract static class CredentialStoreRuntimeOnlyHandler extends AbstractRuntimeOnlyHandler {
+    abstract static class CredentialStoreRuntimeOnlyHandler extends ElytronRuntimeOnlyHandler {
 
         private final boolean serviceMustBeUp;
         private final boolean writeAccess;

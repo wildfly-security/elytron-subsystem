@@ -38,7 +38,6 @@ import java.security.cert.CertificateEncodingException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import org.jboss.as.controller.AbstractRuntimeOnlyHandler;
 import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
 import org.jboss.as.controller.PathAddress;
@@ -196,7 +195,7 @@ class KeyStoreAliasDefinition extends SimpleResourceDefinition {
         return aliasName;
     }
 
-    abstract static class KeyStoreRuntimeOnlyHandler extends AbstractRuntimeOnlyHandler {
+    abstract static class KeyStoreRuntimeOnlyHandler extends ElytronRuntimeOnlyHandler {
 
         private final boolean serviceMustBeUp;
         private final boolean writeAccess;
