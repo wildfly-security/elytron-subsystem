@@ -22,6 +22,7 @@ package org.wildfly.extension.elytron;
 import java.io.IOException;
 
 import org.jboss.as.subsystem.test.AbstractSubsystemBaseTest;
+import org.junit.Before;
 import org.junit.Test;
 
 
@@ -37,6 +38,11 @@ public class SubsystemParsingTestCase extends AbstractSubsystemBaseTest {
 
     public SubsystemParsingTestCase() {
         super(ElytronExtension.SUBSYSTEM_NAME, new ElytronExtension());
+    }
+
+    @Before
+    public void init() throws Exception {
+        TestEnvironment.forceRequireRuntimeFalse();
     }
 
     @Override
