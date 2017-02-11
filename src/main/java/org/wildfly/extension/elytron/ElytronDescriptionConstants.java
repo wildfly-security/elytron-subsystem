@@ -274,6 +274,8 @@ interface ElytronDescriptionConstants {
     String OID = "oid";
     String OTP_CREDENTIAL_MAPPER = "otp-credential-mapper";
     String OR = "or";
+    String OUTFLOW_ANONYMOUS = "outflow-anonymous";
+    String OUTFLOW_SECURITY_DOMAINS = "outflow-security-domains";
 
     String PACKET_BUFFER_SIZE = "packet-buffer-size";
     String PATH = "path";

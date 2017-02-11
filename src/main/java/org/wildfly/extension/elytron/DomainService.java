@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
 
 import org.jboss.as.controller.OperationFailedException;
 import org.jboss.msc.inject.Injector;
@@ -37,6 +38,7 @@ import org.wildfly.security.auth.server.PrincipalDecoder;
 import org.wildfly.security.auth.server.RealmMapper;
 import org.wildfly.security.auth.server.SecurityDomain;
 import org.wildfly.security.auth.server.SecurityDomain.RealmBuilder;
+import org.wildfly.security.auth.server.SecurityIdentity;
 import org.wildfly.security.auth.server.SecurityRealm;
 import org.wildfly.security.authz.PermissionMapper;
 import org.wildfly.security.authz.RoleDecoder;
@@ -54,6 +56,7 @@ class DomainService implements Service<SecurityDomain> {
 
     private final String defaultRealm;
     private final Predicate<SecurityDomain> trustedSecurityDomain;
+    private final UnaryOperator<SecurityIdentity> identityOperator;
     private String preRealmPrincipalTransformer;
     private String postRealmPrincipalTransformer;
     private String roleMapper;
@@ -66,9 +69,10 @@ class DomainService implements Service<SecurityDomain> {
     private final InjectedValue<RealmMapper> realmMapperInjector = new InjectedValue<>();
     private final InjectedValue<PermissionMapper> permissionMapperInjector = new InjectedValue<>();
 
-    DomainService(final String defaultRealm, final Predicate<SecurityDomain> trustedSecurityDomain) {
+    DomainService(final String defaultRealm, final Predicate<SecurityDomain> trustedSecurityDomain, final UnaryOperator<SecurityIdentity> identityOperator) {
         this.defaultRealm = defaultRealm;
         this.trustedSecurityDomain = trustedSecurityDomain;
+        this.identityOperator = identityOperator;
     }
 
     RealmDependency createRealmDependency(final String realmName) throws OperationFailedException {
@@ -188,6 +192,7 @@ class DomainService implements Service<SecurityDomain> {
         }
 
         builder.setTrustedSecurityDomainPredicate(trustedSecurityDomain);
+        builder.setSecurityIdentityTransformer(identityOperator);
 
         securityDomain = builder.build();
     }

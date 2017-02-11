@@ -349,4 +349,8 @@ public interface ElytronSubsystemMessages extends BasicLogger {
 
     @Message(id = 1014, value = "Invalid [%s] definition.")
     OperationFailedException invalidDefinition(final String property);
+
+    @Message(id = 1015, value = "Unable to perform automatic outflow for '%s'")
+    IllegalStateException unableToPerformOutflow(String identityName, @Cause Exception cause);
+
 }
