@@ -36,8 +36,6 @@ import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.RO
 import java.security.Provider;
 
 import org.jboss.as.controller.AbstractBoottimeAddStepHandler;
-import org.jboss.as.controller.AbstractRemoveStepHandler;
-import org.jboss.as.controller.AbstractWriteAttributeHandler;
 import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationContext.AttachmentKey;
 import org.jboss.as.controller.OperationContext.Stage;
@@ -218,7 +216,7 @@ class ElytronDefinition extends SimpleResourceDefinition {
         OperationStepHandler writeHandler = new ReloadRequiredWriteAttributeHandler(INITIAL_PROVIDERS, FINAL_PROVIDERS);
         resourceRegistration.registerReadWriteAttribute(INITIAL_PROVIDERS, null, writeHandler);
         resourceRegistration.registerReadWriteAttribute(FINAL_PROVIDERS, null, writeHandler);
-        resourceRegistration.registerReadWriteAttribute(DEFAULT_AUTHENTICATION_CONTEXT, null, new AbstractWriteAttributeHandler<Void>(DEFAULT_AUTHENTICATION_CONTEXT) {
+        resourceRegistration.registerReadWriteAttribute(DEFAULT_AUTHENTICATION_CONTEXT, null, new ElytronWriteAttributeHandler<Void>(DEFAULT_AUTHENTICATION_CONTEXT) {
 
             @Override
             protected boolean applyUpdateToRuntime(OperationContext context, ModelNode operation, String attributeName,
@@ -271,7 +269,7 @@ class ElytronDefinition extends SimpleResourceDefinition {
         return null;
     }
 
-    private static class ElytronAdd extends AbstractBoottimeAddStepHandler {
+    private static class ElytronAdd extends AbstractBoottimeAddStepHandler implements ElytronOperationStepHandler {
 
         private ElytronAdd() {
             super(ELYTRON_RUNTIME_CAPABILITY, DEFAULT_AUTHENTICATION_CONTEXT, INITIAL_PROVIDERS, FINAL_PROVIDERS);
@@ -332,9 +330,13 @@ class ElytronDefinition extends SimpleResourceDefinition {
             AUTHENITCATION_CONTEXT_PROCESSOR.setDefaultAuthenticationContext(null);
         }
 
+        @Override
+        protected boolean requiresRuntime(final OperationContext context) {
+            return isServerOrHostController(context);
+        }
     }
 
-    private static class ElytronRemove extends AbstractRemoveStepHandler {
+    private static class ElytronRemove extends ElytronRemoveStepHandler {
 
         private ElytronRemove() {
             super(ELYTRON_RUNTIME_CAPABILITY);

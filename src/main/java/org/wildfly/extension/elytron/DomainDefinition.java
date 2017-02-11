@@ -52,7 +52,6 @@ import org.jboss.as.controller.OperationStepHandler;
 import org.jboss.as.controller.PathAddress;
 import org.jboss.as.controller.PathElement;
 import org.jboss.as.controller.ResourceDefinition;
-import org.jboss.as.controller.RestartParentWriteAttributeHandler;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
 import org.jboss.as.controller.SimpleResourceDefinition;
@@ -463,7 +462,7 @@ class DomainDefinition extends SimpleResourceDefinition {
 
     }
 
-    private static class WriteAttributeHandler extends RestartParentWriteAttributeHandler {
+    private static class WriteAttributeHandler extends ElytronRestartParentWriteAttributeHandler {
 
         WriteAttributeHandler(String parentKeyName) {
             super(parentKeyName, ATTRIBUTES);

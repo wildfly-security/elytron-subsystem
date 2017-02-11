@@ -18,7 +18,6 @@
 
 package org.wildfly.extension.elytron;
 
-import static org.jboss.as.controller.OperationContext.ResultHandler.NOOP_RESULT_HANDLER;
 import static org.wildfly.extension.elytron.Capabilities.MODIFIABLE_SECURITY_REALM_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SECURITY_DOMAIN_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.ElytronExtension.getRequiredService;
@@ -120,70 +119,66 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
         AttributeRemoveHandler.register(resourceRegistration, getResourceDescriptionResolver());
     }
 
-    private static class IdentityAddHandler implements OperationStepHandler {
+    private static class IdentityAddHandler extends BaseAddHandler {
 
         private IdentityAddHandler() {
         }
 
         @Override
-        public void execute(final OperationContext context, final ModelNode operation) throws OperationFailedException {
-            context.addStep(operation, (context1, operation1) -> {
-                ModifiableSecurityRealm modifiableRealm = getModifiableSecurityRealm(context);
-                String principalName = PathAddress.pathAddress(operation.get(ModelDescriptionConstants.ADDRESS)).getLastElement().getValue();
+        protected void performRuntime(final OperationContext context, final ModelNode operation, final ModelNode model) throws OperationFailedException {
+            ModifiableSecurityRealm modifiableRealm = getModifiableSecurityRealm(context);
+            String principalName = PathAddress.pathAddress(operation.get(ModelDescriptionConstants.ADDRESS)).getLastElement().getValue();
 
-                ModifiableRealmIdentity identity = null;
-                try {
-                    identity = modifiableRealm.getRealmIdentityForUpdate(new NamePrincipal(principalName));
+            ModifiableRealmIdentity identity = null;
+            try {
+                identity = modifiableRealm.getRealmIdentityForUpdate(new NamePrincipal(principalName));
 
-                    if (identity.exists()) {
-                        throw ROOT_LOGGER.identityAlreadyExists(principalName);
-                    }
-
-                    identity.create();
-                } catch (RealmUnavailableException e) {
-                    throw ROOT_LOGGER.couldNotCreateIdentity(principalName, e);
-                } finally {
-                    if (identity != null) {
-                        identity.dispose();
-                    }
+                if (identity.exists()) {
+                    throw ROOT_LOGGER.identityAlreadyExists(principalName);
                 }
-            }, OperationContext.Stage.RUNTIME);
+
+                identity.create();
+            } catch (RealmUnavailableException e) {
+                throw ROOT_LOGGER.couldNotCreateIdentity(principalName, e);
+            } finally {
+                if (identity != null) {
+                    identity.dispose();
+                }
+            }
         }
     }
 
-    private static class IdentityRemoveHandler implements OperationStepHandler {
+    private static class IdentityRemoveHandler extends ElytronRuntimeOnlyHandler {
 
         private IdentityRemoveHandler() {
         }
 
         @Override
-        public void execute(final OperationContext context, final ModelNode operation) throws OperationFailedException {
-            context.addStep(operation, (context1, operation1) -> {
-                ModifiableSecurityRealm modifiableRealm = getModifiableSecurityRealm(context1);
-                String principalName = PathAddress.pathAddress(operation1.get(ModelDescriptionConstants.ADDRESS)).getLastElement().getValue();
+        protected void executeRuntimeStep(final OperationContext context, final ModelNode operation) throws OperationFailedException {
+            ModifiableSecurityRealm modifiableRealm = getModifiableSecurityRealm(context);
+            String principalName = PathAddress.pathAddress(operation.get(ModelDescriptionConstants.ADDRESS)).getLastElement().getValue();
 
-                ModifiableRealmIdentity realmIdentity = null;
-                try {
-                    realmIdentity = modifiableRealm.getRealmIdentityForUpdate(new NamePrincipal(principalName));
+            ModifiableRealmIdentity realmIdentity = null;
+            try {
+                realmIdentity = modifiableRealm.getRealmIdentityForUpdate(new NamePrincipal(principalName));
 
-                    if (!realmIdentity.exists()) {
-                        throw new OperationFailedException(ROOT_LOGGER.identityNotFound(principalName));
-                    }
-
-                    realmIdentity.delete();
-                    realmIdentity.dispose();
-                } catch (RealmUnavailableException e) {
-                    throw ROOT_LOGGER.couldNotCreateIdentity(principalName, e);
-                } finally {
-                    if (realmIdentity != null) {
-                        realmIdentity.dispose();
-                    }
+                if (!realmIdentity.exists()) {
+                    throw new OperationFailedException(ROOT_LOGGER.identityNotFound(principalName));
                 }
-            }, OperationContext.Stage.RUNTIME);
+
+                realmIdentity.delete();
+                realmIdentity.dispose();
+            } catch (RealmUnavailableException e) {
+                throw ROOT_LOGGER.couldNotCreateIdentity(principalName, e);
+            } finally {
+                if (realmIdentity != null) {
+                    realmIdentity.dispose();
+                }
+            }
         }
     }
 
-    static class ReadSecurityDomainIdentityHandler implements OperationStepHandler {
+    static class ReadSecurityDomainIdentityHandler extends ElytronRuntimeOnlyHandler {
 
         public static final SimpleAttributeDefinition NAME = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.NAME, ModelType.STRING, false)
                 .setAllowExpression(false)
@@ -197,53 +192,51 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
         }
 
         @Override
-        public void execute(OperationContext context, ModelNode operation) throws OperationFailedException {
-            context.addStep(operation, (parentContext, parentOperation) -> {
-                ServiceRegistry serviceRegistry = parentContext.getServiceRegistry(false);
-                RuntimeCapability<Void> runtimeCapability = SECURITY_DOMAIN_RUNTIME_CAPABILITY.fromBaseCapability(parentContext.getCurrentAddressValue());
-                ServiceName domainServiceName = runtimeCapability.getCapabilityServiceName(SecurityDomain.class);
-                ServiceController<SecurityDomain> serviceController = getRequiredService(serviceRegistry, domainServiceName, SecurityDomain.class);
-                SecurityDomain domain = serviceController.getValue();
-                ServerAuthenticationContext authenticationContext = domain.createNewAuthenticationContext();
-                String principalName = NAME.resolveModelAttribute(parentContext, parentOperation).asString();
+        protected void executeRuntimeStep(final OperationContext context, final ModelNode operation) throws OperationFailedException {
+            // Retrieving the modifiable registry here as the SecurityDomain is used to create a new authentication
+            // context.
+            ServiceRegistry serviceRegistry = context.getServiceRegistry(true);
+            RuntimeCapability<Void> runtimeCapability = SECURITY_DOMAIN_RUNTIME_CAPABILITY.fromBaseCapability(context.getCurrentAddressValue());
+            ServiceName domainServiceName = runtimeCapability.getCapabilityServiceName(SecurityDomain.class);
+            ServiceController<SecurityDomain> serviceController = getRequiredService(serviceRegistry, domainServiceName, SecurityDomain.class);
+            SecurityDomain domain = serviceController.getValue();
+            ServerAuthenticationContext authenticationContext = domain.createNewAuthenticationContext();
+            String principalName = NAME.resolveModelAttribute(context, operation).asString();
 
-                try {
-                    authenticationContext.setAuthenticationName(principalName);
+            try {
+                authenticationContext.setAuthenticationName(principalName);
 
-                    if (!authenticationContext.exists()) {
-                        parentContext.getFailureDescription().add(ROOT_LOGGER.identityNotFound(principalName));
-                        return;
-                    }
-
-                    if (!authenticationContext.authorize(principalName)) {
-                        parentContext.getFailureDescription().add(ROOT_LOGGER.identityNotAuthorized(principalName));
-                        return;
-                    }
-
-                    SecurityIdentity identity = authenticationContext.getAuthorizedIdentity();
-                    ModelNode result = parentContext.getResult();
-
-                    result.get(ElytronDescriptionConstants.NAME).set(principalName);
-
-                    ModelNode attributesNode = result.get(ElytronDescriptionConstants.ATTRIBUTES);
-
-                    identity.getAttributes().entries().forEach(entry -> {
-                        ModelNode entryNode = attributesNode.get(entry.getKey()).setEmptyList();
-                        entry.forEach(value -> entryNode.add(value));
-                    });
-
-                    ModelNode rolesNode = result.get(ElytronDescriptionConstants.ROLES);
-                    identity.getRoles().forEach(roleName -> rolesNode.add(roleName));
-
-                    parentContext.completeStep(NOOP_RESULT_HANDLER);
-                } catch (RealmUnavailableException e) {
-                    throw ROOT_LOGGER.couldNotReadIdentity(principalName, domainServiceName, e);
+                if (!authenticationContext.exists()) {
+                    context.getFailureDescription().add(ROOT_LOGGER.identityNotFound(principalName));
+                    return;
                 }
-            }, OperationContext.Stage.RUNTIME);
+
+                if (!authenticationContext.authorize(principalName)) {
+                    context.getFailureDescription().add(ROOT_LOGGER.identityNotAuthorized(principalName));
+                    return;
+                }
+
+                SecurityIdentity identity = authenticationContext.getAuthorizedIdentity();
+                ModelNode result = context.getResult();
+
+                result.get(ElytronDescriptionConstants.NAME).set(principalName);
+
+                ModelNode attributesNode = result.get(ElytronDescriptionConstants.ATTRIBUTES);
+
+                identity.getAttributes().entries().forEach(entry -> {
+                    ModelNode entryNode = attributesNode.get(entry.getKey()).setEmptyList();
+                    entry.forEach(value -> entryNode.add(value));
+                });
+
+                ModelNode rolesNode = result.get(ElytronDescriptionConstants.ROLES);
+                identity.getRoles().forEach(roleName -> rolesNode.add(roleName));
+            } catch (RealmUnavailableException e) {
+                throw ROOT_LOGGER.couldNotReadIdentity(principalName, domainServiceName, e);
+            }
         }
     }
 
-    static class ReadIdentityHandler implements OperationStepHandler {
+    static class ReadIdentityHandler extends ElytronRuntimeOnlyHandler {
 
         static void register(ManagementResourceRegistration resourceRegistration, ResourceDescriptionResolver descriptionResolver) {
             resourceRegistration.registerOperationHandler(new SimpleOperationDefinition(ElytronDescriptionConstants.READ_IDENTITY, descriptionResolver), new ReadIdentityHandler());
@@ -253,56 +246,52 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
         }
 
         @Override
-        public void execute(OperationContext context, ModelNode operation) throws OperationFailedException {
-            context.addStep(operation, (parentContext, parentOperation) -> {
-                String principalName = PathAddress.pathAddress(operation.get(ModelDescriptionConstants.ADDRESS)).getLastElement().getValue();
-                ModifiableRealmIdentity realmIdentity = getRealmIdentity(context);
+        protected void executeRuntimeStep(final OperationContext context, final ModelNode operation) throws OperationFailedException {
+            String principalName = PathAddress.pathAddress(operation.get(ModelDescriptionConstants.ADDRESS)).getLastElement().getValue();
+            ModifiableRealmIdentity realmIdentity = getRealmIdentity(context);
 
-                try {
-                    if (!realmIdentity.exists()) {
-                        parentContext.getFailureDescription().add(ROOT_LOGGER.identityNotFound(principalName));
-                        return;
-                    }
-                    AuthorizationIdentity identity = realmIdentity.getAuthorizationIdentity();
-                    ModelNode result = parentContext.getResult();
-
-                    result.get(ElytronDescriptionConstants.NAME).set(principalName);
-
-                    ModelNode attributesNode = result.get(ElytronDescriptionConstants.ATTRIBUTES);
-
-                    identity.getAttributes().entries().forEach(entry -> {
-                        ModelNode entryNode = attributesNode.get(entry.getKey()).setEmptyList();
-                        entry.forEach(value -> entryNode.add(value));
-                    });
-
-                    ModelNode credentialsNode = result.get(ElytronDescriptionConstants.CREDENTIALS).setEmptyList();
-                    getCredentials(realmIdentity).forEach(password -> {
-                        String passwordType;
-                        if (password instanceof BCryptPassword) {
-                            passwordType = ElytronDescriptionConstants.BCRYPT;
-                        } else if (password instanceof ClearPassword) {
-                            passwordType = ElytronDescriptionConstants.CLEAR;
-                        } else if (password instanceof SimpleDigestPassword) {
-                            passwordType = ElytronDescriptionConstants.SIMPLE_DIGEST;
-                        } else if (password instanceof SaltedSimpleDigestPassword) {
-                            passwordType = ElytronDescriptionConstants.SALTED_SIMPLE_DIGEST;
-                        } else if (password instanceof DigestPassword) {
-                            passwordType = ElytronDescriptionConstants.DIGEST;
-                        } else {
-                            throw ROOT_LOGGER.unsupportedPasswordType(password.getClass());
-                        }
-                        credentialsNode.add(passwordType);
-                    });
-
-                    parentContext.completeStep(NOOP_RESULT_HANDLER);
-                } catch (RealmUnavailableException e) {
-                    throw ROOT_LOGGER.couldNotReadIdentity(principalName, e);
+            try {
+                if (!realmIdentity.exists()) {
+                    context.getFailureDescription().add(ROOT_LOGGER.identityNotFound(principalName));
+                    return;
                 }
-            }, OperationContext.Stage.RUNTIME);
+                AuthorizationIdentity identity = realmIdentity.getAuthorizationIdentity();
+                ModelNode result = context.getResult();
+
+                result.get(ElytronDescriptionConstants.NAME).set(principalName);
+
+                ModelNode attributesNode = result.get(ElytronDescriptionConstants.ATTRIBUTES);
+
+                identity.getAttributes().entries().forEach(entry -> {
+                    ModelNode entryNode = attributesNode.get(entry.getKey()).setEmptyList();
+                    entry.forEach(value -> entryNode.add(value));
+                });
+
+                ModelNode credentialsNode = result.get(ElytronDescriptionConstants.CREDENTIALS).setEmptyList();
+                getCredentials(realmIdentity).forEach(password -> {
+                    String passwordType;
+                    if (password instanceof BCryptPassword) {
+                        passwordType = ElytronDescriptionConstants.BCRYPT;
+                    } else if (password instanceof ClearPassword) {
+                        passwordType = ElytronDescriptionConstants.CLEAR;
+                    } else if (password instanceof SimpleDigestPassword) {
+                        passwordType = ElytronDescriptionConstants.SIMPLE_DIGEST;
+                    } else if (password instanceof SaltedSimpleDigestPassword) {
+                        passwordType = ElytronDescriptionConstants.SALTED_SIMPLE_DIGEST;
+                    } else if (password instanceof DigestPassword) {
+                        passwordType = ElytronDescriptionConstants.DIGEST;
+                    } else {
+                        throw ROOT_LOGGER.unsupportedPasswordType(password.getClass());
+                    }
+                    credentialsNode.add(passwordType);
+                });
+            } catch (RealmUnavailableException e) {
+                throw ROOT_LOGGER.couldNotReadIdentity(principalName, e);
+            }
         }
     }
 
-    static class AttributeAddHandler implements OperationStepHandler {
+    static class AttributeAddHandler extends ElytronRuntimeOnlyHandler {
 
         public static final SimpleAttributeDefinition NAME = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.NAME, ModelType.STRING, false)
                 .setAllowExpression(false)
@@ -322,33 +311,29 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
         }
 
         @Override
-        public void execute(OperationContext context, ModelNode operation) throws OperationFailedException {
-            context.addStep(operation, (parentContext, parentOperation) -> {
-                ModifiableRealmIdentity realmIdentity = getRealmIdentity(context);
-                AuthorizationIdentity authorizationIdentity;
+        protected void executeRuntimeStep(final OperationContext context, final ModelNode operation) throws OperationFailedException {
+            ModifiableRealmIdentity realmIdentity = getRealmIdentity(context);
+            AuthorizationIdentity authorizationIdentity;
 
-                try {
-                    authorizationIdentity = realmIdentity.getAuthorizationIdentity();
-                } catch (RealmUnavailableException e) {
-                    throw ROOT_LOGGER.couldNotObtainAuthorizationIdentity(e);
-                }
+            try {
+                authorizationIdentity = realmIdentity.getAuthorizationIdentity();
+            } catch (RealmUnavailableException e) {
+                throw ROOT_LOGGER.couldNotObtainAuthorizationIdentity(e);
+            }
 
-                try {
-                    Attributes attributes = new MapAttributes(authorizationIdentity.getAttributes());
-                    String name = NAME.resolveModelAttribute(context, operation).asString();
-                    VALUES.resolveModelAttribute(parentContext, parentOperation).asList().forEach(modelNode -> attributes.addLast(name, modelNode.asString()));
+            try {
+                Attributes attributes = new MapAttributes(authorizationIdentity.getAttributes());
+                String name = NAME.resolveModelAttribute(context, operation).asString();
+                VALUES.resolveModelAttribute(context, operation).asList().forEach(modelNode -> attributes.addLast(name, modelNode.asString()));
 
-                    realmIdentity.setAttributes(attributes);
-                } catch (RealmUnavailableException e) {
-                    throw ROOT_LOGGER.couldNotAddAttribute(e);
-                }
-
-                parentContext.completeStep(NOOP_RESULT_HANDLER);
-            }, OperationContext.Stage.RUNTIME);
+                realmIdentity.setAttributes(attributes);
+            } catch (RealmUnavailableException e) {
+                throw ROOT_LOGGER.couldNotAddAttribute(e);
+            }
         }
     }
 
-    static class AttributeRemoveHandler implements OperationStepHandler {
+    static class AttributeRemoveHandler extends ElytronRuntimeOnlyHandler {
 
         public static final SimpleAttributeDefinition NAME = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.NAME, ModelType.STRING, false)
                 .setAllowExpression(false)
@@ -369,42 +354,38 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
         }
 
         @Override
-        public void execute(OperationContext context, ModelNode operation) throws OperationFailedException {
-            context.addStep(operation, (parentContext, parentOperation) -> {
-                ModifiableRealmIdentity realmIdentity = getRealmIdentity(context);
-                AuthorizationIdentity authorizationIdentity;
+        protected void executeRuntimeStep(final OperationContext context, final ModelNode operation) throws OperationFailedException {
+            ModifiableRealmIdentity realmIdentity = getRealmIdentity(context);
+            AuthorizationIdentity authorizationIdentity;
 
-                try {
-                    authorizationIdentity = realmIdentity.getAuthorizationIdentity();
-                } catch (RealmUnavailableException e) {
-                    throw ROOT_LOGGER.couldNotObtainAuthorizationIdentity(e);
-                }
+            try {
+                authorizationIdentity = realmIdentity.getAuthorizationIdentity();
+            } catch (RealmUnavailableException e) {
+                throw ROOT_LOGGER.couldNotObtainAuthorizationIdentity(e);
+            }
 
-                try {
-                    Attributes attributes = new MapAttributes(authorizationIdentity.getAttributes());
+            try {
+                Attributes attributes = new MapAttributes(authorizationIdentity.getAttributes());
 
-                    String name = NAME.resolveModelAttribute(context, operation).asString();
-                    ModelNode valuesNode = VALUES.resolveModelAttribute(parentContext, parentOperation);
+                String name = NAME.resolveModelAttribute(context, operation).asString();
+                ModelNode valuesNode = VALUES.resolveModelAttribute(context, operation);
 
-                    if (valuesNode.isDefined()) {
-                        for (ModelNode valueNode : valuesNode.asList()) {
-                            attributes.removeAll(name, valueNode.asString());
-                        }
-                    } else {
-                        attributes.remove(name);
+                if (valuesNode.isDefined()) {
+                    for (ModelNode valueNode : valuesNode.asList()) {
+                        attributes.removeAll(name, valueNode.asString());
                     }
-
-                    realmIdentity.setAttributes(attributes);
-                } catch (RealmUnavailableException e) {
-                    throw ROOT_LOGGER.couldNotRemoveAttribute(e);
+                } else {
+                    attributes.remove(name);
                 }
 
-                parentContext.completeStep(NOOP_RESULT_HANDLER);
-            }, OperationContext.Stage.RUNTIME);
+                realmIdentity.setAttributes(attributes);
+            } catch (RealmUnavailableException e) {
+                throw ROOT_LOGGER.couldNotRemoveAttribute(e);
+            }
         }
     }
 
-    static class PasswordSetHandler implements OperationStepHandler {
+    static class PasswordSetHandler extends ElytronRuntimeOnlyHandler {
 
         static class Bcrypt {
             static final SimpleAttributeDefinition ALGORITHM = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ALGORITHM, ModelType.STRING)
@@ -550,21 +531,18 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
         }
 
         @Override
-        public void execute(OperationContext context, ModelNode operation) throws OperationFailedException {
-            context.addStep(operation, (parentContext, parentOperation) -> {
-                ModifiableRealmIdentity realmIdentity = getRealmIdentity(context);
-                List<ModelNode> modelNodes = parentOperation.asList();
-                Property passwordProperty = modelNodes.get(2).asProperty();
-                PathAddress currentAddress = parentContext.getCurrentAddress();
-                String principalName = currentAddress.getLastElement().getValue();
+        protected void executeRuntimeStep(final OperationContext context, final ModelNode operation) throws OperationFailedException {
+            ModifiableRealmIdentity realmIdentity = getRealmIdentity(context);
+            List<ModelNode> modelNodes = operation.asList();
+            Property passwordProperty = modelNodes.get(2).asProperty();
+            PathAddress currentAddress = context.getCurrentAddress();
+            String principalName = currentAddress.getLastElement().getValue();
 
-                try {
-                    realmIdentity.setCredentials(Collections.singleton( new PasswordCredential(createPassword(parentContext, principalName, passwordProperty))));
-                } catch (NoSuchAlgorithmException | InvalidKeySpecException | RealmUnavailableException e) {
-                    throw ROOT_LOGGER.couldNotCreatePassword(e);
-                }
-                parentContext.completeStep(NOOP_RESULT_HANDLER);
-            }, OperationContext.Stage.RUNTIME);
+            try {
+                realmIdentity.setCredentials(Collections.singleton(new PasswordCredential(createPassword(context, principalName, passwordProperty))));
+            } catch (NoSuchAlgorithmException | InvalidKeySpecException | RealmUnavailableException e) {
+                throw ROOT_LOGGER.couldNotCreatePassword(e);
+            }
         }
 
         private Password createPassword(final OperationContext parentContext, final String principalName, Property passwordProperty) throws OperationFailedException, NoSuchAlgorithmException, InvalidKeySpecException {
@@ -611,7 +589,7 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
      * @throws OperationFailedException if any error occurs obtaining the reference to the security realm.
      */
     private static ModifiableSecurityRealm getModifiableSecurityRealm(OperationContext context) throws OperationFailedException {
-        ServiceRegistry serviceRegistry = context.getServiceRegistry(false);
+        ServiceRegistry serviceRegistry = context.getServiceRegistry(true);
         PathAddress currentAddress = context.getCurrentAddress();
         RuntimeCapability<Void> runtimeCapability = MODIFIABLE_SECURITY_REALM_RUNTIME_CAPABILITY.fromBaseCapability(currentAddress.subAddress(0, currentAddress.size() - 1).getLastElement().getValue());
         ServiceName realmName = runtimeCapability.getCapabilityServiceName();
@@ -707,7 +685,7 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
      *
      * <p>This operation is very verbose in order to push messages back to CLI during tests.
      */
-    static class AuthenticatorOperationHandler implements OperationStepHandler {
+    static class AuthenticatorOperationHandler extends ElytronRuntimeOnlyHandler {
 
         private static final ServiceUtil<SecurityDomain> DOMAIN_SERVICE_UTIL = ServiceUtil.newInstance(SECURITY_DOMAIN_RUNTIME_CAPABILITY, ElytronDescriptionConstants.SECURITY_DOMAIN, SecurityDomain.class);
 
@@ -740,49 +718,43 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
         }
 
         @Override
-        public void execute(OperationContext context, ModelNode operation) throws OperationFailedException {
-            context.addStep((contextStep, operationStep) -> {
-                String principalName = USER_NAME.resolveModelAttribute(context, operation).asString();
-                String password = PASSWORD.resolveModelAttribute(context, operation).asString();
-                SecurityDomain securityDomain = getSecurityDomain(context, operation);
+        protected void executeRuntimeStep(final OperationContext context, final ModelNode operation) throws OperationFailedException {
+            String principalName = USER_NAME.resolveModelAttribute(context, operation).asString();
+            String password = PASSWORD.resolveModelAttribute(context, operation).asString();
+            SecurityDomain securityDomain = getSecurityDomain(context, operation);
 
-                try {
-                    ServerAuthenticationContext authenticationContext = securityDomain.createNewAuthenticationContext();
+            try {
+                ServerAuthenticationContext authenticationContext = securityDomain.createNewAuthenticationContext();
 
-                    authenticationContext.setAuthenticationName(principalName);
+                authenticationContext.setAuthenticationName(principalName);
 
-                    if (!authenticationContext.exists()) {
-                        addFailureDescription("Principal [" + principalName + "] does not exist.", context);
+                if (!authenticationContext.exists()) {
+                    addFailureDescription("Principal [" + principalName + "] does not exist.", context);
+                    return;
+                }
+
+                // for now, only clear passwords. we can provide an enum with different types later. if necessary.
+                if (authenticationContext.verifyEvidence(new PasswordGuessEvidence(password.toCharArray()))) {
+                    authenticationContext.authorize();
+                    authenticationContext.succeed();
+
+                    SecurityIdentity authorizedIdentity = authenticationContext.getAuthorizedIdentity();
+
+                    if (authorizedIdentity == null) {
+                        addFailureDescription("Principal [" + principalName + "] authenticated but no identity could be obtained.", context);
                         return;
                     }
 
-                    // for now, only clear passwords. we can provide an enum with different types later. if necessary.
-                    if (authenticationContext.verifyEvidence(new PasswordGuessEvidence(password.toCharArray()))) {
-                        authenticationContext.authorize();
-                        authenticationContext.succeed();
-
-                        SecurityIdentity authorizedIdentity = authenticationContext.getAuthorizedIdentity();
-
-                        if (authorizedIdentity == null) {
-                            addFailureDescription("Principal [" + principalName + "] authenticated but no identity could be obtained.", context);
-                            return;
-                        }
-
-                        context.getResult().add("Principal [" + principalName + "] successfully authenticated.");
-                        context.getResult().add("Roles are " + authorizedIdentity.getRoles() + ".");
-                    } else {
-                        authenticationContext.fail();
-                        addFailureDescription("Invalid credentials for Principal [" + principalName + "].", context);
-                    }
-                } catch (Exception cause) {
-                    addFailureDescription(cause.getMessage(), context);
-                    ElytronSubsystemMessages.ROOT_LOGGER.error(cause);
-                } finally {
-                    context.completeStep(OperationContext.ResultHandler.NOOP_RESULT_HANDLER);
+                    context.getResult().add("Principal [" + principalName + "] successfully authenticated.");
+                    context.getResult().add("Roles are " + authorizedIdentity.getRoles() + ".");
+                } else {
+                    authenticationContext.fail();
+                    addFailureDescription("Invalid credentials for Principal [" + principalName + "].", context);
                 }
-
-
-            }, OperationContext.Stage.RUNTIME);
+            } catch (Exception cause) {
+                addFailureDescription(cause.getMessage(), context);
+                ElytronSubsystemMessages.ROOT_LOGGER.error(cause);
+            }
         }
 
         private void addFailureDescription(String message, OperationContext context) {
@@ -791,7 +763,9 @@ class IdentityResourceDefinition extends SimpleResourceDefinition {
         }
 
         private SecurityDomain getSecurityDomain(OperationContext context, ModelNode operation) {
-            ServiceRegistry serviceRegistry = context.getServiceRegistry(false);
+            // Retrieving the modifiable registry here as the SecurityDomain is used to create a new authentication
+            // context.
+            ServiceRegistry serviceRegistry = context.getServiceRegistry(true);
             ServiceController<SecurityDomain> serviceController = getRequiredService(serviceRegistry, DOMAIN_SERVICE_UTIL.serviceName(operation), SecurityDomain.class);
             Service<SecurityDomain> service = serviceController.getService();
 

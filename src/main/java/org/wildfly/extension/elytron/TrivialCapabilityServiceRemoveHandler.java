@@ -18,6 +18,7 @@
 package org.wildfly.extension.elytron;
 
 import org.jboss.as.controller.AbstractAddStepHandler;
+import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationStepHandler;
 import org.jboss.as.controller.ServiceRemoveStepHandler;
 import org.jboss.as.controller.capability.RuntimeCapability;
@@ -28,7 +29,7 @@ import org.jboss.msc.service.ServiceName;
  *
  * @author <a href="mailto:darran.lofthouse@jboss.com">Darran Lofthouse</a>
  */
-class TrivialCapabilityServiceRemoveHandler extends ServiceRemoveStepHandler {
+class TrivialCapabilityServiceRemoveHandler extends ServiceRemoveStepHandler implements ElytronOperationStepHandler {
 
     private final RuntimeCapability<?> firstCapability;
 
@@ -52,4 +53,8 @@ class TrivialCapabilityServiceRemoveHandler extends ServiceRemoveStepHandler {
         return firstCapability.fromBaseCapability(name).getCapabilityServiceName();
     }
 
+    @Override
+    protected boolean requiresRuntime(final OperationContext context) {
+        return isServerOrHostController(context);
+    }
 }

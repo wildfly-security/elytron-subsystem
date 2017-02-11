@@ -56,7 +56,6 @@ import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509ExtendedTrustManager;
 
 import org.jboss.as.controller.AbstractAddStepHandler;
-import org.jboss.as.controller.AbstractRuntimeOnlyHandler;
 import org.jboss.as.controller.AttributeDefinition;
 import org.jboss.as.controller.ObjectTypeAttributeDefinition;
 import org.jboss.as.controller.OperationContext;
@@ -674,7 +673,7 @@ class SSLDefinitions {
         throw ROOT_LOGGER.noTypeFound(X509ExtendedTrustManager.class.getSimpleName());
     }
 
-    abstract static class SSLContextRuntimeHandler extends AbstractRuntimeOnlyHandler {
+    abstract static class SSLContextRuntimeHandler extends ElytronRuntimeOnlyHandler {
         @Override
         protected void executeRuntimeStep(OperationContext context, ModelNode operation) throws OperationFailedException {
             ServiceName serviceName = getSSLContextServiceUtil().serviceName(operation);

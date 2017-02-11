@@ -37,7 +37,6 @@ import javax.naming.directory.BasicAttribute;
 import javax.naming.directory.BasicAttributes;
 import javax.naming.ldap.LdapName;
 
-import org.jboss.as.controller.AbstractRuntimeOnlyHandler;
 import org.jboss.as.controller.AttributeDefinition;
 import org.jboss.as.controller.ObjectListAttributeDefinition;
 import org.jboss.as.controller.ObjectTypeAttributeDefinition;
@@ -47,7 +46,6 @@ import org.jboss.as.controller.OperationStepHandler;
 import org.jboss.as.controller.PathAddress;
 import org.jboss.as.controller.PathElement;
 import org.jboss.as.controller.ResourceDefinition;
-import org.jboss.as.controller.RestartParentWriteAttributeHandler;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
 import org.jboss.as.controller.SimpleResourceDefinition;
@@ -223,7 +221,7 @@ final class LdapKeyStoreDefinition extends SimpleResourceDefinition {
             resourceRegistration.registerReadWriteAttribute(current, null, WRITE);
         }
 
-        resourceRegistration.registerReadOnlyAttribute(STATE, new AbstractRuntimeOnlyHandler() {
+        resourceRegistration.registerReadOnlyAttribute(STATE, new ElytronRuntimeOnlyHandler() {
             @Override
             protected void executeRuntimeStep(OperationContext context, ModelNode operation) throws OperationFailedException {
                 ServiceName keyStoreName = LDAP_KEY_STORE_UTIL.serviceName(operation);
@@ -349,7 +347,7 @@ final class LdapKeyStoreDefinition extends SimpleResourceDefinition {
 
     }
 
-    private static class WriteAttributeHandler extends RestartParentWriteAttributeHandler {
+    private static class WriteAttributeHandler extends ElytronRestartParentWriteAttributeHandler {
 
         WriteAttributeHandler() {
             super(ElytronDescriptionConstants.LDAP_KEY_STORE, CONFIG_ATTRIBUTES);
@@ -380,7 +378,7 @@ final class LdapKeyStoreDefinition extends SimpleResourceDefinition {
                 .build();
     }
 
-    abstract static class LdapKeyStoreRuntimeOnlyHandler extends AbstractRuntimeOnlyHandler {
+    abstract static class LdapKeyStoreRuntimeOnlyHandler extends ElytronRuntimeOnlyHandler {
 
         private final boolean serviceMustBeUp;
         private final boolean writeAccess;

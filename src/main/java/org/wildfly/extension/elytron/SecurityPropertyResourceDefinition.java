@@ -18,14 +18,11 @@
 
 package org.wildfly.extension.elytron;
 
-import org.jboss.as.controller.AbstractRemoveStepHandler;
-import org.jboss.as.controller.AbstractWriteAttributeHandler;
 import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
 import org.jboss.as.controller.PathAddress;
 import org.jboss.as.controller.PathElement;
 import org.jboss.as.controller.ResourceDefinition;
-import org.jboss.as.controller.RunningMode;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
 import org.jboss.as.controller.SimpleResourceDefinition;
@@ -71,7 +68,7 @@ class SecurityPropertyResourceDefinition extends SimpleResourceDefinition {
     }
 
     private static SecurityPropertyService getService(OperationContext context) {
-        ServiceRegistry serviceRegistry = context.getServiceRegistry(false);
+        ServiceRegistry serviceRegistry = context.getServiceRegistry(true);
 
         ServiceController<?> service = serviceRegistry.getService(SecurityPropertyService.SERVICE_NAME);
         if (service != null) {
@@ -93,7 +90,7 @@ class SecurityPropertyResourceDefinition extends SimpleResourceDefinition {
         getService(context).removeProperty(name);
     }
 
-    private static class WriteAttributeHandler extends AbstractWriteAttributeHandler<String> {
+    private static class WriteAttributeHandler extends ElytronWriteAttributeHandler<String> {
 
         private WriteAttributeHandler() {
             super(VALUE);
@@ -146,21 +143,10 @@ class SecurityPropertyResourceDefinition extends SimpleResourceDefinition {
 
     }
 
-    private static class PropertyRemoveHandler extends AbstractRemoveStepHandler {
+    private static class PropertyRemoveHandler extends ElytronRemoveStepHandler {
 
         private PropertyRemoveHandler() {
             super();
-        }
-
-        /**
-         * Ensures runtime operations are performed in the usual modes and also for an admin only server.
-         *
-         * @return Returns {@code true} in the existing situations and also for admin-only mode of a normal server.
-         * @see org.jboss.as.controller.AbstractAddStepHandler#requiresRuntime(org.jboss.as.controller.OperationContext)
-         */
-        @Override
-        protected boolean requiresRuntime(OperationContext context) {
-            return context.isDefaultRequiresRuntime() || context.isNormalServer() && RunningMode.ADMIN_ONLY == context.getRunningMode();
         }
 
         @Override

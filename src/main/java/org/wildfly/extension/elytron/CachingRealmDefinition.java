@@ -30,7 +30,6 @@ import org.jboss.as.controller.OperationStepHandler;
 import org.jboss.as.controller.PathAddress;
 import org.jboss.as.controller.PathElement;
 import org.jboss.as.controller.ResourceDefinition;
-import org.jboss.as.controller.RestartParentWriteAttributeHandler;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
 import org.jboss.as.controller.SimpleOperationDefinition;
@@ -163,7 +162,7 @@ class CachingRealmDefinition extends SimpleResourceDefinition {
 
     }
 
-    private static class WriteAttributeHandler extends RestartParentWriteAttributeHandler {
+    private static class WriteAttributeHandler extends ElytronRestartParentWriteAttributeHandler {
 
         WriteAttributeHandler(final String key) {
             super(key, ATTRIBUTES);
@@ -175,7 +174,7 @@ class CachingRealmDefinition extends SimpleResourceDefinition {
         }
     }
 
-    private static class ClearCacheHandler implements OperationStepHandler {
+    private static class ClearCacheHandler extends ElytronRuntimeOnlyHandler {
 
         static void register(ManagementResourceRegistration resourceRegistration, ResourceDescriptionResolver descriptionResolver) {
             resourceRegistration.registerOperationHandler(new SimpleOperationDefinition(ElytronDescriptionConstants.CLEAR_CACHE, descriptionResolver), new CachingRealmDefinition.ClearCacheHandler());
@@ -185,16 +184,14 @@ class CachingRealmDefinition extends SimpleResourceDefinition {
         }
 
         @Override
-        public void execute(OperationContext context, ModelNode operation) throws OperationFailedException {
-            context.addStep(operation, (parentContext, parentOperation) -> {
-                ServiceRegistry serviceRegistry = context.getServiceRegistry(false);
-                PathAddress currentAddress = context.getCurrentAddress();
-                RuntimeCapability<Void> runtimeCapability = SECURITY_REALM_RUNTIME_CAPABILITY.fromBaseCapability(currentAddress.getLastElement().getValue());
-                ServiceName realmName = runtimeCapability.getCapabilityServiceName();
-                ServiceController<SecurityRealm> serviceController = getRequiredService(serviceRegistry, realmName, SecurityRealm.class);
-                CachingSecurityRealm securityRealm = CachingSecurityRealm.class.cast(serviceController.getValue());
-                securityRealm.removeAllFromCache();
-            }, OperationContext.Stage.RUNTIME);
+        protected void executeRuntimeStep(final OperationContext context, final ModelNode operation) throws OperationFailedException {
+            ServiceRegistry serviceRegistry = context.getServiceRegistry(true);
+            PathAddress currentAddress = context.getCurrentAddress();
+            RuntimeCapability<Void> runtimeCapability = SECURITY_REALM_RUNTIME_CAPABILITY.fromBaseCapability(currentAddress.getLastElement().getValue());
+            ServiceName realmName = runtimeCapability.getCapabilityServiceName();
+            ServiceController<SecurityRealm> serviceController = getRequiredService(serviceRegistry, realmName, SecurityRealm.class);
+            CachingSecurityRealm securityRealm = CachingSecurityRealm.class.cast(serviceController.getValue());
+            securityRealm.removeAllFromCache();
         }
     }
 }
