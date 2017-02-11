@@ -141,7 +141,8 @@ class FilteringKeyStoreDefinition extends SimpleResourceDefinition {
             ServiceBuilder<KeyStore> serviceBuilder = serviceTarget.addService(serviceName, filteringKeyStoreService).setInitialMode(ServiceController.Mode.ACTIVE);
 
             serviceBuilder.addDependency(sourceKeyStoreServiceName);
-            ServiceRegistry serviceRegistry = context.getServiceRegistry(false);
+            // Retrieving the modifiable registry here as the ModifiedKeyStoreService may be modified
+            ServiceRegistry serviceRegistry = context.getServiceRegistry(true);
             ServiceController<?> controller = serviceRegistry.getRequiredService(sourceKeyStoreServiceName);
             serviceInjector.setValue(() -> (ModifiableKeyStoreService) controller.getService());
 

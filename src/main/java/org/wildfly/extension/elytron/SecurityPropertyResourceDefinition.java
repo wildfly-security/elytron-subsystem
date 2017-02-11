@@ -68,7 +68,7 @@ class SecurityPropertyResourceDefinition extends SimpleResourceDefinition {
     }
 
     private static SecurityPropertyService getService(OperationContext context) {
-        ServiceRegistry serviceRegistry = context.getServiceRegistry(false);
+        ServiceRegistry serviceRegistry = context.getServiceRegistry(true);
 
         ServiceController<?> service = serviceRegistry.getService(SecurityPropertyService.SERVICE_NAME);
         if (service != null) {

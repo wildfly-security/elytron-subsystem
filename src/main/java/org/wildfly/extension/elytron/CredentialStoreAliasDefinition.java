@@ -177,7 +177,7 @@ class CredentialStoreAliasDefinition extends SimpleResourceDefinition {
 
             ServiceName credentialStoreServiceName = CREDENTIAL_STORE_UTIL.serviceName(operation);
             @SuppressWarnings("unchecked")
-            ServiceController<CredentialStore> serviceContainer = (ServiceController<CredentialStore>) context.getServiceRegistry(false).getRequiredService(credentialStoreServiceName);
+            ServiceController<CredentialStore> serviceContainer = (ServiceController<CredentialStore>) context.getServiceRegistry(true).getRequiredService(credentialStoreServiceName);
             CredentialStore credentialStore = ((CredentialStoreService) serviceContainer.getService()).getValue();
             try {
                 if (entryType == null || ClearPassword.ALGORITHM_CLEAR.equals(entryType)) {
