@@ -18,6 +18,7 @@
 
 package org.wildfly.extension.elytron;
 
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AUDIT_LOGGING;
 import static javax.xml.stream.XMLStreamConstants.END_ELEMENT;
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.ADD;
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP;
@@ -75,6 +76,7 @@ import org.jboss.staxmapper.XMLExtendedStreamWriter;
 class ElytronSubsystemParser implements XMLElementReader<List<ModelNode>>, XMLElementWriter<SubsystemMarshallingContext> {
 
     private final AuthenticationClientParser clientParser = new AuthenticationClientParser();
+    private final AuditLoggingParser auditLoggingParser = new AuditLoggingParser();
     private final DomainParser domainParser = new DomainParser();
     private final RealmParser realmParser = new RealmParser();
     private final TlsParser tlsParser = new TlsParser();
@@ -135,6 +137,9 @@ class ElytronSubsystemParser implements XMLElementReader<List<ModelNode>>, XMLEl
                     break;
                 case PROVIDERS:
                     providerParser.readProviders(parentAddress, reader, operations);
+                    break;
+                case AUDIT_LOGGING:
+                    auditLoggingParser.readAuditLogging(parentAddress, reader, operations);
                     break;
                 case SECURITY_DOMAINS:
                     readDomains(parentAddress, reader, operations);
@@ -372,6 +377,7 @@ class ElytronSubsystemParser implements XMLElementReader<List<ModelNode>>, XMLEl
 
         clientParser.writeAuthenticationClient(model, writer);
         providerParser.writeProviders(model, writer);
+        auditLoggingParser.writeAuditLogging(model, writer);
 
         if (model.hasDefined(SECURITY_DOMAIN)) {
             writer.writeStartElement(SECURITY_DOMAINS);

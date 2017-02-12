@@ -54,6 +54,7 @@ interface ElytronDescriptionConstants {
     String ATTRIBUTE_VALUES = "attribute-values";
     String ATTRIBUTES = "attributes";
     String AUDIENCE = "audience";
+    String AUDIT_LOGGING = "audit-logging";
     String AUTHENTICATION_CLIENT = "authentication-client";
     String AUTHENTICATION_CONFIGURATION = "authentication-configuration";
     String AUTHENTICATION_CONTEXT = "authentication-context";
@@ -144,6 +145,7 @@ interface ElytronDescriptionConstants {
     String EXTENDS = "extends";
 
     String FILE = "file";
+    String FILE_AUDIT_LOG = "file-audit-log";
     String FILESYSTEM_REALM = "filesystem-realm";
     String FILTER = "filter";
     String FILTER_ALIAS = "filter-alias";
