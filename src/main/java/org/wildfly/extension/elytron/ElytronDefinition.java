@@ -114,6 +114,7 @@ class ElytronDefinition extends SimpleResourceDefinition {
 
         // Audit
         resourceRegistration.registerSubModel(AuditResourceDefinitions.getFileAuditLogResourceDefinition());
+        resourceRegistration.registerSubModel(AuditResourceDefinitions.getSyslogAuditLogResourceDefinition());
 
         // Security Domain SASL / HTTP Configurations
         resourceRegistration.registerSubModel(AuthenticationFactoryDefinitions.getSaslAuthenticationFactory());

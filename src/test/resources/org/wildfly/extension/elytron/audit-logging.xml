@@ -1,5 +1,6 @@
 <subsystem xmlns="urn:wildfly:elytron:1.0" default-authentication-context="child">
     <audit-logging>
         <file-audit-log name="local-file" path="audit.log" relative-to="jboss.home.dir" synchronized="false" format="JSON" />
+        <syslog-audit-log name="remote-syslog" server-address="remote-server" port="9898" transport="UDP" format="JSON" host-name="Elytron" />
     </audit-logging>
 </subsystem>

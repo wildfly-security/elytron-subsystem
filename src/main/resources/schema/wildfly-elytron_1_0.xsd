@@ -479,9 +479,34 @@
         </xs:annotation>
         <xs:sequence>
             <xs:element name="file-audit-log" type="fileAuditLogType" maxOccurs="unbounded" />
+            <xs:element name="syslog-audit-log" type="syslogAuditLogType" maxOccurs="unbounded" />
         </xs:sequence>
     </xs:complexType>
 
+    <xs:simpleType name="formatType">
+        <xs:annotation>
+            <xs:documentation>
+                The format type.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="SIMPLE" />
+            <xs:enumeration value="JSON" />
+        </xs:restriction>
+    </xs:simpleType>
+    
+    <xs:simpleType name="transportType">
+        <xs:annotation>
+            <xs:documentation>
+                The format type.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="TCP" />
+            <xs:enumeration value="UDP" />
+        </xs:restriction>
+    </xs:simpleType>
+    
     <xs:complexType name="auditLogType" abstract="true">
         <xs:annotation>
             <xs:documentation>
@@ -527,23 +552,64 @@
                         </xs:documentation>
                     </xs:annotation>
                 </xs:attribute>
-                <xs:attribute name="format" default="SIMPLE">
+                <xs:attribute name="format" default="SIMPLE" type="formatType">
                     <xs:annotation>
                         <xs:documentation>
                             The format to use to log the event.
                         </xs:documentation>
                     </xs:annotation>
-                    <xs:simpleType>
-                        <xs:restriction base="xs:string">
-                            <xs:enumeration value="JSON" />
-                            <xs:enumeration value="SIMPLE" />
-                        </xs:restriction>
-                    </xs:simpleType>
                 </xs:attribute>
             </xs:extension>
         </xs:complexContent>
     </xs:complexType>
 
+    <xs:complexType name="syslogAuditLogType">
+        <xs:annotation>
+            <xs:documentation>
+                An audit log definition for persisting an audit log to a local file.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="auditLogType">
+                <xs:attribute name="server-address" type="xs:string" use="required">
+                    <xs:annotation>
+                        <xs:documentation>
+                            Address of the server to send syslog messages to.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+                <xs:attribute name="port" type="xs:int" use="required">
+                    <xs:annotation>
+                        <xs:documentation>
+                            The port number the remote syslog server is listening on.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+                <xs:attribute name="transport" type="transportType" default="TCP">
+                    <xs:annotation>
+                        <xs:documentation>
+                            The transport to use to communicate with the syslog server.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+                <xs:attribute name="format" type="formatType" default="SIMPLE">
+                    <xs:annotation>
+                        <xs:documentation>
+                            The format to use to log the event.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+                <xs:attribute name="host-name" type="xs:string" use="required">
+                    <xs:annotation>
+                        <xs:documentation>
+                            The host name to send within all events sent to the syslog server.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    
     <!--
         Domains and Realms
      -->

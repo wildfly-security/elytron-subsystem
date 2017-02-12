@@ -23,6 +23,7 @@ import static org.jboss.as.controller.parsing.ParseUtils.requireNoAttributes;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedElement;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AUDIT_LOGGING;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.FILE_AUDIT_LOG;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SYSLOG_AUDIT_LOG;
 import static org.wildfly.extension.elytron.ElytronSubsystemParser.verifyNamespace;
 
 import java.util.List;
@@ -48,6 +49,11 @@ class AuditLoggingParser {
             .addAttributes(AuditResourceDefinitions.PATH, FileAttributeDefinitions.RELATIVE_TO, AuditResourceDefinitions.SYNCHRONIZED, AuditResourceDefinitions.FORMAT)
             .build();
 
+    private final PersistentResourceXMLDescription syslogAuditLogParser = builder(PathElement.pathElement(SYSLOG_AUDIT_LOG), null)
+            .setUseElementsForGroups(false)
+            .addAttributes(AuditResourceDefinitions.SERVER_ADDRESS, AuditResourceDefinitions.PORT, AuditResourceDefinitions.TRANSPORT, AuditResourceDefinitions.FORMAT, AuditResourceDefinitions.HOST_NAME)
+            .build();
+
     void readAuditLogging(ModelNode parentAddressNode, XMLExtendedStreamReader reader, List<ModelNode> operations)
             throws XMLStreamException {
         requireNoAttributes(reader);
@@ -58,6 +64,9 @@ class AuditLoggingParser {
             switch (localName) {
                 case FILE_AUDIT_LOG:
                     fileAuditLogParser.parse(reader, parentAddress, operations);
+                    break;
+                case SYSLOG_AUDIT_LOG:
+                    syslogAuditLogParser.parse(reader, parentAddress, operations);
                     break;
                 default:
                     throw unexpectedElement(reader);
@@ -73,12 +82,13 @@ class AuditLoggingParser {
         writer.writeStartElement(AUDIT_LOGGING);
 
         fileAuditLogParser.persist(writer, subsystem);
+        syslogAuditLogParser.persist(writer, subsystem);
 
         writer.writeEndElement();
     }
 
     private boolean shouldWrite(ModelNode subsystem) {
-        return subsystem.hasDefined(FILE_AUDIT_LOG);
+        return subsystem.hasDefined(FILE_AUDIT_LOG) || subsystem.hasDefined(SYSLOG_AUDIT_LOG);
     }
 
 }

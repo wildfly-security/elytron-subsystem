@@ -381,6 +381,7 @@ interface ElytronDescriptionConstants {
     String SERIAL_NUMBER = "serial-number";
     String SERIAL_NUMBER_FROM = "serial-number-from";
     String SERVER = "server";
+    String SERVER_ADDRESS = "server-address";
     String SERVER_SSL_CONTEXT = "server-ssl-context";
     String SERVER_SSL_CONTEXTS = "server-ssl-contexts";
     String SESSION_TIMEOUT = "session-timeout";
@@ -410,11 +411,13 @@ interface ElytronDescriptionConstants {
     String SUBJECT_DN_FROM = "subject-dn-from";
     String SUFFIX = "suffix";
     String SYNCHRONIZED = "synchronized";
+    String SYSLOG_AUDIT_LOG = "syslog-audit-log";
 
     String TARGET_NAME = "target-name";
     String TLS = "tls";
     String TO = "to";
     String TOKEN_REALM = "token-realm";
+    String TRANSPORT = "transport";
     String TRUST_MANAGER = "trust-manager";
     String TRUST_MANAGERS = "trust-managers";
     String TRUSTED_SECURITY_DOMAINS = "trusted-security-domains";
