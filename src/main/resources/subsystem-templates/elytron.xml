@@ -30,6 +30,10 @@
             </aggregate-providers>
         </providers>
 
+        <audit-logging>
+            <file-audit-log name="local-audit" path="audit.log" relative-to="jboss.server.log.dir" format="JSON" />
+        </audit-logging>
+
         <security-domains>
             <?DOMAIN_DEFINITIONS?>
         </security-domains>
@@ -85,7 +89,7 @@
 
     <supplement name="domain">
         <replacement placeholder="DOMAIN_DEFINITIONS">
-            <security-domain name="ApplicationDomain" default-realm="ApplicationRealm" permission-mapper="default-permission-mapper">
+            <security-domain name="ApplicationDomain" default-realm="ApplicationRealm" permission-mapper="default-permission-mapper" security-event-listener="local-audit">
                 <realm name="ApplicationRealm" role-decoder="groups-to-roles" />
             </security-domain>
         </replacement>
@@ -118,7 +122,7 @@
 
     <supplement name="host">
         <replacement placeholder="DOMAIN_DEFINITIONS">
-            <security-domain name="ManagementDomain" default-realm="ManagementRealm" permission-mapper="default-permission-mapper">
+            <security-domain name="ManagementDomain" default-realm="ManagementRealm" permission-mapper="default-permission-mapper" security-event-listener="local-audit">
                 <realm name="ManagementRealm" role-decoder="groups-to-roles" />
                 <realm name="local" role-mapper="super-user-mapper"/>
             </security-domain>
@@ -152,12 +156,12 @@
 
     <supplement name="standalone">
         <replacement placeholder="DOMAIN_DEFINITIONS">
-            <security-domain name="ApplicationDomain" default-realm="ApplicationRealm" permission-mapper="default-permission-mapper">
+            <security-domain name="ApplicationDomain" default-realm="ApplicationRealm" permission-mapper="default-permission-mapper" security-event-listener="local-audit">
                 <realm name="ApplicationRealm" role-decoder="groups-to-roles" />
                 <realm name="local"/>
             </security-domain>
 
-            <security-domain name="ManagementDomain" default-realm="ManagementRealm" permission-mapper="default-permission-mapper">
+            <security-domain name="ManagementDomain" default-realm="ManagementRealm" permission-mapper="default-permission-mapper" security-event-listener="local-audit">
                 <realm name="ManagementRealm" role-decoder="groups-to-roles" />
                 <realm name="local" role-mapper="super-user-mapper"/>
             </security-domain>
