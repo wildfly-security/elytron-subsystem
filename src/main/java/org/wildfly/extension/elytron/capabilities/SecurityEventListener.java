@@ -19,6 +19,7 @@ package org.wildfly.extension.elytron.capabilities;
 
 import java.util.function.Consumer;
 
+import org.wildfly.common.Assert;
 import org.wildfly.security.auth.server.event.SecurityEvent;
 
 /**
@@ -30,6 +31,19 @@ public interface SecurityEventListener extends Consumer<SecurityEvent> {
 
     static SecurityEventListener from(Consumer<SecurityEvent> consumer) {
         return consumer::accept;
+    }
+
+    static SecurityEventListener aggregate(SecurityEventListener... listeners) {
+        Assert.checkNotNullParam("listeners", listeners);
+        final SecurityEventListener[] clone = listeners.clone();
+        for (int i = 0; i < clone.length; i++) {
+            Assert.checkNotNullArrayParam("listener", i, clone[i]);
+        }
+        return e -> {
+            for (SecurityEventListener sel : clone) {
+                sel.accept(e);
+            }
+        };
     }
 
 

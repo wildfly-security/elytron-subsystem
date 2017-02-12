@@ -37,6 +37,7 @@ interface ElytronDescriptionConstants {
     String AGGREGATE_REALM = "aggregate-realm";
     String AGGREGATE_ROLE_MAPPER = "aggregate-role-mapper";
     String AGGREGATE_SASL_SERVER_FACTORY = "aggregate-sasl-server-factory";
+    String AGGREGATE_SECURITY_EVENT_LISTENER = "aggregate-security-event-listener";
     String ALIAS = "alias";
     String ALIAS_ATTRIBUTE = "alias-attribute";
     String ALIAS_FILTER = "alias-filter";
@@ -371,6 +372,8 @@ interface ElytronDescriptionConstants {
     String SEARCH_TIME_LIMIT = "search-time-limit";
     String SECURITY_DOMAIN = "security-domain";
     String SECURITY_DOMAINS = "security-domains";
+    String SECURITY_EVENT_LISTENER = "security-event-listener";
+    String SECURITY_EVENT_LISTENERS = "security-event-listeners";
     String SECURITY_PROPERTIES = "security-properties";
     String SECURITY_PROPERTY = "security-property";
     String SECURITY_REALMS = "security-realms";

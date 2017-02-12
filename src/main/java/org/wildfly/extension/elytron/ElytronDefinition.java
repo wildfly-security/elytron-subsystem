@@ -113,6 +113,7 @@ class ElytronDefinition extends SimpleResourceDefinition {
         resourceRegistration.registerSubModel(ProviderDefinitions.getProviderLoaderDefinition());
 
         // Audit
+        resourceRegistration.registerSubModel(AuditResourceDefinitions.getAggregateSecurityEventListenerDefinition());
         resourceRegistration.registerSubModel(AuditResourceDefinitions.getFileAuditLogResourceDefinition());
         resourceRegistration.registerSubModel(AuditResourceDefinitions.getSyslogAuditLogResourceDefinition());
 
@@ -205,7 +206,6 @@ class ElytronDefinition extends SimpleResourceDefinition {
 
         // Credential Store Block
         resourceRegistration.registerSubModel(new CredentialStoreResourceDefinition());
-
 
         // Dir-Context
         resourceRegistration.registerSubModel(new DirContextDefinition());

@@ -478,6 +478,7 @@
             </xs:documentation>
         </xs:annotation>
         <xs:sequence>
+            <xs:element name="aggregate-security-event-listener" type="aggregateSecurityEventListener" maxOccurs="unbounded" />
             <xs:element name="file-audit-log" type="fileAuditLogType" maxOccurs="unbounded" />
             <xs:element name="syslog-audit-log" type="syslogAuditLogType" maxOccurs="unbounded" />
         </xs:sequence>
@@ -494,7 +495,7 @@
             <xs:enumeration value="JSON" />
         </xs:restriction>
     </xs:simpleType>
-    
+
     <xs:simpleType name="transportType">
         <xs:annotation>
             <xs:documentation>
@@ -506,7 +507,7 @@
             <xs:enumeration value="UDP" />
         </xs:restriction>
     </xs:simpleType>
-    
+
     <xs:complexType name="auditLogType" abstract="true">
         <xs:annotation>
             <xs:documentation>
@@ -520,6 +521,30 @@
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="aggregateSecurityEventListener">
+        <xs:annotation>
+            <xs:documentation>
+                A security event listener definition that is actually an aggregation of other security event listeners.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="auditLogType">
+                <xs:sequence>
+                    <xs:element name="security-event-listener" type="securityEventListenerRefType" minOccurs="2" maxOccurs="unbounded" />
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="securityEventListenerRefType">
+        <xs:annotation>
+            <xs:documentation>
+                A reference to a security event listener.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="name" type="xs:string" use="required" />
     </xs:complexType>
 
     <xs:complexType name="fileAuditLogType">

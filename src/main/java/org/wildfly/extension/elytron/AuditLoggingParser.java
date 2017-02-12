@@ -19,10 +19,22 @@ package org.wildfly.extension.elytron;
 
 import static javax.xml.stream.XMLStreamConstants.END_ELEMENT;
 import static org.jboss.as.controller.PersistentResourceXMLDescription.builder;
+import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.ADD;
+import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP;
+import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP_ADDR;
+import static org.jboss.as.controller.parsing.ParseUtils.isNoNamespaceAttribute;
+import static org.jboss.as.controller.parsing.ParseUtils.missingRequired;
 import static org.jboss.as.controller.parsing.ParseUtils.requireNoAttributes;
+import static org.jboss.as.controller.parsing.ParseUtils.requireNoContent;
+import static org.jboss.as.controller.parsing.ParseUtils.requireSingleAttribute;
+import static org.jboss.as.controller.parsing.ParseUtils.unexpectedAttribute;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedElement;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AGGREGATE_SECURITY_EVENT_LISTENER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AUDIT_LOGGING;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.FILE_AUDIT_LOG;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SECURITY_EVENT_LISTENER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SECURITY_EVENT_LISTENERS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SYSLOG_AUDIT_LOG;
 import static org.wildfly.extension.elytron.ElytronSubsystemParser.verifyNamespace;
 
@@ -62,6 +74,9 @@ class AuditLoggingParser {
             String localName = reader.getLocalName();
             PathAddress parentAddress = PathAddress.pathAddress(parentAddressNode);
             switch (localName) {
+                case AGGREGATE_SECURITY_EVENT_LISTENER:
+                    readAggregateSecurityEventListener(parentAddress.toModelNode(), reader, operations);
+                    break;
                 case FILE_AUDIT_LOG:
                     fileAuditLogParser.parse(reader, parentAddress, operations);
                     break;
@@ -74,6 +89,75 @@ class AuditLoggingParser {
         }
     }
 
+    private void readAggregateSecurityEventListener(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations)
+            throws XMLStreamException {
+        ModelNode addEventListener = new ModelNode();
+        addEventListener.get(OP).set(ADD);
+
+        String name = null;
+
+        final int count = reader.getAttributeCount();
+        for (int i = 0; i < count; i++) {
+            final String value = reader.getAttributeValue(i);
+            if (!isNoNamespaceAttribute(reader, i)) {
+                throw unexpectedAttribute(reader, i);
+            } else {
+                String attribute = reader.getAttributeLocalName(i);
+                switch (attribute) {
+                    case NAME:
+                        name = value;
+                        break;
+                    default:
+                        throw unexpectedAttribute(reader, i);
+                }
+            }
+        }
+
+        if (name == null) {
+            throw missingRequired(reader, NAME);
+        }
+
+        addEventListener.get(OP_ADDR).set(parentAddress).add(AGGREGATE_SECURITY_EVENT_LISTENER, name);
+
+        operations.add(addEventListener);
+
+        while (reader.hasNext() && reader.nextTag() != END_ELEMENT) {
+            verifyNamespace(reader);
+            String localName = reader.getLocalName();
+            if (SECURITY_EVENT_LISTENER.equals(localName) == false) {
+                throw unexpectedElement(reader);
+            }
+
+            requireSingleAttribute(reader, NAME);
+            String listenerName = reader.getAttributeValue(0);
+
+
+            AuditResourceDefinitions.REFERENCES.parseAndAddParameterElement(listenerName, addEventListener, reader);
+
+            requireNoContent(reader);
+        }
+    }
+
+    private void writeAggregateSecurityEventListener(ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
+        if (subsystem.hasDefined(AGGREGATE_SECURITY_EVENT_LISTENER)) {
+            ModelNode aggregateSecurityEventListener = subsystem.require(AGGREGATE_SECURITY_EVENT_LISTENER);
+            for (String name : aggregateSecurityEventListener.keys()) {
+                ModelNode aggregateListener = aggregateSecurityEventListener.require(name);
+                writer.writeStartElement(AGGREGATE_SECURITY_EVENT_LISTENER);
+                writer.writeAttribute(NAME, name);
+
+                List<ModelNode> listenerReferences = aggregateListener.get(SECURITY_EVENT_LISTENERS).asList();
+                for (ModelNode currentReference : listenerReferences) {
+                    writer.writeStartElement(SECURITY_EVENT_LISTENER);
+                    writer.writeAttribute(NAME, currentReference.asString());
+                    writer.writeEndElement();
+                }
+
+                writer.writeEndElement();
+            }
+        }
+    }
+
     void writeAuditLogging(ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
         if (shouldWrite(subsystem) == false) {
             return;
@@ -81,6 +165,7 @@ class AuditLoggingParser {
 
         writer.writeStartElement(AUDIT_LOGGING);
 
+        writeAggregateSecurityEventListener(subsystem, writer);
         fileAuditLogParser.persist(writer, subsystem);
         syslogAuditLogParser.persist(writer, subsystem);
 
@@ -88,7 +173,7 @@ class AuditLoggingParser {
     }
 
     private boolean shouldWrite(ModelNode subsystem) {
-        return subsystem.hasDefined(FILE_AUDIT_LOG) || subsystem.hasDefined(SYSLOG_AUDIT_LOG);
+        return subsystem.hasDefined(AGGREGATE_SECURITY_EVENT_LISTENER) || subsystem.hasDefined(FILE_AUDIT_LOG) || subsystem.hasDefined(SYSLOG_AUDIT_LOG);
     }
 
 }
