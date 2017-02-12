@@ -34,6 +34,7 @@ import org.jboss.msc.service.StartException;
 import org.jboss.msc.service.StopContext;
 import org.jboss.msc.value.InjectedValue;
 import org.wildfly.extension.elytron.capabilities.PrincipalTransformer;
+import org.wildfly.extension.elytron.capabilities.SecurityEventListener;
 import org.wildfly.security.auth.server.PrincipalDecoder;
 import org.wildfly.security.auth.server.RealmMapper;
 import org.wildfly.security.auth.server.SecurityDomain;
@@ -68,6 +69,7 @@ class DomainService implements Service<SecurityDomain> {
     private final InjectedValue<PrincipalDecoder> principalDecoderInjector = new InjectedValue<>();
     private final InjectedValue<RealmMapper> realmMapperInjector = new InjectedValue<>();
     private final InjectedValue<PermissionMapper> permissionMapperInjector = new InjectedValue<>();
+    private final InjectedValue<SecurityEventListener> securityEventListenerInjector = new InjectedValue<>();
 
     DomainService(final String defaultRealm, final Predicate<SecurityDomain> trustedSecurityDomain, final UnaryOperator<SecurityIdentity> identityOperator) {
         this.defaultRealm = defaultRealm;
@@ -145,6 +147,10 @@ class DomainService implements Service<SecurityDomain> {
         return createRoleMapperInjector(name);
     }
 
+    Injector<SecurityEventListener> getSecurityEventListenerInjector() {
+        return securityEventListenerInjector;
+    }
+
     @Override
     public void start(StartContext context) throws StartException {
         SecurityDomain.Builder builder = SecurityDomain.builder();
@@ -193,6 +199,10 @@ class DomainService implements Service<SecurityDomain> {
 
         builder.setTrustedSecurityDomainPredicate(trustedSecurityDomain);
         builder.setSecurityIdentityTransformer(identityOperator);
+        SecurityEventListener securityEventListener = securityEventListenerInjector.getOptionalValue();
+        if (securityEventListener != null) {
+            builder.setSecurityEventListener(securityEventListener);
+        }
 
         securityDomain = builder.build();
     }

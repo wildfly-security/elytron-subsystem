@@ -42,6 +42,7 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.REALM_MA
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ROLE_DECODER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.ROLE_MAPPER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SECURITY_DOMAIN;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SECURITY_EVENT_LISTENER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.TRUSTED_SECURITY_DOMAINS;
 import static org.wildfly.extension.elytron.ElytronSubsystemParser.verifyNamespace;
 
@@ -117,6 +118,9 @@ class DomainParser {
                         for (String outflowSecurityDomain : reader.getListAttributeValue(i)) {
                             DomainDefinition.OUTFLOW_SECURITY_DOMAINS.parseAndAddParameterElement(outflowSecurityDomain, addDomain, reader);
                         }
+                        break;
+                    case SECURITY_EVENT_LISTENER:
+                        DomainDefinition.SECURITY_EVENT_LISTENER.parseAndSetParameter(value, addDomain, reader);
                         break;
                     default:
                         throw unexpectedAttribute(reader, i);
@@ -204,6 +208,7 @@ class DomainParser {
         DomainDefinition.TRUSTED_SECURITY_DOMAINS.getAttributeMarshaller().marshallAsAttribute(DomainDefinition.TRUSTED_SECURITY_DOMAINS, domain, false, writer);
         DomainDefinition.OUTFLOW_ANONYMOUS.marshallAsAttribute(domain, writer);
         DomainDefinition.OUTFLOW_SECURITY_DOMAINS.getAttributeMarshaller().marshallAsAttribute(DomainDefinition.OUTFLOW_SECURITY_DOMAINS, domain, false, writer);
+        DomainDefinition.SECURITY_EVENT_LISTENER.marshallAsAttribute(domain, writer);
 
         List<ModelNode> realms = domain.get(REALMS).asList();
 

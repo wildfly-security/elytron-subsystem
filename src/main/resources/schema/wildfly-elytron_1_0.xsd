@@ -478,9 +478,9 @@
             </xs:documentation>
         </xs:annotation>
         <xs:sequence>
-            <xs:element name="aggregate-security-event-listener" type="aggregateSecurityEventListener" maxOccurs="unbounded" />
-            <xs:element name="file-audit-log" type="fileAuditLogType" maxOccurs="unbounded" />
-            <xs:element name="syslog-audit-log" type="syslogAuditLogType" maxOccurs="unbounded" />
+            <xs:element name="aggregate-security-event-listener" type="aggregateSecurityEventListener" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="file-audit-log" type="fileAuditLogType" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="syslog-audit-log" type="syslogAuditLogType" minOccurs="0" maxOccurs="unbounded" />
         </xs:sequence>
     </xs:complexType>
 
@@ -735,6 +735,14 @@
                 <xs:documentation>
                     A list of references to security domains that any identity established for this
                     domain should automatically outflow to.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="security-event-listener" type="xs:string">
+            <xs:annotation>
+                <xs:documentation>
+                    Reference to a security event listener to be notified of security events
+                    emitted from this domain.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
