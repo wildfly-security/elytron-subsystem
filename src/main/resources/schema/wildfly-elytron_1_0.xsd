@@ -46,21 +46,21 @@
         <xs:attribute name="default-authentication-context" type="xs:string">
             <xs:annotation>
                 <xs:documentation>
-                    Reference to the default authentication context to be associated with all deployments. 
+                    Reference to the default authentication context to be associated with all deployments.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
         <xs:attribute name="initial-providers" type="xs:string">
             <xs:annotation>
                 <xs:documentation>
-                    Reference to a capability providing a Provider[] which will be registered globally ahead of all existing Provider registrations. 
+                    Reference to a capability providing a Provider[] which will be registered globally ahead of all existing Provider registrations.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
         <xs:attribute name="final-providers" type="xs:string">
             <xs:annotation>
                 <xs:documentation>
-                    Reference to a capability providing a Provider[] which will be registered globally after all existing Provider registrations. 
+                    Reference to a capability providing a Provider[] which will be registered globally after all existing Provider registrations.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
@@ -102,9 +102,9 @@
             </xs:annotation>
         </xs:attribute>
     </xs:complexType>
-    
-    
-    <!-- 
+
+
+    <!--
         Authentication Client
      -->
 
@@ -359,7 +359,7 @@
             <xs:annotation>
                 <xs:documentation>
                     Reference to a previously defined authentication context to extend.
-                    
+
                     match-rules defined here are added after the rules of the parent.
                 </xs:documentation>
             </xs:annotation>
@@ -399,7 +399,7 @@
             </xs:annotation>
         </xs:attribute>
      </xs:complexType>
-     
+
          <xs:complexType name="providersRefType">
         <xs:annotation>
             <xs:documentation>
@@ -408,7 +408,7 @@
         </xs:annotation>
         <xs:attribute name="name" type="xs:string" use="required" />
     </xs:complexType>
-    
+
      <xs:complexType name="providerLoaderType">
          <xs:annotation>
              <xs:documentation>
@@ -1821,7 +1821,7 @@
                     <xs:annotation>
                         <xs:documentation>
                             Should the KerberosTicket also be obtained and associated with the credential.
-                            
+
                             This is required to be true where credentials are delegated to the server.
                         </xs:documentation>
                     </xs:annotation>
@@ -4244,6 +4244,16 @@
                 <xs:documentation>
                     The name of the providers defined within the subsystem to obtain the Providers
                     to search for the one that can create the required CredentialStore type.
+                    If this is not specified then the global list of Providers is used instead.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="other-providers" type="xs:string" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    The name of the providers defined within the subsystem to obtain the Providers
+                    to search for the one that can create the required JCA objects withing credential store.
+                    This is valid only for key-store based  CredentialStore.
                     If this is not specified then the global list of Providers is used instead.
                 </xs:documentation>
             </xs:annotation>
