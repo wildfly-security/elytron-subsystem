@@ -141,6 +141,7 @@ interface ElytronDescriptionConstants {
     String DIR_CONTEXTS = "dir-contexts";
     String DIRECT_VERIFICATION = "direct-verification";
 
+    String ELYTRON_SECURITY = "elytron-security";
     String ENABLE_CONNECTION_POOLING = "enable-connection-pooling";
     String ENABLING = "enabling";
     String ENCODED = "encoded";
