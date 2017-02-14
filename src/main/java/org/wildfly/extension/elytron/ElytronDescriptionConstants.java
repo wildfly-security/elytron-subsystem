@@ -78,6 +78,7 @@ interface ElytronDescriptionConstants {
     String CERTIFICATE_CHAIN_ENCODING = "certificate-chain-encoding";
     String CERTIFICATE_FROM = "certificate-from";
     String CERTIFICATE_TYPE = "certificate-type";
+    String CERTIFICATE_REVOCATION_LIST = "certificate-revocation-list";
     String CHAINED_PRINCIPAL_TRANSFORMER = "chained-principal-transformer";
     String CIPHER_SUITE = "cipher-suite";
     String CIPHER_SUITE_FILTER = "cipher-suite-filter";
@@ -247,6 +248,7 @@ interface ElytronDescriptionConstants {
     String MATCH_URN = "match-urn";
     String MATCH_USER = "match-user";
     String MAXIMUM_AGE = "maximum-age";
+    String MAXIMUM_CERT_PATH = "maximum-cert-path";
     String MAXIMUM_ENTRIES = "maximum-entries";
     String MAXIMUM_SEGMENTS = "maximum-segments";
     String MAXIMUM_SESSION_CACHE_SIZE = "maximum-session-cache-size";
@@ -434,6 +436,7 @@ interface ElytronDescriptionConstants {
     String TYPE = "type";
 
     String RELOAD = "reload";
+    String RELOAD_CERTIFICATE_REVOCATION_LIST = "reload-certificate-revocation-list";
     String UNLESS = "unless";
     String URI = "uri";
     String URL = "url";
