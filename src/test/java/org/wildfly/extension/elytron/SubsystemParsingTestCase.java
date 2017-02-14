@@ -114,4 +114,9 @@ public class SubsystemParsingTestCase extends AbstractSubsystemBaseTest {
     public void testParseAndMarshalModel_IdentityManagement() throws Exception {
         standardSubsystemTest("identity-management.xml");
     }
+
+    @Test
+    public void testParseAndMarshalModel_JaccWithProviders() throws Exception {
+        standardSubsystemTest("jacc-with-providers.xml");
+    }
 }

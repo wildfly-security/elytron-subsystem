@@ -95,6 +95,7 @@ interface ElytronDescriptionConstants {
     String CONFIGURABLE_HTTP_SERVER_MECHANISM_FACTORY = "configurable-http-server-mechanism-factory";
     String CONFIGURABLE_SASL_SERVER_FACTORY = "configurable-sasl-server-factory";
     String CONFIGURATION = "configuration";
+    String CONFIGURATION_FACTORY = "configuration-factory";
     String CONFIGURATION_FILE = "configuration-file";
     String CONFIGURATION_PROPERTIES = "configuration-properties";
     String CONNECTION_TIMEOUT = "connection-timeout";
@@ -117,6 +118,7 @@ interface ElytronDescriptionConstants {
     String CREDENTIALS = "credentials";
     String CUSTOM_CREDENTIAL_SECURITY_FACTORY = "custom-credential-security-factory";
     String CUSTOM_PERMISSION_MAPPER = "custom-permission-mapper";
+    String CUSTOM_POLICY = "custom-policy";
     String CUSTOM_PRINCIPAL_DECODER = "custom-principal-decoder";
     String CUSTOM_PRINCIPAL_TRANSFORMER = "custom-principal-transformer";
     String CUSTOM_REALM = "custom-realm";
@@ -128,6 +130,7 @@ interface ElytronDescriptionConstants {
     String DATA_SOURCE = "data-source";
     String DEBUG = "debug";
     String DEFAULT_AUTHENTICATION_CONTEXT = "default-authentication-context";
+    String DEFAULT_POLICY = "default-policy";
     String DEFAULT_REALM = "default-realm";
     String DELEGATE_REALM_MAPPER = "delegate-realm-mapper";
     String DIGEST = "digest";
@@ -194,6 +197,7 @@ interface ElytronDescriptionConstants {
     String ITERATION_COUNT_INDEX = "iteration-count-index";
     String ITERATOR_FILTER = "iterator-filter";
 
+    String JACC_POLICY = "jacc-policy";
     String JDBC_REALM = "jdbc-realm";
     String JOINER = "joiner";
     String JWT = "jwt";
@@ -296,6 +300,7 @@ interface ElytronDescriptionConstants {
     String PERMISSION_MAPPING = "permission-mapping";
     String PERMISSION_MAPPINGS = "permission-mappings";
     String PLAIN_TEXT = "plain-text";
+    String POLICY = "policy";
     String PORT = "port";
     String POST_REALM_PRINCIPAL_TRANSFORMER = "post-realm-principal-transformer";
     String PRE_REALM_PRINCIPAL_TRANSFORMER = "pre-realm-principal-transformer";

@@ -42,6 +42,7 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.INITIAL_
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MAPPERS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MODULE;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.POLICY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROPERTY;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDERS;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SASL;
@@ -87,6 +88,7 @@ class ElytronSubsystemParser implements XMLElementReader<List<ModelNode>>, XMLEl
     private final HttpParser httpParser = new HttpParser();
     private final CredentialStoreParser credentialStoreParser = new CredentialStoreParser();
     private final DirContextParser dirContextParser = new DirContextParser();
+    private final PolicyParser policyParser = new PolicyParser();
 
     /**
      * {@inheritDoc}
@@ -168,6 +170,9 @@ class ElytronSubsystemParser implements XMLElementReader<List<ModelNode>>, XMLEl
                     break;
                 case DIR_CONTEXTS:
                     dirContextParser.readDirContexts(parentAddress, reader, operations);
+                    break;
+                case POLICY:
+                    policyParser.readPolicy(parentAddress, reader, operations);
                     break;
                 default:
                     throw unexpectedElement(reader);
@@ -397,6 +402,7 @@ class ElytronSubsystemParser implements XMLElementReader<List<ModelNode>>, XMLEl
         tlsParser.writeTLS(model, writer);
         credentialStoreParser.writeCredentialStores(model, writer);
         dirContextParser.writeDirContexts(model, writer);
+        policyParser.writePolicy(model, writer);
 
         writer.writeEndElement();
     }
