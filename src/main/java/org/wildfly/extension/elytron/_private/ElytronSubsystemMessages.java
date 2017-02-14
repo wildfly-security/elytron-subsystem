@@ -22,6 +22,7 @@ import static org.jboss.logging.Logger.Level.INFO;
 import static org.jboss.logging.Logger.Level.WARN;
 
 import java.io.IOException;
+import java.net.UnknownHostException;
 import java.security.KeyStore;
 import java.security.NoSuchProviderException;
 import java.security.Provider;
@@ -352,5 +353,8 @@ public interface ElytronSubsystemMessages extends BasicLogger {
 
     @Message(id = 1015, value = "Unable to perform automatic outflow for '%s'")
     IllegalStateException unableToPerformOutflow(String identityName, @Cause Exception cause);
+
+    @Message(id = 1016, value = "Server '%s' not known")
+    OperationFailedException serverNotKnown(final String serverAddedd, @Cause UnknownHostException e);
 
 }

@@ -29,10 +29,13 @@ import static org.jboss.as.controller.parsing.ParseUtils.requireNoContent;
 import static org.jboss.as.controller.parsing.ParseUtils.requireSingleAttribute;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedAttribute;
 import static org.jboss.as.controller.parsing.ParseUtils.unexpectedElement;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AGGREGATE_PROVIDERS;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AGGREGATE_SECURITY_EVENT_LISTENER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AUDIT_LOGGING;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.FILE_AUDIT_LOG;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDERS;
-import static org.wildfly.extension.elytron.ElytronDescriptionConstants.PROVIDER_LOADER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SECURITY_EVENT_LISTENER;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SECURITY_EVENT_LISTENERS;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.SYSLOG_AUDIT_LOG;
 import static org.wildfly.extension.elytron.ElytronSubsystemParser.verifyNamespace;
 
 import java.util.List;
@@ -47,18 +50,23 @@ import org.jboss.staxmapper.XMLExtendedStreamReader;
 import org.jboss.staxmapper.XMLExtendedStreamWriter;
 
 /**
- * XML Parser and Marshaller for Provider configuration.
+ * XML Handling for the audit logging resources.
  *
  * @author <a href="mailto:darran.lofthouse@jboss.com">Darran Lofthouse</a>
  */
-class ProviderParser {
+class AuditLoggingParser {
 
-    private final PersistentResourceXMLDescription providerLoaderParser = builder(PathElement.pathElement(ElytronDescriptionConstants.PROVIDER_LOADER), null)
+    private final PersistentResourceXMLDescription fileAuditLogParser = builder(PathElement.pathElement(FILE_AUDIT_LOG), null)
             .setUseElementsForGroups(false)
-            .addAttributes(ClassLoadingAttributeDefinitions.MODULE, ClassLoadingAttributeDefinitions.CLASS_NAMES, ProviderDefinitions.PATH, ProviderDefinitions.RELATIVE_TO, ProviderDefinitions.CONFIGURATION)
+            .addAttributes(AuditResourceDefinitions.PATH, FileAttributeDefinitions.RELATIVE_TO, AuditResourceDefinitions.SYNCHRONIZED, AuditResourceDefinitions.FORMAT)
             .build();
 
-    void readProviders(ModelNode parentAddressNode, XMLExtendedStreamReader reader, List<ModelNode> operations)
+    private final PersistentResourceXMLDescription syslogAuditLogParser = builder(PathElement.pathElement(SYSLOG_AUDIT_LOG), null)
+            .setUseElementsForGroups(false)
+            .addAttributes(AuditResourceDefinitions.SERVER_ADDRESS, AuditResourceDefinitions.PORT, AuditResourceDefinitions.TRANSPORT, AuditResourceDefinitions.FORMAT, AuditResourceDefinitions.HOST_NAME)
+            .build();
+
+    void readAuditLogging(ModelNode parentAddressNode, XMLExtendedStreamReader reader, List<ModelNode> operations)
             throws XMLStreamException {
         requireNoAttributes(reader);
         while (reader.hasNext() && reader.nextTag() != END_ELEMENT) {
@@ -66,11 +74,14 @@ class ProviderParser {
             String localName = reader.getLocalName();
             PathAddress parentAddress = PathAddress.pathAddress(parentAddressNode);
             switch (localName) {
-                case AGGREGATE_PROVIDERS:
-                    readAggregateProviders(parentAddressNode, reader, operations);
+                case AGGREGATE_SECURITY_EVENT_LISTENER:
+                    readAggregateSecurityEventListener(parentAddress.toModelNode(), reader, operations);
                     break;
-                case PROVIDER_LOADER:
-                    providerLoaderParser.parse(reader, parentAddress, operations);
+                case FILE_AUDIT_LOG:
+                    fileAuditLogParser.parse(reader, parentAddress, operations);
+                    break;
+                case SYSLOG_AUDIT_LOG:
+                    syslogAuditLogParser.parse(reader, parentAddress, operations);
                     break;
                 default:
                     throw unexpectedElement(reader);
@@ -78,10 +89,10 @@ class ProviderParser {
         }
     }
 
-    private void readAggregateProviders(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations)
+    private void readAggregateSecurityEventListener(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations)
             throws XMLStreamException {
-        ModelNode addProviders = new ModelNode();
-        addProviders.get(OP).set(ADD);
+        ModelNode addEventListener = new ModelNode();
+        addEventListener.get(OP).set(ADD);
 
         String name = null;
 
@@ -106,51 +117,38 @@ class ProviderParser {
             throw missingRequired(reader, NAME);
         }
 
-        addProviders.get(OP_ADDR).set(parentAddress).add(AGGREGATE_PROVIDERS, name);
+        addEventListener.get(OP_ADDR).set(parentAddress).add(AGGREGATE_SECURITY_EVENT_LISTENER, name);
 
-        operations.add(addProviders);
+        operations.add(addEventListener);
 
         while (reader.hasNext() && reader.nextTag() != END_ELEMENT) {
             verifyNamespace(reader);
             String localName = reader.getLocalName();
-            if (PROVIDERS.equals(localName) == false) {
+            if (SECURITY_EVENT_LISTENER.equals(localName) == false) {
                 throw unexpectedElement(reader);
             }
 
             requireSingleAttribute(reader, NAME);
-            String providersName = reader.getAttributeValue(0);
+            String listenerName = reader.getAttributeValue(0);
 
 
-            ProviderDefinitions.REFERENCES.parseAndAddParameterElement(providersName, addProviders, reader);
+            AuditResourceDefinitions.REFERENCES.parseAndAddParameterElement(listenerName, addEventListener, reader);
 
             requireNoContent(reader);
         }
     }
 
-    void writeProviders(ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
-        if (shouldWrite(subsystem) == false) {
-            return;
-        }
-
-        writer.writeStartElement(PROVIDERS);
-
-        writeAggregateProviders(subsystem, writer);
-        providerLoaderParser.persist(writer, subsystem);
-
-        writer.writeEndElement();
-    }
-
-    private void writeAggregateProviders(ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
-        if (subsystem.hasDefined(AGGREGATE_PROVIDERS)) {
-            ModelNode aggregateProviders = subsystem.require(AGGREGATE_PROVIDERS);
-            for (String name : aggregateProviders.keys()) {
-                ModelNode aggregateProvider = aggregateProviders.require(name);
-                writer.writeStartElement(AGGREGATE_PROVIDERS);
+    private void writeAggregateSecurityEventListener(ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
+        if (subsystem.hasDefined(AGGREGATE_SECURITY_EVENT_LISTENER)) {
+            ModelNode aggregateSecurityEventListener = subsystem.require(AGGREGATE_SECURITY_EVENT_LISTENER);
+            for (String name : aggregateSecurityEventListener.keys()) {
+                ModelNode aggregateListener = aggregateSecurityEventListener.require(name);
+                writer.writeStartElement(AGGREGATE_SECURITY_EVENT_LISTENER);
                 writer.writeAttribute(NAME, name);
 
-                List<ModelNode> providersReferences = aggregateProvider.get(PROVIDERS).asList();
-                for (ModelNode currentReference : providersReferences) {
-                    writer.writeStartElement(PROVIDERS);
+                List<ModelNode> listenerReferences = aggregateListener.get(SECURITY_EVENT_LISTENERS).asList();
+                for (ModelNode currentReference : listenerReferences) {
+                    writer.writeStartElement(SECURITY_EVENT_LISTENER);
                     writer.writeAttribute(NAME, currentReference.asString());
                     writer.writeEndElement();
                 }
@@ -160,8 +158,22 @@ class ProviderParser {
         }
     }
 
+    void writeAuditLogging(ModelNode subsystem, XMLExtendedStreamWriter writer) throws XMLStreamException {
+        if (shouldWrite(subsystem) == false) {
+            return;
+        }
+
+        writer.writeStartElement(AUDIT_LOGGING);
+
+        writeAggregateSecurityEventListener(subsystem, writer);
+        fileAuditLogParser.persist(writer, subsystem);
+        syslogAuditLogParser.persist(writer, subsystem);
+
+        writer.writeEndElement();
+    }
+
     private boolean shouldWrite(ModelNode subsystem) {
-        return subsystem.hasDefined(AGGREGATE_PROVIDERS) || subsystem.hasDefined(PROVIDER_LOADER);
+        return subsystem.hasDefined(AGGREGATE_SECURITY_EVENT_LISTENER) || subsystem.hasDefined(FILE_AUDIT_LOG) || subsystem.hasDefined(SYSLOG_AUDIT_LOG);
     }
 
 }

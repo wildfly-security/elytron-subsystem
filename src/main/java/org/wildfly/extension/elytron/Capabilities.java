@@ -30,6 +30,7 @@ import org.jboss.as.controller.capability.RuntimeCapability;
 import org.wildfly.extension.elytron.capabilities.CredentialSecurityFactory;
 import org.wildfly.extension.elytron.capabilities.DirContextSupplier;
 import org.wildfly.extension.elytron.capabilities.PrincipalTransformer;
+import org.wildfly.extension.elytron.capabilities.SecurityEventListener;
 import org.wildfly.security.auth.client.AuthenticationConfiguration;
 import org.wildfly.security.auth.client.AuthenticationContext;
 import org.wildfly.security.auth.server.HttpAuthenticationFactory;
@@ -147,6 +148,12 @@ class Capabilities {
 
     static final RuntimeCapability<Void> ROLE_MAPPER_RUNTIME_CAPABILITY =  RuntimeCapability
             .Builder.of(ROLE_MAPPER_CAPABILITY, true, RoleMapper.class)
+            .build();
+
+    static final String SECURITY_EVENT_LISTENER_CAPABILITY = CAPABILITY_BASE + "security-event-listener";
+
+    static final RuntimeCapability<Void> SECURITY_EVENT_LISTENER_RUNTIME_CAPABILITY = RuntimeCapability
+            .Builder.of(SECURITY_EVENT_LISTENER_CAPABILITY, true, SecurityEventListener.class)
             .build();
 
     static final String SASL_AUTHENTICATION_FACTORY_CAPABILITY = CAPABILITY_BASE + "sasl-authentication-factory";

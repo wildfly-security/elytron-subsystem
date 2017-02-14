@@ -37,6 +37,7 @@ interface ElytronDescriptionConstants {
     String AGGREGATE_REALM = "aggregate-realm";
     String AGGREGATE_ROLE_MAPPER = "aggregate-role-mapper";
     String AGGREGATE_SASL_SERVER_FACTORY = "aggregate-sasl-server-factory";
+    String AGGREGATE_SECURITY_EVENT_LISTENER = "aggregate-security-event-listener";
     String ALIAS = "alias";
     String ALIAS_ATTRIBUTE = "alias-attribute";
     String ALIAS_FILTER = "alias-filter";
@@ -54,6 +55,7 @@ interface ElytronDescriptionConstants {
     String ATTRIBUTE_VALUES = "attribute-values";
     String ATTRIBUTES = "attributes";
     String AUDIENCE = "audience";
+    String AUDIT_LOGGING = "audit-logging";
     String AUTHENTICATION_CLIENT = "authentication-client";
     String AUTHENTICATION_CONFIGURATION = "authentication-configuration";
     String AUTHENTICATION_CONTEXT = "authentication-context";
@@ -144,6 +146,7 @@ interface ElytronDescriptionConstants {
     String EXTENDS = "extends";
 
     String FILE = "file";
+    String FILE_AUDIT_LOG = "file-audit-log";
     String FILESYSTEM_REALM = "filesystem-realm";
     String FILTER = "filter";
     String FILTER_ALIAS = "filter-alias";
@@ -369,6 +372,8 @@ interface ElytronDescriptionConstants {
     String SEARCH_TIME_LIMIT = "search-time-limit";
     String SECURITY_DOMAIN = "security-domain";
     String SECURITY_DOMAINS = "security-domains";
+    String SECURITY_EVENT_LISTENER = "security-event-listener";
+    String SECURITY_EVENT_LISTENERS = "security-event-listeners";
     String SECURITY_PROPERTIES = "security-properties";
     String SECURITY_PROPERTY = "security-property";
     String SECURITY_REALMS = "security-realms";
@@ -379,6 +384,7 @@ interface ElytronDescriptionConstants {
     String SERIAL_NUMBER = "serial-number";
     String SERIAL_NUMBER_FROM = "serial-number-from";
     String SERVER = "server";
+    String SERVER_ADDRESS = "server-address";
     String SERVER_SSL_CONTEXT = "server-ssl-context";
     String SERVER_SSL_CONTEXTS = "server-ssl-contexts";
     String SESSION_TIMEOUT = "session-timeout";
@@ -408,11 +414,13 @@ interface ElytronDescriptionConstants {
     String SUBJECT_DN_FROM = "subject-dn-from";
     String SUFFIX = "suffix";
     String SYNCHRONIZED = "synchronized";
+    String SYSLOG_AUDIT_LOG = "syslog-audit-log";
 
     String TARGET_NAME = "target-name";
     String TLS = "tls";
     String TO = "to";
     String TOKEN_REALM = "token-realm";
+    String TRANSPORT = "transport";
     String TRUST_MANAGER = "trust-manager";
     String TRUST_MANAGERS = "trust-managers";
     String TRUSTED_SECURITY_DOMAINS = "trusted-security-domains";

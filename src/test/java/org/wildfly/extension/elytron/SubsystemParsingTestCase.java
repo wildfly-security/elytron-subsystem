@@ -51,6 +51,11 @@ public class SubsystemParsingTestCase extends AbstractSubsystemBaseTest {
     }
 
     @Test
+    public void testParseAndMarshalModel_AuditLogging() throws Exception {
+        standardSubsystemTest("audit-logging.xml");
+    }
+
+    @Test
     public void testParseAndMarshalModel_AuthenticationClient() throws Exception {
         standardSubsystemTest("authentication-client.xml");
     }

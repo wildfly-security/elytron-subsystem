@@ -27,6 +27,7 @@ import static org.wildfly.extension.elytron.Capabilities.ROLE_DECODER_CAPABILITY
 import static org.wildfly.extension.elytron.Capabilities.ROLE_MAPPER_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SECURITY_DOMAIN_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SECURITY_DOMAIN_RUNTIME_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.SECURITY_EVENT_LISTENER_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
@@ -74,6 +75,7 @@ import org.jboss.msc.value.InjectedValue;
 import org.wildfly.extension.elytron.DomainService.RealmDependency;
 import org.wildfly.extension.elytron.TrivialService.ValueSupplier;
 import org.wildfly.extension.elytron.capabilities.PrincipalTransformer;
+import org.wildfly.extension.elytron.capabilities.SecurityEventListener;
 import org.wildfly.security.auth.server.PrincipalDecoder;
 import org.wildfly.security.auth.server.RealmMapper;
 import org.wildfly.security.auth.server.RealmUnavailableException;
@@ -184,8 +186,14 @@ class DomainDefinition extends SimpleResourceDefinition {
             .setCapabilityReference(SECURITY_DOMAIN_CAPABILITY, SECURITY_DOMAIN_CAPABILITY, true)
             .build();
 
+    static final SimpleAttributeDefinition SECURITY_EVENT_LISTENER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.SECURITY_EVENT_LISTENER, ModelType.STRING, true)
+            .setAllowExpression(false)
+            .setCapabilityReference(SECURITY_EVENT_LISTENER_CAPABILITY, SECURITY_DOMAIN_CAPABILITY, true)
+            .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+            .build();
+
     private static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] { PRE_REALM_PRINCIPAL_TRANSFORMER, POST_REALM_PRINCIPAL_TRANSFORMER, PRINCIPAL_DECODER,
-            REALM_MAPPER, ROLE_MAPPER, PERMISSION_MAPPER, DEFAULT_REALM, REALMS, TRUSTED_SECURITY_DOMAINS, OUTFLOW_ANONYMOUS, OUTFLOW_SECURITY_DOMAINS };
+            REALM_MAPPER, ROLE_MAPPER, PERMISSION_MAPPER, DEFAULT_REALM, REALMS, TRUSTED_SECURITY_DOMAINS, OUTFLOW_ANONYMOUS, OUTFLOW_SECURITY_DOMAINS, SECURITY_EVENT_LISTENER };
 
     private static final DomainAddHandler ADD = new DomainAddHandler();
     private static final OperationStepHandler REMOVE = new TrivialCapabilityServiceRemoveHandler(ADD, SECURITY_DOMAIN_RUNTIME_CAPABILITY);
@@ -231,6 +239,7 @@ class DomainDefinition extends SimpleResourceDefinition {
         String permissionMapper = asStringIfDefined(context, PERMISSION_MAPPER, model);
         String realmMapper = asStringIfDefined(context, REALM_MAPPER, model);
         String roleMapper = asStringIfDefined(context, ROLE_MAPPER, model);
+        String securityEventListener = asStringIfDefined(context, SECURITY_EVENT_LISTENER, model);
 
         DomainService domain = new DomainService(defaultRealm, trustedSecurityDomain, identityOperator);
 
@@ -263,6 +272,12 @@ class DomainDefinition extends SimpleResourceDefinition {
         }
         if (roleMapper != null) {
             injectRoleMapper(roleMapper, context, domainBuilder, domain.createDomainRoleMapperInjector(roleMapper));
+        }
+
+        if (securityEventListener != null) {
+            domainBuilder.addDependency(
+                    context.getCapabilityServiceName(SECURITY_EVENT_LISTENER_CAPABILITY, securityEventListener, SecurityEventListener.class),
+                    SecurityEventListener.class, domain.getSecurityEventListenerInjector());
         }
 
         for (ModelNode current : realms) {
