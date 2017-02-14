@@ -30,9 +30,7 @@
             </aggregate-providers>
         </providers>
 
-        <audit-logging>
-            <file-audit-log name="local-audit" path="audit.log" relative-to="jboss.server.log.dir" format="JSON" />
-        </audit-logging>
+        <?AUDIT_DEFINITIONS?>
 
         <security-domains>
             <?DOMAIN_DEFINITIONS?>
@@ -88,6 +86,11 @@
     </subsystem>
 
     <supplement name="domain">
+        <replacement placeholder="AUDIT_DEFINITIONS">
+            <audit-logging>
+                <file-audit-log name="local-audit" path="audit.log" relative-to="jboss.server.log.dir" format="JSON" />
+            </audit-logging>
+        </replacement>
         <replacement placeholder="DOMAIN_DEFINITIONS">
             <security-domain name="ApplicationDomain" default-realm="ApplicationRealm" permission-mapper="default-permission-mapper" security-event-listener="local-audit">
                 <realm name="ApplicationRealm" role-decoder="groups-to-roles" />
@@ -121,6 +124,11 @@
     </supplement>
 
     <supplement name="host">
+        <replacement placeholder="AUDIT_DEFINITIONS">
+            <audit-logging>
+                <file-audit-log name="local-audit" path="audit.log" relative-to="jboss.domain.log.dir" format="JSON" />
+            </audit-logging>
+        </replacement>
         <replacement placeholder="DOMAIN_DEFINITIONS">
             <security-domain name="ManagementDomain" default-realm="ManagementRealm" permission-mapper="default-permission-mapper" security-event-listener="local-audit">
                 <realm name="ManagementRealm" role-decoder="groups-to-roles" />
@@ -155,6 +163,11 @@
     </supplement>
 
     <supplement name="standalone">
+        <replacement placeholder="AUDIT_DEFINITIONS">
+            <audit-logging>
+                <file-audit-log name="local-audit" path="audit.log" relative-to="jboss.server.log.dir" format="JSON" />
+            </audit-logging>
+        </replacement>
         <replacement placeholder="DOMAIN_DEFINITIONS">
             <security-domain name="ApplicationDomain" default-realm="ApplicationRealm" permission-mapper="default-permission-mapper" security-event-listener="local-audit">
                 <realm name="ApplicationRealm" role-decoder="groups-to-roles" />
