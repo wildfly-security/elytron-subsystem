@@ -109,6 +109,14 @@ final class CredentialStoreResourceDefinition extends SimpleResourceDefinition {
             .setCapabilityReference(PROVIDERS_CAPABILITY, CREDENTIAL_STORE_CAPABILITY, true)
             .build();
 
+    static final SimpleAttributeDefinition OTHER_PROVIDERS = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.OTHER_PROVIDERS, ModelType.STRING, true)
+            .setAttributeGroup(ElytronDescriptionConstants.IMPLEMENTATION)
+            .setAllowExpression(false)
+            .setMinSize(1)
+            .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+            .setCapabilityReference(PROVIDERS_CAPABILITY, CREDENTIAL_STORE_CAPABILITY, true)
+            .build();
+
     static final SimpleAttributeDefinition RELATIVE_TO = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.RELATIVE_TO, ModelType.STRING, true)
             .setAllowExpression(false)
             .setMinSize(1)
@@ -123,7 +131,7 @@ final class CredentialStoreResourceDefinition extends SimpleResourceDefinition {
     static final SimpleOperationDefinition RELOAD = new SimpleOperationDefinitionBuilder(ElytronDescriptionConstants.RELOAD, RESOURCE_RESOLVER)
             .build();
 
-    private static final AttributeDefinition[] CONFIG_ATTRIBUTES = new AttributeDefinition[] {URI, CREDENTIAL_REFERENCE, TYPE, PROVIDER_NAME, PROVIDERS, RELATIVE_TO};
+    private static final AttributeDefinition[] CONFIG_ATTRIBUTES = new AttributeDefinition[] {URI, CREDENTIAL_REFERENCE, TYPE, PROVIDER_NAME, PROVIDERS, OTHER_PROVIDERS, RELATIVE_TO};
 
     private static final CredentialStoreAddHandler ADD = new CredentialStoreAddHandler();
     private static final OperationStepHandler REMOVE = new TrivialCapabilityServiceRemoveHandler(ADD, CREDENTIAL_STORE_RUNTIME_CAPABILITY);
@@ -181,6 +189,7 @@ final class CredentialStoreResourceDefinition extends SimpleResourceDefinition {
             String uri = asStringIfDefined(context, URI, model);
             String type = asStringIfDefined(context, TYPE, model);
             String providers = asStringIfDefined(context, PROVIDERS, model);
+            String otherProviders = asStringIfDefined(context, OTHER_PROVIDERS, model);
             String providerName = asStringIfDefined(context, PROVIDER_NAME, model);
             String name = credentialStoreName(operation);
             String relativeTo = asStringIfDefined(context, RELATIVE_TO, model);
@@ -189,7 +198,7 @@ final class CredentialStoreResourceDefinition extends SimpleResourceDefinition {
             // ----------- credential store service ----------------
             final CredentialStoreService csService;
             try {
-                csService = CredentialStoreService.createCredentialStoreService(name, uri, type, providerName, relativeTo, providers);
+                csService = CredentialStoreService.createCredentialStoreService(name, uri, type, providerName, relativeTo, providers, otherProviders);
             } catch (CredentialStoreException e) {
                 throw new OperationFailedException(e);
             }
@@ -205,6 +214,11 @@ final class CredentialStoreResourceDefinition extends SimpleResourceDefinition {
                 String providersCapabilityName = RuntimeCapability.buildDynamicCapabilityName(PROVIDERS_CAPABILITY, providers);
                 ServiceName providerLoaderServiceName = context.getCapabilityServiceName(providersCapabilityName, Provider[].class);
                 credentialStoreServiceBuilder.addDependency(providerLoaderServiceName, Provider[].class, csService.getProvidersInjector());
+            }
+            if (otherProviders != null) {
+                String providersCapabilityName = RuntimeCapability.buildDynamicCapabilityName(PROVIDERS_CAPABILITY, otherProviders);
+                ServiceName otherProvidersLoaderServiceName = context.getCapabilityServiceName(providersCapabilityName, Provider[].class);
+                credentialStoreServiceBuilder.addDependency(otherProvidersLoaderServiceName, Provider[].class, csService.getOtherProvidersInjector());
             }
 
             csService.getCredentialSourceSupplierInjector()

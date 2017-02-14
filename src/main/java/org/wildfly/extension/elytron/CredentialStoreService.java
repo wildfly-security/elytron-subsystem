@@ -65,6 +65,7 @@ class CredentialStoreService implements Service<CredentialStore> {
     private final String type;
     private final String provider;
     private final String providerLoaderName;
+    private final String otherProvidersLoaderName;
     private final String relativeTo;
     private final String location;
     private final String name;
@@ -72,12 +73,13 @@ class CredentialStoreService implements Service<CredentialStore> {
 
     private final InjectedValue<PathManager> pathManager = new InjectedValue<>();
     private final InjectedValue<Provider[]> providers = new InjectedValue<>();
+    private final InjectedValue<Provider[]> otherProviders = new InjectedValue<>();
     private final InjectedValue<CredentialStore> injectedCredentialStore = new InjectedValue<>();
     private final InjectedValue<ExceptionSupplier<CredentialSource, Exception>> credentialSourceSupplier = new InjectedValue<>();
 
     private Handle callbackHandle;
 
-    private CredentialStoreService(String name, Map<String, String> credentialStoreAttributes, String type, String provider, String relativeTo, String location, String providerLoaderName) throws CredentialStoreException {
+    private CredentialStoreService(String name, Map<String, String> credentialStoreAttributes, String type, String provider, String relativeTo, String location, String providerLoaderName, String otherProvidersLoaderName) throws CredentialStoreException {
         this.name = name;
         this.type = type != null ? type : KeyStoreCredentialStore.KEY_STORE_CREDENTIAL_STORE;
         this.provider = provider;
@@ -85,9 +87,10 @@ class CredentialStoreService implements Service<CredentialStore> {
         this.credentialStoreAttributes = credentialStoreAttributes;
         this.location = location;
         this.providerLoaderName = providerLoaderName;
+        this.otherProvidersLoaderName = otherProvidersLoaderName;
     }
 
-    static CredentialStoreService createCredentialStoreService(String name, String uri, String type, String provider, String relativeTo, String providerLoaderName) throws CredentialStoreException {
+    static CredentialStoreService createCredentialStoreService(String name, String uri, String type, String provider, String relativeTo, String providerLoaderName, String keyStoreProvidersLoaderName) throws CredentialStoreException {
         try {
             CredentialStoreURIParser credentialStoreURIParser = new CredentialStoreURIParser(uri);
             String nameToSet = name != null ? name : credentialStoreURIParser.getName(); // once we specify name, the name from uri is ignored
@@ -95,7 +98,7 @@ class CredentialStoreService implements Service<CredentialStore> {
             credentialStoreAttributes.put(ElytronDescriptionConstants.CREDENTIAL_STORE_NAME, nameToSet);
             credentialStoreAttributes.putIfAbsent(CS_KEY_STORE_TYPE_ATTRIBUTE, "JCEKS");
             String storageFile = credentialStoreURIParser.getStorageFile();
-            return new CredentialStoreService(nameToSet, credentialStoreAttributes, type, provider, relativeTo, storageFile != null ? storageFile : name, providerLoaderName);
+            return new CredentialStoreService(nameToSet, credentialStoreAttributes, type, provider, relativeTo, storageFile != null ? storageFile : name, providerLoaderName, keyStoreProvidersLoaderName);
         } catch (URISyntaxException e) {
             throw new CredentialStoreException(e);
         }
@@ -111,7 +114,7 @@ class CredentialStoreService implements Service<CredentialStore> {
         try {
             credentialStoreAttributes.put(CS_LOCATION_ATTRIBUTE, loc.toAbsolutePath().toString());
             credentialStore = getCredentialStoreInstance();
-            credentialStore.initialize(credentialStoreAttributes, resolveCredentialStoreProtectionParameter());
+            credentialStore.initialize(credentialStoreAttributes, resolveCredentialStoreProtectionParameter(), otherProviders.getOptionalValue());
         } catch (Exception e) {
             throw ElytronSubsystemMessages.ROOT_LOGGER.unableToStartService(e);
         }
@@ -177,6 +180,10 @@ class CredentialStoreService implements Service<CredentialStore> {
 
     Injector<Provider[]> getProvidersInjector() {
         return providers;
+    }
+
+    Injector<Provider[]> getOtherProvidersInjector() {
+        return otherProviders;
     }
 
     Injector<PathManager> getPathManagerInjector() {
