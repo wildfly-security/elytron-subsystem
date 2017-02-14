@@ -1387,6 +1387,13 @@
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
+        <xs:attribute name="authentication-context" type="xs:string" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    The name of authentication-context used to secure connection and to authenticate to the LDAP server.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
         <xs:attribute name="connection-timeout" type="xs:integer" use="optional">
             <xs:annotation>
                 <xs:documentation>
