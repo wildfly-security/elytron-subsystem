@@ -267,11 +267,12 @@ class KeyStoreService implements ModifiableKeyStoreService {
     private char[] resolvePassword() throws Exception {
         ExceptionSupplier<CredentialSource, Exception> sourceSupplier = credentialSourceSupplier.getValue();
         CredentialSource cs = sourceSupplier != null ? sourceSupplier.get() : null;
-        if (cs == null) throw ROOT_LOGGER.keyStorePasswordCannotBeResolved(resolvedPath.getPath());
+        String path = resolvedPath != null ? resolvedPath.getPath() : "null";
+        if (cs == null) throw ROOT_LOGGER.keyStorePasswordCannotBeResolved(path);
         PasswordCredential credential = cs.getCredential(PasswordCredential.class);
-        if (credential == null) throw ROOT_LOGGER.keyStorePasswordCannotBeResolved(resolvedPath.getPath());
+        if (credential == null) throw ROOT_LOGGER.keyStorePasswordCannotBeResolved(path);
         ClearPassword password = credential.getPassword(ClearPassword.class);
-        if (password == null) throw ROOT_LOGGER.keyStorePasswordCannotBeResolved(resolvedPath.getPath());
+        if (password == null) throw ROOT_LOGGER.keyStorePasswordCannotBeResolved(path);
 
         return password.getPassword();
     }
