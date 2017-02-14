@@ -53,18 +53,15 @@ class CertificateChainAttributeDefinitions {
 
     private static final SimpleAttributeDefinition ALGORITHM = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ALGORITHM, ModelType.STRING).build();
 
-    private static final SimpleAttributeDefinition ENCODED = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ENCODED, ModelType.STRING).build();
-
     private static final SimpleAttributeDefinition FORMAT = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.FORMAT, ModelType.STRING).build();
 
-    private static final ObjectTypeAttributeDefinition PUBLIC_KEY = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.PUBLIC_KEY, ALGORITHM, FORMAT, ENCODED).build();
+    private static final SimpleAttributeDefinition PUBLIC_KEY = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.PUBLIC_KEY, ModelType.STRING).build();
 
-    private static final SimpleAttributeDefinition VALUE = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.VALUE, ModelType.STRING).build();
+    private static final SimpleAttributeDefinition SHA_1_DIGEST = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.SHA_1_DIGEST, ModelType.STRING).build();
 
-    private static final ObjectTypeAttributeDefinition FINGER_PRINT = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.FINGER_PRINT, ALGORITHM, VALUE).build();
+    private static final SimpleAttributeDefinition SHA_256_DIGEST = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.SHA_256_DIGEST, ModelType.STRING).build();
 
-    // Should this me a map so we don't need to specify the algorithm?
-    private static final ObjectListAttributeDefinition FINGER_PRINTS = new ObjectListAttributeDefinition.Builder(ElytronDescriptionConstants.FINGER_PRINTS, FINGER_PRINT).setAllowNull(false).build();
+    private static final SimpleAttributeDefinition ENCODED = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ENCODED, ModelType.STRING).build();
 
     /*
      * X509 Certificate Specific Attributes
@@ -78,13 +75,13 @@ class CertificateChainAttributeDefinitions {
         .setRequired(false)
         .build();
 
-    private static final SimpleAttributeDefinition NOT_AFTER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.NOT_AFTER, ModelType.STRING)
-        .setRequired(false)
-        .build();
-
     private static final SimpleAttributeDefinition NOT_BEFORE = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.NOT_BEFORE, ModelType.STRING)
         .setRequired(false)
         .build();
+
+    private static final SimpleAttributeDefinition NOT_AFTER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.NOT_AFTER, ModelType.STRING)
+            .setRequired(false)
+            .build();
 
     private static final SimpleAttributeDefinition SERIAL_NUMBER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.SERIAL_NUMBER, ModelType.STRING)
         .setRequired(false)
@@ -104,8 +101,9 @@ class CertificateChainAttributeDefinitions {
 
     // TODO - Consider adding some of the more detailed fields from X509Certificate
 
-    static final ObjectTypeAttributeDefinition CERTIFICATE = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.CERTIFICATE, TYPE, PUBLIC_KEY, FINGER_PRINTS, ENCODED,
-                                                                                                         SUBJECT, ISSUER, NOT_BEFORE, NOT_AFTER, SERIAL_NUMBER, SIGNATURE_ALGORITHM, SIGNATURE, VERSION)
+    static final ObjectTypeAttributeDefinition CERTIFICATE = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.CERTIFICATE,
+            TYPE, ALGORITHM, FORMAT, PUBLIC_KEY, SHA_1_DIGEST, SHA_256_DIGEST, ENCODED,
+            SUBJECT, ISSUER, NOT_BEFORE, NOT_AFTER, SERIAL_NUMBER, SIGNATURE_ALGORITHM, SIGNATURE, VERSION)
         .setStorageRuntime()
         .build();
 
