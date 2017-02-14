@@ -161,8 +161,8 @@ class PolicyDefinitions {
 
             private Service<Policy> createPolicyService(InjectedValue<Supplier<Policy>> injector) {
                 return new Service<Policy>() {
-                    Policy delegated;
-                    Policy policy;
+                    volatile Policy delegated;
+                    volatile Policy policy;
 
                     @Override
                     public void start(StartContext context) throws StartException {
