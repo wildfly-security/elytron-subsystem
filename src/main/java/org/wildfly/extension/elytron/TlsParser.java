@@ -269,7 +269,7 @@ class TlsParser {
             verifyNamespace(reader);
             String localName = reader.getLocalName();
             if (CERTIFICATE_REVOCATION_LIST.equals(localName)) {
-                ModelNode crlNode = new ModelNode();
+                ModelNode crlNode = new ModelNode().setEmptyObject();
                 final int count = reader.getAttributeCount();
                 for (int i = 0; i < count; i++) {
                     final String value = reader.getAttributeValue(i);
