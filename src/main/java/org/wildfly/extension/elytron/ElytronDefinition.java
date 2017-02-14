@@ -213,6 +213,9 @@ class ElytronDefinition extends SimpleResourceDefinition {
         // Authentication Configuration
         resourceRegistration.registerSubModel(AuthenticationClientDefinitions.getAuthenticationClientDefinition());
         resourceRegistration.registerSubModel(AuthenticationClientDefinitions.getAuthenticationContextDefinition());
+
+        // Policy
+        resourceRegistration.registerSubModel(PolicyDefinitions.getPolicy());
     }
 
     @Override

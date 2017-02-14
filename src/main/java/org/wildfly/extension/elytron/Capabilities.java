@@ -19,6 +19,7 @@
 package org.wildfly.extension.elytron;
 
 import java.security.KeyStore;
+import java.security.Policy;
 import java.security.Provider;
 
 import javax.net.ssl.KeyManager;
@@ -210,6 +211,16 @@ class Capabilities {
 
     static final RuntimeCapability<Void> DIR_CONTEXT_RUNTIME_CAPABILITY = RuntimeCapability
             .Builder.of(DIR_CONTEXT_CAPABILITY, true, DirContextSupplier.class)
+            .build();
+
+    static final String POLICY_CAPABILITY = CAPABILITY_BASE + "policy";
+    static final RuntimeCapability<Void> POLICY_RUNTIME_CAPABILITY =  RuntimeCapability
+            .Builder.of(POLICY_CAPABILITY, false, Policy.class)
+            .build();
+
+    static final String JACC_POLICY_CAPABILITY = CAPABILITY_BASE + "jacc-policy";
+    static final RuntimeCapability<Void> JACC_POLICY_RUNTIME_CAPABILITY =  RuntimeCapability
+            .Builder.of(JACC_POLICY_CAPABILITY, false, Policy.class)
             .build();
 
     /**

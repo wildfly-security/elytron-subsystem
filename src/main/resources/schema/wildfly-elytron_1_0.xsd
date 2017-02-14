@@ -43,6 +43,7 @@
             <xs:element name="tls" type="tlsType" minOccurs="0" />
             <xs:element name="credential-stores" type="credentialStoresType" minOccurs="0" />
             <xs:element name="dir-contexts" type="dirContextsType" minOccurs="0" />
+            <xs:element name="policy" type="policyType" minOccurs="0" />
         </xs:all>
         <xs:attribute name="default-authentication-context" type="xs:string">
             <xs:annotation>
@@ -4589,4 +4590,87 @@
         </xs:attribute>
     </xs:complexType>
 
+    <xs:complexType name="policyType">
+        <xs:annotation>
+            <xs:documentation>
+                A definition that sets up a policy provider.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:choice maxOccurs="unbounded">
+            <xs:element name="jacc-policy" type="jaccPolicyType" minOccurs="0" />
+            <xs:element name="custom-policy" type="customPolicyType" minOccurs="0" />
+        </xs:choice>
+        <xs:attribute name="default-policy" type="xs:string" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    The name of a default policy provider.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="jaccPolicyType">
+        <xs:annotation>
+            <xs:documentation>
+                A policy provider definition that sets up JACC and related services.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="name" type="xs:string" use="required">
+            <xs:annotation>
+                <xs:documentation>
+                    The name of this provider.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="policy" type="xs:string" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    The name of a java.security.Policy implementation referencing a policy provider.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="configuration-factory" type="xs:string" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    The name of a javax.security.jacc.PolicyConfigurationFactory implementation referencing a policy configuration factory provider.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="module" type="xs:string" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    The name of the module to load the provider from.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="customPolicyType">
+        <xs:annotation>
+            <xs:documentation>
+                A custom policy provider definition.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="name" type="xs:string" use="required">
+            <xs:annotation>
+                <xs:documentation>
+                    The name of this provider.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="class-name" type="xs:string" use="required">
+            <xs:annotation>
+                <xs:documentation>
+                    The name of a java.security.Policy implementation referencing a policy provider.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="module" type="xs:string" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    The name of the module to load the provider from.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:complexType>
 </xs:schema>
