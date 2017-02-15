@@ -44,7 +44,6 @@ import java.io.FileNotFoundException;
 import java.net.Socket;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
-import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.Provider;
 import java.security.cert.CertificateException;
@@ -103,6 +102,8 @@ import org.wildfly.extension.elytron._private.ElytronSubsystemMessages;
 import org.wildfly.security.auth.server.SecurityDomain;
 import org.wildfly.security.credential.PasswordCredential;
 import org.wildfly.security.credential.source.CredentialSource;
+import org.wildfly.security.keystore.AliasFilter;
+import org.wildfly.security.keystore.FilteringKeyStore;
 import org.wildfly.security.password.interfaces.ClearPassword;
 import org.wildfly.security.ssl.CipherSuiteSelector;
 import org.wildfly.security.ssl.Protocol;
@@ -139,6 +140,12 @@ class SSLDefinitions {
             .build();
 
     static final SimpleAttributeDefinition KEYSTORE = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.KEY_STORE, ModelType.STRING, false)
+            .setAllowExpression(true)
+            .setMinSize(1)
+            .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+            .build();
+
+    static final SimpleAttributeDefinition ALIAS_FILTER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ALIAS_FILTER, ModelType.STRING, true)
             .setAllowExpression(true)
             .setMinSize(1)
             .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
@@ -288,11 +295,11 @@ class SSLDefinitions {
                 .setAllowExpression(false)
                 .build();
 
-        final ObjectTypeAttributeDefinition credentialReference = CredentialReference.getAttributeBuilder(CredentialReference.CREDENTIAL_REFERENCE, CredentialReference.CREDENTIAL_REFERENCE, false)
+        final ObjectTypeAttributeDefinition credentialReferenceDefinition = CredentialReference.getAttributeBuilder(CredentialReference.CREDENTIAL_REFERENCE, CredentialReference.CREDENTIAL_REFERENCE, false)
                 .setCapabilityReference(CREDENTIAL_STORE_CAPABILITY)
                 .build();
 
-        AttributeDefinition[] attributes = new AttributeDefinition[] { ALGORITHM, providersDefinition, PROVIDER_NAME, keystoreDefinition, credentialReference};
+        AttributeDefinition[] attributes = new AttributeDefinition[] { ALGORITHM, providersDefinition, PROVIDER_NAME, keystoreDefinition, ALIAS_FILTER, credentialReferenceDefinition};
 
         AbstractAddStepHandler add = new TrivialAddHandler<KeyManager[]>(KeyManager[].class, attributes, KEY_MANAGERS_RUNTIME_CAPABILITY, CREDENTIAL_STORE_RUNTIME_CAPABILITY) {
 
@@ -317,10 +324,10 @@ class SSLDefinitions {
                             KeyStore.class, keyStoreInjector);
                 }
 
-                final InjectedValue<ExceptionSupplier<CredentialSource, Exception>> credentialSourceSupplierInjector = new InjectedValue<>();
-                credentialSourceSupplierInjector.inject(
-                        CredentialReference.getCredentialSourceSupplier(context, credentialReference, model, serviceBuilder)
-                );
+                final String aliasFilter = asStringIfDefined(context, ALIAS_FILTER, model);
+
+                ExceptionSupplier<CredentialSource, Exception> credentialSourceSupplier =
+                        CredentialReference.getCredentialSourceSupplier(context, credentialReferenceDefinition, model, serviceBuilder);
 
                 return () -> {
                     Provider[] providers = providersInjector.getOptionalValue();
@@ -347,8 +354,7 @@ class SSLDefinitions {
                     }
 
                     try {
-                        ExceptionSupplier<CredentialSource, Exception> sourceSupplier = credentialSourceSupplierInjector.getValue();
-                        CredentialSource cs = sourceSupplier.get();
+                        CredentialSource cs = credentialSourceSupplier.get();
                         char[] password;
                         if (cs != null) {
                             password = cs.getCredential(PasswordCredential.class).getPassword(ClearPassword.class).getPassword();
@@ -356,16 +362,21 @@ class SSLDefinitions {
                             throw new StartException(ROOT_LOGGER.keyStorePasswordCannotBeResolved(keyStoreName));
                         }
                         KeyStore keyStore = keyStoreInjector.getOptionalValue();
+                        if (aliasFilter != null) {
+                            keyStore = FilteringKeyStore.filteringKeyStore(keyStore, AliasFilter.fromString(aliasFilter));
+                        }
 
                         if (ROOT_LOGGER.isTraceEnabled()) {
                             ROOT_LOGGER.tracef(
                                     "KeyManager supplying:  providers = %s  provider = %s  algorithm = %s  keyManagerFactory = %s  " +
-                                            "keyStoreName = %s  keyStore = %s  password (of item) = %b",
-                                    Arrays.toString(providers), providerName, algorithm, keyManagerFactory, keyStoreName, keyStore, password != null
+                                            "keyStoreName = %s  aliasFilter = %s  keyStore = %s  keyStoreSize = %d  password (of item) = %b",
+                                    Arrays.toString(providers), providerName, algorithm, keyManagerFactory, keyStoreName, aliasFilter, keyStore, keyStore.size(), password != null
                             );
                         }
 
                         keyManagerFactory.init(keyStore, password);
+                    } catch (StartException e) {
+                        throw e;
                     } catch (Exception e) {
                         throw new StartException(e);
                     }
@@ -391,8 +402,7 @@ class SSLDefinitions {
                 .setAllowExpression(false)
                 .build();
 
-
-        AttributeDefinition[] attributes = new AttributeDefinition[] { ALGORITHM, providersDefinition, PROVIDER_NAME, keystoreDefinition, CERTIFICATE_REVOCATION_LIST};
+        AttributeDefinition[] attributes = new AttributeDefinition[] { ALGORITHM, providersDefinition, PROVIDER_NAME, keystoreDefinition, ALIAS_FILTER, CERTIFICATE_REVOCATION_LIST};
 
         AtomicBoolean reloadCrl = new AtomicBoolean(false);
 
@@ -419,6 +429,8 @@ class SSLDefinitions {
                             KeyStore.class, keyStoreInjector);
                 }
 
+                final String aliasFilter = asStringIfDefined(context, ALIAS_FILTER, model);
+
                 ModelNode crlNode = CERTIFICATE_REVOCATION_LIST.resolveModelAttribute(context, model);
 
                 if (crlNode.isDefined()) {
@@ -430,16 +442,20 @@ class SSLDefinitions {
                     TrustManagerFactory trustManagerFactory = createTrustManagerFactory(providers, providerName, algorithm);
                     KeyStore keyStore = keyStoreInjector.getOptionalValue();
 
-                    if (ROOT_LOGGER.isTraceEnabled()) {
-                        ROOT_LOGGER.tracef(
-                                "KeyManager supplying:  providers = %s  provider = %s  algorithm = %s  trustManagerFactory = %s  keyStoreName = %s  keyStore = %s",
-                                Arrays.toString(providers), providerName, algorithm, trustManagerFactory, keyStoreName, keyStore
-                        );
-                    }
-
                     try {
+                        if (aliasFilter != null) {
+                            keyStore = FilteringKeyStore.filteringKeyStore(keyStore, AliasFilter.fromString(aliasFilter));
+                        }
+
+                        if (ROOT_LOGGER.isTraceEnabled()) {
+                            ROOT_LOGGER.tracef(
+                                    "TrustManager supplying:  providers = %s  provider = %s  algorithm = %s  trustManagerFactory = %s  keyStoreName = %s  keyStore = %s  aliasFilter = %s  keyStoreSize = %d",
+                                    Arrays.toString(providers), providerName, algorithm, trustManagerFactory, keyStoreName, keyStore, aliasFilter, keyStore.size()
+                            );
+                        }
+
                         trustManagerFactory.init(keyStoreInjector.getOptionalValue());
-                    } catch (KeyStoreException e) {
+                    } catch (Exception e) {
                         throw new StartException(e);
                     }
 

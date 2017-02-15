@@ -46,7 +46,7 @@
             <filtering-key-store name="FilteringKeyStore" key-store="FireflyKeystore" alias-filter="NONE:+firefly"/>
         </key-stores>
         <key-managers>
-            <key-manager name="ServerKeyManager" algorithm="SunX509" key-store="LocalhostKeystore">
+            <key-manager name="ServerKeyManager" algorithm="SunX509" key-store="LocalhostKeystore" alias-filter="NONE:+localhost">
                 <credential-reference store="test" alias="the-key-alias"/>
             </key-manager>
             <key-manager name="ClientKeyManager" algorithm="SunX509" key-store="FireflyKeystore">
@@ -57,7 +57,7 @@
             </key-manager>
         </key-managers>
         <trust-managers>
-            <trust-manager name="CaTrustManager" algorithm="SunX509" key-store="ElytronCaTruststore"/>
+            <trust-manager name="CaTrustManager" algorithm="SunX509" key-store="ElytronCaTruststore" alias-filter="NONE:+mykey"/>
             <trust-manager name="MyTrustManager" algorithm="SunX509" key-store="ElytronCaTruststore" providers="ManagerProviderLoader" provider-name="SunJSSE"/>
             <trust-manager name="trust-with-crl" algorithm="SunX509" key-store="ElytronCaTruststore">
                 <certificate-revocation-list path="crl.pem" relative-to="jboss.server.config.dir" maximum-cert-path="2"/>

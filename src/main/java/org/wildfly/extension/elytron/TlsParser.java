@@ -174,6 +174,9 @@ class TlsParser {
                     case KEY_STORE:
                         SSLDefinitions.KEYSTORE.parseAndSetParameter(value, addKeyManager, reader);
                         break;
+                    case ALIAS_FILTER:
+                        SSLDefinitions.ALIAS_FILTER.parseAndSetParameter(value, addKeyManager, reader);
+                        break;
                     case PROVIDERS:
                         SSLDefinitions.PROVIDERS.parseAndSetParameter(value, addKeyManager, reader);
                         break;
@@ -240,6 +243,9 @@ class TlsParser {
                         break;
                     case KEY_STORE:
                         SSLDefinitions.KEYSTORE.parseAndSetParameter(value, addKeyManager, reader);
+                        break;
+                    case ALIAS_FILTER:
+                        SSLDefinitions.ALIAS_FILTER.parseAndSetParameter(value, addKeyManager, reader);
                         break;
                     case PROVIDERS:
                         SSLDefinitions.PROVIDERS.parseAndSetParameter(value, addKeyManager, reader);

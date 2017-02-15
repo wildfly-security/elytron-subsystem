@@ -100,7 +100,7 @@ public class CredentialStoreUtility {
 
     /**
      * Create Credential Store with default password.
-     * Automatically crate underlying KeyStore.
+     * Automatically create underlying KeyStore.
      *
      * @param credentialStoreFileName name of file to hold credentials
      */

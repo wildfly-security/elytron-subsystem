@@ -52,7 +52,6 @@ public class TlsTestCase extends AbstractSubsystemTest {
 
     private static final Provider wildFlyElytronProvider = new WildFlyElytronProvider();
     private static CredentialStoreUtility csUtil = null;
-    private static final String CS_PASSWORD = "super_secret";
 
     private final int TESTING_PORT = 18201;
 
@@ -65,7 +64,7 @@ public class TlsTestCase extends AbstractSubsystemTest {
 
     @BeforeClass
     public static void initTests() {
-        AccessController.doPrivileged((PrivilegedAction<Integer>) () -> Integer.valueOf(Security.insertProviderAt(wildFlyElytronProvider, 1)));
+        AccessController.doPrivileged((PrivilegedAction<Integer>) () -> Security.insertProviderAt(wildFlyElytronProvider, 1));
         csUtil = new CredentialStoreUtility("target/tlstest.keystore");
         csUtil.addEntry("the-key-alias", "Elytron");
         csUtil.addEntry("master-password-alias", "Elytron");

@@ -3778,6 +3778,15 @@
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
+        <xs:attribute name="alias-filter" type="xs:string" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    A filter to apply to the aliases provided by KeyStore to choose key to use from keys in KeyStore.
+
+                    Can either be a comma separated list of aliases to return or one of the following formats ALL:-alias1:-alias2, NONE:+alias1:+alias2
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
         <xs:attribute name="provider-name" type="xs:string" use="optional">
             <xs:annotation>
                 <xs:documentation>
@@ -3839,6 +3848,15 @@
             <xs:annotation>
                 <xs:documentation>
                     Reference to the KeyStore to use with the TrustManager.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="alias-filter" type="xs:string" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    A filter to apply to the aliases provided by KeyStore.
+
+                    Can either be a comma separated list of aliases to return or one of the following formats ALL:-alias1:-alias2, NONE:+alias1:+alias2
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
