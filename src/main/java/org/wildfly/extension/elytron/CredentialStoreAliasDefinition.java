@@ -140,8 +140,11 @@ class CredentialStoreAliasDefinition extends SimpleResourceDefinition {
 
     private static void transformOperationAddress(final ModelNode operation) {
         Property alias = propertyAliasFromOperation(operation);
-        String newAlias = alias.getValue().asString().toLowerCase(Locale.ROOT);
-        alias.getValue().set(newAlias);
+        if (alias != null)
+        {
+            String newAlias = alias.getValue().asString().toLowerCase(Locale.ROOT);
+            alias.getValue().set(newAlias);
+        }
     }
 
     private static Property propertyAliasFromOperation(final ModelNode operation) {
@@ -158,9 +161,17 @@ class CredentialStoreAliasDefinition extends SimpleResourceDefinition {
     }
 
     private static boolean sameAlias(final OperationContext context, final ModelNode operation) {
-        String contextAlias = context.getCurrentAddress().getLastElement().getValue();
-        String operationAlias = propertyAliasFromOperation(operation).getValue().asString();
-        return  operationAlias.equals(contextAlias);
+        PathElement contextAlias = context.getCurrentAddress().getLastElement();
+        Property operationAlias = propertyAliasFromOperation(operation);
+        boolean outcome = false;
+        if (contextAlias != null && operationAlias != null)
+        {
+            outcome = contextAlias.getValue().equals(operationAlias.getValue().asString());
+        } else {
+            outcome = contextAlias == null && operationAlias == null ? true : false;
+        }
+
+        return  outcome;
     }
 
     private static class AddHandler extends BaseAddHandler {
