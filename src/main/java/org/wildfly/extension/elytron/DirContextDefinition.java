@@ -160,7 +160,7 @@ class DirContextDefinition extends SimpleResourceDefinition {
 
         Properties connectionProperties = new Properties();
         ModelNode enableConnectionPoolingNode = ENABLE_CONNECTION_POOLING.resolveModelAttribute(context, model);
-        connectionProperties.put(CONNECTION_POOLING_PROPERTY, enableConnectionPoolingNode.asBoolean());
+        connectionProperties.put(CONNECTION_POOLING_PROPERTY, enableConnectionPoolingNode.asString());
         ModelNode properties = PROPERTIES.resolveModelAttribute(context, model);
         if (properties.isDefined()) {
             for (Property property : properties.asPropertyList()) {
