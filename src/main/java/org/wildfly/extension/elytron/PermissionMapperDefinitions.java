@@ -244,7 +244,7 @@ class PermissionMapperDefinitions {
 
     private static java.security.Permission createPermission(Permission permission) throws StartException {
         Module currentModule = Module.getCallerModule();
-        if (permission.getModule() != null) {
+        if (permission.getModule() != null && currentModule != null) {
             ModuleIdentifier mi = ModuleIdentifier.fromString(permission.getModule());
             try {
                 currentModule = currentModule.getModule(mi);

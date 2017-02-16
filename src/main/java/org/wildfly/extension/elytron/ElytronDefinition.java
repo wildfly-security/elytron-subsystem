@@ -36,8 +36,6 @@ import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.RO
 import java.security.Provider;
 
 import org.jboss.as.controller.AbstractBoottimeAddStepHandler;
-import org.jboss.as.controller.AbstractRemoveStepHandler;
-import org.jboss.as.controller.AbstractWriteAttributeHandler;
 import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationContext.AttachmentKey;
 import org.jboss.as.controller.OperationContext.Stage;
@@ -48,6 +46,10 @@ import org.jboss.as.controller.ResourceDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
 import org.jboss.as.controller.SimpleResourceDefinition;
+import org.jboss.as.controller.access.constraint.ApplicationTypeConfig;
+import org.jboss.as.controller.access.constraint.SensitivityClassification;
+import org.jboss.as.controller.access.management.ApplicationTypeAccessConstraintDefinition;
+import org.jboss.as.controller.access.management.SensitiveTargetAccessConstraintDefinition;
 import org.jboss.as.controller.registry.ManagementResourceRegistration;
 import org.jboss.as.controller.registry.Resource;
 import org.jboss.as.server.AbstractDeploymentChainStep;
@@ -102,7 +104,9 @@ class ElytronDefinition extends SimpleResourceDefinition {
         super(new Parameters(ElytronExtension.SUBSYSTEM_PATH, ElytronExtension.getResourceDescriptionResolver())
                 .setAddHandler(new ElytronAdd())
                 .setRemoveHandler(new ElytronRemove())
-                .setCapabilities(ELYTRON_RUNTIME_CAPABILITY));
+                .setCapabilities(ELYTRON_RUNTIME_CAPABILITY)
+                .addAccessConstraints(new SensitiveTargetAccessConstraintDefinition(new SensitivityClassification(ElytronExtension.SUBSYSTEM_NAME, ElytronDescriptionConstants.ELYTRON_SECURITY, true, true, true)),
+                new ApplicationTypeAccessConstraintDefinition(new ApplicationTypeConfig(ElytronExtension.SUBSYSTEM_NAME, ElytronDescriptionConstants.ELYTRON_SECURITY, false))));
     }
 
     @Override
@@ -113,6 +117,11 @@ class ElytronDefinition extends SimpleResourceDefinition {
         // Provider Loader
         resourceRegistration.registerSubModel(ProviderDefinitions.getAggregateProvidersDefinition());
         resourceRegistration.registerSubModel(ProviderDefinitions.getProviderLoaderDefinition());
+
+        // Audit
+        resourceRegistration.registerSubModel(AuditResourceDefinitions.getAggregateSecurityEventListenerDefinition());
+        resourceRegistration.registerSubModel(AuditResourceDefinitions.getFileAuditLogResourceDefinition());
+        resourceRegistration.registerSubModel(AuditResourceDefinitions.getSyslogAuditLogResourceDefinition());
 
         // Security Domain SASL / HTTP Configurations
         resourceRegistration.registerSubModel(AuthenticationFactoryDefinitions.getSaslAuthenticationFactory());
@@ -204,13 +213,15 @@ class ElytronDefinition extends SimpleResourceDefinition {
         // Credential Store Block
         resourceRegistration.registerSubModel(new CredentialStoreResourceDefinition());
 
-
         // Dir-Context
         resourceRegistration.registerSubModel(new DirContextDefinition());
 
         // Authentication Configuration
         resourceRegistration.registerSubModel(AuthenticationClientDefinitions.getAuthenticationClientDefinition());
         resourceRegistration.registerSubModel(AuthenticationClientDefinitions.getAuthenticationContextDefinition());
+
+        // Policy
+        resourceRegistration.registerSubModel(PolicyDefinitions.getPolicy());
     }
 
     @Override
@@ -218,7 +229,7 @@ class ElytronDefinition extends SimpleResourceDefinition {
         OperationStepHandler writeHandler = new ReloadRequiredWriteAttributeHandler(INITIAL_PROVIDERS, FINAL_PROVIDERS);
         resourceRegistration.registerReadWriteAttribute(INITIAL_PROVIDERS, null, writeHandler);
         resourceRegistration.registerReadWriteAttribute(FINAL_PROVIDERS, null, writeHandler);
-        resourceRegistration.registerReadWriteAttribute(DEFAULT_AUTHENTICATION_CONTEXT, null, new AbstractWriteAttributeHandler<Void>(DEFAULT_AUTHENTICATION_CONTEXT) {
+        resourceRegistration.registerReadWriteAttribute(DEFAULT_AUTHENTICATION_CONTEXT, null, new ElytronWriteAttributeHandler<Void>(DEFAULT_AUTHENTICATION_CONTEXT) {
 
             @Override
             protected boolean applyUpdateToRuntime(OperationContext context, ModelNode operation, String attributeName,
@@ -271,7 +282,7 @@ class ElytronDefinition extends SimpleResourceDefinition {
         return null;
     }
 
-    private static class ElytronAdd extends AbstractBoottimeAddStepHandler {
+    private static class ElytronAdd extends AbstractBoottimeAddStepHandler implements ElytronOperationStepHandler {
 
         private ElytronAdd() {
             super(ELYTRON_RUNTIME_CAPABILITY, DEFAULT_AUTHENTICATION_CONTEXT, INITIAL_PROVIDERS, FINAL_PROVIDERS);
@@ -316,6 +327,8 @@ class ElytronDefinition extends SimpleResourceDefinition {
                 context.addStep(new AbstractDeploymentChainStep() {
                     @Override
                     protected void execute(DeploymentProcessorTarget processorTarget) {
+                        // TODO Remove hard coded Phase ID once a suitable core is available with Phase.DEPENDENCIES_ELYTRON defined.
+                        processorTarget.addDeploymentProcessor(ElytronExtension.SUBSYSTEM_NAME, Phase.DEPENDENCIES, 0x0C51, new DependencyProcessor());
                         processorTarget.addDeploymentProcessor(ElytronExtension.SUBSYSTEM_NAME, Phase.CONFIGURE_MODULE, Phase.CONFIGURE_AUTHENTICATION_CONTEXT, AUTHENITCATION_CONTEXT_PROCESSOR);
                         processorTarget.addDeploymentProcessor(ElytronExtension.SUBSYSTEM_NAME, Phase.FIRST_MODULE_USE, Phase.FIRST_MODULE_USE_AUTHENTICATION_CONTEXT, new AuthenticationContextAssociationProcessor());
                     }
@@ -330,9 +343,13 @@ class ElytronDefinition extends SimpleResourceDefinition {
             AUTHENITCATION_CONTEXT_PROCESSOR.setDefaultAuthenticationContext(null);
         }
 
+        @Override
+        protected boolean requiresRuntime(final OperationContext context) {
+            return isServerOrHostController(context);
+        }
     }
 
-    private static class ElytronRemove extends AbstractRemoveStepHandler {
+    private static class ElytronRemove extends ElytronRemoveStepHandler {
 
         private ElytronRemove() {
             super(ELYTRON_RUNTIME_CAPABILITY);

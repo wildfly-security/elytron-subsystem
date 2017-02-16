@@ -30,25 +30,36 @@ import static org.wildfly.extension.elytron.Capabilities.SSL_CONTEXT_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SSL_CONTEXT_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.TRUST_MANAGERS_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.TRUST_MANAGERS_RUNTIME_CAPABILITY;
+import static org.wildfly.extension.elytron.ElytronExtension.asIntIfDefined;
 import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
 import static org.wildfly.extension.elytron.ElytronExtension.getRequiredService;
+import static org.wildfly.extension.elytron.FileAttributeDefinitions.PATH;
+import static org.wildfly.extension.elytron.FileAttributeDefinitions.RELATIVE_TO;
+import static org.wildfly.extension.elytron.FileAttributeDefinitions.pathName;
 import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.net.Socket;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
-import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.Provider;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLSessionContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
@@ -56,24 +67,27 @@ import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509ExtendedTrustManager;
 
 import org.jboss.as.controller.AbstractAddStepHandler;
-import org.jboss.as.controller.AbstractRuntimeOnlyHandler;
 import org.jboss.as.controller.AttributeDefinition;
-import org.jboss.as.controller.AttributeMarshaller;
 import org.jboss.as.controller.ObjectTypeAttributeDefinition;
 import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
+import org.jboss.as.controller.OperationStepHandler;
 import org.jboss.as.controller.PathAddress;
 import org.jboss.as.controller.ResourceDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
+import org.jboss.as.controller.SimpleOperationDefinition;
 import org.jboss.as.controller.StringListAttributeDefinition;
 import org.jboss.as.controller.logging.ControllerLogger;
 import org.jboss.as.controller.operations.validation.AllowedValuesValidator;
+import org.jboss.as.controller.operations.validation.IntRangeValidator;
 import org.jboss.as.controller.operations.validation.ModelTypeValidator;
 import org.jboss.as.controller.registry.AttributeAccess;
 import org.jboss.as.controller.registry.ManagementResourceRegistration;
 import org.jboss.as.controller.registry.Resource;
 import org.jboss.as.controller.security.CredentialReference;
+import org.jboss.as.controller.services.path.PathManager;
+import org.jboss.as.controller.services.path.PathManagerService;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
 import org.jboss.msc.service.ServiceBuilder;
@@ -84,14 +98,18 @@ import org.jboss.msc.service.StartException;
 import org.jboss.msc.value.InjectedValue;
 import org.wildfly.common.function.ExceptionSupplier;
 import org.wildfly.extension.elytron.TrivialService.ValueSupplier;
+import org.wildfly.extension.elytron._private.ElytronSubsystemMessages;
 import org.wildfly.security.auth.server.SecurityDomain;
 import org.wildfly.security.credential.PasswordCredential;
 import org.wildfly.security.credential.source.CredentialSource;
+import org.wildfly.security.keystore.AliasFilter;
+import org.wildfly.security.keystore.FilteringKeyStore;
 import org.wildfly.security.password.interfaces.ClearPassword;
 import org.wildfly.security.ssl.CipherSuiteSelector;
 import org.wildfly.security.ssl.Protocol;
 import org.wildfly.security.ssl.ProtocolSelector;
 import org.wildfly.security.ssl.SSLContextBuilder;
+import org.wildfly.security.ssl.X509CRLExtendedTrustManager;
 
 /**
  * Definitions for resources used to configure SSLContexts.
@@ -122,6 +140,12 @@ class SSLDefinitions {
             .build();
 
     static final SimpleAttributeDefinition KEYSTORE = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.KEY_STORE, ModelType.STRING, false)
+            .setAllowExpression(true)
+            .setMinSize(1)
+            .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+            .build();
+
+    static final SimpleAttributeDefinition ALIAS_FILTER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ALIAS_FILTER, ModelType.STRING, true)
             .setAllowExpression(true)
             .setMinSize(1)
             .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
@@ -181,12 +205,14 @@ class SSLDefinitions {
     static final SimpleAttributeDefinition MAXIMUM_SESSION_CACHE_SIZE = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.MAXIMUM_SESSION_CACHE_SIZE, ModelType.INT, true)
             .setAllowExpression(true)
             .setDefaultValue(new ModelNode(0))
+            .setValidator(new IntRangeValidator(0))
             .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
             .build();
 
     static final SimpleAttributeDefinition SESSION_TIMEOUT = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.SESSION_TIMEOUT, ModelType.INT, true)
             .setAllowExpression(true)
             .setDefaultValue(new ModelNode(0))
+            .setValidator(new IntRangeValidator(0))
             .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
             .build();
 
@@ -202,6 +228,18 @@ class SSLDefinitions {
             .setCapabilityReference(TRUST_MANAGERS_CAPABILITY, SSL_CONTEXT_CAPABILITY, true)
             .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
             .setAllowExpression(false)
+            .build();
+
+    static final SimpleAttributeDefinition MAXIMUM_CERT_PATH = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.MAXIMUM_CERT_PATH, ModelType.INT, true)
+            .setAllowExpression(true)
+            .setDefaultValue(new ModelNode(5))
+            .setValidator(new IntRangeValidator(1))
+            .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+            .build();
+
+    static final ObjectTypeAttributeDefinition CERTIFICATE_REVOCATION_LIST = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.CERTIFICATE_REVOCATION_LIST, PATH, RELATIVE_TO, MAXIMUM_CERT_PATH)
+            .setAllowNull(true)
+            .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
             .build();
 
     /*
@@ -257,12 +295,11 @@ class SSLDefinitions {
                 .setAllowExpression(false)
                 .build();
 
-        final ObjectTypeAttributeDefinition credentialReference = CredentialReference.getAttributeBuilder(CredentialReference.CREDENTIAL_REFERENCE, CredentialReference.CREDENTIAL_REFERENCE, false)
+        final ObjectTypeAttributeDefinition credentialReferenceDefinition = CredentialReference.getAttributeBuilder(CredentialReference.CREDENTIAL_REFERENCE, CredentialReference.CREDENTIAL_REFERENCE, false)
                 .setCapabilityReference(CREDENTIAL_STORE_CAPABILITY)
-                .setAttributeMarshaller(AttributeMarshaller.ATTRIBUTE_OBJECT)  // temporary fix [WFCORE-2210]
                 .build();
 
-        AttributeDefinition[] attributes = new AttributeDefinition[] { ALGORITHM, providersDefinition, PROVIDER_NAME, keystoreDefinition, credentialReference};
+        AttributeDefinition[] attributes = new AttributeDefinition[] { ALGORITHM, providersDefinition, PROVIDER_NAME, keystoreDefinition, ALIAS_FILTER, credentialReferenceDefinition};
 
         AbstractAddStepHandler add = new TrivialAddHandler<KeyManager[]>(KeyManager[].class, attributes, KEY_MANAGERS_RUNTIME_CAPABILITY, CREDENTIAL_STORE_RUNTIME_CAPABILITY) {
 
@@ -287,10 +324,10 @@ class SSLDefinitions {
                             KeyStore.class, keyStoreInjector);
                 }
 
-                final InjectedValue<ExceptionSupplier<CredentialSource, Exception>> credentialSourceSupplierInjector = new InjectedValue<>();
-                credentialSourceSupplierInjector.inject(
-                        CredentialReference.getCredentialSourceSupplier(context, credentialReference, model, serviceBuilder)
-                );
+                final String aliasFilter = asStringIfDefined(context, ALIAS_FILTER, model);
+
+                ExceptionSupplier<CredentialSource, Exception> credentialSourceSupplier =
+                        CredentialReference.getCredentialSourceSupplier(context, credentialReferenceDefinition, model, serviceBuilder);
 
                 return () -> {
                     Provider[] providers = providersInjector.getOptionalValue();
@@ -317,8 +354,7 @@ class SSLDefinitions {
                     }
 
                     try {
-                        ExceptionSupplier<CredentialSource, Exception> sourceSupplier = credentialSourceSupplierInjector.getValue();
-                        CredentialSource cs = sourceSupplier.get();
+                        CredentialSource cs = credentialSourceSupplier.get();
                         char[] password;
                         if (cs != null) {
                             password = cs.getCredential(PasswordCredential.class).getPassword(ClearPassword.class).getPassword();
@@ -326,16 +362,21 @@ class SSLDefinitions {
                             throw new StartException(ROOT_LOGGER.keyStorePasswordCannotBeResolved(keyStoreName));
                         }
                         KeyStore keyStore = keyStoreInjector.getOptionalValue();
+                        if (aliasFilter != null) {
+                            keyStore = FilteringKeyStore.filteringKeyStore(keyStore, AliasFilter.fromString(aliasFilter));
+                        }
 
                         if (ROOT_LOGGER.isTraceEnabled()) {
                             ROOT_LOGGER.tracef(
                                     "KeyManager supplying:  providers = %s  provider = %s  algorithm = %s  keyManagerFactory = %s  " +
-                                            "keyStoreName = %s  keyStore = %s  password (of item) = %b",
-                                    Arrays.toString(providers), providerName, algorithm, keyManagerFactory, keyStoreName, keyStore, password != null
+                                            "keyStoreName = %s  aliasFilter = %s  keyStore = %s  keyStoreSize = %d  password (of item) = %b",
+                                    Arrays.toString(providers), providerName, algorithm, keyManagerFactory, keyStoreName, aliasFilter, keyStore, keyStore.size(), password != null
                             );
                         }
 
                         keyManagerFactory.init(keyStore, password);
+                    } catch (StartException e) {
+                        throw e;
                     } catch (Exception e) {
                         throw new StartException(e);
                     }
@@ -361,7 +402,9 @@ class SSLDefinitions {
                 .setAllowExpression(false)
                 .build();
 
-        AttributeDefinition[] attributes = new AttributeDefinition[] { ALGORITHM, providersDefinition, PROVIDER_NAME, keystoreDefinition};
+        AttributeDefinition[] attributes = new AttributeDefinition[] { ALGORITHM, providersDefinition, PROVIDER_NAME, keystoreDefinition, ALIAS_FILTER, CERTIFICATE_REVOCATION_LIST};
+
+        AtomicBoolean reloadCrl = new AtomicBoolean(false);
 
         AbstractAddStepHandler add = new TrivialAddHandler<TrustManager[]>(TrustManager[].class, attributes, TRUST_MANAGERS_RUNTIME_CAPABILITY) {
 
@@ -386,51 +429,187 @@ class SSLDefinitions {
                             KeyStore.class, keyStoreInjector);
                 }
 
+                final String aliasFilter = asStringIfDefined(context, ALIAS_FILTER, model);
+
+                ModelNode crlNode = CERTIFICATE_REVOCATION_LIST.resolveModelAttribute(context, model);
+
+                if (crlNode.isDefined()) {
+                    return createX509CRLExtendedTrustManager(serviceBuilder, context, algorithm, providerName, providersInjector, keyStoreInjector, crlNode, reloadCrl);
+                }
+
                 return () -> {
                     Provider[] providers = providersInjector.getOptionalValue();
-                    TrustManagerFactory trustManagerFactory = null;
-
-                    if (providers != null) {
-                        for (Provider current : providers) {
-                            if (providerName == null || providerName.equals(current.getName())) {
-                                try {
-                                    // TODO - We could check the Services within each Provider to check there is one of the required type/algorithm
-                                    // However the same loop would need to remain as it is still possible a specific provider can't create it.
-                                    trustManagerFactory = TrustManagerFactory.getInstance(algorithm, current);
-                                    break;
-                                } catch (NoSuchAlgorithmException ignored) {
-                                }
-                            }
-                        }
-                        if (trustManagerFactory == null) throw ROOT_LOGGER.unableToCreateManagerFactory(TrustManagerFactory.class.getSimpleName(), algorithm);
-                    } else {
-                        try {
-                            trustManagerFactory = TrustManagerFactory.getInstance(algorithm);
-                        } catch (NoSuchAlgorithmException e) {
-                            throw new StartException(e);
-                        }
-                    }
+                    TrustManagerFactory trustManagerFactory = createTrustManagerFactory(providers, providerName, algorithm);
                     KeyStore keyStore = keyStoreInjector.getOptionalValue();
 
-                    if (ROOT_LOGGER.isTraceEnabled()) {
-                        ROOT_LOGGER.tracef(
-                                "KeyManager supplying:  providers = %s  provider = %s  algorithm = %s  trustManagerFactory = %s  keyStoreName = %s  keyStore = %s",
-                                Arrays.toString(providers), providerName, algorithm, trustManagerFactory, keyStoreName, keyStore
-                        );
-                    }
-
                     try {
+                        if (aliasFilter != null) {
+                            keyStore = FilteringKeyStore.filteringKeyStore(keyStore, AliasFilter.fromString(aliasFilter));
+                        }
+
+                        if (ROOT_LOGGER.isTraceEnabled()) {
+                            ROOT_LOGGER.tracef(
+                                    "TrustManager supplying:  providers = %s  provider = %s  algorithm = %s  trustManagerFactory = %s  keyStoreName = %s  keyStore = %s  aliasFilter = %s  keyStoreSize = %d",
+                                    Arrays.toString(providers), providerName, algorithm, trustManagerFactory, keyStoreName, keyStore, aliasFilter, keyStore.size()
+                            );
+                        }
+
                         trustManagerFactory.init(keyStoreInjector.getOptionalValue());
-                    } catch (KeyStoreException e) {
+                    } catch (Exception e) {
                         throw new StartException(e);
                     }
 
                     return trustManagerFactory.getTrustManagers();
                 };
             }
+
+            private ValueSupplier<TrustManager[]> createX509CRLExtendedTrustManager(ServiceBuilder<TrustManager[]> serviceBuilder, OperationContext context, String algorithm, String providerName, InjectedValue<Provider[]> providersInjector, InjectedValue<KeyStore> keyStoreInjector, ModelNode crlNode, AtomicBoolean reloadCrl) throws OperationFailedException {
+                String crlPath = asStringIfDefined(context, PATH, crlNode);
+                String crlRelativeTo = asStringIfDefined(context, RELATIVE_TO, crlNode);
+                int certPath = asIntIfDefined(context, MAXIMUM_CERT_PATH, crlNode);
+                final InjectedValue<PathManager> pathManagerInjector = new InjectedValue<>();
+
+                if (crlPath != null) {
+                    if (crlRelativeTo != null) {
+                        serviceBuilder.addDependency(PathManagerService.SERVICE_NAME, PathManager.class, pathManagerInjector);
+                        serviceBuilder.addDependency(pathName(crlRelativeTo));
+                    }
+                }
+
+                return () -> {
+                    TrustManagerFactory trustManagerFactory = createTrustManagerFactory(providersInjector.getOptionalValue(), providerName, algorithm);
+                    KeyStore keyStore = keyStoreInjector.getOptionalValue();
+
+                    if (crlPath != null) {
+                        try {
+                            X509CRLExtendedTrustManager trustManager = new X509CRLExtendedTrustManager(keyStore, trustManagerFactory, new FileInputStream(resolveFileLocation(crlPath, crlRelativeTo, pathManagerInjector)), certPath, null);
+                            return createReloadableX509CRLTrustManager(reloadCrl, crlPath, crlRelativeTo, certPath, pathManagerInjector, trustManagerFactory, keyStore, trustManager);
+                        } catch (FileNotFoundException e) {
+                            throw ElytronSubsystemMessages.ROOT_LOGGER.unableToAccessCRL(e);
+                        }
+                    }
+
+                    return new TrustManager[] {new X509CRLExtendedTrustManager(keyStore, trustManagerFactory, null, certPath, null)};
+                };
+            }
+
+            private TrustManager[] createReloadableX509CRLTrustManager(final AtomicBoolean reloadCrl, final String crlPath, final String crlRelativeTo, final int certPath, final InjectedValue<PathManager> pathManagerInjector, final TrustManagerFactory trustManagerFactory, final KeyStore keyStore, final X509CRLExtendedTrustManager trustManager) {
+                return new TrustManager[] {new X509ExtendedTrustManager() {
+
+                    private volatile X509ExtendedTrustManager delegate = trustManager;
+                    private AtomicBoolean reloading = new AtomicBoolean();
+
+                    private X509ExtendedTrustManager getDelegate() {
+                        if (reloadCrl.get() && reloading.compareAndSet(false, true)) {
+                            X509ExtendedTrustManager reloaded = null;
+                            try {
+                                reloaded = new X509CRLExtendedTrustManager(keyStore, trustManagerFactory, new FileInputStream(resolveFileLocation(crlPath, crlRelativeTo, pathManagerInjector)), certPath, null);
+                            } catch (FileNotFoundException cause) {
+                                throw ElytronSubsystemMessages.ROOT_LOGGER.unableToReloadCRL(cause);
+                            } finally {
+                                if (reloaded != null) {
+                                    delegate = reloaded;
+                                }
+                                reloadCrl.lazySet(false);
+                                reloading.lazySet(false);
+                            }
+                        }
+                        return delegate;
+                    }
+
+                    @Override
+                    public void checkClientTrusted(X509Certificate[] x509Certificates, String s, Socket socket) throws CertificateException {
+                        getDelegate().checkClientTrusted(x509Certificates, s, socket);
+                    }
+
+                    @Override
+                    public void checkServerTrusted(X509Certificate[] x509Certificates, String s, Socket socket) throws CertificateException {
+                        getDelegate().checkServerTrusted(x509Certificates, s, socket);
+                    }
+
+                    @Override
+                    public void checkClientTrusted(X509Certificate[] x509Certificates, String s, SSLEngine sslEngine) throws CertificateException {
+                        getDelegate().checkClientTrusted(x509Certificates, s, sslEngine);
+                    }
+
+                    @Override
+                    public void checkServerTrusted(X509Certificate[] x509Certificates, String s, SSLEngine sslEngine) throws CertificateException {
+                        getDelegate().checkServerTrusted(x509Certificates, s, sslEngine);
+                    }
+
+                    @Override
+                    public void checkClientTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
+                        getDelegate().checkClientTrusted(x509Certificates, s);
+                    }
+
+                    @Override
+                    public void checkServerTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
+                        getDelegate().checkServerTrusted(x509Certificates, s);
+                    }
+
+                    @Override
+                    public X509Certificate[] getAcceptedIssuers() {
+                        return getDelegate().getAcceptedIssuers();
+                    }
+                }};
+            }
+
+            private File resolveFileLocation(String path, String relativeTo, InjectedValue<PathManager> pathManagerInjector) {
+                final File resolvedPath;
+                if (relativeTo != null) {
+                    PathManager pathManager =  pathManagerInjector.getValue();
+                    resolvedPath = new File(pathManager.resolveRelativePathEntry(path, relativeTo));
+                } else {
+                    resolvedPath = new File(path);
+                }
+                return resolvedPath;
+            }
+
+            private TrustManagerFactory createTrustManagerFactory(Provider[] providers, String providerName, String algorithm) throws StartException {
+                TrustManagerFactory trustManagerFactory = null;
+
+                if (providers != null) {
+                    for (Provider current : providers) {
+                        if (providerName == null || providerName.equals(current.getName())) {
+                            try {
+                                // TODO - We could check the Services within each Provider to check there is one of the required type/algorithm
+                                // However the same loop would need to remain as it is still possible a specific provider can't create it.
+                                return TrustManagerFactory.getInstance(algorithm, current);
+                            } catch (NoSuchAlgorithmException ignored) {
+                            }
+                        }
+                    }
+                    if (trustManagerFactory == null) throw ROOT_LOGGER.unableToCreateManagerFactory(TrustManagerFactory.class.getSimpleName(), algorithm);
+                }
+
+                try {
+                    return TrustManagerFactory.getInstance(algorithm);
+                } catch (NoSuchAlgorithmException e) {
+                    throw new StartException(e);
+                }
+            }
         };
 
-        return new TrivialResourceDefinition(ElytronDescriptionConstants.TRUST_MANAGERS, add, attributes, TRUST_MANAGERS_RUNTIME_CAPABILITY, CREDENTIAL_STORE_RUNTIME_CAPABILITY);
+        return new TrivialResourceDefinition(ElytronDescriptionConstants.TRUST_MANAGERS, add, attributes, TRUST_MANAGERS_RUNTIME_CAPABILITY, CREDENTIAL_STORE_RUNTIME_CAPABILITY) {
+            @Override
+            public void registerOperations(ManagementResourceRegistration resourceRegistration) {
+                super.registerOperations(resourceRegistration);
+                resourceRegistration.registerOperationHandler(new SimpleOperationDefinition(ElytronDescriptionConstants.RELOAD_CERTIFICATE_REVOCATION_LIST, getResourceDescriptionResolver()), new ReloadCertificateRevocationList());
+            }
+
+            class ReloadCertificateRevocationList implements OperationStepHandler {
+
+                private ReloadCertificateRevocationList() {
+                }
+
+                @Override
+                public void execute(OperationContext context, ModelNode operation) throws OperationFailedException {
+                    context.addStep(operation, (parentContext, parentOperation) -> {
+                        reloadCrl.compareAndSet(false, true);
+                    }, OperationContext.Stage.RUNTIME);
+                }
+            }
+        };
     }
 
     private static class SSLContextDefinition extends TrivialResourceDefinition {
@@ -673,7 +852,7 @@ class SSLDefinitions {
         throw ROOT_LOGGER.noTypeFound(X509ExtendedTrustManager.class.getSimpleName());
     }
 
-    abstract static class SSLContextRuntimeHandler extends AbstractRuntimeOnlyHandler {
+    abstract static class SSLContextRuntimeHandler extends ElytronRuntimeOnlyHandler {
         @Override
         protected void executeRuntimeStep(OperationContext context, ModelNode operation) throws OperationFailedException {
             ServiceName serviceName = getSSLContextServiceUtil().serviceName(operation);

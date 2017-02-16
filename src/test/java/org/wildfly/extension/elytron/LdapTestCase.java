@@ -84,6 +84,16 @@ public class LdapTestCase extends AbstractSubsystemTest {
     }
 
     @Test
+    public void testDirContextSslCredential() throws Exception {
+        ServiceName serviceNameDirContext = Capabilities.DIR_CONTEXT_RUNTIME_CAPABILITY.getCapabilityServiceName("DirContextSslCredential");
+        ExceptionSupplier<DirContext, NamingException> dirContextSup = (DirContextSupplier) services.getContainer().getService(serviceNameDirContext).getValue();
+        DirContext dirContext = dirContextSup.get();
+        Assert.assertNotNull(dirContext);
+        Assert.assertEquals("org.wildfly.security.auth.realm.ldap.DelegatingLdapContext", dirContext.getClass().getName());
+        dirContext.close();
+    }
+
+    @Test
     public void testLdapRealm() throws Exception {
         ServiceName serviceName = Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY.getCapabilityServiceName("LdapRealm");
         ModifiableSecurityRealm securityRealm = (ModifiableSecurityRealm) services.getContainer().getService(serviceName).getValue();

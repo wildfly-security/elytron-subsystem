@@ -159,6 +159,7 @@ class ProviderParser {
             }
         }
     }
+
     private boolean shouldWrite(ModelNode subsystem) {
         return subsystem.hasDefined(AGGREGATE_PROVIDERS) || subsystem.hasDefined(PROVIDER_LOADER);
     }

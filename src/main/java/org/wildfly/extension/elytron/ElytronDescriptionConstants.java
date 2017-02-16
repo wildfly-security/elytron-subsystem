@@ -37,6 +37,7 @@ interface ElytronDescriptionConstants {
     String AGGREGATE_REALM = "aggregate-realm";
     String AGGREGATE_ROLE_MAPPER = "aggregate-role-mapper";
     String AGGREGATE_SASL_SERVER_FACTORY = "aggregate-sasl-server-factory";
+    String AGGREGATE_SECURITY_EVENT_LISTENER = "aggregate-security-event-listener";
     String ALIAS = "alias";
     String ALIAS_ATTRIBUTE = "alias-attribute";
     String ALIAS_FILTER = "alias-filter";
@@ -54,6 +55,7 @@ interface ElytronDescriptionConstants {
     String ATTRIBUTE_VALUES = "attribute-values";
     String ATTRIBUTES = "attributes";
     String AUDIENCE = "audience";
+    String AUDIT_LOGGING = "audit-logging";
     String AUTHENTICATION_CLIENT = "authentication-client";
     String AUTHENTICATION_CONFIGURATION = "authentication-configuration";
     String AUTHENTICATION_CONTEXT = "authentication-context";
@@ -76,6 +78,7 @@ interface ElytronDescriptionConstants {
     String CERTIFICATE_CHAIN_ENCODING = "certificate-chain-encoding";
     String CERTIFICATE_FROM = "certificate-from";
     String CERTIFICATE_TYPE = "certificate-type";
+    String CERTIFICATE_REVOCATION_LIST = "certificate-revocation-list";
     String CHAINED_PRINCIPAL_TRANSFORMER = "chained-principal-transformer";
     String CIPHER_SUITE = "cipher-suite";
     String CIPHER_SUITE_FILTER = "cipher-suite-filter";
@@ -93,6 +96,7 @@ interface ElytronDescriptionConstants {
     String CONFIGURABLE_HTTP_SERVER_MECHANISM_FACTORY = "configurable-http-server-mechanism-factory";
     String CONFIGURABLE_SASL_SERVER_FACTORY = "configurable-sasl-server-factory";
     String CONFIGURATION = "configuration";
+    String CONFIGURATION_FACTORY = "configuration-factory";
     String CONFIGURATION_FILE = "configuration-file";
     String CONFIGURATION_PROPERTIES = "configuration-properties";
     String CONNECTION_TIMEOUT = "connection-timeout";
@@ -115,6 +119,7 @@ interface ElytronDescriptionConstants {
     String CREDENTIALS = "credentials";
     String CUSTOM_CREDENTIAL_SECURITY_FACTORY = "custom-credential-security-factory";
     String CUSTOM_PERMISSION_MAPPER = "custom-permission-mapper";
+    String CUSTOM_POLICY = "custom-policy";
     String CUSTOM_PRINCIPAL_DECODER = "custom-principal-decoder";
     String CUSTOM_PRINCIPAL_TRANSFORMER = "custom-principal-transformer";
     String CUSTOM_REALM = "custom-realm";
@@ -126,6 +131,7 @@ interface ElytronDescriptionConstants {
     String DATA_SOURCE = "data-source";
     String DEBUG = "debug";
     String DEFAULT_AUTHENTICATION_CONTEXT = "default-authentication-context";
+    String DEFAULT_POLICY = "default-policy";
     String DEFAULT_REALM = "default-realm";
     String DELEGATE_REALM_MAPPER = "delegate-realm-mapper";
     String DIGEST = "digest";
@@ -136,6 +142,7 @@ interface ElytronDescriptionConstants {
     String DIR_CONTEXTS = "dir-contexts";
     String DIRECT_VERIFICATION = "direct-verification";
 
+    String ELYTRON_SECURITY = "elytron-security";
     String ENABLE_CONNECTION_POOLING = "enable-connection-pooling";
     String ENABLING = "enabling";
     String ENCODED = "encoded";
@@ -144,6 +151,7 @@ interface ElytronDescriptionConstants {
     String EXTENDS = "extends";
 
     String FILE = "file";
+    String FILE_AUDIT_LOG = "file-audit-log";
     String FILESYSTEM_REALM = "filesystem-realm";
     String FILTER = "filter";
     String FILTER_ALIAS = "filter-alias";
@@ -182,6 +190,7 @@ interface ElytronDescriptionConstants {
     String IMPLEMENTATION = "implementation";
     String INDEX = "index";
     String INFO = "info";
+    String INITIAL = "initial";
     String INITIAL_PROVIDERS = "initial-providers";
     String INTROSPECTION_URL = "introspection-url";
     String INVALIDATE = "invalidate";
@@ -190,6 +199,7 @@ interface ElytronDescriptionConstants {
     String ITERATION_COUNT_INDEX = "iteration-count-index";
     String ITERATOR_FILTER = "iterator-filter";
 
+    String JACC_POLICY = "jacc-policy";
     String JDBC_REALM = "jdbc-realm";
     String JOINER = "joiner";
     String JWT = "jwt";
@@ -238,6 +248,7 @@ interface ElytronDescriptionConstants {
     String MATCH_URN = "match-urn";
     String MATCH_USER = "match-user";
     String MAXIMUM_AGE = "maximum-age";
+    String MAXIMUM_CERT_PATH = "maximum-cert-path";
     String MAXIMUM_ENTRIES = "maximum-entries";
     String MAXIMUM_SEGMENTS = "maximum-segments";
     String MAXIMUM_SESSION_CACHE_SIZE = "maximum-session-cache-size";
@@ -271,8 +282,11 @@ interface ElytronDescriptionConstants {
     String OAUTH2_INTROSPECTION = "oauth2-introspection";
     String OBTAIN_KERBEROS_TICKET = "obtain-kerberos-ticket";
     String OID = "oid";
+    String OTHER_PROVIDERS = "other-providers";
     String OTP_CREDENTIAL_MAPPER = "otp-credential-mapper";
     String OR = "or";
+    String OUTFLOW_ANONYMOUS = "outflow-anonymous";
+    String OUTFLOW_SECURITY_DOMAINS = "outflow-security-domains";
 
     String PACKET_BUFFER_SIZE = "packet-buffer-size";
     String PATH = "path";
@@ -290,6 +304,7 @@ interface ElytronDescriptionConstants {
     String PERMISSION_MAPPING = "permission-mapping";
     String PERMISSION_MAPPINGS = "permission-mappings";
     String PLAIN_TEXT = "plain-text";
+    String POLICY = "policy";
     String PORT = "port";
     String POST_REALM_PRINCIPAL_TRANSFORMER = "post-realm-principal-transformer";
     String PRE_REALM_PRINCIPAL_TRANSFORMER = "pre-realm-principal-transformer";
@@ -366,6 +381,8 @@ interface ElytronDescriptionConstants {
     String SEARCH_TIME_LIMIT = "search-time-limit";
     String SECURITY_DOMAIN = "security-domain";
     String SECURITY_DOMAINS = "security-domains";
+    String SECURITY_EVENT_LISTENER = "security-event-listener";
+    String SECURITY_EVENT_LISTENERS = "security-event-listeners";
     String SECURITY_PROPERTIES = "security-properties";
     String SECURITY_PROPERTY = "security-property";
     String SECURITY_REALMS = "security-realms";
@@ -376,6 +393,7 @@ interface ElytronDescriptionConstants {
     String SERIAL_NUMBER = "serial-number";
     String SERIAL_NUMBER_FROM = "serial-number-from";
     String SERVER = "server";
+    String SERVER_ADDRESS = "server-address";
     String SERVER_SSL_CONTEXT = "server-ssl-context";
     String SERVER_SSL_CONTEXTS = "server-ssl-contexts";
     String SESSION_TIMEOUT = "session-timeout";
@@ -405,17 +423,20 @@ interface ElytronDescriptionConstants {
     String SUBJECT_DN_FROM = "subject-dn-from";
     String SUFFIX = "suffix";
     String SYNCHRONIZED = "synchronized";
+    String SYSLOG_AUDIT_LOG = "syslog-audit-log";
 
     String TARGET_NAME = "target-name";
     String TLS = "tls";
     String TO = "to";
     String TOKEN_REALM = "token-realm";
+    String TRANSPORT = "transport";
     String TRUST_MANAGER = "trust-manager";
     String TRUST_MANAGERS = "trust-managers";
     String TRUSTED_SECURITY_DOMAINS = "trusted-security-domains";
     String TYPE = "type";
 
     String RELOAD = "reload";
+    String RELOAD_CERTIFICATE_REVOCATION_LIST = "reload-certificate-revocation-list";
     String UNLESS = "unless";
     String URI = "uri";
     String URL = "url";

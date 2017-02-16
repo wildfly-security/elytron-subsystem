@@ -57,7 +57,6 @@ import org.jboss.as.controller.OperationFailedException;
 import org.jboss.as.controller.PathAddress;
 import org.jboss.as.controller.PathElement;
 import org.jboss.as.controller.ResourceDefinition;
-import org.jboss.as.controller.RestartParentWriteAttributeHandler;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
 import org.jboss.as.controller.SimpleResourceDefinition;
@@ -145,6 +144,7 @@ class SaslServerDefinitions {
         .build();
 
     static final SimpleAttributeDefinition VERSION_COMPARISON = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.VERSION_COMPARISON, ModelType.STRING, false)
+        .setRequired(false)
         .setAllowExpression(true)
         .setDefaultValue(new ModelNode(ElytronDescriptionConstants.LESS_THAN))
         .setRequires(ElytronDescriptionConstants.PROVIDER_VERSION)
@@ -155,7 +155,7 @@ class SaslServerDefinitions {
         .build();
 
     static final ObjectTypeAttributeDefinition MECH_PROVIDER_FILTER = new ObjectTypeAttributeDefinition.Builder(ElytronDescriptionConstants.FILTER, MECHANISM_NAME, PROVIDER_NAME, PROVIDER_VERSION, VERSION_COMPARISON)
-        .setAllowNull(false)
+        .setAllowNull(true)
         .build();
 
     static final ObjectListAttributeDefinition MECH_PROVIDER_FILTERS = new ObjectListAttributeDefinition.Builder(ElytronDescriptionConstants.FILTERS, MECH_PROVIDER_FILTER)
@@ -488,7 +488,7 @@ class SaslServerDefinitions {
 
     }
 
-    private static class WriteAttributeHandler extends RestartParentWriteAttributeHandler {
+    private static class WriteAttributeHandler extends ElytronRestartParentWriteAttributeHandler {
 
         WriteAttributeHandler(String parentName, AttributeDefinition ... attributes) {
             super(parentName, attributes);

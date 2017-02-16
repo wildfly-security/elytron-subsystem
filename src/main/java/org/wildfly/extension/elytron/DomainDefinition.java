@@ -18,6 +18,7 @@
 
 package org.wildfly.extension.elytron;
 
+import static java.security.AccessController.doPrivileged;
 import static org.wildfly.extension.elytron.Capabilities.PERMISSION_MAPPER_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.PRINCIPAL_DECODER_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.PRINCIPAL_TRANSFORMER_CAPABILITY;
@@ -26,13 +27,22 @@ import static org.wildfly.extension.elytron.Capabilities.ROLE_DECODER_CAPABILITY
 import static org.wildfly.extension.elytron.Capabilities.ROLE_MAPPER_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SECURITY_DOMAIN_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SECURITY_DOMAIN_RUNTIME_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.SECURITY_EVENT_LISTENER_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.INITIAL;
 import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
 import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
 
+import java.security.PrivilegedAction;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 
 import org.jboss.as.controller.AttributeDefinition;
 import org.jboss.as.controller.ObjectListAttributeDefinition;
@@ -43,7 +53,6 @@ import org.jboss.as.controller.OperationStepHandler;
 import org.jboss.as.controller.PathAddress;
 import org.jboss.as.controller.PathElement;
 import org.jboss.as.controller.ResourceDefinition;
-import org.jboss.as.controller.RestartParentWriteAttributeHandler;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
 import org.jboss.as.controller.SimpleResourceDefinition;
@@ -61,15 +70,23 @@ import org.jboss.msc.service.ServiceController;
 import org.jboss.msc.service.ServiceController.Mode;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.ServiceTarget;
+import org.jboss.msc.service.StartException;
+import org.jboss.msc.value.InjectedValue;
 import org.wildfly.extension.elytron.DomainService.RealmDependency;
+import org.wildfly.extension.elytron.TrivialService.ValueSupplier;
 import org.wildfly.extension.elytron.capabilities.PrincipalTransformer;
+import org.wildfly.extension.elytron.capabilities.SecurityEventListener;
 import org.wildfly.security.auth.server.PrincipalDecoder;
 import org.wildfly.security.auth.server.RealmMapper;
+import org.wildfly.security.auth.server.RealmUnavailableException;
 import org.wildfly.security.auth.server.SecurityDomain;
+import org.wildfly.security.auth.server.SecurityIdentity;
 import org.wildfly.security.auth.server.SecurityRealm;
+import org.wildfly.security.auth.server.ServerAuthenticationContext;
 import org.wildfly.security.authz.PermissionMapper;
 import org.wildfly.security.authz.RoleDecoder;
 import org.wildfly.security.authz.RoleMapper;
+import org.wildfly.security.manager.WildFlySecurityManager;
 
 /**
  * A {@link ResourceDefinition} for a single domain.
@@ -154,8 +171,29 @@ class DomainDefinition extends SimpleResourceDefinition {
             .setCapabilityReference(SECURITY_DOMAIN_CAPABILITY, SECURITY_DOMAIN_CAPABILITY, true)
             .build();
 
-    private static final AttributeDefinition[] ATTRIBUTES =
-            new AttributeDefinition[] { PRE_REALM_PRINCIPAL_TRANSFORMER, POST_REALM_PRINCIPAL_TRANSFORMER, PRINCIPAL_DECODER, REALM_MAPPER, ROLE_MAPPER, PERMISSION_MAPPER, DEFAULT_REALM, REALMS, TRUSTED_SECURITY_DOMAINS };
+    static final SimpleAttributeDefinition OUTFLOW_ANONYMOUS = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.OUTFLOW_ANONYMOUS, ModelType.BOOLEAN, true)
+            .setAllowExpression(true)
+            .setDefaultValue(new ModelNode(false))
+            .setRequires(ElytronDescriptionConstants.OUTFLOW_SECURITY_DOMAINS)
+            .setMinSize(1)
+            .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+            .build();
+
+    static final StringListAttributeDefinition OUTFLOW_SECURITY_DOMAINS = new StringListAttributeDefinition.Builder(ElytronDescriptionConstants.OUTFLOW_SECURITY_DOMAINS)
+            .setRequired(false)
+            .setMinSize(1)
+            .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+            .setCapabilityReference(SECURITY_DOMAIN_CAPABILITY, SECURITY_DOMAIN_CAPABILITY, true)
+            .build();
+
+    static final SimpleAttributeDefinition SECURITY_EVENT_LISTENER = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.SECURITY_EVENT_LISTENER, ModelType.STRING, true)
+            .setAllowExpression(false)
+            .setCapabilityReference(SECURITY_EVENT_LISTENER_CAPABILITY, SECURITY_DOMAIN_CAPABILITY, true)
+            .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+            .build();
+
+    private static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] { PRE_REALM_PRINCIPAL_TRANSFORMER, POST_REALM_PRINCIPAL_TRANSFORMER, PRINCIPAL_DECODER,
+            REALM_MAPPER, ROLE_MAPPER, PERMISSION_MAPPER, DEFAULT_REALM, REALMS, TRUSTED_SECURITY_DOMAINS, OUTFLOW_ANONYMOUS, OUTFLOW_SECURITY_DOMAINS, SECURITY_EVENT_LISTENER };
 
     private static final DomainAddHandler ADD = new DomainAddHandler();
     private static final OperationStepHandler REMOVE = new TrivialCapabilityServiceRemoveHandler(ADD, SECURITY_DOMAIN_RUNTIME_CAPABILITY);
@@ -188,17 +226,12 @@ class DomainDefinition extends SimpleResourceDefinition {
         IdentityResourceDefinition.AuthenticatorOperationHandler.register(resourceRegistration, getResourceDescriptionResolver());
     }
 
-    private static ServiceController<SecurityDomain> installService(OperationContext context, ServiceName domainName, ModelNode model) throws OperationFailedException {
+    private static ServiceController<SecurityDomain> installInitialService(OperationContext context, ServiceName initialName, ModelNode model,
+            Predicate<SecurityDomain> trustedSecurityDomain, UnaryOperator<SecurityIdentity> identityOperator) throws OperationFailedException {
         ServiceTarget serviceTarget = context.getServiceTarget();
-        String simpleName = domainName.getSimpleName();
 
         String defaultRealm = DomainDefinition.DEFAULT_REALM.resolveModelAttribute(context, model).asString();
         List<ModelNode> realms = REALMS.resolveModelAttribute(context, model).asList();
-        List<String> trustedSecurityDomains = TRUSTED_SECURITY_DOMAINS.unwrap(context, model);
-
-        if (trustedSecurityDomains.contains(simpleName)) {
-            throw ROOT_LOGGER.trustedDomainsCannotContainDomainItself(simpleName);
-        }
 
         String preRealmPrincipalTransformer = asStringIfDefined(context, PRE_REALM_PRINCIPAL_TRANSFORMER, model);
         String postRealmPrincipalTransformer = asStringIfDefined(context, POST_REALM_PRINCIPAL_TRANSFORMER, model);
@@ -206,10 +239,11 @@ class DomainDefinition extends SimpleResourceDefinition {
         String permissionMapper = asStringIfDefined(context, PERMISSION_MAPPER, model);
         String realmMapper = asStringIfDefined(context, REALM_MAPPER, model);
         String roleMapper = asStringIfDefined(context, ROLE_MAPPER, model);
+        String securityEventListener = asStringIfDefined(context, SECURITY_EVENT_LISTENER, model);
 
-        DomainService domain = new DomainService(simpleName, defaultRealm, trustedSecurityDomains);
+        DomainService domain = new DomainService(defaultRealm, trustedSecurityDomain, identityOperator);
 
-        ServiceBuilder<SecurityDomain> domainBuilder = serviceTarget.addService(domainName, domain)
+        ServiceBuilder<SecurityDomain> domainBuilder = serviceTarget.addService(initialName, domain)
                 .setInitialMode(Mode.ACTIVE);
 
         if (preRealmPrincipalTransformer != null) {
@@ -240,6 +274,12 @@ class DomainDefinition extends SimpleResourceDefinition {
             injectRoleMapper(roleMapper, context, domainBuilder, domain.createDomainRoleMapperInjector(roleMapper));
         }
 
+        if (securityEventListener != null) {
+            domainBuilder.addDependency(
+                    context.getCapabilityServiceName(SECURITY_EVENT_LISTENER_CAPABILITY, securityEventListener, SecurityEventListener.class),
+                    SecurityEventListener.class, domain.getSecurityEventListenerInjector());
+        }
+
         for (ModelNode current : realms) {
             String realmName = REALM_NAME.resolveModelAttribute(context, current).asString();
             String runtimeCapability = RuntimeCapability.buildDynamicCapabilityName(SECURITY_REALM_CAPABILITY, realmName);
@@ -265,6 +305,108 @@ class DomainDefinition extends SimpleResourceDefinition {
 
         commonDependencies(domainBuilder);
         return domainBuilder.install();
+    }
+
+    private static ServiceController<SecurityDomain> installService(OperationContext context, ServiceName domainName, ModelNode model) throws OperationFailedException {
+        ServiceName initialName = domainName.append(INITIAL);
+
+        final InjectedValue<SecurityDomain> securityDomain = new InjectedValue<>();
+
+        List<String> trustedSecurityDomainNames = TRUSTED_SECURITY_DOMAINS.unwrap(context, model);
+        final List<InjectedValue<SecurityDomain>> trustedSecurityDomainInjectors = new ArrayList<>(trustedSecurityDomainNames.size());
+        final Set<SecurityDomain> trustedSecurityDomains = new HashSet<>();
+
+        List<String> outflowSecurityDomainNames = OUTFLOW_SECURITY_DOMAINS.unwrap(context, model);
+        final boolean outflowAnonymous = OUTFLOW_ANONYMOUS.resolveModelAttribute(context, model).asBoolean();
+        final List<InjectedValue<SecurityDomain>> outflowSecurityDomainInjectors = new ArrayList<>(outflowSecurityDomainNames.size());
+        final Set<SecurityDomain> outflowSecurityDomains = new HashSet<>();
+
+        installInitialService(context, initialName, model, trustedSecurityDomains::contains,
+                outflowSecurityDomainNames.size() > 0 ? i -> outflow(i, outflowAnonymous, outflowSecurityDomains) : UnaryOperator.identity());
+
+        TrivialService<SecurityDomain> finalDomainService = new TrivialService<SecurityDomain>();
+        finalDomainService.setValueSupplier(new ValueSupplier<SecurityDomain>() {
+
+            @Override
+            public SecurityDomain get() throws StartException {
+                trustedSecurityDomainInjectors.forEach(i -> trustedSecurityDomains.add(i.getValue()));
+                outflowSecurityDomainInjectors.forEach(i -> outflowSecurityDomains.add(i.getValue()));
+                return securityDomain.getValue();
+            }
+
+            @Override
+            public void dispose() {
+                trustedSecurityDomains.clear();
+            }
+
+        });
+
+        ServiceTarget serviceTarget = context.getServiceTarget();
+        ServiceBuilder<SecurityDomain> domainBuilder = serviceTarget.addService(domainName, finalDomainService)
+                .setInitialMode(Mode.ACTIVE);
+        domainBuilder.addDependency(initialName, SecurityDomain.class, securityDomain);
+        for (String trustedDomainName : trustedSecurityDomainNames) {
+            InjectedValue<SecurityDomain> trustedDomainInjector = new InjectedValue<>();
+            domainBuilder.addDependency(context.getCapabilityServiceName(SECURITY_DOMAIN_CAPABILITY, trustedDomainName, SecurityDomain.class).append(INITIAL), SecurityDomain.class, trustedDomainInjector);
+            trustedSecurityDomainInjectors.add(trustedDomainInjector);
+        }
+
+        for (String outflowDomainName : outflowSecurityDomainNames) {
+            InjectedValue<SecurityDomain> outflowDomainInjector = new InjectedValue<>();
+            domainBuilder.addDependency(context.getCapabilityServiceName(SECURITY_DOMAIN_CAPABILITY, outflowDomainName, SecurityDomain.class).append(INITIAL), SecurityDomain.class, outflowDomainInjector);
+            outflowSecurityDomainInjectors.add(outflowDomainInjector);
+        }
+
+        // This depends on the initial service which depends on the common dependencies so no need to add them for this one.
+        return domainBuilder.install();
+    }
+
+    private static SecurityIdentity outflow(final SecurityIdentity identity, final boolean outflowAnonymous, final Set<SecurityDomain> outflowDomains) {
+        return identity.withSecurityIdentitySupplier(new Supplier<SecurityIdentity[]>() {
+
+            private volatile SecurityIdentity[] outflowIdentities = null;
+
+            @Override
+            public SecurityIdentity[] get() {
+                SecurityIdentity[] outflowIdentities = this.outflowIdentities;
+                if (outflowIdentities != null) {
+                    // We could synchronize on the identity but if anything outside
+                    // also synchronizes we could get unpredictable locking.
+                    synchronized(this) {
+                        outflowIdentities = this.outflowIdentities;
+                        if (outflowIdentities == null) {
+                            if (WildFlySecurityManager.isChecking()) {
+                                outflowIdentities = doPrivileged((PrivilegedAction<SecurityIdentity[]>) () -> performOutflow(identity, outflowAnonymous, outflowDomains));
+                            } else {
+                                outflowIdentities = performOutflow(identity, outflowAnonymous, outflowDomains);
+                            }
+
+                            this.outflowIdentities = outflowIdentities;
+                        }
+                    }
+                }
+
+                return outflowIdentities;
+            }
+        });
+    }
+
+    private static SecurityIdentity[] performOutflow(SecurityIdentity identity, boolean outflowAnonymous, Set<SecurityDomain> outflowDomains) {
+        List<SecurityIdentity> outflowIdentities = new ArrayList<>(outflowDomains.size());
+        outflowDomains.forEach(d -> {
+            ServerAuthenticationContext sac = d.createNewAuthenticationContext();
+            try {
+                if (sac.importIdentity(identity)) {
+                    outflowIdentities.add(sac.getAuthorizedIdentity());
+                } else if (outflowAnonymous) {
+                    outflowIdentities.add(d.getAnonymousSecurityIdentity());
+                }
+            } catch (RealmUnavailableException e) {
+                throw ROOT_LOGGER.unableToPerformOutflow(identity.getPrincipal().getName(), e);
+            }
+        });
+
+        return outflowIdentities.toArray(new SecurityIdentity[outflowIdentities.size()]);
     }
 
     private static void injectPrincipalTransformer(String principalTransformer, OperationContext context, ServiceBuilder<SecurityDomain> domainBuilder, Injector<PrincipalTransformer> injector) {
@@ -335,7 +477,7 @@ class DomainDefinition extends SimpleResourceDefinition {
 
     }
 
-    private static class WriteAttributeHandler extends RestartParentWriteAttributeHandler {
+    private static class WriteAttributeHandler extends ElytronRestartParentWriteAttributeHandler {
 
         WriteAttributeHandler(String parentKeyName) {
             super(parentKeyName, ATTRIBUTES);

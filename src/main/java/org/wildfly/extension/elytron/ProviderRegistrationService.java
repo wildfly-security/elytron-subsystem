@@ -55,7 +55,7 @@ class ProviderRegistrationService implements Service<Void> {
         if (initialProviders != null) {
             SecurityActions.doPrivileged((PrivilegedAction<Void>) () -> {
                 for (int i = initialProviders.length - 1; i >= 0; i--) {
-                    int position = Security.insertProviderAt(initialProviders[i], 0);
+                    int position = Security.insertProviderAt(initialProviders[i], 1);
                     if (position > -1) {
                         registeredProviderNames.add(initialProviders[i].getName());
                     }

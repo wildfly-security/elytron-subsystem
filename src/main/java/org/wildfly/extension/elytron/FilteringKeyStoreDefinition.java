@@ -27,7 +27,6 @@ import static org.wildfly.extension.elytron.ServiceStateDefinition.populateRespo
 
 import java.security.KeyStore;
 
-import org.jboss.as.controller.AbstractRuntimeOnlyHandler;
 import org.jboss.as.controller.AttributeDefinition;
 import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
@@ -35,7 +34,6 @@ import org.jboss.as.controller.OperationStepHandler;
 import org.jboss.as.controller.PathAddress;
 import org.jboss.as.controller.PathElement;
 import org.jboss.as.controller.ResourceDefinition;
-import org.jboss.as.controller.RestartParentWriteAttributeHandler;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
 import org.jboss.as.controller.SimpleResourceDefinition;
@@ -60,7 +58,7 @@ import org.wildfly.security.keystore.FilteringKeyStore;
  *
  * @author <a href="mailto:jkalina@redhat.com">Jan Kalina</a>
  */
-public class FilteringKeyStoreDefinition extends SimpleResourceDefinition {
+class FilteringKeyStoreDefinition extends SimpleResourceDefinition {
 
     static final ServiceUtil<KeyStore> FILTERING_KEY_STORE_UTIL = ServiceUtil.newInstance(KEY_STORE_RUNTIME_CAPABILITY, ElytronDescriptionConstants.FILTERING_KEY_STORE, KeyStore.class);
 
@@ -99,7 +97,7 @@ public class FilteringKeyStoreDefinition extends SimpleResourceDefinition {
             resourceRegistration.registerReadWriteAttribute(current, null, WRITE);
         }
 
-        resourceRegistration.registerReadOnlyAttribute(STATE, new AbstractRuntimeOnlyHandler() {
+        resourceRegistration.registerReadOnlyAttribute(STATE, new ElytronRuntimeOnlyHandler() {
 
             @Override
             protected void executeRuntimeStep(OperationContext context, ModelNode operation) throws OperationFailedException {
@@ -143,7 +141,8 @@ public class FilteringKeyStoreDefinition extends SimpleResourceDefinition {
             ServiceBuilder<KeyStore> serviceBuilder = serviceTarget.addService(serviceName, filteringKeyStoreService).setInitialMode(ServiceController.Mode.ACTIVE);
 
             serviceBuilder.addDependency(sourceKeyStoreServiceName);
-            ServiceRegistry serviceRegistry = context.getServiceRegistry(false);
+            // Retrieving the modifiable registry here as the ModifiedKeyStoreService may be modified
+            ServiceRegistry serviceRegistry = context.getServiceRegistry(true);
             ServiceController<?> controller = serviceRegistry.getRequiredService(sourceKeyStoreServiceName);
             serviceInjector.setValue(() -> (ModifiableKeyStoreService) controller.getService());
 
@@ -162,7 +161,7 @@ public class FilteringKeyStoreDefinition extends SimpleResourceDefinition {
         }
     }
 
-    private static class WriteAttributeHandler extends RestartParentWriteAttributeHandler {
+    private static class WriteAttributeHandler extends ElytronRestartParentWriteAttributeHandler {
 
         WriteAttributeHandler() {
             super(ElytronDescriptionConstants.FILTERING_KEY_STORE, CONFIG_ATTRIBUTES);

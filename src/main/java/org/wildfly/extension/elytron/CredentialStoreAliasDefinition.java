@@ -30,8 +30,6 @@ import java.util.Locale;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.jboss.as.controller.AbstractAddStepHandler;
-import org.jboss.as.controller.AbstractWriteAttributeHandler;
 import org.jboss.as.controller.AttributeDefinition;
 import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
@@ -165,7 +163,7 @@ class CredentialStoreAliasDefinition extends SimpleResourceDefinition {
         return  operationAlias.equals(contextAlias);
     }
 
-    private static class AddHandler extends AbstractAddStepHandler {
+    private static class AddHandler extends BaseAddHandler {
 
         AddHandler() {
             super(CONFIG_ATTRIBUTES);
@@ -179,7 +177,7 @@ class CredentialStoreAliasDefinition extends SimpleResourceDefinition {
 
             ServiceName credentialStoreServiceName = CREDENTIAL_STORE_UTIL.serviceName(operation);
             @SuppressWarnings("unchecked")
-            ServiceController<CredentialStore> serviceContainer = (ServiceController<CredentialStore>) context.getServiceRegistry(false).getRequiredService(credentialStoreServiceName);
+            ServiceController<CredentialStore> serviceContainer = (ServiceController<CredentialStore>) context.getServiceRegistry(true).getRequiredService(credentialStoreServiceName);
             CredentialStore credentialStore = ((CredentialStoreService) serviceContainer.getService()).getValue();
             try {
                 if (entryType == null || ClearPassword.ALGORITHM_CLEAR.equals(entryType)) {
@@ -241,7 +239,7 @@ class CredentialStoreAliasDefinition extends SimpleResourceDefinition {
     }
 
 
-    private static class WriteAttributeHandler extends AbstractWriteAttributeHandler<String> {
+    private static class WriteAttributeHandler extends ElytronWriteAttributeHandler<String> {
 
         WriteAttributeHandler() {
             super(CONFIG_ATTRIBUTES);

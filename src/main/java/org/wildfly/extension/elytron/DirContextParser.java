@@ -42,7 +42,7 @@ import org.jboss.staxmapper.XMLExtendedStreamWriter;
  *
  * <a href="mailto:jkalina@redhat.com">Jan Kalina</a>
  */
-public class DirContextParser {
+class DirContextParser {
 
     private final PersistentResourceXMLDescription dirContextParser = builder(PathElement.pathElement(ElytronDescriptionConstants.DIR_CONTEXT), null)
             .addAttributes(DirContextDefinition.ATTRIBUTES)

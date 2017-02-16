@@ -18,10 +18,13 @@
 
 package org.wildfly.extension.elytron;
 
+import static org.wildfly.extension.elytron.Capabilities.AUTHENTICATION_CONTEXT_CAPABILITY;
+import static org.wildfly.extension.elytron.Capabilities.CREDENTIAL_STORE_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.DIR_CONTEXT_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.DIR_CONTEXT_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.Capabilities.SSL_CONTEXT_CAPABILITY;
 import static org.wildfly.extension.elytron.ElytronExtension.asStringIfDefined;
+import static org.wildfly.extension.elytron._private.ElytronSubsystemMessages.ROOT_LOGGER;
 
 import java.util.Properties;
 
@@ -29,13 +32,13 @@ import javax.net.ssl.SSLContext;
 
 import org.jboss.as.controller.AbstractAddStepHandler;
 import org.jboss.as.controller.AttributeDefinition;
+import org.jboss.as.controller.ObjectTypeAttributeDefinition;
 import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
 import org.jboss.as.controller.OperationStepHandler;
 import org.jboss.as.controller.PathAddress;
 import org.jboss.as.controller.PathElement;
 import org.jboss.as.controller.ResourceDefinition;
-import org.jboss.as.controller.RestartParentWriteAttributeHandler;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
 import org.jboss.as.controller.SimpleMapAttributeDefinition;
@@ -45,6 +48,7 @@ import org.jboss.as.controller.operations.validation.EnumValidator;
 import org.jboss.as.controller.registry.AttributeAccess;
 import org.jboss.as.controller.registry.ManagementResourceRegistration;
 import org.jboss.as.controller.registry.OperationEntry;
+import org.jboss.as.controller.security.CredentialReference;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
 import org.jboss.dmr.Property;
@@ -52,17 +56,20 @@ import org.jboss.msc.service.ServiceBuilder;
 import org.jboss.msc.service.ServiceController;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.value.InjectedValue;
+import org.wildfly.common.function.ExceptionSupplier;
 import org.wildfly.extension.elytron.capabilities.DirContextSupplier;
+import org.wildfly.security.auth.client.AuthenticationContext;
 import org.wildfly.security.auth.realm.ldap.DirContextFactory;
 import org.wildfly.security.auth.realm.ldap.DirContextFactory.ReferralMode;
 import org.wildfly.security.auth.realm.ldap.SimpleDirContextFactoryBuilder;
+import org.wildfly.security.credential.source.CredentialSource;
 
 /**
  * A {@link ResourceDefinition} for a {@link javax.naming.directory.DirContext}.
  *
  * @author <a href="mailto:jkalina@redhat.com">Jan Kalina</a>
  */
-public class DirContextDefinition extends SimpleResourceDefinition {
+class DirContextDefinition extends SimpleResourceDefinition {
 
     public static final String CONNECTION_POOLING_PROPERTY = "com.sun.jndi.ldap.connect.pool";
 
@@ -82,10 +89,10 @@ public class DirContextDefinition extends SimpleResourceDefinition {
             .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
             .build();
 
-    static final SimpleAttributeDefinition CREDENTIAL = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.CREDENTIAL, ModelType.STRING, true)
-            .setAllowExpression(true)
-            .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
-            .build();
+    static final ObjectTypeAttributeDefinition CREDENTIAL_REFERENCE =
+            CredentialReference.getAttributeBuilder(CredentialReference.CREDENTIAL_REFERENCE, CredentialReference.CREDENTIAL_REFERENCE, true)
+                    .setCapabilityReference(CREDENTIAL_STORE_CAPABILITY, DIR_CONTEXT_CAPABILITY, true)
+                    .build();
 
     static final SimpleAttributeDefinition ENABLE_CONNECTION_POOLING = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ENABLE_CONNECTION_POOLING, ModelType.BOOLEAN, true)
             .setDefaultValue(new ModelNode(false))
@@ -99,6 +106,12 @@ public class DirContextDefinition extends SimpleResourceDefinition {
             .setValidator(EnumValidator.create(ReferralMode.class, true, true))
             .setAllowExpression(true)
             .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+            .build();
+
+    static final SimpleAttributeDefinition AUTHENTICATION_CONTEXT = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.AUTHENTICATION_CONTEXT, ModelType.STRING, true)
+            .setAllowExpression(false)
+            .setFlags(AttributeAccess.Flag.RESTART_RESOURCE_SERVICES)
+            .setCapabilityReference(AUTHENTICATION_CONTEXT_CAPABILITY, DIR_CONTEXT_CAPABILITY, true)
             .build();
 
     static final SimpleAttributeDefinition SSL_CONTEXT = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.SSL_CONTEXT, ModelType.STRING, true)
@@ -120,7 +133,7 @@ public class DirContextDefinition extends SimpleResourceDefinition {
     static final SimpleMapAttributeDefinition PROPERTIES = new SimpleMapAttributeDefinition.Builder(ElytronDescriptionConstants.PROPERTIES, ModelType.STRING, true)
             .build();
 
-    static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] {URL, AUTHENTICATION_LEVEL, PRINCIPAL, CREDENTIAL, ENABLE_CONNECTION_POOLING, REFERRAL_MODE, SSL_CONTEXT, CONNECTION_TIMEOUT, READ_TIMEOUT, PROPERTIES};
+    static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] {URL, AUTHENTICATION_LEVEL, PRINCIPAL, CREDENTIAL_REFERENCE, ENABLE_CONNECTION_POOLING, REFERRAL_MODE, AUTHENTICATION_CONTEXT, SSL_CONTEXT, CONNECTION_TIMEOUT, READ_TIMEOUT, PROPERTIES};
 
     DirContextDefinition() {
         super(new SimpleResourceDefinition.Parameters(PathElement.pathElement(ElytronDescriptionConstants.DIR_CONTEXT), ElytronExtension.getResourceDescriptionResolver(ElytronDescriptionConstants.DIR_CONTEXT))
@@ -139,12 +152,11 @@ public class DirContextDefinition extends SimpleResourceDefinition {
         }
     }
 
-    private static TrivialService.ValueSupplier<DirContextSupplier> obtainDirContextSupplier(final OperationContext context, final ModelNode model, final InjectedValue<SSLContext> sslContextInjector) throws OperationFailedException {
+    private static TrivialService.ValueSupplier<DirContextSupplier> obtainDirContextSupplier(final OperationContext context, final ModelNode model, final InjectedValue<ExceptionSupplier<CredentialSource, Exception>> credentialSourceSupplierInjector, final InjectedValue<AuthenticationContext> authenticationContextInjector, final InjectedValue<SSLContext> sslContextInjector) throws OperationFailedException {
 
         String url = URL.resolveModelAttribute(context, model).asString();
         String authenticationLevel = AUTHENTICATION_LEVEL.resolveModelAttribute(context, model).asString();
-        String principal = PRINCIPAL.resolveModelAttribute(context, model).asString();
-        String credential = CREDENTIAL.resolveModelAttribute(context, model).asString();
+        String principal = asStringIfDefined(context, PRINCIPAL, model);
 
         Properties connectionProperties = new Properties();
         ModelNode enableConnectionPoolingNode = ENABLE_CONNECTION_POOLING.resolveModelAttribute(context, model);
@@ -160,12 +172,25 @@ public class DirContextDefinition extends SimpleResourceDefinition {
         ReferralMode referralMode = ReferralMode.valueOf(REFERRAL_MODE.resolveModelAttribute(context, model).asString().toUpperCase());
 
         return () -> {
+
             SimpleDirContextFactoryBuilder builder = SimpleDirContextFactoryBuilder.builder()
                     .setProviderUrl(url)
                     .setSecurityAuthentication(authenticationLevel)
-                    .setSecurityPrincipal(principal)
-                    .setSecurityCredential(credential)
                     .setConnectionProperties(connectionProperties);
+
+            if (principal != null) builder.setSecurityPrincipal(principal);
+
+            ExceptionSupplier<CredentialSource, Exception> credentialSourceSupplier = credentialSourceSupplierInjector.getOptionalValue();
+            if (credentialSourceSupplier != null) {
+                try {
+                    builder.setCredentialSource(credentialSourceSupplier.get());
+                } catch (Exception e) {
+                    throw ROOT_LOGGER.dirContextPasswordCannotBeResolved(e);
+                }
+            }
+
+            AuthenticationContext authenticationContext = authenticationContextInjector.getOptionalValue();
+            if (authenticationContext != null) builder.setAuthenticationContext(authenticationContext);
 
             SSLContext sslContext = sslContextInjector.getOptionalValue();
             if (sslContext != null) builder.setSocketFactory(sslContext.getSocketFactory());
@@ -178,15 +203,17 @@ public class DirContextDefinition extends SimpleResourceDefinition {
         };
     }
 
-    private static final AbstractAddStepHandler ADD = new AbstractAddStepHandler(DIR_CONTEXT_RUNTIME_CAPABILITY, ATTRIBUTES) {
+    private static final AbstractAddStepHandler ADD = new BaseAddHandler(DIR_CONTEXT_RUNTIME_CAPABILITY, ATTRIBUTES) {
         protected void performRuntime(final OperationContext context, final ModelNode operation, final ModelNode model) throws OperationFailedException {
 
             RuntimeCapability<Void> runtimeCapability = DIR_CONTEXT_RUNTIME_CAPABILITY.fromBaseCapability(context.getCurrentAddressValue());
             ServiceName serviceName = runtimeCapability.getCapabilityServiceName(DirContextSupplier.class);
 
+            final InjectedValue<ExceptionSupplier<CredentialSource, Exception>> credentialSourceSupplierInjector = new InjectedValue<>();
+            final InjectedValue<AuthenticationContext> authenticationContextInjector = new InjectedValue<>();
             final InjectedValue<SSLContext> sslContextInjector = new InjectedValue<>();
 
-            TrivialService<DirContextSupplier> service = new TrivialService<>(obtainDirContextSupplier(context, model, sslContextInjector));
+            TrivialService<DirContextSupplier> service = new TrivialService<>(obtainDirContextSupplier(context, model, credentialSourceSupplierInjector, authenticationContextInjector, sslContextInjector));
             ServiceBuilder<DirContextSupplier> serviceBuilder = context.getServiceTarget().addService(serviceName, service);
 
             String sslContextName = asStringIfDefined(context, SSL_CONTEXT, model);
@@ -194,6 +221,17 @@ public class DirContextDefinition extends SimpleResourceDefinition {
                 String sslCapability = RuntimeCapability.buildDynamicCapabilityName(SSL_CONTEXT_CAPABILITY, sslContextName);
                 ServiceName sslServiceName = context.getCapabilityServiceName(sslCapability, SSLContext.class);
                 serviceBuilder.addDependency(sslServiceName, SSLContext.class, sslContextInjector);
+            }
+
+            if (CREDENTIAL_REFERENCE.resolveModelAttribute(context, model).isDefined()) {
+                credentialSourceSupplierInjector.inject(CredentialReference.getCredentialSourceSupplier(context, CREDENTIAL_REFERENCE, model, serviceBuilder));
+            }
+
+            String authenticationContextName = asStringIfDefined(context, AUTHENTICATION_CONTEXT, model);
+            if (authenticationContextName != null) {
+                String acCapability = RuntimeCapability.buildDynamicCapabilityName(AUTHENTICATION_CONTEXT_CAPABILITY, authenticationContextName);
+                ServiceName acServiceName = context.getCapabilityServiceName(acCapability, AuthenticationContext.class);
+                serviceBuilder.addDependency(acServiceName, AuthenticationContext.class, authenticationContextInjector);
             }
 
             serviceBuilder
@@ -204,7 +242,7 @@ public class DirContextDefinition extends SimpleResourceDefinition {
 
     private static final OperationStepHandler REMOVE = new TrivialCapabilityServiceRemoveHandler(ADD, DIR_CONTEXT_RUNTIME_CAPABILITY);
 
-    private static class WriteAttributeHandler extends RestartParentWriteAttributeHandler {
+    private static class WriteAttributeHandler extends ElytronRestartParentWriteAttributeHandler {
 
         WriteAttributeHandler() {
             super(ElytronDescriptionConstants.DIR_CONTEXT, ATTRIBUTES);

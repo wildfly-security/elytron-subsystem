@@ -12,12 +12,6 @@
         <filesystem-realm name="FileRealm" levels="2">
             <file path="filesystem-realm" relative-to="jboss.server.config.dir" />
         </filesystem-realm>
-        <properties-realm name="PropRealm">
-            <users-properties path="testingrealm1-users.properties" relative-to="jboss.server.config.dir" />
-        </properties-realm>
-        <properties-realm name="NonDomainRealm">
-            <users-properties path="testingrealm1-users.properties" relative-to="jboss.server.config.dir" />
-        </properties-realm>
     </security-realms>
     <credential-stores>
         <credential-store name="test">
@@ -46,7 +40,7 @@
             <filtering-key-store name="FilteringKeyStore" key-store="FireflyKeystore" alias-filter="NONE:+firefly"/>
         </key-stores>
         <key-managers>
-            <key-manager name="ServerKeyManager" algorithm="SunX509" key-store="LocalhostKeystore">
+            <key-manager name="ServerKeyManager" algorithm="SunX509" key-store="LocalhostKeystore" alias-filter="NONE:+localhost">
                 <credential-reference store="test" alias="the-key-alias"/>
             </key-manager>
             <key-manager name="ClientKeyManager" algorithm="SunX509" key-store="FireflyKeystore">
@@ -57,8 +51,15 @@
             </key-manager>
         </key-managers>
         <trust-managers>
-            <trust-manager name="CaTrustManager" algorithm="SunX509" key-store="ElytronCaTruststore"/>
+            <trust-manager name="CaTrustManager" algorithm="SunX509" key-store="ElytronCaTruststore" alias-filter="NONE:+mykey"/>
             <trust-manager name="MyTrustManager" algorithm="SunX509" key-store="ElytronCaTruststore" providers="ManagerProviderLoader" provider-name="SunJSSE"/>
+            <trust-manager name="ProviderTrustManager" algorithm="SunX509" key-store="ElytronCaTruststore" providers="ManagerProviderLoader" provider-name="SunJSSE"/>
+            <trust-manager name="trust-with-crl" algorithm="PKIX" key-store="ElytronCaTruststore">
+                <certificate-revocation-list path="crl.pem" relative-to="jboss.server.config.dir" maximum-cert-path="2"/>
+            </trust-manager>
+            <trust-manager name="trust-with-crl-dp" algorithm="PKIX" key-store="ElytronCaTruststore">
+                <certificate-revocation-list />
+            </trust-manager>
         </trust-managers>
         <server-ssl-contexts>
             <server-ssl-context name="ServerSslContextNoAuth" key-managers="ServerKeyManager" trust-managers="CaTrustManager"/>

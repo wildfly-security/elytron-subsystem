@@ -36,6 +36,7 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.AUTHENTI
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CERTIFICATE_ATTRIBUTE;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CERTIFICATE_CHAIN_ATTRIBUTE;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CERTIFICATE_CHAIN_ENCODING;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CERTIFICATE_REVOCATION_LIST;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CERTIFICATE_TYPE;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CIPHER_SUITE_FILTER;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.CLIENT_SSL_CONTEXT;
@@ -54,6 +55,7 @@ import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEY_STOR
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.KEY_TYPE;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.LDAP_KEY_STORE;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.LDAP_MAPPING;
+import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MAXIMUM_CERT_PATH;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.MAXIMUM_SESSION_CACHE_SIZE;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NAME;
 import static org.wildfly.extension.elytron.ElytronDescriptionConstants.NEED_CLIENT_AUTH;
@@ -172,6 +174,9 @@ class TlsParser {
                     case KEY_STORE:
                         SSLDefinitions.KEYSTORE.parseAndSetParameter(value, addKeyManager, reader);
                         break;
+                    case ALIAS_FILTER:
+                        SSLDefinitions.ALIAS_FILTER.parseAndSetParameter(value, addKeyManager, reader);
+                        break;
                     case PROVIDERS:
                         SSLDefinitions.PROVIDERS.parseAndSetParameter(value, addKeyManager, reader);
                         break;
@@ -239,6 +244,9 @@ class TlsParser {
                     case KEY_STORE:
                         SSLDefinitions.KEYSTORE.parseAndSetParameter(value, addKeyManager, reader);
                         break;
+                    case ALIAS_FILTER:
+                        SSLDefinitions.ALIAS_FILTER.parseAndSetParameter(value, addKeyManager, reader);
+                        break;
                     case PROVIDERS:
                         SSLDefinitions.PROVIDERS.parseAndSetParameter(value, addKeyManager, reader);
                         break;
@@ -256,9 +264,47 @@ class TlsParser {
         }
 
         addKeyManager.get(OP_ADDR).set(parentAddress).add(TRUST_MANAGERS, name);
-        list.add(addKeyManager);
 
-        requireNoContent(reader);
+        readCertificateRevocationList(reader, addKeyManager, requiredAttributes);
+
+        list.add(addKeyManager);
+    }
+
+    private void readCertificateRevocationList(XMLExtendedStreamReader reader, ModelNode addKeyManager, Set<String> requiredAttributes) throws XMLStreamException {
+        while(reader.hasNext() && reader.nextTag() != END_ELEMENT) {
+            verifyNamespace(reader);
+            String localName = reader.getLocalName();
+            if (CERTIFICATE_REVOCATION_LIST.equals(localName)) {
+                ModelNode crlNode = new ModelNode().setEmptyObject();
+                final int count = reader.getAttributeCount();
+                for (int i = 0; i < count; i++) {
+                    final String value = reader.getAttributeValue(i);
+                    if (!isNoNamespaceAttribute(reader, i)) {
+                        throw unexpectedAttribute(reader, i);
+                    } else {
+                        String attribute = reader.getAttributeLocalName(i);
+                        requiredAttributes.remove(attribute);
+                        switch (attribute) {
+                            case PATH:
+                                FileAttributeDefinitions.PATH.parseAndSetParameter(value, crlNode, reader);
+                                break;
+                            case RELATIVE_TO:
+                                FileAttributeDefinitions.RELATIVE_TO.parseAndSetParameter(value, crlNode, reader);
+                                break;
+                            case MAXIMUM_CERT_PATH:
+                                SSLDefinitions.MAXIMUM_CERT_PATH.parseAndSetParameter(value, crlNode, reader);
+                                break;
+                            default:
+                                throw unexpectedAttribute(reader, i);
+                        }
+                    }
+                }
+                requireNoContent(reader);
+                addKeyManager.get(CERTIFICATE_REVOCATION_LIST).set(crlNode);
+            } else {
+                throw unexpectedElement(reader);
+            }
+        }
     }
 
     private void readServerSSLContexts(ModelNode parentAddress, XMLExtendedStreamReader reader, List<ModelNode> operations) throws XMLStreamException {
@@ -783,11 +829,7 @@ class TlsParser {
                 SSLDefinitions.KEYSTORE.marshallAsAttribute(keyManager, writer);
                 SSLDefinitions.PROVIDERS.marshallAsAttribute(keyManager, writer);
                 SSLDefinitions.PROVIDER_NAME.marshallAsAttribute(keyManager, writer);
-
-                if (keyManager.hasDefined(CredentialReference.CREDENTIAL_REFERENCE)) {
-                    // when [WFCORE-2210] use this marshallAsElement and delete next line: CredentialReference.getAttributeDefinition().marshallAsElement(keyManager, writer);
-                    KeyStoreDefinition.CREDENTIAL_REFERENCE.marshallAsElement(keyManager, writer);
-                }
+                CredentialReference.getAttributeDefinition().marshallAsElement(keyManager, writer);
 
                 writer.writeEndElement();
             }
@@ -812,6 +854,7 @@ class TlsParser {
                 SSLDefinitions.KEYSTORE.marshallAsAttribute(trustManager, writer);
                 SSLDefinitions.PROVIDERS.marshallAsAttribute(trustManager, writer);
                 SSLDefinitions.PROVIDER_NAME.marshallAsAttribute(trustManager, writer);
+                SSLDefinitions.CERTIFICATE_REVOCATION_LIST.marshallAsElement(trustManager, writer);
 
                 writer.writeEndElement();
             }
@@ -911,9 +954,8 @@ class TlsParser {
 
                         writer.writeEndElement();
                     }
-                    if (keyStore.hasDefined(KeyStoreDefinition.CREDENTIAL_REFERENCE.getName())) {
-                        KeyStoreDefinition.CREDENTIAL_REFERENCE.marshallAsElement(keyStore, writer);
-                    }
+
+                    KeyStoreDefinition.CREDENTIAL_REFERENCE.marshallAsElement(keyStore, writer);
 
                     writer.writeEndElement(); // end of KEY_STORE
                 }

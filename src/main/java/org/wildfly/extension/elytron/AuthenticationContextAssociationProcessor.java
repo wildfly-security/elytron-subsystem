@@ -18,7 +18,7 @@
 package org.wildfly.extension.elytron;
 
 import static org.jboss.as.server.deployment.Attachments.MODULE;
-import static org.wildfly.extension.elytron.AuthenticationContextDependencyProcessor.AUTHENTICATION_CONTEXT_KEY;
+import static org.wildfly.extension.elytron.ElytronExtension.AUTHENTICATION_CONTEXT_KEY;
 
 import org.jboss.as.server.deployment.DeploymentPhaseContext;
 import org.jboss.as.server.deployment.DeploymentUnit;

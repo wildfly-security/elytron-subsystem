@@ -19,6 +19,7 @@
 package org.wildfly.extension.elytron;
 
 import java.security.KeyStore;
+import java.security.Policy;
 import java.security.Provider;
 
 import javax.net.ssl.KeyManager;
@@ -30,6 +31,7 @@ import org.jboss.as.controller.capability.RuntimeCapability;
 import org.wildfly.extension.elytron.capabilities.CredentialSecurityFactory;
 import org.wildfly.extension.elytron.capabilities.DirContextSupplier;
 import org.wildfly.extension.elytron.capabilities.PrincipalTransformer;
+import org.wildfly.extension.elytron.capabilities.SecurityEventListener;
 import org.wildfly.security.auth.client.AuthenticationConfiguration;
 import org.wildfly.security.auth.client.AuthenticationContext;
 import org.wildfly.security.auth.server.HttpAuthenticationFactory;
@@ -149,6 +151,12 @@ class Capabilities {
             .Builder.of(ROLE_MAPPER_CAPABILITY, true, RoleMapper.class)
             .build();
 
+    static final String SECURITY_EVENT_LISTENER_CAPABILITY = CAPABILITY_BASE + "security-event-listener";
+
+    static final RuntimeCapability<Void> SECURITY_EVENT_LISTENER_RUNTIME_CAPABILITY = RuntimeCapability
+            .Builder.of(SECURITY_EVENT_LISTENER_CAPABILITY, true, SecurityEventListener.class)
+            .build();
+
     static final String SASL_AUTHENTICATION_FACTORY_CAPABILITY = CAPABILITY_BASE + "sasl-authentication-factory";
 
     static final RuntimeCapability<Void> SASL_AUTHENTICATION_FACTORY_RUNTIME_CAPABILITY = RuntimeCapability
@@ -203,6 +211,16 @@ class Capabilities {
 
     static final RuntimeCapability<Void> DIR_CONTEXT_RUNTIME_CAPABILITY = RuntimeCapability
             .Builder.of(DIR_CONTEXT_CAPABILITY, true, DirContextSupplier.class)
+            .build();
+
+    static final String POLICY_CAPABILITY = CAPABILITY_BASE + "policy";
+    static final RuntimeCapability<Void> POLICY_RUNTIME_CAPABILITY =  RuntimeCapability
+            .Builder.of(POLICY_CAPABILITY, false, Policy.class)
+            .build();
+
+    static final String JACC_POLICY_CAPABILITY = CAPABILITY_BASE + "jacc-policy";
+    static final RuntimeCapability<Void> JACC_POLICY_RUNTIME_CAPABILITY =  RuntimeCapability
+            .Builder.of(JACC_POLICY_CAPABILITY, false, Policy.class)
             .build();
 
     /**

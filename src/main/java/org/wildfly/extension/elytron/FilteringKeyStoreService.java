@@ -35,7 +35,7 @@ import org.wildfly.security.keystore.FilteringKeyStore;
  *
  * @author <a href="mailto:jkalina@redhat.com">Jan Kalina</a>
  */
-public class FilteringKeyStoreService implements ModifiableKeyStoreService {
+class FilteringKeyStoreService implements ModifiableKeyStoreService {
 
     final InjectedValue<ModifiableKeyStoreService> serviceInjector;
     final String aliasFilter;

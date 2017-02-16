@@ -22,6 +22,7 @@ package org.wildfly.extension.elytron;
 import java.io.IOException;
 
 import org.jboss.as.subsystem.test.AbstractSubsystemBaseTest;
+import org.junit.Before;
 import org.junit.Test;
 
 
@@ -39,9 +40,19 @@ public class SubsystemParsingTestCase extends AbstractSubsystemBaseTest {
         super(ElytronExtension.SUBSYSTEM_NAME, new ElytronExtension());
     }
 
+    @Before
+    public void init() throws Exception {
+        TestEnvironment.forceRequireRuntimeFalse();
+    }
+
     @Override
     protected String getSubsystemXml() throws IOException {
         return readResource("domain-test.xml");
+    }
+
+    @Test
+    public void testParseAndMarshalModel_AuditLogging() throws Exception {
+        standardSubsystemTest("audit-logging.xml");
     }
 
     @Test
@@ -102,5 +113,10 @@ public class SubsystemParsingTestCase extends AbstractSubsystemBaseTest {
     @Test
     public void testParseAndMarshalModel_IdentityManagement() throws Exception {
         standardSubsystemTest("identity-management.xml");
+    }
+
+    @Test
+    public void testParseAndMarshalModel_JaccWithProviders() throws Exception {
+        standardSubsystemTest("jacc-with-providers.xml");
     }
 }

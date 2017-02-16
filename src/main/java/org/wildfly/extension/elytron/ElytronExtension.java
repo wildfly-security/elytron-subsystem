@@ -39,10 +39,12 @@ import org.jboss.as.controller.descriptions.StandardResourceDescriptionResolver;
 import org.jboss.as.controller.operations.common.GenericSubsystemDescribeHandler;
 import org.jboss.as.controller.parsing.ExtensionParsingContext;
 import org.jboss.as.controller.registry.ManagementResourceRegistration;
+import org.jboss.as.server.deployment.AttachmentKey;
 import org.jboss.dmr.ModelNode;
 import org.jboss.msc.service.ServiceController;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.ServiceRegistry;
+import org.wildfly.security.auth.client.AuthenticationContext;
 
 /**
  * Main entry point for initialising the WildFly Elytron subsystem.
@@ -61,6 +63,11 @@ public class ElytronExtension implements Extension {
      * The name of our subsystem within the model.
      */
     public static final String SUBSYSTEM_NAME = "elytron";
+
+    /**
+     * The attachment key that is used for associating the authentication context with a deployment context.
+     */
+    public static final AttachmentKey<AuthenticationContext> AUTHENTICATION_CONTEXT_KEY = AttachmentKey.create(AuthenticationContext.class);
 
     static final ModelVersion ELYTRON_1_0_0 = ModelVersion.create(1);
 

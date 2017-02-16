@@ -22,7 +22,6 @@ import org.jboss.as.controller.AttributeDefinition;
 import org.jboss.as.controller.PathAddress;
 import org.jboss.as.controller.PathElement;
 import org.jboss.as.controller.ResourceDefinition;
-import org.jboss.as.controller.RestartParentWriteAttributeHandler;
 import org.jboss.as.controller.SimpleResourceDefinition;
 import org.jboss.as.controller.capability.RuntimeCapability;
 import org.jboss.as.controller.descriptions.ResourceDescriptionResolver;
@@ -69,7 +68,7 @@ class TrivialResourceDefinition extends SimpleResourceDefinition {
          }
     }
 
-    private class WriteAttributeHandler extends RestartParentWriteAttributeHandler {
+    private class WriteAttributeHandler extends ElytronRestartParentWriteAttributeHandler {
 
         WriteAttributeHandler(String parentName, AttributeDefinition ... attributes) {
             super(parentName, attributes);

@@ -21,7 +21,6 @@ import static org.wildfly.common.Assert.checkNotNullParam;
 
 import java.util.function.Function;
 
-import org.jboss.as.controller.AbstractRuntimeOnlyHandler;
 import org.jboss.as.controller.DelegatingResourceDefinition;
 import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
@@ -59,7 +58,7 @@ class AvailableMechanismsRuntimeResource extends DelegatingResourceDefinition {
         resourceRegistration.registerReadOnlyAttribute(AVAILABLE_MECHANISMS, new AvailableMechanismsHandler());
     }
 
-    private class AvailableMechanismsHandler extends AbstractRuntimeOnlyHandler {
+    private class AvailableMechanismsHandler extends ElytronRuntimeOnlyHandler {
 
         @Override
         protected void executeRuntimeStep(OperationContext context, ModelNode operation) throws OperationFailedException {

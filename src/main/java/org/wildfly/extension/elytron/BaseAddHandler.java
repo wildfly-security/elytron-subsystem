@@ -22,7 +22,6 @@ import java.util.Set;
 import org.jboss.as.controller.AbstractAddStepHandler;
 import org.jboss.as.controller.AttributeDefinition;
 import org.jboss.as.controller.OperationContext;
-import org.jboss.as.controller.RunningMode;
 import org.jboss.as.controller.capability.RuntimeCapability;
 
 /**
@@ -31,7 +30,7 @@ import org.jboss.as.controller.capability.RuntimeCapability;
  *
  * @author <a href="mailto:darran.lofthouse@jboss.com">Darran Lofthouse</a>
  */
-class BaseAddHandler extends AbstractAddStepHandler {
+class BaseAddHandler extends AbstractAddStepHandler implements ElytronOperationStepHandler {
 
     /**
      * Constructor of the add handler that takes an array of {@link AttributeDefinition}.
@@ -72,7 +71,7 @@ class BaseAddHandler extends AbstractAddStepHandler {
      */
     @Override
     protected boolean requiresRuntime(OperationContext context) {
-        return context.isDefaultRequiresRuntime() || context.isNormalServer() && RunningMode.ADMIN_ONLY == context.getRunningMode();
+        return isServerOrHostController(context);
     }
 
 }

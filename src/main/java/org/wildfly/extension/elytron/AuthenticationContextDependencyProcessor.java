@@ -21,7 +21,6 @@ import static org.jboss.as.server.deployment.Attachments.CAPABILITY_SERVICE_SUPP
 import static org.wildfly.extension.elytron.Capabilities.AUTHENTICATION_CONTEXT_CAPABILITY;
 
 import org.jboss.as.controller.capability.CapabilityServiceSupport;
-import org.jboss.as.server.deployment.AttachmentKey;
 import org.jboss.as.server.deployment.DeploymentPhaseContext;
 import org.jboss.as.server.deployment.DeploymentUnit;
 import org.jboss.as.server.deployment.DeploymentUnitProcessingException;
@@ -37,8 +36,6 @@ import org.wildfly.security.auth.client.AuthenticationContext;
  */
 class AuthenticationContextDependencyProcessor implements DeploymentUnitProcessor {
 
-    static final AttachmentKey<AuthenticationContext> AUTHENTICATION_CONTEXT_KEY = AttachmentKey.create(AuthenticationContext.class);
-
     private volatile String defaultAuthenticationContext;
 
     @Override
@@ -47,7 +44,7 @@ class AuthenticationContextDependencyProcessor implements DeploymentUnitProcesso
         if (defaultAuthenticationContext != null) {
             CapabilityServiceSupport capabilityServiceSupport = context.getDeploymentUnit().getAttachment(CAPABILITY_SERVICE_SUPPORT);
             ServiceName serviceName = capabilityServiceSupport.getCapabilityServiceName(AUTHENTICATION_CONTEXT_CAPABILITY, defaultAuthenticationContext);
-            context.addDependency(serviceName, AUTHENTICATION_CONTEXT_KEY);
+            context.addDependency(serviceName, ElytronExtension.AUTHENTICATION_CONTEXT_KEY);
         }
     }
 

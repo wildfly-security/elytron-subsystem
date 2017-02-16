@@ -46,7 +46,6 @@ import org.jboss.as.controller.OperationStepHandler;
 import org.jboss.as.controller.PathAddress;
 import org.jboss.as.controller.PathElement;
 import org.jboss.as.controller.ResourceDefinition;
-import org.jboss.as.controller.RestartParentWriteAttributeHandler;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
 import org.jboss.as.controller.SimpleResourceDefinition;
@@ -93,7 +92,8 @@ class JdbcRealmDefinition extends SimpleResourceDefinition {
      */
     static class ClearPasswordObjectDefinition implements PasswordMapperObjectDefinition {
 
-        static final SimpleAttributeDefinition ALGORITHM = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ALGORITHM, ModelType.STRING, false)
+        static final SimpleAttributeDefinition ALGORITHM = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ALGORITHM, ModelType.STRING)
+                .setRequired(false)
                 .setDefaultValue(new ModelNode(ClearPassword.ALGORITHM_CLEAR))
                 .setValidator(new StringValuesValidator(ClearPassword.ALGORITHM_CLEAR))
                 .setAllowExpression(false)
@@ -141,7 +141,8 @@ class JdbcRealmDefinition extends SimpleResourceDefinition {
      */
     static class BcryptPasswordObjectDefinition implements PasswordMapperObjectDefinition {
 
-        static final SimpleAttributeDefinition ALGORITHM = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ALGORITHM, ModelType.STRING, false)
+        static final SimpleAttributeDefinition ALGORITHM = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ALGORITHM, ModelType.STRING)
+                .setRequired(false)
                 .setDefaultValue(new ModelNode(BCryptPassword.ALGORITHM_BCRYPT))
                 .setValidator(new StringValuesValidator(BCryptPassword.ALGORITHM_BCRYPT))
                 .setAllowExpression(false)
@@ -204,7 +205,8 @@ class JdbcRealmDefinition extends SimpleResourceDefinition {
      */
     static class SaltedSimpleDigestObjectDefinition implements PasswordMapperObjectDefinition {
 
-        static final SimpleAttributeDefinition ALGORITHM = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ALGORITHM, ModelType.STRING, false)
+        static final SimpleAttributeDefinition ALGORITHM = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ALGORITHM, ModelType.STRING)
+                .setRequired(false)
                 .setDefaultValue(new ModelNode(SaltedSimpleDigestPassword.ALGORITHM_PASSWORD_SALT_DIGEST_MD5))
                 .setValidator(new StringValuesValidator(
                         SaltedSimpleDigestPassword.ALGORITHM_PASSWORD_SALT_DIGEST_MD5,
@@ -270,7 +272,8 @@ class JdbcRealmDefinition extends SimpleResourceDefinition {
      */
     static class SimpleDigestMapperObjectDefinition implements PasswordMapperObjectDefinition {
 
-        static final SimpleAttributeDefinition ALGORITHM = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ALGORITHM, ModelType.STRING, false)
+        static final SimpleAttributeDefinition ALGORITHM = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ALGORITHM, ModelType.STRING)
+                .setRequired(false)
                 .setDefaultValue(new ModelNode(SimpleDigestPassword.ALGORITHM_SIMPLE_DIGEST_MD5))
                 .setValidator(new StringValuesValidator(
                         SimpleDigestPassword.ALGORITHM_SIMPLE_DIGEST_MD2,
@@ -324,7 +327,8 @@ class JdbcRealmDefinition extends SimpleResourceDefinition {
      */
     static class ScramMapperObjectDefinition implements PasswordMapperObjectDefinition {
 
-        static final SimpleAttributeDefinition ALGORITHM = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ALGORITHM, ModelType.STRING, false)
+        static final SimpleAttributeDefinition ALGORITHM = new SimpleAttributeDefinitionBuilder(ElytronDescriptionConstants.ALGORITHM, ModelType.STRING)
+                .setRequired(false)
                 .setDefaultValue(new ModelNode(ScramDigestPassword.ALGORITHM_SCRAM_SHA_256))
                 .setValidator(new StringValuesValidator(
                         ScramDigestPassword.ALGORITHM_SCRAM_SHA_1,
@@ -604,7 +608,7 @@ class JdbcRealmDefinition extends SimpleResourceDefinition {
         }
     }
 
-    private static class WriteAttributeHandler extends RestartParentWriteAttributeHandler {
+    private static class WriteAttributeHandler extends ElytronRestartParentWriteAttributeHandler {
 
         WriteAttributeHandler() {
             super(ElytronDescriptionConstants.JDBC_REALM, ATTRIBUTES);

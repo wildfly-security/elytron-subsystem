@@ -22,6 +22,7 @@ import static org.jboss.logging.Logger.Level.INFO;
 import static org.jboss.logging.Logger.Level.WARN;
 
 import java.io.IOException;
+import java.net.UnknownHostException;
 import java.security.KeyStore;
 import java.security.NoSuchProviderException;
 import java.security.Provider;
@@ -38,7 +39,6 @@ import org.jboss.msc.service.ServiceController.State;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.StartException;
 import org.wildfly.extension.elytron.Configurable;
-import org.wildfly.security.auth.server.SecurityDomain;
 import org.wildfly.security.auth.server.SecurityRealm;
 
 /**
@@ -62,11 +62,10 @@ public interface ElytronSubsystemMessages extends BasicLogger {
      * {@link OperationFailedException} if the same realm is injected multiple times for a single domain.
      *
      * @param realmName - the name of the {@link SecurityRealm} being injected.
-     * @param domainName - the name of the {@link SecurityDomain} the realm is being injected for.
      * @return The {@link OperationFailedException} for the error.
      */
-    @Message(id = 2, value = "Can not inject the same realm '%s' in a single security domain '%s'.")
-    OperationFailedException duplicateRealmInjection(final String realmName, final String domainName);
+    @Message(id = 2, value = "Can not inject the same realm '%s' in a single security domain.")
+    OperationFailedException duplicateRealmInjection(final String realmName);
 
     /**
      * An {@link IllegalArgumentException} if the supplied operation did not contain an address with a value for the required key.
@@ -260,8 +259,8 @@ public interface ElytronSubsystemMessages extends BasicLogger {
     @Message(id = 25, value = "Referenced property file is invalid: %s")
     StartException propertyFileIsInvalid(String message, @Cause Throwable cause);
 
-    @Message(id = 26, value = "trusted-security-domains cannot contain the security-domain \"%s\" itself")
-    OperationFailedException trustedDomainsCannotContainDomainItself(String domain);
+    //@Message(id = 26, value = "trusted-security-domains cannot contain the security-domain \"%s\" itself")
+    //OperationFailedException trustedDomainsCannotContainDomainItself(String domain);
 
     @Message(id = 27, value = "Unable to obtain OID for X.500 attribute '%s'")
     OperationFailedException unableToObtainOidForX500Attribute(String attribute);
@@ -274,6 +273,12 @@ public interface ElytronSubsystemMessages extends BasicLogger {
 
     @Message(id = 30, value = "Realm '%s' does not support cache")
     StartException realmDoesNotSupportCache(String realmName);
+
+    @Message(id = 31, value = "Unable to access CRL file.")
+    StartException unableToAccessCRL(@Cause Exception cause);
+
+    @Message(id = 32, value = "Unable to reload CRL file.")
+    RuntimeException unableToReloadCRL(@Cause Exception cause);
 
     // CREDENTIAL_STORE section
     @Message(id = 909, value = "Credential store '%s' does not support given credential store entry type '%s'")
@@ -299,6 +304,9 @@ public interface ElytronSubsystemMessages extends BasicLogger {
 
     @Message(id = 916, value = "Credential cannot be resolved")
     IllegalStateException credentialCannotBeResolved();
+
+    @Message(id = 917, value = "Password cannot be resolved for dir-context")
+    StartException dirContextPasswordCannotBeResolved(@Cause Exception cause);
 
     /*
      * Identity Resource Messages - 1000
@@ -348,4 +356,11 @@ public interface ElytronSubsystemMessages extends BasicLogger {
 
     @Message(id = 1014, value = "Invalid [%s] definition.")
     OperationFailedException invalidDefinition(final String property);
+
+    @Message(id = 1015, value = "Unable to perform automatic outflow for '%s'")
+    IllegalStateException unableToPerformOutflow(String identityName, @Cause Exception cause);
+
+    @Message(id = 1016, value = "Server '%s' not known")
+    OperationFailedException serverNotKnown(final String serverAddedd, @Cause UnknownHostException e);
+
 }
