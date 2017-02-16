@@ -32,6 +32,7 @@ import java.util.concurrent.Future;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.SSLSocket;
+import javax.net.ssl.TrustManager;
 
 import org.jboss.as.controller.client.helpers.ClientConstants;
 import org.jboss.as.subsystem.test.AbstractSubsystemTest;
@@ -103,6 +104,27 @@ public class TlsTestCase extends AbstractSubsystemTest {
     @Test(expected = SSLHandshakeException.class)
     public void testSslServiceAuthRequiredButNotProvided() throws Throwable {
         testCommunication("ServerSslContextAuth", "ClientSslContextNoAuth", "OU=Elytron,O=Elytron,C=UK,ST=Elytron,CN=Firefly", "");
+    }
+
+    @Test
+    public void testProviderTrustManager() throws Throwable {
+        ServiceName serviceName = Capabilities.TRUST_MANAGERS_RUNTIME_CAPABILITY.getCapabilityServiceName("ProviderTrustManager");
+        TrustManager[] trustManagers = (TrustManager[]) services.getContainer().getService(serviceName).getValue();
+        Assert.assertNotNull(trustManagers);
+    }
+
+    @Test
+    public void testRevocationLists() throws Throwable {
+        ServiceName serviceName = Capabilities.TRUST_MANAGERS_RUNTIME_CAPABILITY.getCapabilityServiceName("trust-with-crl");
+        TrustManager[] trustManagers = (TrustManager[]) services.getContainer().getService(serviceName).getValue();
+        Assert.assertNotNull(trustManagers);
+    }
+
+    @Test
+    public void testRevocationListsDp() throws Throwable {
+        ServiceName serviceName = Capabilities.TRUST_MANAGERS_RUNTIME_CAPABILITY.getCapabilityServiceName("trust-with-crl-dp");
+        TrustManager[] trustManagers = (TrustManager[]) services.getContainer().getService(serviceName).getValue();
+        Assert.assertNotNull(trustManagers);
     }
 
     private SSLContext getSslContext(String contextName) {

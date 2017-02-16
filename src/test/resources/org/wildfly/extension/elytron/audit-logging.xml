@@ -1,4 +1,7 @@
 <subsystem xmlns="urn:wildfly:elytron:1.0" default-authentication-context="child">
+    <authentication-client>
+        <authentication-context name="child"/>
+    </authentication-client>
     <audit-logging>
         <aggregate-security-event-listener name="combined">
             <security-event-listener name="local-file"/>

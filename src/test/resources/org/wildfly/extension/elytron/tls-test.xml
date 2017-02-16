@@ -12,12 +12,6 @@
         <filesystem-realm name="FileRealm" levels="2">
             <file path="filesystem-realm" relative-to="jboss.server.config.dir" />
         </filesystem-realm>
-        <properties-realm name="PropRealm">
-            <users-properties path="testingrealm1-users.properties" relative-to="jboss.server.config.dir" />
-        </properties-realm>
-        <properties-realm name="NonDomainRealm">
-            <users-properties path="testingrealm1-users.properties" relative-to="jboss.server.config.dir" />
-        </properties-realm>
     </security-realms>
     <credential-stores>
         <credential-store name="test">
@@ -58,11 +52,11 @@
         </key-managers>
         <trust-managers>
             <trust-manager name="CaTrustManager" algorithm="SunX509" key-store="ElytronCaTruststore"/>
-            <trust-manager name="MyTrustManager" algorithm="SunX509" key-store="ElytronCaTruststore" providers="ManagerProviderLoader" provider-name="SunJSSE"/>
-            <trust-manager name="trust-with-crl" algorithm="SunX509" key-store="ElytronCaTruststore">
+            <trust-manager name="ProviderTrustManager" algorithm="SunX509" key-store="ElytronCaTruststore" providers="ManagerProviderLoader" provider-name="SunJSSE"/>
+            <trust-manager name="trust-with-crl" algorithm="PKIX" key-store="ElytronCaTruststore">
                 <certificate-revocation-list path="crl.pem" relative-to="jboss.server.config.dir" maximum-cert-path="2"/>
             </trust-manager>
-            <trust-manager name="trust-with-crl-dp" algorithm="SunX509" key-store="ElytronCaTruststore">
+            <trust-manager name="trust-with-crl-dp" algorithm="PKIX" key-store="ElytronCaTruststore">
                 <certificate-revocation-list />
             </trust-manager>
         </trust-managers>
