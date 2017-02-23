@@ -237,7 +237,7 @@ class ElytronDefinition extends SimpleResourceDefinition {
                     HandbackHolder<Void> handbackHolder)
                     throws OperationFailedException {
                 AUTHENITCATION_CONTEXT_PROCESSOR.setDefaultAuthenticationContext(resolvedValue.isDefined() ? resolvedValue.asString() : null);
-                return false;
+                return !context.isBooting();
             }
 
             @Override
