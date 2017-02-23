@@ -20,6 +20,7 @@ package org.wildfly.extension.elytron;
 
 import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -68,7 +69,7 @@ class CredentialStoreResource extends DelegatingResource {
         try {
             if (ElytronDescriptionConstants.ALIAS.equals(element.getKey())) {
                 CredentialStore credentialStore = credentialStoreServiceController != null ? credentialStoreServiceController.getValue() : null;
-                if (credentialStore != null && (credentialStore.getAliases().contains(element.getValue()))) {
+                if (credentialStore != null && (credentialStore.getAliases().contains(toLower(element.getValue())))) {
                     return true;
                 }
                 return false;
@@ -84,7 +85,7 @@ class CredentialStoreResource extends DelegatingResource {
         try {
             if (ElytronDescriptionConstants.ALIAS.equals(element.getKey())) {
                 CredentialStore credentialStore = credentialStoreServiceController != null ? credentialStoreServiceController.getValue() : null;
-                if (credentialStore != null && (credentialStore.getAliases().contains(element.getValue()))) {
+                if (credentialStore != null && (credentialStore.getAliases().contains(toLower(element.getValue())))) {
                     return Resource.Factory.create(true);
                 }
                 return null;
@@ -160,6 +161,10 @@ class CredentialStoreResource extends DelegatingResource {
         } catch (CredentialStoreException e) {
             return false;
         }
+    }
+
+    private String toLower(String parameter) {
+        return parameter != null ? parameter.toLowerCase(Locale.ROOT) : null;
     }
 
 }
