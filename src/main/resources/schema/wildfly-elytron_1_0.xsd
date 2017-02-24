@@ -284,7 +284,7 @@
                             </xs:documentation>
                         </xs:annotation>
                     </xs:attribute>
-                    <xs:attribute name="match-no-user" type="xs:string" default="false">
+                    <xs:attribute name="match-no-user" type="xs:boolean" default="false">
                         <xs:annotation>
                             <xs:documentation>
                                 Match based on no user.
