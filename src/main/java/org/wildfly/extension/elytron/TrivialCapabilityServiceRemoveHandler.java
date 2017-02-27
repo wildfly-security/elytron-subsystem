@@ -17,11 +17,20 @@
  */
 package org.wildfly.extension.elytron;
 
+import static org.wildfly.extension.elytron.Capabilities.ELYTRON_CAPABILITY;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
 import org.jboss.as.controller.AbstractAddStepHandler;
 import org.jboss.as.controller.OperationContext;
+import org.jboss.as.controller.OperationFailedException;
 import org.jboss.as.controller.OperationStepHandler;
 import org.jboss.as.controller.ServiceRemoveStepHandler;
 import org.jboss.as.controller.capability.RuntimeCapability;
+import org.jboss.as.controller.registry.Resource;
+import org.jboss.dmr.ModelNode;
 import org.jboss.msc.service.ServiceName;
 
 /**
@@ -32,6 +41,7 @@ import org.jboss.msc.service.ServiceName;
 class TrivialCapabilityServiceRemoveHandler extends ServiceRemoveStepHandler implements ElytronOperationStepHandler {
 
     private final RuntimeCapability<?> firstCapability;
+    private final Set<RuntimeCapability> allCapabilities;
 
     /**
      * Construct an {@link OperationStepHandler} for removing a single service based on it's capability.
@@ -42,6 +52,14 @@ class TrivialCapabilityServiceRemoveHandler extends ServiceRemoveStepHandler imp
     TrivialCapabilityServiceRemoveHandler(AbstractAddStepHandler addOperation, RuntimeCapability<?> ... runtimeCapabilities) {
         super(addOperation, runtimeCapabilities);
         this.firstCapability = runtimeCapabilities[0];
+        this.allCapabilities = new HashSet<>(Arrays.asList(runtimeCapabilities));
+    }
+
+    @Override
+    protected void recordCapabilitiesAndRequirements(OperationContext context, ModelNode operation, Resource resource) throws OperationFailedException {
+        super.recordCapabilitiesAndRequirements(context, operation, resource);
+        final String pathValue = context.getCurrentAddressValue();
+        allCapabilities.forEach(r -> context.deregisterCapabilityRequirement(ELYTRON_CAPABILITY, r.isDynamicallyNamed() ? r.getDynamicName(pathValue) : r.getName()));
     }
 
     /**
