@@ -17,12 +17,17 @@
  */
 package org.wildfly.extension.elytron;
 
+import static org.wildfly.extension.elytron.Capabilities.ELYTRON_CAPABILITY;
+import java.util.Collections;
 import java.util.Set;
 
 import org.jboss.as.controller.AbstractAddStepHandler;
 import org.jboss.as.controller.AttributeDefinition;
 import org.jboss.as.controller.OperationContext;
+import org.jboss.as.controller.OperationFailedException;
 import org.jboss.as.controller.capability.RuntimeCapability;
+import org.jboss.as.controller.registry.Resource;
+import org.jboss.dmr.ModelNode;
 
 /**
  * An extension of {@link AbstractAddStepHandler} to ensure all Elytron runtime operations are performed in the required server
@@ -32,6 +37,8 @@ import org.jboss.as.controller.capability.RuntimeCapability;
  */
 class BaseAddHandler extends AbstractAddStepHandler implements ElytronOperationStepHandler {
 
+    private final Set<RuntimeCapability> runtimeCapabilities;
+
     /**
      * Constructor of the add handler that takes an array of {@link AttributeDefinition}.
      *
@@ -39,6 +46,7 @@ class BaseAddHandler extends AbstractAddStepHandler implements ElytronOperationS
      */
     BaseAddHandler(AttributeDefinition... attributes) {
         super(attributes);
+        this.runtimeCapabilities = Collections.emptySet();
     }
 
     /**
@@ -49,6 +57,7 @@ class BaseAddHandler extends AbstractAddStepHandler implements ElytronOperationS
      */
     BaseAddHandler(RuntimeCapability<?> runtimeCapability, AttributeDefinition... attributes) {
         super(runtimeCapability, attributes);
+        this.runtimeCapabilities = Collections.singleton(runtimeCapability);
     }
 
 
@@ -61,6 +70,17 @@ class BaseAddHandler extends AbstractAddStepHandler implements ElytronOperationS
      */
     BaseAddHandler(Set<RuntimeCapability> capabilities, AttributeDefinition... attributes) {
         super(capabilities, attributes);
+        this.runtimeCapabilities = capabilities;
+    }
+
+
+
+    @Override
+    protected void recordCapabilitiesAndRequirements(OperationContext context, ModelNode operation, Resource resource) throws OperationFailedException {
+        super.recordCapabilitiesAndRequirements(context, operation, resource);
+
+        final String pathValue = context.getCurrentAddressValue();
+        runtimeCapabilities.forEach(r -> context.registerAdditionalCapabilityRequirement(ELYTRON_CAPABILITY, r.isDynamicallyNamed() ? r.getDynamicName(pathValue) : r.getName(), null));
     }
 
     /**

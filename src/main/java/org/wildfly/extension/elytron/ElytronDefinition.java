@@ -248,7 +248,6 @@ class ElytronDefinition extends SimpleResourceDefinition {
             }
 
         });
-
     }
 
     static <T> ServiceBuilder<T>  commonDependencies(ServiceBuilder<T> serviceBuilder) {

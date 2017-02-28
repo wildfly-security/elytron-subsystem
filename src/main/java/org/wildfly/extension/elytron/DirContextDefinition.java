@@ -164,7 +164,7 @@ class DirContextDefinition extends SimpleResourceDefinition {
         ModelNode properties = PROPERTIES.resolveModelAttribute(context, model);
         if (properties.isDefined()) {
             for (Property property : properties.asPropertyList()) {
-                connectionProperties.put(property.getName(), property.getValue());
+                connectionProperties.put(property.getName(), property.getValue().asString());
             }
         }
         ModelNode connectionTimeout = CONNECTION_TIMEOUT.resolveModelAttribute(context, model);
