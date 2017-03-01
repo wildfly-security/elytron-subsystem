@@ -232,6 +232,8 @@
     <supplement name="standalone-wildfly" includes="standalone">
         <replacement placeholder="ADDITIONAL_PERMISSIONS">
             <permission class-name="org.wildfly.extension.batch.jberet.deployment.BatchPermission" module="org.wildfly.extension.batch.jberet" target-name="*"/>
+            <permission class-name="org.wildfly.transaction.client.RemoteTransactionPermission" module="org.wildfly.transaction.client"/>
+            <permission class-name="org.jboss.ejb.client.RemoteEJBPermission" module="org.jboss.ejb-client"/>
         </replacement>
     </supplement>
 </config>

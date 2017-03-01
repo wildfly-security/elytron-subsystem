@@ -55,6 +55,7 @@ import org.wildfly.extension.elytron.TrivialService.ValueSupplier;
 import org.wildfly.extension.elytron._private.ElytronSubsystemMessages;
 import org.wildfly.security.authz.PermissionMapper;
 import org.wildfly.security.authz.SimplePermissionMapper;
+import org.wildfly.security.permission.InvalidPermissionClassException;
 import org.wildfly.security.permission.PermissionUtil;
 import org.wildfly.security.permission.PermissionVerifier;
 
@@ -199,7 +200,8 @@ class PermissionMapperDefinitions {
 
             Permissions permissions = new Permissions();
             for (Permission permission : current.getPermissions()) {
-                permissions.add(createPermission(permission));
+                final java.security.Permission realPerm = createPermission(permission);
+                if (realPerm != null) permissions.add(realPerm);
             }
 
             builder.addMapping(current.getPrincipals(), current.getRoles(), PermissionVerifier.from(permissions));
@@ -237,7 +239,8 @@ class PermissionMapperDefinitions {
     private static PermissionMapper createConstantPermissionMapper(List<Permission> permissionsList) throws StartException {
         Permissions permissions = new Permissions();
         for (Permission permission : permissionsList) {
-            permissions.add(createPermission(permission));
+            final java.security.Permission realPerm = createPermission(permission);
+            if (realPerm != null) permissions.add(realPerm);
         }
         return PermissionMapper.createConstant(PermissionVerifier.from(permissions));
     }
@@ -249,13 +252,17 @@ class PermissionMapperDefinitions {
             try {
                 currentModule = currentModule.getModule(mi);
             } catch (ModuleLoadException e) {
-                throw new StartException(e);
+                // If we cannot load it, it can never be checked.
+                return null;
             }
         }
 
         ClassLoader classLoader = currentModule != null ? currentModule.getClassLoader() : PermissionMapperDefinitions.class.getClassLoader();
         try {
             return PermissionUtil.createPermission(classLoader, permission.getClassName(), permission.getTargetName(), permission.getAction());
+        } catch (InvalidPermissionClassException e) {
+            // If we cannot load it, it can never be checked.
+            return null;
         } catch (Throwable e) {
             throw ElytronSubsystemMessages.ROOT_LOGGER.exceptionWhileCreatingPermission(permission.getClassName(), e);
         }
