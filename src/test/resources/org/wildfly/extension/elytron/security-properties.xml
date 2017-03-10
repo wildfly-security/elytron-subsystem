@@ -1,6 +1,0 @@
-<subsystem xmlns="urn:wildfly:elytron:1.0">
-    <security-properties>
-        <security-property name="a" value="b" />
-        <security-property name="c" value="d" />
-    </security-properties>
-</subsystem>
